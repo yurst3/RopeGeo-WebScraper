@@ -36,6 +36,9 @@ const REGION_COUNT_LIMIT = 6000;
     } finally {
         await pool.end();
         const totalTime = (new Date().getTime()) - beginTime.getTime();
-        console.log(`Total time: ${Math.floor(totalTime / (1000 * 60 * 60))} h ${Math.floor(totalTime / (1000 * 60))} m ${Math.floor(totalTime / 1000)} s`);
+        const totalTimeHours = Math.floor(totalTime / (1000 * 60 * 60));
+        const totalTimeMinutes = Math.floor(totalTime / (1000 * 60)) - (totalTimeHours * 60);
+        const totalTimeSeconds = Math.floor(totalTime / 1000) - (totalTimeMinutes * 60);
+        console.log(`\nTotal time: ${totalTimeHours} h ${totalTimeMinutes} m ${totalTimeSeconds} s`);
     }
 })()
