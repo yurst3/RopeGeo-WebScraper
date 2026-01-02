@@ -1,4 +1,3 @@
-import 'dotenv/config';
 import { Pool } from 'pg';
 import { describe, it, expect, beforeAll, afterAll, afterEach } from '@jest/globals';
 import * as db from 'zapatos/db';
@@ -6,8 +5,11 @@ import getUpdatedDatesForPages from '../../database/getUpdatedDatesForPages';
 
 describe('getUpdatedDatesForPages (integration)', () => {
     const pool = new Pool({
-        host: process.env.TEST_DB_HOST,
-        database: process.env.TEST_DB_NAME,
+        user: process.env.TEST_USER,
+        password: process.env.TEST_PASS,
+        host: process.env.TEST_HOST,
+        port: process.env.TEST_PORT ? parseInt(process.env.TEST_PORT, 10) : undefined,
+        database: process.env.TEST_DB,
     });
 
     const conn: db.Queryable = pool;
@@ -141,7 +143,10 @@ describe('getUpdatedDatesForPages (integration)', () => {
 
     it('propagates database errors', async () => {
         const badPool = new Pool({
-            host: process.env.TEST_DB_HOST,
+            user: process.env.TEST_USER,
+            password: process.env.TEST_PASS,
+            host: process.env.TEST_HOST,
+            port: process.env.TEST_PORT ? parseInt(process.env.TEST_PORT, 10) : undefined,
             database: 'nonexistent_database_for_test_error_updated_dates',
         });
 

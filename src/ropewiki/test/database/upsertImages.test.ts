@@ -1,4 +1,3 @@
-import 'dotenv/config';
 import { Pool } from 'pg';
 import * as db from 'zapatos/db';
 import type * as s from 'zapatos/schema';
@@ -12,8 +11,11 @@ import type { RopewikiBetaSection } from '../../types/ropewiki';
 
 describe('upsertImages (integration)', () => {
     const pool = new Pool({
-        host: process.env.TEST_DB_HOST,
-        database: process.env.TEST_DB_NAME,
+        user: process.env.TEST_USER,
+        password: process.env.TEST_PASS,
+        host: process.env.TEST_HOST,
+        port: process.env.TEST_PORT ? parseInt(process.env.TEST_PORT, 10) : undefined,
+        database: process.env.TEST_DB,
     });
 
     const conn: db.Queryable = pool;
@@ -301,7 +303,10 @@ describe('upsertImages (integration)', () => {
 
         // Use a client with a non-existent database to force an error
         const badPool = new Pool({
-            host: process.env.TEST_DB_HOST,
+            user: process.env.TEST_USER,
+            password: process.env.TEST_PASS,
+            host: process.env.TEST_HOST,
+            port: process.env.TEST_PORT ? parseInt(process.env.TEST_PORT, 10) : undefined,
             database: 'nonexistent_database_for_test_error_upsert_images',
         });
 

@@ -1,15 +1,9 @@
- 
 /* eslint-disable @typescript-eslint/no-require-imports */
 require('dotenv').config();
 import { Pool } from 'pg';
 import handleRopewikiRegions from "./handleRopewikiRegions"
 import handleRopewikiPages from './handleRopewikiPages';
 import getRegionCountsUnderLimit from './getRegionsUnderLimit';
-
-const pool = new Pool({
-    host: process.env.DEVELOPMENT_DB_HOST,
-    database: process.env.DEVELOPMENT_DB_NAME,
-});
 
 /*
 From testing, if the query for getting ropewiki pages ever has an offset above 5000 it treats it as an offset of 0.
@@ -19,8 +13,14 @@ Since 7000 isn't a multiple of 2000, we'll go with 6000 to make the code a littl
 */
 const REGION_COUNT_LIMIT = 6000;
 
-(async () => {
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export const ropewikiScraperHandler = async (event: unknown, context: any) => {
     const beginTime = new Date();
+    const pool = new Pool({
+        host: process.env.DEVELOPMENT_DB_HOST,
+        database: process.env.DEVELOPMENT_DB_NAME,
+    });
+
     try {
         // If there has been a recent revision to the Regions page, pull the Regions, parse, upsert them, and return the resulting ids
         const regionNameIds: {[name: string]: string} = await handleRopewikiRegions(pool);
@@ -33,12 +33,31 @@ const REGION_COUNT_LIMIT = 6000;
             // Pull all pages in the region, parse them, upsert them
             await handleRopewikiPages(pool, region, count, regionNameIds);
         }
-    } finally {
-        await pool.end();
+
         const totalTime = (new Date().getTime()) - beginTime.getTime();
         const totalTimeHours = Math.floor(totalTime / (1000 * 60 * 60));
         const totalTimeMinutes = Math.floor(totalTime / (1000 * 60)) - (totalTimeHours * 60);
         const totalTimeSeconds = Math.floor(totalTime / 1000) - (totalTimeMinutes * 60);
-        console.log(`\nTotal time: ${totalTimeHours} h ${totalTimeMinutes} m ${totalTimeSeconds} s`);
+        console.log(`\nTotal time: ${totalTimeHours}h ${totalTimeMinutes}m ${totalTimeSeconds}s`);
+
+        return {
+            statusCode: 200,
+            body: JSON.stringify({
+                message: 'Ropewiki scraper completed successfully',
+                regionsProcessed: Object.keys(regionCounts).length,
+                totalTime: `${totalTimeHours}h ${totalTimeMinutes}m ${totalTimeSeconds}s`,
+            }),
+        };
+    } catch (error) {
+        console.error('Error in Ropewiki scraper:', error);
+        return {
+            statusCode: 500,
+            body: JSON.stringify({
+                message: 'Ropewiki scraper failed',
+                error: error instanceof Error ? error.message : String(error),
+            }),
+        };
+    } finally {
+        await pool.end();
     }
-})()
+};
