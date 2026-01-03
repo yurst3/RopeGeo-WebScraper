@@ -17,7 +17,8 @@
     "test-db:stop": "docker stop test-db; docker rm test-db",
     "test:unit": "jest -i --testPathIgnorePatterns=/src/ropewiki/test/database/*",
     "test:database": "TEST_USER=testUser TEST_PASS=testPass TEST_HOST=127.0.0.1 TEST_PORT=8080 TEST_DB=test jest -i --testPathPatterns=/src/ropewiki/test/database/*",
-    "test:local": "npm run test:unit; npm run test-db:start; npm run test:database; npm run test-db:stop"
+    "test:local": "npm run test:unit; npm run test-db:start; npm run test:database; npm run test-db:stop",
+    "test:deploy": "jest -i"
   },
   "dependencies": {
     "@types/uuid": "^10.0.0",

@@ -1,0 +1,358 @@
+name: Pipeline
+
+on:
+  push:
+    branches:
+      - 'master'
+
+env:
+  PIPELINE_USER_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+  PIPELINE_USER_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+  SAM_TEMPLATE: template.yaml
+  TESTING_STACK_NAME: WebScraper
+  TESTING_PIPELINE_EXECUTION_ROLE: arn:aws:iam::410170143634:role/aws-sam-cli-managed-dev-pipel-PipelineExecutionRole-H6pcsIlT1GzO
+  TESTING_CLOUDFORMATION_EXECUTION_ROLE: arn:aws:iam::410170143634:role/aws-sam-cli-managed-dev-p-CloudFormationExecutionRo-tEPpCOWZDOCO
+  TESTING_ARTIFACTS_BUCKET: aws-sam-cli-managed-dev-pipeline-r-artifactsbucket-vab3mw03pxxb
+  # If there are functions with "Image" PackageType in your template,
+  # uncomment the line below and add "--image-repository ${TESTING_IMAGE_REPOSITORY}" to
+  # testing "sam package" and "sam deploy" commands.
+  # TESTING_IMAGE_REPOSITORY = '0123456789.dkr.ecr.region.amazonaws.com/repository-name'
+  TESTING_REGION: us-east-1
+  PROD_STACK_NAME: WebScraper-Prod
+  PROD_PIPELINE_EXECUTION_ROLE: arn:aws:iam::410170143634:role/aws-sam-cli-managed-productio-PipelineExecutionRole-FRy7F5j0k91U
+  PROD_CLOUDFORMATION_EXECUTION_ROLE: arn:aws:iam::410170143634:role/aws-sam-cli-managed-produ-CloudFormationExecutionRo-YIlb8V9GNR1Y
+  PROD_ARTIFACTS_BUCKET: aws-sam-cli-managed-production-pip-artifactsbucket-ixo4vubbqj28
+  # If there are functions with "Image" PackageType in your template,
+  # uncomment the line below and add "--image-repository ${PROD_IMAGE_REPOSITORY}" to
+  # prod "sam package" and "sam deploy" commands.
+  # PROD_IMAGE_REPOSITORY = '0123456789.dkr.ecr.region.amazonaws.com/repository-name'
+  PROD_REGION: us-east-1
+  DEV_DATABASE_USERNAME: ${{ secrets.DEV_DATABASE_USERNAME }}
+  DEV_DATABASE_PASSWORD: ${{ secrets.DEV_DATABASE_PASSWORD }}
+  PROD_DATABASE_USERNAME: ${{ secrets.PROD_DATABASE_USERNAME }}
+  PROD_DATABASE_PASSWORD: ${{ secrets.PROD_DATABASE_PASSWORD }}
+
+jobs:
+  test:
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    container: node:20-bookworm-slim
+    services:
+      postgres:
+        image: postgres
+        env:
+          POSTGRES_PASSWORD: testPass
+          POSTGRES_USER: testUser
+          POSTGRES_DB: test
+        ports:
+          - 8080:5432
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v5
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run database migrations
+        run: npm run migrate-test:up
+
+      - name: Run all tests
+        runt: npm run test:deploy
+        env:
+          TEST_USER: testUser
+          TEST_PASS: testPass
+          TEST_HOST: 127.0.0.1
+          TEST_PORT: 8080
+          TEST_DB: test
+
+  delete-feature:
+    if: startsWith(github.event.ref, 'feature') && github.event_name == 'delete'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: aws-actions/setup-sam@v2
+        with:
+          use-installer: true
+
+      - name: Assume the testing pipeline user role
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ env.PIPELINE_USER_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ env.PIPELINE_USER_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.TESTING_REGION }}
+          role-to-assume: ${{ env.TESTING_PIPELINE_EXECUTION_ROLE }}
+          role-session-name: testing-packaging
+          role-duration-seconds: 3600
+          role-skip-session-tagging: true
+
+      - name: Delete feature branch stack
+        env:
+          FEATURE_BRANCH_NAME: ${{ github.event.ref }}
+        run: |
+          sam delete \
+            --stack-name $(echo ${FEATURE_BRANCH_NAME##*/} | tr -cd '[a-zA-Z0-9-]') \
+            --region ${TESTING_REGION} \
+            --no-prompts
+
+  build-and-deploy-feature:
+    # this stage is triggered only for feature branches (feature*),
+    # which will build the stack and deploy to a stack named with branch name.
+    # https://github.com/actions/setup-python
+    # https://github.com/aws-actions/configure-aws-credentials#notice-node12-deprecation-warning
+    if: startsWith(github.ref, 'refs/heads/feature')
+    needs: [test]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: aws-actions/setup-sam@v2
+        with:
+          use-installer: true
+      - run: sam build --template ${SAM_TEMPLATE} --use-container
+
+      - name: Assume the testing pipeline user role
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ env.PIPELINE_USER_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ env.PIPELINE_USER_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.TESTING_REGION }}
+          role-to-assume: ${{ env.TESTING_PIPELINE_EXECUTION_ROLE }}
+          role-session-name: feature-deployment
+          role-duration-seconds: 3600
+          role-skip-session-tagging: true
+
+      - name: Deploy to feature stack in the testing account
+        shell: bash
+        run: |
+          sam deploy --stack-name $(echo ${GITHUB_REF##*/} | tr -cd '[a-zA-Z0-9-]') \
+            --capabilities CAPABILITY_IAM \
+            --region ${TESTING_REGION} \
+            --s3-bucket ${TESTING_ARTIFACTS_BUCKET} \
+            --no-fail-on-empty-changeset \
+            --role-arn ${TESTING_CLOUDFORMATION_EXECUTION_ROLE} \
+            --parameter-overrides devEnvironment=dev DatabaseUsername=${DEV_DATABASE_USERNAME} DatabasePassword=${DEV_DATABASE_PASSWORD}
+
+  build-and-package:
+    if: github.ref == 'refs/heads/master'
+    needs: [test]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: aws-actions/setup-sam@v2
+        with:
+          use-installer: true
+
+      - name: Build resources
+        run: sam build --template ${SAM_TEMPLATE} --use-container
+
+      - name: Assume the testing pipeline user role
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ env.PIPELINE_USER_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ env.PIPELINE_USER_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.TESTING_REGION }}
+          role-to-assume: ${{ env.TESTING_PIPELINE_EXECUTION_ROLE }}
+          role-session-name: testing-packaging
+          role-duration-seconds: 3600
+          role-skip-session-tagging: true
+
+      - name: Upload artifacts to testing artifact buckets
+        run: |
+          sam package \
+            --s3-bucket ${TESTING_ARTIFACTS_BUCKET} \
+            --region ${TESTING_REGION} \
+            --output-template-file packaged-testing.yaml
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: packaged-testing.yaml
+          path: packaged-testing.yaml
+
+      - name: Assume the prod pipeline user role
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ env.PIPELINE_USER_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ env.PIPELINE_USER_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.PROD_REGION }}
+          role-to-assume: ${{ env.PROD_PIPELINE_EXECUTION_ROLE }}
+          role-session-name: prod-packaging
+          role-duration-seconds: 3600
+          role-skip-session-tagging: true
+
+      - name: Upload artifacts to production artifact buckets
+        run: |
+          sam package \
+            --s3-bucket ${PROD_ARTIFACTS_BUCKET} \
+            --region ${PROD_REGION} \
+            --output-template-file packaged-prod.yaml
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: packaged-prod.yaml
+          path: packaged-prod.yaml
+
+  deploy-testing:
+    if: github.ref == 'refs/heads/master'
+    needs: [build-and-package]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: aws-actions/setup-sam@v2
+        with:
+          use-installer: true
+      - uses: actions/download-artifact@v4
+        with:
+          name: packaged-testing.yaml
+
+      - name: Assume the testing pipeline user role
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ env.PIPELINE_USER_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ env.PIPELINE_USER_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.TESTING_REGION }}
+          role-to-assume: ${{ env.TESTING_PIPELINE_EXECUTION_ROLE }}
+          role-session-name: testing-deployment
+          role-duration-seconds: 3600
+          role-skip-session-tagging: true
+
+      - name: Deploy to testing account
+        run: |
+          sam deploy --stack-name ${TESTING_STACK_NAME} \
+            --template packaged-testing.yaml \
+            --capabilities CAPABILITY_IAM \
+            --region ${TESTING_REGION} \
+            --s3-bucket ${TESTING_ARTIFACTS_BUCKET} \
+            --no-fail-on-empty-changeset \
+            --role-arn ${TESTING_CLOUDFORMATION_EXECUTION_ROLE} \
+            --parameter-overrides devEnvironment=dev DatabaseUsername=${DEV_DATABASE_USERNAME} DatabasePassword=${DEV_DATABASE_PASSWORD}
+
+  deploy-prod:
+    if: github.ref == 'refs/heads/master'
+    needs: [deploy-testing]
+    runs-on: ubuntu-latest
+    # Configure GitHub Action Environment to have a manual approval step before deployment to production
+    # https://docs.github.com/en/actions/reference/environments
+    # environment: <configured-environment>
+    steps:
+      - uses: actions/checkout@v3
+      - uses: aws-actions/setup-sam@v2
+        with:
+          use-installer: true
+      - uses: actions/download-artifact@v4
+        with:
+          name: packaged-prod.yaml
+
+      - name: Assume the prod pipeline user role
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ env.PIPELINE_USER_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ env.PIPELINE_USER_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.PROD_REGION }}
+          role-to-assume: ${{ env.PROD_PIPELINE_EXECUTION_ROLE }}
+          role-session-name: prod-deployment
+          role-duration-seconds: 3600
+          role-skip-session-tagging: true
+
+      - name: Deploy to production account
+        run: |
+          sam deploy --stack-name ${PROD_STACK_NAME} \
+            --template packaged-prod.yaml \
+            --capabilities CAPABILITY_IAM \
+            --region ${PROD_REGION} \
+            --s3-bucket ${PROD_ARTIFACTS_BUCKET} \
+            --no-fail-on-empty-changeset \
+            --role-arn ${PROD_CLOUDFORMATION_EXECUTION_ROLE} \
+            --parameter-overrides devEnvironment=production DatabaseUsername=${PROD_DATABASE_USERNAME} DatabasePassword=${PROD_DATABASE_PASSWORD}
+
+  run-migrations:
+    runs-on: ubuntu-latest
+    needs: 
+      - deploy-prod
+      - deploy-testing
+      - build-and-deploy-feature
+    if: |
+      always() && (
+        (github.ref == 'refs/heads/master' && (needs.deploy-prod.result == 'success' || needs.deploy-testing.result == 'success')) ||
+        (startsWith(github.ref, 'refs/heads/feature') && needs.build-and-deploy-feature.result == 'success')
+      )
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v5
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Install dbmate
+        run: |
+          curl -fsSL https://github.com/amacneil/dbmate/releases/latest/download/dbmate-linux-amd64 -o dbmate
+          chmod +x dbmate
+          sudo mv dbmate /usr/local/bin/
+
+      - name: Assume the testing pipeline user role
+        if: needs.deploy-testing.result == 'success' || needs.build-and-deploy-feature.result == 'success'
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ env.PIPELINE_USER_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ env.PIPELINE_USER_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.TESTING_REGION }}
+          role-to-assume: ${{ env.TESTING_PIPELINE_EXECUTION_ROLE }}
+          role-session-name: testing-migrations
+          role-duration-seconds: 3600
+          role-skip-session-tagging: true
+
+      - name: Get dev database endpoint
+        if: needs.deploy-testing.result == 'success' || needs.build-and-deploy-feature.result == 'success'
+        id: get-dev-endpoint
+        run: |
+          if [ "${{ needs.build-and-deploy-feature.result }}" == "success" ]; then
+            STACK_NAME=$(echo ${GITHUB_REF##*/} | tr -cd '[a-zA-Z0-9-]')
+          else
+            STACK_NAME=${TESTING_STACK_NAME}
+          fi
+          DB_ENDPOINT=$(aws rds describe-db-instances \
+            --db-instance-identifier dev-db \
+            --region ${TESTING_REGION} \
+            --query 'DBInstances[0].Endpoint.Address' \
+            --output text)
+          echo "DB_ENDPOINT=${DB_ENDPOINT}" >> $GITHUB_OUTPUT
+          echo "STACK_NAME=${STACK_NAME}" >> $GITHUB_OUTPUT
+
+      - name: Run migrations on dev database
+        if: needs.deploy-testing.result == 'success' || needs.build-and-deploy-feature.result == 'success'
+        run: |
+          DB_URL="postgres://${DEV_DATABASE_USERNAME}:${DEV_DATABASE_PASSWORD}@${{ steps.get-dev-endpoint.outputs.DB_ENDPOINT }}:5432/dev-db?sslmode=require"
+          dbmate --url "${DB_URL}" up
+
+      - name: Assume the prod pipeline user role
+        if: needs.deploy-prod.result == 'success'
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ env.PIPELINE_USER_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ env.PIPELINE_USER_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.PROD_REGION }}
+          role-to-assume: ${{ env.PROD_PIPELINE_EXECUTION_ROLE }}
+          role-session-name: prod-migrations
+          role-duration-seconds: 3600
+          role-skip-session-tagging: true
+
+      - name: Get prod database endpoint
+        if: needs.deploy-prod.result == 'success'
+        id: get-prod-endpoint
+        run: |
+          DB_ENDPOINT=$(aws rds describe-db-instances \
+            --db-instance-identifier production-db \
+            --region ${PROD_REGION} \
+            --query 'DBInstances[0].Endpoint.Address' \
+            --output text)
+          echo "DB_ENDPOINT=${DB_ENDPOINT}" >> $GITHUB_OUTPUT
+
+      - name: Run migrations on prod database
+        if: needs.deploy-prod.result == 'success'
+        run: |
+          DB_URL="postgres://${PROD_DATABASE_USERNAME}:${PROD_DATABASE_PASSWORD}@${{ steps.get-prod-endpoint.outputs.DB_ENDPOINT }}:5432/production-db?sslmode=require"
+          dbmate --url "${DB_URL}" up
