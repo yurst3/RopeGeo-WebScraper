@@ -7,33 +7,39 @@
   "type": "commonjs",
   "main": "src/main.ts",
   "scripts": {
-    "ropewiki:scrape": "ts-node --files src/ropewiki/main.ts",
+    "ropewiki:scrape": "sam build; sam local invoke RopewikiScraper --event events/RopewikiScraperCronEvent.json --env-vars samEnvVars.json --docker-network my-net",
     "ropewiki:parse-test": "ts-node --files src/ropewiki/parseTest.ts",
     "lint:dev": "npx eslint --fix ./src",
-    "migrate:up": "npx dbmate -e DEVELOPMENT_DB_URL up && npx zapatos",
-    "migrate:down": "npx dbmate -e DEVELOPMENT_DB_URL down && npx zapatos",
+    "migrate:up": "npx dbmate --url postgres://localUser:localPass@127.0.0.1:8081/local?sslmode=disable up; npx zapatos",
+    "migrate:down": "npx dbmate --url postgres://localUser:localPass@127.0.0.1:8081/local?sslmode=disable down; npx zapatos",
     "migrate-test:up": "npx dbmate --url postgres://testUser:testPass@127.0.0.1:8080/test?sslmode=disable up",
+    "local-db:start": "docker network create -d bridge my-net; docker run --publish 127.0.0.1:8081:5432/tcp --network=my-net --name local-db -e POSTGRES_PASSWORD=localPass -e POSTGRES_USER=localUser -e POSTGRES_DB=local -d postgres; sleep 0.5; npm run migrate:up",
+    "local-db:stop": "docker stop local-db",
     "test-db:start": "docker run --publish 127.0.0.1:8080:5432/tcp --name test-db -e POSTGRES_PASSWORD=testPass -e POSTGRES_USER=testUser -e POSTGRES_DB=test -d postgres; sleep 0.5; npm run migrate-test:up",
-    "test-db:stop": "docker stop test-db; docker rm test-db",
+    "test-db:delete": "docker stop test-db; docker rm test-db",
     "test:unit": "jest -i --testPathIgnorePatterns=/src/ropewiki/test/database/*",
     "test:database": "TEST_USER=testUser TEST_PASS=testPass TEST_HOST=127.0.0.1 TEST_PORT=8080 TEST_DB=test jest -i --testPathPatterns=/src/ropewiki/test/database/*",
-    "test:local": "npm run test:unit; npm run test-db:start; npm run test:database; npm run test-db:stop",
+    "test:local": "npm run test:unit; npm run test-db:start; npm run test:database; npm run test-db:delete",
     "test:deploy": "jest -i"
   },
   "dependencies": {
+    "@aws-sdk/rds-signer": "^3.962.0",
     "@types/uuid": "^10.0.0",
     "cli-progress": "^3.12.0",
     "config": "^4.1.1",
     "dotenv": "^17.2.3",
+    "esbuild": "^0.27.2",
     "fetch": "^1.1.0",
     "jest": "^30.2.0",
     "lodash": "^4.17.21",
     "pg": "^8.16.3",
-    "puppeteer": "^24.32.1",
+    "puppeteer-core": "^22.5.0",
+    "uuid": "^13.0.0",
     "zapatos": "^6.6.1"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.2",
+    "@sparticuz/chromium": "^131.0.1",
     "@types/cli-progress": "^3.11.6",
     "@types/jest": "^29.5.14",
     "@types/lodash": "^4.17.21",
@@ -43,7 +49,6 @@
     "ts-jest": "^29.2.5",
     "ts-node": "^10.9.2",
     "typescript": "^5.9.3",
-    "typescript-eslint": "^8.50.0",
-    "uuid": "^13.0.0"
+    "typescript-eslint": "^8.50.0"
   }
 }

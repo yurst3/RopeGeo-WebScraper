@@ -1,9 +1,7 @@
-/* eslint-disable @typescript-eslint/no-require-imports */
-require('dotenv').config();
-import { Pool } from 'pg';
 import handleRopewikiRegions from "./handleRopewikiRegions"
 import handleRopewikiPages from './handleRopewikiPages';
 import getRegionCountsUnderLimit from './getRegionsUnderLimit';
+import getDatabaseConnection from './getDatabaseConnection';
 
 /*
 From testing, if the query for getting ropewiki pages ever has an offset above 5000 it treats it as an offset of 0.
@@ -16,10 +14,7 @@ const REGION_COUNT_LIMIT = 6000;
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const ropewikiScraperHandler = async (event: unknown, context: any) => {
     const beginTime = new Date();
-    const pool = new Pool({
-        host: process.env.DEVELOPMENT_DB_HOST,
-        database: process.env.DEVELOPMENT_DB_NAME,
-    });
+    const pool = await getDatabaseConnection();
 
     try {
         // If there has been a recent revision to the Regions page, pull the Regions, parse, upsert them, and return the resulting ids

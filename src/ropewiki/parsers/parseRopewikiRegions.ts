@@ -1,4 +1,5 @@
-import puppeteer from 'puppeteer';
+import chromium from '@sparticuz/chromium';
+import puppeteer from 'puppeteer-core';
 import { RopewikiRegion } from '../types/ropewiki';
 import { v5 as uuidV5 } from 'uuid';
 import uniqBy from 'lodash/uniqBy';
@@ -58,7 +59,10 @@ const evalPage = () => {
 
 // Use puppeteer headless browser to help parse the regions from https://ropewiki.com/Regions html. 
 const parseRopewikiRegions = async (html: string): Promise<RopewikiRegion[]> => {
-    const browser = await puppeteer.launch();
+    const browser = await puppeteer.launch({
+        args: chromium.args,
+        executablePath: await chromium.executablePath(),
+    });
     const page = await browser.newPage();
     await page.setContent(html);
 

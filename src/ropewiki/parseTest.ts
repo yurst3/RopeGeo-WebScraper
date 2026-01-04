@@ -1,5 +1,6 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import puppeteer from 'puppeteer';
+import chromium from '@sparticuz/chromium';
+import puppeteer from 'puppeteer-core';
 import getRopewikiPageHtml from './http/getRopewikiPageHtml';
 import fs from 'fs';
 import parseRopewikiPage from './parsers/parseRopewikiPage';
@@ -11,12 +12,15 @@ import parseRopewikiPage from './parsers/parseRopewikiPage';
 
     // fs.writeFileSync('bigCreekSierraNationalForest.html', pageHTML)
 
-    // const browser = await puppeteer.launch({ headless: false });
-    // const page = await browser.newPage();
-    // await page.setContent(pageHTML);
+    const browser = await puppeteer.launch({
+        args: chromium.args,
+        executablePath: await chromium.executablePath(),
+    });
+    const page = await browser.newPage();
+    await page.setContent(pageHTML);
 
-    const { beta, images } = await parseRopewikiPage(pageHTML);
+    // const { beta, images } = await parseRopewikiPage(pageHTML);
 
-    fs.writeFileSync('bigCreekSierraNationalForestBeta.json', JSON.stringify(beta, null, 4))
-    fs.writeFileSync('bigCreekSierraNationalForestImages.json', JSON.stringify(images, null, 4))
+    // fs.writeFileSync('bigCreekSierraNationalForestBeta.json', JSON.stringify(beta, null, 4))
+    // fs.writeFileSync('bigCreekSierraNationalForestImages.json', JSON.stringify(images, null, 4))
 })()

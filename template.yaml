@@ -44,7 +44,9 @@ Resources:
     Properties:
       VpcId: !Ref WebScraperVPC
       CidrBlock: 10.0.1.0/24
-      AvailabilityZone: !Select [0, !GetAZs]
+      AvailabilityZone: !Select 
+        - 0
+        - !GetAZs ''
       Tags:
         - Key: Name
           Value: WebScraperPrivateSubnet1
@@ -74,7 +76,9 @@ Resources:
     Properties:
       VpcId: !Ref WebScraperVPC
       CidrBlock: 10.0.3.0/24
-      AvailabilityZone: !Select [0, !GetAZs]
+      AvailabilityZone: !Select 
+        - 0
+        - !GetAZs ''
       MapPublicIpOnLaunch: true
       Tags:
         - Key: Name
@@ -193,14 +197,31 @@ Resources:
         - Key: Name
           Value: !Sub '${devEnvironment}-db'
 
+  ChromiumLayer:
+    Type: AWS::Serverless::LayerVersion
+    Properties:
+      Description: Chromium with Node.js integration for AWS Lambda
+      ContentUri: layers/chromium
+      CompatibleRuntimes:
+        - &nodejsRuntime nodejs22.x
+      # Chromium doesn't currently have ARM support; see https://github.com/Sparticuz/chromium#can-i-use-arm-or-graviton-instances
+      CompatibleArchitectures:
+        - &chromiumArch x86_64
+      RetentionPolicy: Delete
+    Metadata:
+      BuildMethod: *nodejsRuntime
+      BuildArchitecture: *chromiumArch
+
   # Lambda function that scrapes Ropewiki pages and stores them in the database
   RopewikiScraper:
     Type: AWS::Serverless::Function
     Properties:
       Description: A Lambda function that scrapes Ropewiki pages and stores them in the database
-      Runtime: nodejs24.x
+      Runtime: nodejs22.x
       Architectures:
-      - x86_64
+        - *chromiumArch
+      Layers:
+        - !Ref ChromiumLayer
       Handler: src/ropewiki/main.ropewikiScraperHandler
       # This property associates this Lambda function with a scheduled CloudWatch Event. For all available properties, see
       # https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#schedule
@@ -210,8 +231,8 @@ Resources:
           Type: Schedule
           Properties:
             Schedule: cron(0 0 ? * SUN *)
-      MemorySize: 128
-      Timeout: 100
+      MemorySize: 1024
+      Timeout: 900
       VpcConfig:
         SecurityGroupIds:
           - !Ref LambdaSecurityGroup
@@ -220,11 +241,23 @@ Resources:
       Environment:
         Variables:
           DEV_ENVIRONMENT: !Ref devEnvironment
+          AWS_REGION: !Ref AWS::Region
           DB_HOST: !GetAtt Database.Endpoint.Address
           DB_PORT: !GetAtt Database.Endpoint.Port
           DB_NAME: !Sub '${devEnvironment}-db'
           DB_USER: !Ref DatabaseUsername
           DB_PASSWORD: !Ref DatabasePassword
+    Metadata: # Manage esbuild properties
+      BuildMethod: esbuild
+      BuildProperties:
+        Minify: true
+        Target: "esnext"
+        Sourcemap: true
+        EntryPoints: 
+        - src/ropewiki/main.ts
+        External:
+        - "@sparticuz/chromium"
+
 # # More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
 Globals:
   Function:

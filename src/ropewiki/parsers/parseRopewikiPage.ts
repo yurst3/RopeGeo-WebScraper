@@ -1,4 +1,5 @@
-import puppeteer from 'puppeteer';
+import chromium from '@sparticuz/chromium';
+import puppeteer from 'puppeteer-core';
 import { RopewikiBetaSection, RopewikiImage } from '../types/ropewiki';
 import uniqBy from 'lodash/uniqBy';
 
@@ -41,7 +42,7 @@ const evalPage = (): { beta: RopewikiBetaSection[], images: RopewikiImage[] } =>
                     else {
                         currentBeta.text += '<li>';
                         // We want to exclude things like images from being included in the html text, so recursively call this function instead of .outerHtml
-                        parseChildNodes(child.childNodes); 
+                        parseChildNodes(child.childNodes);
                         currentBeta.text += '</li>\n';
                     }
                     break;
@@ -57,7 +58,7 @@ const evalPage = (): { beta: RopewikiBetaSection[], images: RopewikiImage[] } =>
                 default:
                     break;
             }
-        });  
+        });
     }
 
     const parseGalleryBoxCaption = (childNodes: NodeListOf<ChildNode> | undefined): string => {
@@ -89,9 +90,9 @@ const evalPage = (): { beta: RopewikiBetaSection[], images: RopewikiImage[] } =>
 
         if (isThumbnailFile) {
             fileUri = fileUri?.split('/')
-            ?.filter(pathItem => pathItem !== 'thumb')
-            ?.slice(0,-1)
-            ?.join('/');
+                ?.filter(pathItem => pathItem !== 'thumb')
+                ?.slice(0, -1)
+                ?.join('/');
         }
 
         return fileUri;
@@ -121,7 +122,7 @@ const evalPage = (): { beta: RopewikiBetaSection[], images: RopewikiImage[] } =>
         const fileUri: string | undefined = getImageFileUri(imageElement);
 
         const caption = parseGalleryBoxCaption(captionParent?.childNodes);
-            
+
         if (linkUri && fileUri) {
             images.push({
                 betaSectionTitle: currentBeta?.title,
@@ -165,7 +166,7 @@ const evalPage = (): { beta: RopewikiBetaSection[], images: RopewikiImage[] } =>
     parseBannerImage();
     parseChildNodes(parent.childNodes);
     if (currentBeta) beta.push(currentBeta);
-    
+
 
     return { beta, images };
 }
@@ -174,7 +175,7 @@ const evalPage = (): { beta: RopewikiBetaSection[], images: RopewikiImage[] } =>
 const removeDuplicates = (
     result: { beta: RopewikiBetaSection[], images: RopewikiImage[] }
 ): { beta: RopewikiBetaSection[], images: RopewikiImage[] } => {
-    return { 
+    return {
         beta: uniqBy(result.beta, 'title'),
         images: uniqBy(result.images, image => `${image.betaSectionTitle}-${image.fileUrl}`)
     }
@@ -199,7 +200,10 @@ const removeEmptyBetaSectionsWithoutImages = (
 }
 
 const parseRopewikiPage = async (html: string) => {
-    const browser = await puppeteer.launch();
+    const browser = await puppeteer.launch({
+        args: chromium.args,
+        executablePath: await chromium.executablePath(),
+    });
     const page = await browser.newPage();
     await page.setContent(html);
 
@@ -209,7 +213,7 @@ const parseRopewikiPage = async (html: string) => {
 
     result = removeEmptyBetaSectionsWithoutImages(result);
     result = removeDuplicates(result);
-    
+
     return result;
 }
 
