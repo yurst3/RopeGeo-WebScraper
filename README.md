@@ -37,10 +37,11 @@ Note: All of the API queries are done sequentially so we don't hit any API reque
 3. Download and install [Docker](https://docs.docker.com/desktop)
 4. Ask Ethan to make you an AWS IAM user OR [create your account](https://aws.amazon.com/)
 5. Run `npm install` to install all package dependencies
-6. (Optional, Recommended) Download and install a database browser of your choice. Personally I recommend [DBeaver](https://dbeaver.io/)
+6. Run `npx @puppeteer/browsers install chrome` to install Chrome for Testing
+7. (Optional, Recommended) Download and install a database browser of your choice. Personally I recommend [DBeaver](https://dbeaver.io/)
 
 ## Scripts
-`npm run scrape-lambda:ropewiki` - Builds the RopewikiScraper lambda function and invokes it with events/RopewikiScraperCronEvent.json. MUST RUN `npm run local-db:start` BEFORE THIS. LAMBDA WILL TIME OUT AFTER 900 SECONDS (15 MINUTES)
+`npm run scrape-lambda:ropewiki` - Builds the RopewikiScraper lambda function and invokes it with events/RopewikiScraperCronEvent.json. MUST RUN `npm run local-db:start` BEFORE THIS. MUST RUN `aws login` BEFORE THIS. LAMBDA WILL TIME OUT AFTER 900 SECONDS (15 MINUTES).
 `npm run scrape:ropewiki` - Runs RopewikiScraper as a node script. MUST RUN `npm run local-db:start` BEFORE THIS
 `npm run lint:dev` - Runs eslint in "fix" mode (will attempt to fix lint errors)
 `npm run migrate:up` - Runs all of the database migrations on the local db. Used by `local-db:start`
