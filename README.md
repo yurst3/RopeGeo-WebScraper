@@ -41,16 +41,16 @@ Note: All of the API queries are done sequentially so we don't hit any API reque
 7. (Optional, Recommended) Download and install a database browser of your choice. Personally I recommend [DBeaver](https://dbeaver.io/)
 
 ## Scripts
-`npm run scrape-lambda:ropewiki` - Builds the RopewikiScraper lambda function and invokes it with events/RopewikiScraperCronEvent.json. MUST RUN `npm run local-db:start` BEFORE THIS. MUST RUN `aws login` BEFORE THIS. LAMBDA WILL TIME OUT AFTER 900 SECONDS (15 MINUTES).
-`npm run scrape:ropewiki` - Runs RopewikiScraper as a node script. MUST RUN `npm run local-db:start` BEFORE THIS
-`npm run lint:dev` - Runs eslint in "fix" mode (will attempt to fix lint errors)
-`npm run migrate:up` - Runs all of the database migrations on the local db. Used by `local-db:start`
-`npm run migrate-test:up` - Runs all of the database migrations on the test db. Used by `test-db:start`
-`npm run local-db:start` - Starts a postgres docker container called "local-db" and runs all of the database migrations on the container
-`npm run local-db:stop` - Stops the "local-db" docker container
-`npm run test-db:start` - Starts a postgres docker container called "test-db" and runs all of the database migrations on the container
-`npm run test-db:delete` - Stops and deletes the "test-db" docker container
-`npm run test:unit` - Runs all of the jest tests EXCLUDING the database tests
-`npm run test:database` - Runs only the database tests. MUST RUN `npm run test-db:start` OR THE TESTS WILL FAIL
-`npm run test:local` - Runs ALL jest tests, spinning up a "test-db" postgres docker container for the database tests and deleting it afterwards
-`npm run test:deploy` - Runs ALL jest tests WITHOUT creating a "test-db" container. Used in the "test" job in the "pipeline" workflow
+* `npm run scrape-lambda:ropewiki` - Builds the RopewikiScraper lambda function and invokes it with events/RopewikiScraperCronEvent.json. MUST RUN `npm run local-db:start` BEFORE THIS. MUST RUN `aws login` BEFORE THIS. LAMBDA WILL TIME OUT AFTER 900 SECONDS (15 MINUTES).
+* `npm run scrape:ropewiki` - Runs RopewikiScraper as a node script. MUST RUN `npm run local-db:start` BEFORE THIS
+* `npm run lint:dev` - Runs eslint in "fix" mode (will attempt to fix lint errors)
+* `npm run migrate:up` - Runs all of the database migrations on the local db. Used by `local-db:start`
+* `npm run migrate-test:up` - Runs all of the database migrations on the test db. Used by `test-db:start`
+* `npm run local-db:start` - Starts a postgres docker container called "local-db" and runs all of the database migrations on the container
+* `npm run local-db:stop` - Stops the "local-db" docker container
+* `npm run test-db:start` - Starts a postgres docker container called "test-db" and runs all of the database migrations on the container
+* `npm run test-db:delete` - Stops and deletes the "test-db" docker container
+* `npm run test:unit` - Runs all of the jest tests EXCLUDING the database tests
+* `npm run test:database` - Runs only the database tests. MUST RUN `npm run test-db:start` OR THE TESTS WILL FAIL
+* `npm run test:local` - Runs ALL jest tests, spinning up a "test-db" postgres docker container for the database tests and deleting it afterwards
+* `npm run test:deploy` - Runs ALL jest tests WITHOUT creating a "test-db" container. Used in the "test" job in the "pipeline" workflow
