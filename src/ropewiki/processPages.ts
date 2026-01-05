@@ -1,4 +1,3 @@
-import cliProgress from 'cli-progress';
 import { Pool } from 'pg';
 import { Queryable } from "zapatos/db";
 import RopewikiPageInfo from "./types/ropewiki";
@@ -9,29 +8,28 @@ import upsertBetaSections from "./database/upsertBetaSections";
 import upsertImages from "./database/upsertImages";
 import setBetaSectionsDeletedAt from "./database/setBetaSectionsDeletedAt";
 import setImagesDeletedAt from "./database/setImagesDeletedAt";
+import ProgressLogger from "../helpers/progressLogger";
 
 const processPages = async (
     conn: Queryable,
     pages: RopewikiPageInfo[],
     pageRevisionDates: {[pageId: string]: Date | null},
     regionNameIds: {[name: string]: string},
+    logger: ProgressLogger,
 ) => {
-    const progressBar = new cliProgress.SingleBar({}, cliProgress.Presets.shades_classic);
-    progressBar.start(pages.length, 0);
-
     // Get a client from the pool for transactions
     const pool = conn as Pool;
 
     for (const page of pages) {
         const latestRevisionDate: Date | null | undefined = pageRevisionDates[page.pageid];
         if (!latestRevisionDate) { // This should never be null/undefined since we already filtered pages
-            progressBar.increment();
+            logger.logProgress(`Skipped ${page.pageid} ${page.name} (no revision date)`);
             continue; 
         }
         const regionId: string | undefined = regionNameIds[page.region];
         if (!regionId) {
             console.error(`${page.pageid} ${page.name} doesn't have a valid region: ${page.region}`);
-            progressBar.increment();
+            logger.logProgress(`Skipped ${page.pageid} ${page.name} (invalid region)`);
             continue;
         }
 
@@ -63,10 +61,8 @@ const processPages = async (
             client.release();
         }
         
-        progressBar.increment();
+        logger.logProgress(`${page.pageid} ${page.name}`);
     }
-
-    progressBar.stop();
 }
 
 export default processPages;

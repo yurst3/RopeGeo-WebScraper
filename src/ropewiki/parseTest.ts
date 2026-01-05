@@ -1,9 +1,11 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
-import chromium from '@sparticuz/chromium';
-import puppeteer from 'puppeteer-core';
+import puppeteer from 'puppeteer';
 import getRopewikiPageHtml from './http/getRopewikiPageHtml';
 import fs from 'fs';
 import parseRopewikiPage from './parsers/parseRopewikiPage';
+
+// Detect if running in Lambda environment
+const isLambda = !!process.env.AWS_LAMBDA_FUNCTION_NAME || !!process.env.LAMBDA_TASK_ROOT;
 
 (async () => {
     const pageId = process.argv[2];
@@ -12,10 +14,15 @@ import parseRopewikiPage from './parsers/parseRopewikiPage';
 
     // fs.writeFileSync('bigCreekSierraNationalForest.html', pageHTML)
 
-    const browser = await puppeteer.launch({
-        args: chromium.args,
-        executablePath: await chromium.executablePath(),
-    });
+    const launchOptions: Parameters<typeof puppeteer.launch>[0] = {};
+    
+    if (isLambda) {
+        const chromium = await import('@sparticuz/chromium');
+        launchOptions.args = chromium.default.args;
+        launchOptions.executablePath = await chromium.default.executablePath();
+    }
+    
+    const browser = await puppeteer.launch(launchOptions);
     const page = await browser.newPage();
     await page.setContent(pageHTML);
 

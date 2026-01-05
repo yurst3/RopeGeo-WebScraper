@@ -1,8 +1,10 @@
-import chromium from '@sparticuz/chromium';
-import puppeteer from 'puppeteer-core';
+import puppeteer from 'puppeteer';
 import { RopewikiRegion } from '../types/ropewiki';
 import { v5 as uuidV5 } from 'uuid';
 import uniqBy from 'lodash/uniqBy';
+
+// Detect if running in Lambda environment
+const isLambda = !!process.env.AWS_LAMBDA_FUNCTION_NAME || !!process.env.LAMBDA_TASK_ROOT;
 
 const NAMESPACE = 'b93540f1-7091-46f5-95d2-94b6c418e563';
 
@@ -59,10 +61,15 @@ const evalPage = () => {
 
 // Use puppeteer headless browser to help parse the regions from https://ropewiki.com/Regions html. 
 const parseRopewikiRegions = async (html: string): Promise<RopewikiRegion[]> => {
-    const browser = await puppeteer.launch({
-        args: chromium.args,
-        executablePath: await chromium.executablePath(),
-    });
+    const launchOptions: Parameters<typeof puppeteer.launch>[0] = {};
+    
+    if (isLambda) {
+        const chromium = await import('@sparticuz/chromium');
+        launchOptions.args = chromium.default.args;
+        launchOptions.executablePath = await chromium.default.executablePath();
+    }
+    
+    const browser = await puppeteer.launch(launchOptions);
     const page = await browser.newPage();
     await page.setContent(html);
 

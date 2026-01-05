@@ -1,5 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach, jest } from '@jest/globals';
 import type { Pool, PoolConfig } from 'pg';
+import { Pool as PoolClass } from 'pg';
+import { Signer as SignerClass } from '@aws-sdk/rds-signer';
 import getDatabaseConnection from '../getDatabaseConnection';
 
 // Mock pg module
@@ -7,10 +9,8 @@ const mockPoolInstance = {
     end: jest.fn(),
 } as unknown as Pool;
 
-const mockPool = jest.fn<(config?: PoolConfig) => Pool>();
-
 jest.mock('pg', () => ({
-    Pool: mockPool,
+    Pool: jest.fn<(config?: PoolConfig) => Pool>(),
 }));
 
 // Mock @aws-sdk/rds-signer
@@ -18,25 +18,28 @@ const mockGetAuthToken = jest.fn<() => Promise<string>>();
 const mockSignerInstance = {
     getAuthToken: mockGetAuthToken,
 };
-const mockSignerConstructor = jest.fn<(config: {
-    hostname: string;
-    port: number;
-    username: string;
-    region: string;
-}) => typeof mockSignerInstance>();
 
 jest.mock('@aws-sdk/rds-signer', () => ({
-    Signer: mockSignerConstructor,
+    Signer: jest.fn<(config: {
+        hostname: string;
+        port: number;
+        username: string;
+        region: string;
+    }) => typeof mockSignerInstance>(),
 }));
 
 describe('getDatabaseConnection', () => {
     const originalEnv = process.env;
+    const mockPool = PoolClass as jest.MockedClass<typeof PoolClass>;
+    const mockSignerConstructor = SignerClass as jest.MockedClass<typeof SignerClass>;
 
     beforeEach(() => {
         jest.clearAllMocks();
         process.env = { ...originalEnv };
-        mockPool.mockReturnValue(mockPoolInstance);
-        mockSignerConstructor.mockReturnValue(mockSignerInstance);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        mockPool.mockImplementation(() => mockPoolInstance as any);
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        mockSignerConstructor.mockImplementation(() => mockSignerInstance as any);
     });
 
     afterEach(() => {

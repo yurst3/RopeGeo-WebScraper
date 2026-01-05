@@ -8,26 +8,41 @@ jest.mock('../http/getRopewikiPageInfoForRegion');
 jest.mock('../http/getRopewikiPageRevisionDate');
 jest.mock('../database/getUpdatedDatesForPages');
 jest.mock('../processPages');
+jest.mock('../../helpers/progressLogger');
 
 import getRopewikiPageInfoForRegion from '../http/getRopewikiPageInfoForRegion';
 import getRopewikiPagesRevisionDates from '../http/getRopewikiPageRevisionDate';
 import getUpdatedDatesForPages from '../database/getUpdatedDatesForPages';
 import processPages from '../processPages';
+import ProgressLogger from '../../helpers/progressLogger';
 
 const mockGetRopewikiPageInfoForRegion = getRopewikiPageInfoForRegion as jest.MockedFunction<typeof getRopewikiPageInfoForRegion>;
 const mockGetRopewikiPagesRevisionDates = getRopewikiPagesRevisionDates as jest.MockedFunction<typeof getRopewikiPagesRevisionDates>;
 const mockGetUpdatedDatesForPages = getUpdatedDatesForPages as jest.MockedFunction<typeof getUpdatedDatesForPages>;
 const mockProcessPages = processPages as jest.MockedFunction<typeof processPages>;
+const MockProgressLogger = ProgressLogger as jest.MockedClass<typeof ProgressLogger>;
 
 describe('handleRopewikiPages', () => {
     const mockConn = {} as db.Queryable;
     let consoleLogSpy: ReturnType<typeof jest.spyOn>;
     let consoleErrorSpy: ReturnType<typeof jest.spyOn>;
+    let mockLoggerInstance: {
+        setChunk: jest.MockedFunction<(start: number, end: number) => void>;
+        logProgress: jest.MockedFunction<(message: string) => void>;
+    };
 
     beforeEach(() => {
         jest.clearAllMocks();
         consoleLogSpy = jest.spyOn(console, 'log').mockImplementation(() => {});
         consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+        
+        // Create mock logger instance
+        mockLoggerInstance = {
+            setChunk: jest.fn(),
+            logProgress: jest.fn(),
+        };
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        MockProgressLogger.mockImplementation(() => mockLoggerInstance as any);
     });
 
     afterEach(() => {
@@ -84,6 +99,8 @@ describe('handleRopewikiPages', () => {
         expect(mockGetRopewikiPagesRevisionDates).toHaveBeenCalledWith(['728', '5597']);
         expect(mockGetUpdatedDatesForPages).toHaveBeenCalledWith(mockConn, ['728', '5597']);
         expect(mockProcessPages).toHaveBeenCalledTimes(1);
+        expect(MockProgressLogger).toHaveBeenCalledWith(`Processing "${regionName}"`, regionPageCount);
+        expect(mockLoggerInstance.setChunk).toHaveBeenCalledWith(0, 1); // offset=0, skippedInChunk=0, chunkEnd=0+2-1=1
         expect(mockProcessPages).toHaveBeenCalledWith(
             mockConn,
             pages,
@@ -91,7 +108,8 @@ describe('handleRopewikiPages', () => {
                 '728': new Date('2024-01-01T00:00:00Z'),
                 '5597': new Date('2024-01-02T00:00:00Z'),
             },
-            regionNameIds
+            regionNameIds,
+            mockLoggerInstance
         );
     });
 
@@ -134,6 +152,10 @@ describe('handleRopewikiPages', () => {
         expect(mockGetRopewikiPagesRevisionDates).toHaveBeenCalledTimes(2);
         expect(mockGetUpdatedDatesForPages).toHaveBeenCalledTimes(2);
         expect(mockProcessPages).toHaveBeenCalledTimes(2);
+        expect(MockProgressLogger).toHaveBeenCalledWith(`Processing "${regionName}"`, regionPageCount);
+        expect(mockLoggerInstance.setChunk).toHaveBeenCalledTimes(2);
+        expect(mockLoggerInstance.setChunk).toHaveBeenNthCalledWith(1, 0, 1999); // First chunk: offset=0, skippedInChunk=0, chunkEnd=0+2000-1=1999
+        expect(mockLoggerInstance.setChunk).toHaveBeenNthCalledWith(2, 2000, 3499); // Second chunk: offset=2000, skippedInChunk=0, chunkEnd=2000+1500-1=3499
     });
 
     it('filters out invalid pages', async () => {
@@ -160,11 +182,13 @@ describe('handleRopewikiPages', () => {
         expect(consoleLogSpy).toHaveBeenCalledWith('Skipping 2 invalid pages...');
         expect(mockGetRopewikiPagesRevisionDates).toHaveBeenCalledWith(['728']);
         expect(mockGetUpdatedDatesForPages).toHaveBeenCalledWith(mockConn, ['728']);
+        expect(mockLoggerInstance.setChunk).toHaveBeenCalledWith(2, 2); // offset=0, skippedInChunk=2 (2 invalid), chunkEnd=0+2+1-1=2
         expect(mockProcessPages).toHaveBeenCalledWith(
             mockConn,
             [validPage],
             { '728': new Date('2024-01-01T00:00:00Z') },
-            regionNameIds
+            regionNameIds,
+            mockLoggerInstance
         );
     });
 
@@ -217,6 +241,7 @@ describe('handleRopewikiPages', () => {
         await handleRopewikiPages(mockConn, regionName, regionPageCount, regionNameIds);
 
         expect(mockProcessPages).toHaveBeenCalledTimes(1);
+        expect(mockLoggerInstance.setChunk).toHaveBeenCalledWith(0, 1); // offset=0, skippedInChunk=0, chunkEnd=0+2-1=1
         expect(mockProcessPages).toHaveBeenCalledWith(
             mockConn,
             pages,
@@ -224,7 +249,8 @@ describe('handleRopewikiPages', () => {
                 '728': new Date('2024-01-03T00:00:00Z'),
                 '5597': new Date('2024-01-04T00:00:00Z'),
             },
-            regionNameIds
+            regionNameIds,
+            mockLoggerInstance
         );
     });
 
@@ -248,11 +274,13 @@ describe('handleRopewikiPages', () => {
         await handleRopewikiPages(mockConn, regionName, regionPageCount, regionNameIds);
 
         expect(mockProcessPages).toHaveBeenCalledTimes(1);
+        expect(mockLoggerInstance.setChunk).toHaveBeenCalledWith(0, 0); // offset=0, skippedInChunk=0, chunkEnd=0+1-1=0
         expect(mockProcessPages).toHaveBeenCalledWith(
             mockConn,
             [page],
             { '728': new Date('2024-01-01T00:00:00Z') },
-            regionNameIds
+            regionNameIds,
+            mockLoggerInstance
         );
     });
 
@@ -279,6 +307,7 @@ describe('handleRopewikiPages', () => {
         await handleRopewikiPages(mockConn, regionName, regionPageCount, regionNameIds);
 
         expect(mockProcessPages).toHaveBeenCalledTimes(1);
+        expect(mockLoggerInstance.setChunk).toHaveBeenCalledWith(1, 1); // offset=0, skippedInChunk=1 (page1 has null revisionDate), chunkEnd=0+1+1-1=1
         expect(mockProcessPages).toHaveBeenCalledWith(
             mockConn,
             [page2], // Only page2 should be processed
@@ -286,7 +315,8 @@ describe('handleRopewikiPages', () => {
                 '728': null,
                 '5597': new Date('2024-01-01T00:00:00Z'),
             },
-            regionNameIds
+            regionNameIds,
+            mockLoggerInstance
         );
     });
 
@@ -398,6 +428,7 @@ describe('handleRopewikiPages', () => {
 
         expect(consoleLogSpy).toHaveBeenCalledWith('Skipping parsing/updating for 2 pages...');
         expect(mockProcessPages).toHaveBeenCalledTimes(1);
+        expect(mockLoggerInstance.setChunk).toHaveBeenCalledWith(2, 2); // offset=0, skippedInChunk=2 (page2 updated after revision, page3 null revision), chunkEnd=0+2+1-1=2
         expect(mockProcessPages).toHaveBeenCalledWith(
             mockConn,
             [page1], // Only page1 should be processed
@@ -406,7 +437,8 @@ describe('handleRopewikiPages', () => {
                 '5597': new Date('2024-01-02T00:00:00Z'),
                 '9999': null,
             },
-            regionNameIds
+            regionNameIds,
+            mockLoggerInstance
         );
     });
 });

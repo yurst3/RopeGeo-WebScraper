@@ -9,6 +9,7 @@ import upsertImages from '../database/upsertImages';
 import setBetaSectionsDeletedAt from '../database/setBetaSectionsDeletedAt';
 import setImagesDeletedAt from '../database/setImagesDeletedAt';
 import RopewikiPageInfo from '../types/ropewiki';
+import ProgressLogger from '../../helpers/progressLogger';
 import * as db from 'zapatos/db';
 
 // Mock the dependencies
@@ -19,22 +20,6 @@ jest.mock('../database/upsertBetaSections');
 jest.mock('../database/upsertImages');
 jest.mock('../database/setBetaSectionsDeletedAt');
 jest.mock('../database/setImagesDeletedAt');
-jest.mock('cli-progress', () => {
-    const mockProgressBarInstance = {
-        start: jest.fn(),
-        increment: jest.fn(),
-        stop: jest.fn(),
-    };
-    return {
-        __esModule: true,
-        default: {
-            SingleBar: jest.fn(() => mockProgressBarInstance),
-            Presets: {
-                shades_classic: {},
-            },
-        },
-    };
-});
 
 const mockGetRopewikiPageHtml = getRopewikiPageHtml as jest.MockedFunction<typeof getRopewikiPageHtml>;
 const mockParseRopewikiPage = parseRopewikiPage as jest.MockedFunction<typeof parseRopewikiPage>;
@@ -50,6 +35,9 @@ describe('processPages', () => {
         query: jest.MockedFunction<(query: string) => Promise<unknown>>;
         release: jest.MockedFunction<() => void>;
     };
+    let mockLogger: {
+        logProgress: jest.MockedFunction<(message: string) => void>;
+    };
 
     beforeEach(() => {
         jest.clearAllMocks();
@@ -63,15 +51,10 @@ describe('processPages', () => {
             connect: jest.fn<() => Promise<typeof mockClient>>().mockResolvedValue(mockClient),
         } as unknown as Pool;
 
-        // Reset the progress bar mocks by accessing through the mocked module
-        // eslint-disable-next-line @typescript-eslint/no-require-imports
-        const cliProgress = require('cli-progress');
-        const mockProgressBar = cliProgress.default.SingleBar.mock.results[0]?.value;
-        if (mockProgressBar) {
-            mockProgressBar.start.mockClear();
-            mockProgressBar.increment.mockClear();
-            mockProgressBar.stop.mockClear();
-        }
+        // Create mock logger
+        mockLogger = {
+            logProgress: jest.fn(),
+        };
     });
 
     it('processes pages successfully', async () => {
@@ -123,14 +106,11 @@ describe('processPages', () => {
             .mockResolvedValueOnce(['image-id-1'])
             .mockResolvedValueOnce([]);
 
-        await processPages(mockPool, pages, pageRevisionDates, regionNameIds);
+        await processPages(mockPool, pages, pageRevisionDates, regionNameIds, mockLogger as unknown as ProgressLogger);
 
-        // eslint-disable-next-line @typescript-eslint/no-require-imports
-        const cliProgress = require('cli-progress');
-        const mockProgressBar = cliProgress.default.SingleBar.mock.results[0]?.value;
-        expect(mockProgressBar.start).toHaveBeenCalledWith(2, 0);
-        expect(mockProgressBar.increment).toHaveBeenCalledTimes(2);
-        expect(mockProgressBar.stop).toHaveBeenCalledTimes(1);
+        expect(mockLogger.logProgress).toHaveBeenCalledTimes(2);
+        expect(mockLogger.logProgress).toHaveBeenNthCalledWith(1, '728 Bear Creek Canyon');
+        expect(mockLogger.logProgress).toHaveBeenNthCalledWith(2, '5597 Regions');
 
         expect(mockPool.connect).toHaveBeenCalledTimes(2);
         expect(mockClient.query).toHaveBeenCalledTimes(4); // BEGIN + COMMIT for each of 2 pages
@@ -172,14 +152,10 @@ describe('processPages', () => {
             'Test Region': 'region-id-123',
         };
 
-        await processPages(mockPool, pages, pageRevisionDates, regionNameIds);
+        await processPages(mockPool, pages, pageRevisionDates, regionNameIds, mockLogger as unknown as ProgressLogger);
 
-        // eslint-disable-next-line @typescript-eslint/no-require-imports
-        const cliProgress = require('cli-progress');
-        const mockProgressBar = cliProgress.default.SingleBar.mock.results[0]?.value;
-        expect(mockProgressBar.start).toHaveBeenCalledWith(1, 0);
-        expect(mockProgressBar.increment).toHaveBeenCalledTimes(1);
-        expect(mockProgressBar.stop).toHaveBeenCalledTimes(1);
+        expect(mockLogger.logProgress).toHaveBeenCalledTimes(1);
+        expect(mockLogger.logProgress).toHaveBeenCalledWith('Skipped 728 Bear Creek Canyon (no revision date)');
 
         expect(mockPool.connect).not.toHaveBeenCalled();
         expect(mockGetRopewikiPageHtml).not.toHaveBeenCalled();
@@ -206,13 +182,11 @@ describe('processPages', () => {
             'Test Region': 'region-id-123',
         };
 
-        await processPages(mockPool, pages, pageRevisionDates, regionNameIds);
+        await processPages(mockPool, pages, pageRevisionDates, regionNameIds, mockLogger as unknown as ProgressLogger);
 
         expect(consoleErrorSpy).toHaveBeenCalledWith('728 Bear Creek Canyon doesn\'t have a valid region: Invalid Region');
-        // eslint-disable-next-line @typescript-eslint/no-require-imports
-        const cliProgress = require('cli-progress');
-        const mockProgressBar = cliProgress.default.SingleBar.mock.results[0]?.value;
-        expect(mockProgressBar.increment).toHaveBeenCalledTimes(1);
+        expect(mockLogger.logProgress).toHaveBeenCalledTimes(1);
+        expect(mockLogger.logProgress).toHaveBeenCalledWith('Skipped 728 Bear Creek Canyon (invalid region)');
         expect(mockPool.connect).not.toHaveBeenCalled();
         expect(mockGetRopewikiPageHtml).not.toHaveBeenCalled();
         expect(mockUpsertPage).not.toHaveBeenCalled();
@@ -247,7 +221,7 @@ describe('processPages', () => {
         mockUpsertBetaSections.mockResolvedValue({ 'Introduction': 'beta-id-1' });
         mockUpsertImages.mockResolvedValue(['image-id-1']);
 
-        await processPages(mockPool, pages, pageRevisionDates, regionNameIds);
+        await processPages(mockPool, pages, pageRevisionDates, regionNameIds, mockLogger as unknown as ProgressLogger);
 
         expect(mockPool.connect).toHaveBeenCalledTimes(1);
         expect(mockClient.query).toHaveBeenCalledWith('BEGIN');

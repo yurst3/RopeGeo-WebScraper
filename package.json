@@ -7,11 +7,11 @@
   "type": "commonjs",
   "main": "src/main.ts",
   "scripts": {
-    "ropewiki:scrape": "sam build; sam local invoke RopewikiScraper --event events/RopewikiScraperCronEvent.json --env-vars samEnvVars.json --docker-network my-net",
-    "ropewiki:parse-test": "ts-node --files src/ropewiki/parseTest.ts",
+    "scrape-lambda:ropewiki": "sam build; sam local invoke RopewikiScraper --event events/RopewikiScraperCronEvent.json --env-vars samEnvVars.json --docker-network my-net",
+    "scrape:ropewiki": "DB_HOST=127.0.0.1 DB_PORT=8081 DB_NAME=local DB_USER=localUser DB_PASSWORD=localPass DEV_ENVIRONMENT=local ts-node --files src/ropewiki/main.ts",
+    "parse-test:ropewiki": "ts-node --files src/ropewiki/parseTest.ts",
     "lint:dev": "npx eslint --fix ./src",
     "migrate:up": "npx dbmate --url postgres://localUser:localPass@127.0.0.1:8081/local?sslmode=disable up; npx zapatos",
-    "migrate:down": "npx dbmate --url postgres://localUser:localPass@127.0.0.1:8081/local?sslmode=disable down; npx zapatos",
     "migrate-test:up": "npx dbmate --url postgres://testUser:testPass@127.0.0.1:8080/test?sslmode=disable up",
     "local-db:start": "docker network create -d bridge my-net; docker run --publish 127.0.0.1:8081:5432/tcp --network=my-net --name local-db -e POSTGRES_PASSWORD=localPass -e POSTGRES_USER=localUser -e POSTGRES_DB=local -d postgres; sleep 0.5; npm run migrate:up",
     "local-db:stop": "docker stop local-db",
@@ -33,7 +33,7 @@
     "jest": "^30.2.0",
     "lodash": "^4.17.21",
     "pg": "^8.16.3",
-    "puppeteer-core": "^22.5.0",
+    "puppeteer": "^22.5.0",
     "uuid": "^13.0.0",
     "zapatos": "^6.6.1"
   },
