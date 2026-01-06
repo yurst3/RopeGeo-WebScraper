@@ -4,6 +4,8 @@ import uniqBy from 'lodash/uniqBy';
 
 // Detect if running in Lambda environment
 const isLambda = !!process.env.AWS_LAMBDA_FUNCTION_NAME || !!process.env.LAMBDA_TASK_ROOT;
+// Detect if running in GitHub Actions
+const isGitHubActions = !!process.env.GITHUB_ACTIONS;
 
 const evalPage = (): { beta: RopewikiBetaSection[], images: RopewikiImage[] } => {
     // Functions have to be defined inside evalPage() because it is being run in a browser context and can't reference other functions
@@ -208,6 +210,9 @@ const parseRopewikiPage = async (html: string) => {
         const chromium = await import('@sparticuz/chromium');
         launchOptions.args = chromium.default.args;
         launchOptions.executablePath = await chromium.default.executablePath();
+    } else if (isGitHubActions) {
+        // GitHub Actions requires --no-sandbox flag
+        launchOptions.args = ['--no-sandbox'];
     }
     
     const browser = await puppeteer.launch(launchOptions);

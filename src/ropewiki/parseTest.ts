@@ -6,6 +6,8 @@ import parseRopewikiPage from './parsers/parseRopewikiPage';
 
 // Detect if running in Lambda environment
 const isLambda = !!process.env.AWS_LAMBDA_FUNCTION_NAME || !!process.env.LAMBDA_TASK_ROOT;
+// Detect if running in GitHub Actions
+const isGitHubActions = !!process.env.GITHUB_ACTIONS;
 
 (async () => {
     const pageId = process.argv[2];
@@ -20,6 +22,9 @@ const isLambda = !!process.env.AWS_LAMBDA_FUNCTION_NAME || !!process.env.LAMBDA_
         const chromium = await import('@sparticuz/chromium');
         launchOptions.args = chromium.default.args;
         launchOptions.executablePath = await chromium.default.executablePath();
+    } else if (isGitHubActions) {
+        // GitHub Actions requires --no-sandbox flag
+        launchOptions.args = ['--no-sandbox'];
     }
     
     const browser = await puppeteer.launch(launchOptions);
