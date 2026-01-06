@@ -63,7 +63,7 @@ jobs:
         run: npm run migrate-test:up
 
       - name: Run all tests
-        runt: npm run test:deploy
+        run: npm run test:deploy
         env:
           TEST_USER: testUser
           TEST_PASS: testPass
