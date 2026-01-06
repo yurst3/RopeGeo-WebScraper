@@ -37,7 +37,7 @@ Note: All of the API queries are done sequentially so we don't hit any API reque
 3. Download and install [Docker](https://docs.docker.com/desktop)
 4. Ask Ethan to make you an AWS IAM user OR [create your account](https://aws.amazon.com/)
 5. Run `npm install` to install all package dependencies
-6. Run `npx @puppeteer/browsers install chrome` to install Chrome for Testing
+6. Run `npx puppeteer browsers install chrome` to install Chrome for Testing
 7. (Optional, Recommended) Download and install a database browser of your choice. Personally I recommend [DBeaver](https://dbeaver.io/)
 
 ## Scripts
