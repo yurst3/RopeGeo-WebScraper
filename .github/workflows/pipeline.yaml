@@ -60,15 +60,16 @@ jobs:
         run: npm ci
 
       - name: Run database migrations
-        run: npm run migrate-test:up
+        run: |
+          npx dbmate --url postgres://testUser:testPass@postgres:5432/test?sslmode=disable up
 
       - name: Run all tests
         run: npm run test:deploy
         env:
           TEST_USER: testUser
           TEST_PASS: testPass
-          TEST_HOST: 127.0.0.1
-          TEST_PORT: 8080
+          TEST_HOST: postgres
+          TEST_PORT: 5432
           TEST_DB: test
 
   delete-feature:
