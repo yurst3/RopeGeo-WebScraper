@@ -45,7 +45,7 @@ jobs:
           POSTGRES_USER: testUser
           POSTGRES_DB: test
         ports:
-          - 8080:5432
+          - 127.0.0.1:8081:5432/tcp
         options: >-
           --health-cmd pg_isready
           --health-interval 10s
