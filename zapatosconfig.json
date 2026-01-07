@@ -1,6 +1,6 @@
 {
     "db": {
-        "connectionString": "postgresql://localhost/development"
+        "connectionString": "postgres://localUser:localPass@127.0.0.1:8081/local?sslmode=disable"
     },
     "outDir": "./src"
 }

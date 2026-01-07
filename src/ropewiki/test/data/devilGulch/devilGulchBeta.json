@@ -1,30 +1,37 @@
 [
     {
         "title": "Introduction",
-        "text": "<p>Don't be fooled by the evocative title and promising falls at the mouth; this gulch has little to offer but impedance and exhaustion.  The two short falls within are pretty, but there is no reasonable way to get to them. \n</p><p>This gulch is rugged and has probably never been maintained. It has few great obstacles like waterfalls and slots, only an infinity of dense minor ones like poison oak, poodle dog, and dead trees, and thus has little potential for development and should thereby not be attempted by anyone, ever.\n</p>"
+        "text": "<p>Don't be fooled by the evocative title and promising falls at the mouth; this gulch has little to offer but impedance and exhaustion.  The two short falls within are pretty, but there is no reasonable way to get to them. \n</p><p>This gulch is rugged and has probably never been maintained. It has few great obstacles like waterfalls and slots, only an infinity of dense minor ones like poison oak, poodle dog, and dead trees, and thus has little potential for development and should thereby not be attempted by anyone, ever.\n</p>",
+        "order": 1
     },
     {
         "title": "Approach",
-        "text": "<p>You can either drop a car at the East Fork Trailhead and start the hike at the \"tunnels to nowhere\" trailhead up shoemaker road, which is a 4.6 mile shuttle, or if you're masochistic and/or lonely you can just park at the former and bushwhack from Bonita campground up to Shoemaker road following game trails.\n</p><p>Follow betas to the gulley just before the deep cut on both sides of the road.  There are four white reflective markers where the road crosses the gully.  If you see the tunnel you've gone too far.  There is a somewhat obvious but steep trail immediately off the left side of the road, on the left side of the gulley.  It quickly joins a dirt path, which if taken to the left goes around a corner to some old water towers, and if taken to the right crosses the gulley and gets you closer to the ridge above it.  Hop up to the ridge and then just go up until you can't go up anymore, and that's Rattlesnake peak.  Betas to Rattlesnake Peak via Shoemaker road can be found on various sites, including: <a rel=\"nofollow\" class=\"external free\" href=\"http://www.hundredpeaks.org/guides/15c.htm\">http://www.hundredpeaks.org/guides/15c.htm</a>\n</p><p>It's possible that an alternate \"sneak route\" to the first rap could be bushwhacked from SG river, going up rattlesnake about a kilometer, then cutting north across the slope until a drop-in point can be negotiated above the first rap.  A use trail can be seen on the KML map to this effect, but who knows how good it is.\n</p>"
+        "text": "<p>You can either drop a car at the East Fork Trailhead and start the hike at the \"tunnels to nowhere\" trailhead up shoemaker road, which is a 4.6 mile shuttle, or if you're masochistic and/or lonely you can just park at the former and bushwhack from Bonita campground up to Shoemaker road following game trails.\n</p><p>Follow betas to the gulley just before the deep cut on both sides of the road.  There are four white reflective markers where the road crosses the gully.  If you see the tunnel you've gone too far.  There is a somewhat obvious but steep trail immediately off the left side of the road, on the left side of the gulley.  It quickly joins a dirt path, which if taken to the left goes around a corner to some old water towers, and if taken to the right crosses the gulley and gets you closer to the ridge above it.  Hop up to the ridge and then just go up until you can't go up anymore, and that's Rattlesnake peak.  Betas to Rattlesnake Peak via Shoemaker road can be found on various sites, including: <a rel=\"nofollow\" class=\"external free\" href=\"http://www.hundredpeaks.org/guides/15c.htm\">http://www.hundredpeaks.org/guides/15c.htm</a>\n</p><p>It's possible that an alternate \"sneak route\" to the first rap could be bushwhacked from SG river, going up rattlesnake about a kilometer, then cutting north across the slope until a drop-in point can be negotiated above the first rap.  A use trail can be seen on the KML map to this effect, but who knows how good it is.\n</p>",
+        "order": 2
     },
     {
         "title": "Descent",
-        "text": "<p>From Rattlesnake Peak, Follow the North-Northeast ridge all the way down.  There is some gnarly bushwhacking through here, but the game trails just off the north side of the ridge are surprisingly good.  Judging from the tracks, I suspect that's because they're for giant mountain lions.  I dropped into the gulch pretty early, which should only be done if you're interested in 8 hours of fruitless and unnecessary bushwhacking.  The proper drop in point is just before the first rap, around 34.283344, -117.761001, staying as high on the ridge as possible until that point.\n</p><p>There are no anchors or slings in this gulch.  Probably because people don't belong in here.\n</p><p>obstacle breakdown:<br>\n</p><p>There are many &lt;15' scrambles and a couple of small pools cut into the rock at various places, but overall the level of debris and vines make this gulch practically impassable for all but the most impassible.  Even if it was cleared out and maintained, it would be a mediocre canyon with a very long approach.\n</p>"
+        "text": "<p>From Rattlesnake Peak, Follow the North-Northeast ridge all the way down.  There is some gnarly bushwhacking through here, but the game trails just off the north side of the ridge are surprisingly good.  Judging from the tracks, I suspect that's because they're for giant mountain lions.  I dropped into the gulch pretty early, which should only be done if you're interested in 8 hours of fruitless and unnecessary bushwhacking.  The proper drop in point is just before the first rap, around 34.283344, -117.761001, staying as high on the ridge as possible until that point.\n</p><p>There are no anchors or slings in this gulch.  Probably because people don't belong in here.\n</p><p>obstacle breakdown:<br>\n</p><p>There are many &lt;15' scrambles and a couple of small pools cut into the rock at various places, but overall the level of debris and vines make this gulch practically impassable for all but the most impassible.  Even if it was cleared out and maintained, it would be a mediocre canyon with a very long approach.\n</p>",
+        "order": 3
     },
     {
         "title": "Exit",
-        "text": "<p>Devil Gulch dumps into the East Fork of the San Gabriel River just a hop, skip, and a jump from the last rap.  Then follow the river about a mile until a trail shows up DCL, then follow that trail (bridge to nowhere trail) 3.5 miles or so to the East Fork Trailhead.\n</p>"
+        "text": "<p>Devil Gulch dumps into the East Fork of the San Gabriel River just a hop, skip, and a jump from the last rap.  Then follow the river about a mile until a trail shows up DCL, then follow that trail (bridge to nowhere trail) 3.5 miles or so to the East Fork Trailhead.\n</p>",
+        "order": 4
     },
     {
         "title": "Red tape",
-        "text": "<p>Apparently you're supposed to have an adventure pass at the east fork trailhead, but the dozen or more times I've parked there without one I've only received a $5 ticket once.\n</p>"
+        "text": "<p>Apparently you're supposed to have an adventure pass at the east fork trailhead, but the dozen or more times I've parked there without one I've only received a $5 ticket once.\n</p>",
+        "order": 5
     },
     {
         "title": "Beta sites",
-        "text": "<ul><li><a rel=\"nofollow\" class=\"external free\" href=\"http://www.hundredpeaks.org/guides/15c.htm\">http://www.hundredpeaks.org/guides/15c.htm</a></li>\n<li><a rel=\"nofollow\" class=\"external free\" href=\"http://socalhikes.com/2008/12/rattlesnake-peak/\">http://socalhikes.com/2008/12/rattlesnake-peak/</a></li>\n</ul>\n"
+        "text": "<ul><li><a rel=\"nofollow\" class=\"external free\" href=\"http://www.hundredpeaks.org/guides/15c.htm\">http://www.hundredpeaks.org/guides/15c.htm</a></li>\n<li><a rel=\"nofollow\" class=\"external free\" href=\"http://socalhikes.com/2008/12/rattlesnake-peak/\">http://socalhikes.com/2008/12/rattlesnake-peak/</a></li>\n</ul>\n",
+        "order": 6
     },
     {
         "title": "Trip reports and media",
-        "text": ""
+        "text": "",
+        "order": 7
     }
 ]

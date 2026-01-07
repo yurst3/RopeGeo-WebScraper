@@ -1,36 +1,42 @@
 [
     {
         "linkUrl": "https://ropewiki.com/File:Devil_Gulch_Banner.jpg",
-        "fileUrl": "https://ropewiki.com/images/2/29/Devil_Gulch_Banner.jpg"
+        "fileUrl": "https://ropewiki.com/images/2/29/Devil_Gulch_Banner.jpg",
+        "order": 1
     },
     {
         "betaSectionTitle": "Trip reports and media",
         "linkUrl": "https://ropewiki.com/File:Devil_Gulch_pics.jpg",
         "fileUrl": "https://ropewiki.com/images/e/e7/Devil_Gulch_pics.jpg",
-        "caption": ""
+        "caption": "",
+        "order": 1
     },
     {
         "betaSectionTitle": "Trip reports and media",
         "linkUrl": "https://ropewiki.com/File:Devil_Gulch_pics2.jpg",
         "fileUrl": "https://ropewiki.com/images/5/5b/Devil_Gulch_pics2.jpg",
-        "caption": ""
+        "caption": "",
+        "order": 2
     },
     {
         "betaSectionTitle": "Trip reports and media",
         "linkUrl": "https://ropewiki.com/File:Devil_Gulch_pics3.jpg",
         "fileUrl": "https://ropewiki.com/images/c/c9/Devil_Gulch_pics3.jpg",
-        "caption": ""
+        "caption": "",
+        "order": 3
     },
     {
         "betaSectionTitle": "Trip reports and media",
         "linkUrl": "https://ropewiki.com/File:Devil_Gulch_pics4.jpg",
         "fileUrl": "https://ropewiki.com/images/5/5d/Devil_Gulch_pics4.jpg",
-        "caption": ""
+        "caption": "",
+        "order": 4
     },
     {
         "betaSectionTitle": "Trip reports and media",
         "linkUrl": "https://ropewiki.com/File:Devil_Gulch_pics5.jpg",
         "fileUrl": "https://ropewiki.com/images/d/d8/Devil_Gulch_pics5.jpg",
-        "caption": ""
+        "caption": "",
+        "order": 5
     }
 ]

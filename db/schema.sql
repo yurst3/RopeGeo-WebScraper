@@ -1,4 +1,4 @@
-\restrict mRKtKwrjYrioqca2334B1R5ftJojBndcLFPUR71qOUZIvh0YkwsWz9LjrSg8AYb
+\restrict EMgnAMTbyWtvldankRVStCKE3m8UHm8qiC134bE89K0loilLCccCbAhMztACQJg
 
 -- Dumped from database version 18.1 (Debian 18.1-1.pgdg13+2)
 -- Dumped by pg_dump version 18.1 (Homebrew)
@@ -33,7 +33,8 @@ CREATE TABLE public."RopewikiImage" (
     "createdAt" timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
     "updatedAt" timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
     "deletedAt" timestamp without time zone,
-    "latestRevisionDate" timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL
+    "latestRevisionDate" timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    "order" integer NOT NULL
 );
 
 
@@ -83,7 +84,8 @@ CREATE TABLE public."RopewikiPageBetaSection" (
     "createdAt" timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
     "updatedAt" timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
     "deletedAt" timestamp without time zone,
-    "latestRevisionDate" timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL
+    "latestRevisionDate" timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    "order" integer NOT NULL
 );
 
 
@@ -157,6 +159,22 @@ ALTER TABLE ONLY public.schema_migrations
 
 ALTER TABLE ONLY public."RopewikiImage"
     ADD CONSTRAINT "uk_ropewikiImage_ropewikiPage_betaSection_fileUrl" UNIQUE NULLS NOT DISTINCT ("ropewikiPage", "betaSection", "fileUrl");
+
+
+--
+-- Name: RopewikiImage uk_ropewikiImage_ropewikiPage_betaSection_order; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public."RopewikiImage"
+    ADD CONSTRAINT "uk_ropewikiImage_ropewikiPage_betaSection_order" UNIQUE NULLS NOT DISTINCT ("ropewikiPage", "betaSection", "order");
+
+
+--
+-- Name: RopewikiPageBetaSection uk_ropewikiPageBetaSection_ropewikiPage_order; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public."RopewikiPageBetaSection"
+    ADD CONSTRAINT "uk_ropewikiPageBetaSection_ropewikiPage_order" UNIQUE ("ropewikiPage", "order");
 
 
 --
@@ -234,7 +252,7 @@ ALTER TABLE ONLY public."RopewikiRegion"
 -- PostgreSQL database dump complete
 --
 
-\unrestrict mRKtKwrjYrioqca2334B1R5ftJojBndcLFPUR71qOUZIvh0YkwsWz9LjrSg8AYb
+\unrestrict EMgnAMTbyWtvldankRVStCKE3m8UHm8qiC134bE89K0loilLCccCbAhMztACQJg
 
 
 --
@@ -247,4 +265,5 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20251218202306'),
     ('20251219182510'),
     ('20251219191048'),
-    ('20251227152406');
+    ('20251227152406'),
+    ('20260107210617');

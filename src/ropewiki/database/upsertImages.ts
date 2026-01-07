@@ -23,6 +23,7 @@ const upsertImages = async (
             linkUrl: image.linkUrl,
             fileUrl: image.fileUrl,
             caption: image.caption ?? null,
+            order: image.order,
             latestRevisionDate,
             updatedAt: now,
             deletedAt: null,
@@ -31,7 +32,7 @@ const upsertImages = async (
 
     const result = await db
         .upsert('RopewikiImage', rows, ['ropewikiPage', 'betaSection', 'fileUrl'], {
-            updateColumns: ['linkUrl', 'caption', 'betaSection', 'latestRevisionDate', 'updatedAt', 'deletedAt'],
+            updateColumns: ['linkUrl', 'caption', 'betaSection', 'order', 'latestRevisionDate', 'updatedAt', 'deletedAt'],
         })
         .run(tx);
 

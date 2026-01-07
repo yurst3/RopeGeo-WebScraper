@@ -1,10 +1,12 @@
 [
     {
         "title": "Introduction",
-        "text": "<p>Barranco A Glera o Barranco del Fabar (no confundir con Barranco A Glera d´Otal o Barranco Forcos en Bergua)\n</p>"
+        "text": "<p>Barranco A Glera o Barranco del Fabar (no confundir con Barranco A Glera d´Otal o Barranco Forcos en Bergua)\n</p>",
+        "order": 1
     },
     {
         "title": "Beta sites",
-        "text": "<ul><li><a rel=\"nofollow\" class=\"external text\" href=\"http://guara.info/guara-base-de-datos/descenso-de-barrancos/sierra-de-guara/cuenca-del-mascun/barranco-da-glera\">Guara.info</a>  : Barranco d'a Glera</li>\n</ul>\n"
+        "text": "<ul><li><a rel=\"nofollow\" class=\"external text\" href=\"http://guara.info/guara-base-de-datos/descenso-de-barrancos/sierra-de-guara/cuenca-del-mascun/barranco-da-glera\">Guara.info</a>  : Barranco d'a Glera</li>\n</ul>\n",
+        "order": 6
     }
 ]

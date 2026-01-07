@@ -75,6 +75,7 @@ describe('setImagesDeletedAt (integration)', () => {
                     fileUrl: 'https://ropewiki.com/files/Image1.jpg',
                     linkUrl: 'https://ropewiki.com/Image1',
                     caption: 'Image 1 caption',
+                    order: 1,
                     latestRevisionDate: latestRevisionDate.toISOString() as db.TimestampString,
                 },
                 {
@@ -83,6 +84,7 @@ describe('setImagesDeletedAt (integration)', () => {
                     fileUrl: 'https://ropewiki.com/files/Image2.jpg',
                     linkUrl: 'https://ropewiki.com/Image2',
                     caption: 'Image 2 caption',
+                    order: 2,
                     latestRevisionDate: latestRevisionDate.toISOString() as db.TimestampString,
                 },
                 {
@@ -91,6 +93,7 @@ describe('setImagesDeletedAt (integration)', () => {
                     fileUrl: 'https://ropewiki.com/files/Image3.jpg',
                     linkUrl: 'https://ropewiki.com/Image3',
                     caption: 'Image 3 caption',
+                    order: 3,
                     latestRevisionDate: latestRevisionDate.toISOString() as db.TimestampString,
                 },
             ])
@@ -131,6 +134,7 @@ describe('setImagesDeletedAt (integration)', () => {
                     fileUrl: 'https://ropewiki.com/files/Image1.jpg',
                     linkUrl: 'https://ropewiki.com/Image1',
                     caption: 'Image 1 caption',
+                    order: 1,
                     latestRevisionDate: latestRevisionDate.toISOString() as db.TimestampString,
                 },
                 {
@@ -139,6 +143,7 @@ describe('setImagesDeletedAt (integration)', () => {
                     fileUrl: 'https://ropewiki.com/files/Image2.jpg',
                     linkUrl: 'https://ropewiki.com/Image2',
                     caption: 'Image 2 caption',
+                    order: 2,
                     latestRevisionDate: latestRevisionDate.toISOString() as db.TimestampString,
                 },
                 {
@@ -147,6 +152,7 @@ describe('setImagesDeletedAt (integration)', () => {
                     fileUrl: 'https://ropewiki.com/files/Image3.jpg',
                     linkUrl: 'https://ropewiki.com/Image3',
                     caption: 'Image 3 caption',
+                    order: 3,
                     latestRevisionDate: latestRevisionDate.toISOString() as db.TimestampString,
                 },
             ])
@@ -189,6 +195,7 @@ describe('setImagesDeletedAt (integration)', () => {
                     fileUrl: 'https://ropewiki.com/files/Image1.jpg',
                     linkUrl: 'https://ropewiki.com/Image1',
                     caption: 'Image 1 caption',
+                    order: 1,
                     latestRevisionDate: latestRevisionDate.toISOString() as db.TimestampString,
                 },
                 {
@@ -197,6 +204,7 @@ describe('setImagesDeletedAt (integration)', () => {
                     fileUrl: 'https://ropewiki.com/files/Image2.jpg',
                     linkUrl: 'https://ropewiki.com/Image2',
                     caption: 'Image 2 caption',
+                    order: 2,
                     latestRevisionDate: latestRevisionDate.toISOString() as db.TimestampString,
                 },
             ])
@@ -250,6 +258,7 @@ describe('setImagesDeletedAt (integration)', () => {
                     fileUrl: 'https://ropewiki.com/files/Page1Image.jpg',
                     linkUrl: 'https://ropewiki.com/Page1Image',
                     caption: 'Page1 Image caption',
+                    order: 1,
                     latestRevisionDate: latestRevisionDate.toISOString() as db.TimestampString,
                 },
                 {
@@ -258,6 +267,7 @@ describe('setImagesDeletedAt (integration)', () => {
                     fileUrl: 'https://ropewiki.com/files/Page2Image.jpg',
                     linkUrl: 'https://ropewiki.com/Page2Image',
                     caption: 'Page2 Image caption',
+                    order: 1,
                     latestRevisionDate: latestRevisionDate.toISOString() as db.TimestampString,
                 },
             ])
@@ -292,6 +302,7 @@ describe('setImagesDeletedAt (integration)', () => {
                     fileUrl: 'https://ropewiki.com/files/Image1.jpg',
                     linkUrl: 'https://ropewiki.com/Image1',
                     caption: 'Image 1 caption',
+                    order: 1,
                     latestRevisionDate: latestRevisionDate.toISOString() as db.TimestampString,
                 },
                 {
@@ -300,6 +311,7 @@ describe('setImagesDeletedAt (integration)', () => {
                     fileUrl: 'https://ropewiki.com/files/Image2.jpg',
                     linkUrl: 'https://ropewiki.com/Image2',
                     caption: 'Image 2 caption',
+                    order: 2,
                     latestRevisionDate: latestRevisionDate.toISOString() as db.TimestampString,
                     deletedAt: oldDeletedAt.toISOString() as db.TimestampString,
                 },
@@ -309,6 +321,7 @@ describe('setImagesDeletedAt (integration)', () => {
                     fileUrl: 'https://ropewiki.com/files/Image3.jpg',
                     linkUrl: 'https://ropewiki.com/Image3',
                     caption: 'Image 3 caption',
+                    order: 3,
                     latestRevisionDate: latestRevisionDate.toISOString() as db.TimestampString,
                 },
             ])

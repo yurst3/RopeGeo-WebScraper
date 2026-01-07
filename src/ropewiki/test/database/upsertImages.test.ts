@@ -53,8 +53,8 @@ describe('upsertImages (integration)', () => {
 
         // Insert test beta sections to get betaTitleIds
         const betaSections: RopewikiBetaSection[] = [
-            { title: 'Introduction', text: 'Introduction text.' },
-            { title: 'Approach', text: 'Approach text.' },
+            { title: 'Introduction', text: 'Introduction text.', order: 1 },
+            { title: 'Approach', text: 'Approach text.', order: 2 },
         ];
         betaTitleIds = await upsertBetaSections(conn, testPageUuid, betaSections, new Date('2025-01-01T00:00:00Z'));
     });
@@ -92,18 +92,21 @@ describe('upsertImages (integration)', () => {
                 linkUrl: 'https://ropewiki.com/Image1',
                 fileUrl: 'https://ropewiki.com/files/Image1.jpg',
                 caption: 'Image 1 caption',
+                order: 1,
             },
             {
                 betaSectionTitle: 'Approach',
                 linkUrl: 'https://ropewiki.com/Image2',
                 fileUrl: 'https://ropewiki.com/files/Image2.jpg',
                 caption: 'Image 2 caption',
+                order: 1,
             },
             {
                 betaSectionTitle: undefined,
                 linkUrl: 'https://ropewiki.com/Image3',
                 fileUrl: 'https://ropewiki.com/files/Image3.jpg',
                 caption: 'Image 3 caption',
+                order: 1,
             },
         ];
 
@@ -134,18 +137,21 @@ describe('upsertImages (integration)', () => {
         expect(image1.linkUrl).toBe('https://ropewiki.com/Image1');
         expect(image1.fileUrl).toBe('https://ropewiki.com/files/Image1.jpg');
         expect(image1.caption).toBe('Image 1 caption');
+        expect(image1.order).toBe(1);
         expect(new Date(image1.latestRevisionDate).toISOString()).toBe(latestRevisionDate.toISOString());
 
         expect(image2.betaSection).toBe(betaTitleIds.Approach);
         expect(image2.linkUrl).toBe('https://ropewiki.com/Image2');
         expect(image2.fileUrl).toBe('https://ropewiki.com/files/Image2.jpg');
         expect(image2.caption).toBe('Image 2 caption');
+        expect(image2.order).toBe(1);
         expect(new Date(image2.latestRevisionDate).toISOString()).toBe(latestRevisionDate.toISOString());
 
         expect(image3.betaSection).toBeNull();
         expect(image3.linkUrl).toBe('https://ropewiki.com/Image3');
         expect(image3.fileUrl).toBe('https://ropewiki.com/files/Image3.jpg');
         expect(image3.caption).toBe('Image 3 caption');
+        expect(image3.order).toBe(1);
         expect(new Date(image3.latestRevisionDate).toISOString()).toBe(latestRevisionDate.toISOString());
     });
 
@@ -160,12 +166,14 @@ describe('upsertImages (integration)', () => {
                 linkUrl: 'https://ropewiki.com/Image1',
                 fileUrl: 'https://ropewiki.com/files/Image1.jpg',
                 caption: 'Initial caption 1',
+                order: 1,
             },
             {
                 betaSectionTitle: undefined,
                 linkUrl: 'https://ropewiki.com/Image2',
                 fileUrl: 'https://ropewiki.com/files/Image2.jpg',
                 caption: 'Initial caption 2',
+                order: 1,
             },
         ];
 
@@ -190,12 +198,14 @@ describe('upsertImages (integration)', () => {
                 linkUrl: 'https://ropewiki.com/Image1_Updated',
                 fileUrl: 'https://ropewiki.com/files/Image1.jpg', // Same fileUrl (conflict key)
                 caption: 'Updated caption 1',
+                order: 2,
             },
             {
                 betaSectionTitle: undefined,
                 linkUrl: 'https://ropewiki.com/Image2_Updated',
                 fileUrl: 'https://ropewiki.com/files/Image2.jpg', // Same fileUrl (conflict key)
                 caption: 'Updated caption 2',
+                order: 2,
             },
         ];
 
@@ -223,11 +233,13 @@ describe('upsertImages (integration)', () => {
         expect(image1.betaSection).toBe(betaTitleIds.Introduction);
         expect(image1.linkUrl).toBe('https://ropewiki.com/Image1_Updated');
         expect(image1.caption).toBe('Updated caption 1');
+        expect(image1.order).toBe(2);
         expect(new Date(image1.latestRevisionDate).toISOString()).toBe(updatedRevisionDate.toISOString());
 
         expect(image2.betaSection).toBeNull();
         expect(image2.linkUrl).toBe('https://ropewiki.com/Image2_Updated');
         expect(image2.caption).toBe('Updated caption 2');
+        expect(image2.order).toBe(2);
         expect(new Date(image2.latestRevisionDate).toISOString()).toBe(updatedRevisionDate.toISOString());
     });
 
@@ -239,6 +251,7 @@ describe('upsertImages (integration)', () => {
                 linkUrl: 'https://ropewiki.com/Image1',
                 fileUrl: 'https://ropewiki.com/files/Image1.jpg',
                 caption: 'Image 1 caption',
+                order: 1,
             },
         ];
 
@@ -255,6 +268,7 @@ describe('upsertImages (integration)', () => {
                 linkUrl: 'https://ropewiki.com/DeletedImage',
                 fileUrl: 'https://ropewiki.com/files/DeletedImage.jpg',
                 caption: 'Deleted image caption',
+                order: 1,
             },
         ];
 
@@ -266,6 +280,7 @@ describe('upsertImages (integration)', () => {
                 linkUrl: 'https://ropewiki.com/DeletedImage',
                 fileUrl: 'https://ropewiki.com/files/DeletedImage.jpg',
                 caption: 'Deleted image caption',
+                order: 1,
                 latestRevisionDate: '2025-01-01T00:00:00' as db.TimestampString,
                 deletedAt: '2025-01-01T00:00:00' as db.TimestampString,
             })
@@ -290,6 +305,113 @@ describe('upsertImages (integration)', () => {
         expect(image.caption).toBe('Deleted image caption');
     });
 
+    it('throws an error when attempting to insert duplicate order for the same page and betaSection', async () => {
+        const latestRevisionDate = new Date('2025-01-02T12:34:56Z');
+        const images: RopewikiImage[] = [
+            {
+                betaSectionTitle: 'Introduction',
+                linkUrl: 'https://ropewiki.com/Image1',
+                fileUrl: 'https://ropewiki.com/files/Image1.jpg',
+                caption: 'Image 1 caption',
+                order: 1,
+            },
+            {
+                betaSectionTitle: 'Introduction',
+                linkUrl: 'https://ropewiki.com/Image2',
+                fileUrl: 'https://ropewiki.com/files/Image2.jpg',
+                caption: 'Image 2 caption',
+                order: 1, // Same order and betaSection as Image1
+            },
+        ];
+
+        await expect(
+            upsertImages(conn, testPageUuid, images, betaTitleIds, latestRevisionDate)
+        ).rejects.toThrow();
+    });
+
+    it('allows same order for different betaSections', async () => {
+        const latestRevisionDate = new Date('2025-01-02T12:34:56Z');
+        const images: RopewikiImage[] = [
+            {
+                betaSectionTitle: 'Introduction',
+                linkUrl: 'https://ropewiki.com/Image1',
+                fileUrl: 'https://ropewiki.com/files/Image1.jpg',
+                caption: 'Image 1 caption',
+                order: 1,
+            },
+            {
+                betaSectionTitle: 'Approach',
+                linkUrl: 'https://ropewiki.com/Image2',
+                fileUrl: 'https://ropewiki.com/files/Image2.jpg',
+                caption: 'Image 2 caption',
+                order: 1, // Same order but different betaSection - should be allowed
+            },
+        ];
+
+        const result = await upsertImages(conn, testPageUuid, images, betaTitleIds, latestRevisionDate);
+        expect(result).toHaveLength(2);
+    });
+
+    it('allows same order for images without betaSection', async () => {
+        const latestRevisionDate = new Date('2025-01-02T12:34:56Z');
+        const images: RopewikiImage[] = [
+            {
+                betaSectionTitle: undefined,
+                linkUrl: 'https://ropewiki.com/Image1',
+                fileUrl: 'https://ropewiki.com/files/Image1.jpg',
+                caption: 'Image 1 caption',
+                order: 1,
+            },
+            {
+                betaSectionTitle: undefined,
+                linkUrl: 'https://ropewiki.com/Image2',
+                fileUrl: 'https://ropewiki.com/files/Image2.jpg',
+                caption: 'Image 2 caption',
+                order: 1, // Same order and betaSection (both null) - should throw
+            },
+        ];
+
+        await expect(
+            upsertImages(conn, testPageUuid, images, betaTitleIds, latestRevisionDate)
+        ).rejects.toThrow();
+    });
+
+    it('updates order when upserting existing image', async () => {
+        const latestRevisionDate = new Date('2025-01-02T12:34:56Z');
+        
+        // First insert with order 1
+        const initialImages: RopewikiImage[] = [
+            {
+                betaSectionTitle: 'Introduction',
+                linkUrl: 'https://ropewiki.com/Image1',
+                fileUrl: 'https://ropewiki.com/files/Image1.jpg',
+                caption: 'Initial caption',
+                order: 1,
+            },
+        ];
+        await upsertImages(conn, testPageUuid, initialImages, betaTitleIds, latestRevisionDate);
+
+        // Update with order 2
+        const updatedImages: RopewikiImage[] = [
+            {
+                betaSectionTitle: 'Introduction',
+                linkUrl: 'https://ropewiki.com/Image1_Updated',
+                fileUrl: 'https://ropewiki.com/files/Image1.jpg', // Same fileUrl (conflict key)
+                caption: 'Updated caption',
+                order: 2,
+            },
+        ];
+        await upsertImages(conn, testPageUuid, updatedImages, betaTitleIds, latestRevisionDate);
+
+        // Verify order was updated
+        const rows = await db
+            .select('RopewikiImage', { ropewikiPage: testPageUuid, fileUrl: 'https://ropewiki.com/files/Image1.jpg' })
+            .run(conn);
+        expect(rows).toHaveLength(1);
+        expect(rows[0]?.order).toBe(2);
+        expect(rows[0]?.caption).toBe('Updated caption');
+    });
+
     it('propagates errors from the database layer', async () => {
         const latestRevisionDate = new Date('2025-01-04T10:00:00Z');
         const images: RopewikiImage[] = [
@@ -298,6 +420,7 @@ describe('upsertImages (integration)', () => {
                 linkUrl: 'https://ropewiki.com/Image1',
                 fileUrl: 'https://ropewiki.com/files/Image1.jpg',
                 caption: 'Image 1 caption',
+                order: 1,
             },
         ];
 

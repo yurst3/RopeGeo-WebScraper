@@ -74,6 +74,7 @@ describe('setBetaSectionsDeletedAt (integration)', () => {
                     ropewikiPage: testPageUuid,
                     title: 'Section 1',
                     text: 'Text 1',
+                    order: 1,
                     latestRevisionDate: latestRevisionDate.toISOString() as db.TimestampString,
                 },
                 {
@@ -81,6 +82,7 @@ describe('setBetaSectionsDeletedAt (integration)', () => {
                     ropewikiPage: testPageUuid,
                     title: 'Section 2',
                     text: 'Text 2',
+                    order: 2,
                     latestRevisionDate: latestRevisionDate.toISOString() as db.TimestampString,
                 },
                 {
@@ -88,6 +90,7 @@ describe('setBetaSectionsDeletedAt (integration)', () => {
                     ropewikiPage: testPageUuid,
                     title: 'Section 3',
                     text: 'Text 3',
+                    order: 3,
                     latestRevisionDate: latestRevisionDate.toISOString() as db.TimestampString,
                 },
             ])
@@ -127,6 +130,7 @@ describe('setBetaSectionsDeletedAt (integration)', () => {
                     ropewikiPage: testPageUuid,
                     title: 'Section 1',
                     text: 'Text 1',
+                    order: 1,
                     latestRevisionDate: latestRevisionDate.toISOString() as db.TimestampString,
                 },
                 {
@@ -134,6 +138,7 @@ describe('setBetaSectionsDeletedAt (integration)', () => {
                     ropewikiPage: testPageUuid,
                     title: 'Section 2',
                     text: 'Text 2',
+                    order: 2,
                     latestRevisionDate: latestRevisionDate.toISOString() as db.TimestampString,
                 },
                 {
@@ -141,6 +146,7 @@ describe('setBetaSectionsDeletedAt (integration)', () => {
                     ropewikiPage: testPageUuid,
                     title: 'Section 3',
                     text: 'Text 3',
+                    order: 3,
                     latestRevisionDate: latestRevisionDate.toISOString() as db.TimestampString,
                 },
             ])
@@ -182,6 +188,7 @@ describe('setBetaSectionsDeletedAt (integration)', () => {
                     ropewikiPage: testPageUuid,
                     title: 'Section 1',
                     text: 'Text 1',
+                    order: 1,
                     latestRevisionDate: latestRevisionDate.toISOString() as db.TimestampString,
                 },
                 {
@@ -189,6 +196,7 @@ describe('setBetaSectionsDeletedAt (integration)', () => {
                     ropewikiPage: testPageUuid,
                     title: 'Section 2',
                     text: 'Text 2',
+                    order: 2,
                     latestRevisionDate: latestRevisionDate.toISOString() as db.TimestampString,
                 },
             ])
@@ -241,6 +249,7 @@ describe('setBetaSectionsDeletedAt (integration)', () => {
                     ropewikiPage: testPageUuid,
                     title: 'Page1 Section',
                     text: 'Text 1',
+                    order: 1,
                     latestRevisionDate: latestRevisionDate.toISOString() as db.TimestampString,
                 },
                 {
@@ -248,6 +257,7 @@ describe('setBetaSectionsDeletedAt (integration)', () => {
                     ropewikiPage: testPageUuid2,
                     title: 'Page2 Section',
                     text: 'Text 2',
+                    order: 1,
                     latestRevisionDate: latestRevisionDate.toISOString() as db.TimestampString,
                 },
             ])
@@ -281,6 +291,7 @@ describe('setBetaSectionsDeletedAt (integration)', () => {
                     ropewikiPage: testPageUuid,
                     title: 'Section 1',
                     text: 'Text 1',
+                    order: 1,
                     latestRevisionDate: latestRevisionDate.toISOString() as db.TimestampString,
                 },
                 {
@@ -288,6 +299,7 @@ describe('setBetaSectionsDeletedAt (integration)', () => {
                     ropewikiPage: testPageUuid,
                     title: 'Section 2',
                     text: 'Text 2',
+                    order: 2,
                     latestRevisionDate: latestRevisionDate.toISOString() as db.TimestampString,
                     deletedAt: oldDeletedAt.toISOString() as db.TimestampString,
                 },
@@ -296,6 +308,7 @@ describe('setBetaSectionsDeletedAt (integration)', () => {
                     ropewikiPage: testPageUuid,
                     title: 'Section 3',
                     text: 'Text 3',
+                    order: 3,
                     latestRevisionDate: latestRevisionDate.toISOString() as db.TimestampString,
                 },
             ])

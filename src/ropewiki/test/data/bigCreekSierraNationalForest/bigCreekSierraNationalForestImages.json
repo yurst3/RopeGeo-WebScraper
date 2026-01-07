@@ -1,96 +1,112 @@
 [
     {
         "linkUrl": "https://ropewiki.com/File:Big_Creek_(Sierra_National_Forest)_Banner.jpg",
-        "fileUrl": "https://ropewiki.com/images/3/30/Big_Creek_%28Sierra_National_Forest%29_Banner.jpg"
+        "fileUrl": "https://ropewiki.com/images/3/30/Big_Creek_%28Sierra_National_Forest%29_Banner.jpg",
+        "order": 1
     },
     {
         "betaSectionTitle": "Reference photos",
         "linkUrl": "https://ropewiki.com/File:Big_Creek_(Sierra_National_Forest)-20190815053902_pic.jpg",
         "fileUrl": "https://ropewiki.com/images/7/73/Big_Creek_%28Sierra_National_Forest%29-20190815053902_pic.jpg",
-        "caption": "<b><a href=\"/References:Big_Creek_(Sierra_National_Forest)-20190815053902\" title=\"References:Big Creek (Sierra National Forest)-20190815053902\">22 Jun 2013</a></b>: <b>Moderate-Low</b>. A bit low, still fun but not very challenging (class C1- = a4-)."
+        "caption": "<b><a href=\"/References:Big_Creek_(Sierra_National_Forest)-20190815053902\" title=\"References:Big Creek (Sierra National Forest)-20190815053902\">22 Jun 2013</a></b>: <b>Moderate-Low</b>. A bit low, still fun but not very challenging (class C1- = a4-).",
+        "order": 1
     },
     {
         "betaSectionTitle": "Reference photos",
         "linkUrl": "https://ropewiki.com/File:Big_Creek_(Sierra_National_Forest)-20160603151115_pic.jpg",
         "fileUrl": "https://ropewiki.com/images/9/9f/Big_Creek_%28Sierra_National_Forest%29-20160603151115_pic.jpg",
-        "caption": "<b><a href=\"/References:Big_Creek_(Sierra_National_Forest)-20160603151115\" title=\"References:Big Creek (Sierra National Forest)-20160603151115\">19 Jul 2014</a></b>: <b>Moderate</b>. Challenging but not dangerous for intermediate canyoneers (class C1 = a4). Photo by Freddy"
+        "caption": "<b><a href=\"/References:Big_Creek_(Sierra_National_Forest)-20160603151115\" title=\"References:Big Creek (Sierra National Forest)-20160603151115\">19 Jul 2014</a></b>: <b>Moderate</b>. Challenging but not dangerous for intermediate canyoneers (class C1 = a4). Photo by Freddy",
+        "order": 2
     },
     {
         "betaSectionTitle": "Reference photos",
         "linkUrl": "https://ropewiki.com/File:Big_Creek_(Sierra_National_Forest)-20190815055834_pic.jpg",
         "fileUrl": "https://ropewiki.com/images/7/70/Big_Creek_%28Sierra_National_Forest%29-20190815055834_pic.jpg",
-        "caption": "<b><a href=\"/References:Big_Creek_(Sierra_National_Forest)-20190815055834\" title=\"References:Big Creek (Sierra National Forest)-20190815055834\">20 Jun 2015</a></b>: <b>Moderate</b>. Challenging but not dangerous for intermediate canyoneers (class C1 = a4)."
+        "caption": "<b><a href=\"/References:Big_Creek_(Sierra_National_Forest)-20190815055834\" title=\"References:Big Creek (Sierra National Forest)-20190815055834\">20 Jun 2015</a></b>: <b>Moderate</b>. Challenging but not dangerous for intermediate canyoneers (class C1 = a4).",
+        "order": 3
     },
     {
         "betaSectionTitle": "Reference photos",
         "linkUrl": "https://ropewiki.com/File:Big_Creek_(Sierra_National_Forest)-20190815053610_pic.jpg",
         "fileUrl": "https://ropewiki.com/images/a/a6/Big_Creek_%28Sierra_National_Forest%29-20190815053610_pic.jpg",
-        "caption": "<b><a href=\"/References:Big_Creek_(Sierra_National_Forest)-20190815053610\" title=\"References:Big Creek (Sierra National Forest)-20190815053610\">14 Jul 2012</a></b>: <b>Moderate-High</b>. A bit high, quite challenging but not too dangerous (class C1+ = a4+)."
+        "caption": "<b><a href=\"/References:Big_Creek_(Sierra_National_Forest)-20190815053610\" title=\"References:Big Creek (Sierra National Forest)-20190815053610\">14 Jul 2012</a></b>: <b>Moderate-High</b>. A bit high, quite challenging but not too dangerous (class C1+ = a4+).",
+        "order": 4
     },
     {
         "betaSectionTitle": "Reference photos",
         "linkUrl": "https://ropewiki.com/File:Big_Creek_(Sierra_National_Forest)-20160603151743_pic.jpg",
         "fileUrl": "https://ropewiki.com/images/6/6c/Big_Creek_%28Sierra_National_Forest%29-20160603151743_pic.jpg",
-        "caption": "<b><a href=\"/References:Big_Creek_(Sierra_National_Forest)-20160603151743\" title=\"References:Big Creek (Sierra National Forest)-20160603151743\">18 Jul 2015</a></b>: <b>Moderate-High</b>. A bit high, quite challenging but not too dangerous (class C1+ = a4+). Photo by Freddy"
+        "caption": "<b><a href=\"/References:Big_Creek_(Sierra_National_Forest)-20160603151743\" title=\"References:Big Creek (Sierra National Forest)-20160603151743\">18 Jul 2015</a></b>: <b>Moderate-High</b>. A bit high, quite challenging but not too dangerous (class C1+ = a4+). Photo by Freddy",
+        "order": 5
     },
     {
         "betaSectionTitle": "Reference photos",
         "linkUrl": "https://ropewiki.com/File:Big_Creek_(Sierra_National_Forest)-20230803233023_pic.jpg",
         "fileUrl": "https://ropewiki.com/images/4/4c/Big_Creek_%28Sierra_National_Forest%29-20230803233023_pic.jpg",
-        "caption": "<b><a href=\"/References:Big_Creek_(Sierra_National_Forest)-20230803233023\" title=\"References:Big Creek (Sierra National Forest)-20230803233023\">16 Jul 2023</a></b>: <b>Moderate-High</b>. A bit high, quite challenging but not too dangerous (class C1+ = a4+). View from the road in."
+        "caption": "<b><a href=\"/References:Big_Creek_(Sierra_National_Forest)-20230803233023\" title=\"References:Big Creek (Sierra National Forest)-20230803233023\">16 Jul 2023</a></b>: <b>Moderate-High</b>. A bit high, quite challenging but not too dangerous (class C1+ = a4+). View from the road in.",
+        "order": 6
     },
     {
         "betaSectionTitle": "Reference photos",
         "linkUrl": "https://ropewiki.com/File:Big_Creek_(Sierra_National_Forest)-20170327152343_pic.jpg",
         "fileUrl": "https://ropewiki.com/images/c/c9/Big_Creek_%28Sierra_National_Forest%29-20170327152343_pic.jpg",
-        "caption": "<b><a href=\"/References:Big_Creek_(Sierra_National_Forest)-20170327152343\" title=\"References:Big Creek (Sierra National Forest)-20170327152343\">16 Jul 2016</a></b>: <b>High</b>. High water, only for experienced swift water canyoneers (class C2 = a5). Very High - photo added by Freddy - taken July 16"
+        "caption": "<b><a href=\"/References:Big_Creek_(Sierra_National_Forest)-20170327152343\" title=\"References:Big Creek (Sierra National Forest)-20170327152343\">16 Jul 2016</a></b>: <b>High</b>. High water, only for experienced swift water canyoneers (class C2 = a5). Very High - photo added by Freddy - taken July 16",
+        "order": 7
     },
     {
         "betaSectionTitle": "Reference photos",
         "linkUrl": "https://ropewiki.com/File:Big_Creek_(Sierra_National_Forest)-20170814155445_pic.jpg",
         "fileUrl": "https://ropewiki.com/images/d/d9/Big_Creek_%28Sierra_National_Forest%29-20170814155445_pic.jpg",
-        "caption": "<b><a href=\"/References:Big_Creek_(Sierra_National_Forest)-20170814155445\" title=\"References:Big Creek (Sierra National Forest)-20170814155445\"><strong class=\"error\">Error: Invalid time.</strong></a></b>: <b>Very High</b>. Dangerously high water, only for expert swift water canyoneers (class C3 = a6)."
+        "caption": "<b><a href=\"/References:Big_Creek_(Sierra_National_Forest)-20170814155445\" title=\"References:Big Creek (Sierra National Forest)-20170814155445\"><strong class=\"error\">Error: Invalid time.</strong></a></b>: <b>Very High</b>. Dangerously high water, only for expert swift water canyoneers (class C3 = a6).",
+        "order": 8
     },
     {
         "betaSectionTitle": "Reference photos",
         "linkUrl": "https://ropewiki.com/File:Big_Creek_(Sierra_National_Forest)-20170804144917_pic.jpg",
         "fileUrl": "https://ropewiki.com/images/0/04/Big_Creek_%28Sierra_National_Forest%29-20170804144917_pic.jpg",
-        "caption": "<b><a href=\"/References:Big_Creek_(Sierra_National_Forest)-20170804144917\" title=\"References:Big Creek (Sierra National Forest)-20170804144917\">16 Jul 2017</a></b>: <b>Very High</b>. Dangerously high water, only for expert swift water canyoneers (class C3 = a6). Photo added by Freddy"
+        "caption": "<b><a href=\"/References:Big_Creek_(Sierra_National_Forest)-20170804144917\" title=\"References:Big Creek (Sierra National Forest)-20170804144917\">16 Jul 2017</a></b>: <b>Very High</b>. Dangerously high water, only for expert swift water canyoneers (class C3 = a6). Photo added by Freddy",
+        "order": 9
     },
     {
         "betaSectionTitle": "Reference photos",
         "linkUrl": "https://ropewiki.com/File:Big_Creek_(Sierra_National_Forest)-20230803234127_pic.jpg",
         "fileUrl": "https://ropewiki.com/images/9/93/Big_Creek_%28Sierra_National_Forest%29-20230803234127_pic.jpg",
-        "caption": "<b><a href=\"/References:Big_Creek_(Sierra_National_Forest)-20230803234127\" title=\"References:Big Creek (Sierra National Forest)-20230803234127\">10 Jun 2023</a></b>: <b>Extreme</b>. Extremely dangerous high water, may be unsafe even for experts (class C4 = a7).   Photo Russ VZ"
+        "caption": "<b><a href=\"/References:Big_Creek_(Sierra_National_Forest)-20230803234127\" title=\"References:Big Creek (Sierra National Forest)-20230803234127\">10 Jun 2023</a></b>: <b>Extreme</b>. Extremely dangerous high water, may be unsafe even for experts (class C4 = a7).   Photo Russ VZ",
+        "order": 10
     },
     {
         "betaSectionTitle": "Introduction",
         "linkUrl": "https://ropewiki.com/File:BicCreekCheckpoint1.jpg",
         "fileUrl": "https://ropewiki.com/images/e/ee/BicCreekCheckpoint1.jpg",
-        "caption": "\n<p>the dam waterfall (R11) as seen from the road checkpoint -- normal flow\n</p>\n\t\t\t"
+        "caption": "\n<p>the dam waterfall (R11) as seen from the road checkpoint -- normal flow\n</p>\n\t\t\t",
+        "order": 1
     },
     {
         "betaSectionTitle": "Introduction",
         "linkUrl": "https://ropewiki.com/File:UpperBigCreekHighWater.png",
         "fileUrl": "https://ropewiki.com/images/7/79/UpperBigCreekHighWater.png",
-        "caption": "\n<p>the dam waterfall (R11) as seen from the dam -- high water, very likely too much to descend safely\n</p>\n\t\t\t"
+        "caption": "\n<p>the dam waterfall (R11) as seen from the dam -- high water, very likely too much to descend safely\n</p>\n\t\t\t",
+        "order": 2
     },
     {
         "betaSectionTitle": "Descent",
         "linkUrl": "https://ropewiki.com/File:BigCreekRef1.jpg",
         "fileUrl": "https://ropewiki.com/images/e/ea/BigCreekRef1.jpg",
-        "caption": "\n<p>The slide in R5\n</p>\n\t\t\t"
+        "caption": "\n<p>The slide in R5\n</p>\n\t\t\t",
+        "order": 1
     },
     {
         "betaSectionTitle": "Descent",
         "linkUrl": "https://ropewiki.com/File:BigCreekRef3.jpg",
         "fileUrl": "https://ropewiki.com/images/9/93/BigCreekRef3.jpg",
-        "caption": "\n<p>The V shaped crack in R7\n</p>\n\t\t\t"
+        "caption": "\n<p>The V shaped crack in R7\n</p>\n\t\t\t",
+        "order": 2
     },
     {
         "betaSectionTitle": "Descent",
         "linkUrl": "https://ropewiki.com/File:BigCreekRef2.jpg",
         "fileUrl": "https://ropewiki.com/images/7/79/BigCreekRef2.jpg",
-        "caption": "\n<p>The boulder anchor in R11\n</p>\n\t\t\t"
+        "caption": "\n<p>The boulder anchor in R11\n</p>\n\t\t\t",
+        "order": 3
     }
 ]

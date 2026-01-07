@@ -78,6 +78,12 @@ declare module 'zapatos/schema' {
       */
       linkUrl: string;
       /**
+      * **RopewikiImage.order**
+      * - `int4` in database
+      * - `NOT NULL`, no default
+      */
+      order: number;
+      /**
       * **RopewikiImage.ropewikiPage**
       * - `uuid` in database
       * - `NOT NULL`, no default
@@ -139,6 +145,12 @@ declare module 'zapatos/schema' {
       * - `NOT NULL`, no default
       */
       linkUrl: string;
+      /**
+      * **RopewikiImage.order**
+      * - `int4` in database
+      * - `NOT NULL`, no default
+      */
+      order: number;
       /**
       * **RopewikiImage.ropewikiPage**
       * - `uuid` in database
@@ -202,6 +214,12 @@ declare module 'zapatos/schema' {
       */
       linkUrl?: string | db.Parameter<string> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, string | db.Parameter<string> | db.SQLFragment | db.ParentColumn>;
       /**
+      * **RopewikiImage.order**
+      * - `int4` in database
+      * - `NOT NULL`, no default
+      */
+      order?: number | db.Parameter<number> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, number | db.Parameter<number> | db.SQLFragment | db.ParentColumn>;
+      /**
       * **RopewikiImage.ropewikiPage**
       * - `uuid` in database
       * - `NOT NULL`, no default
@@ -263,6 +281,12 @@ declare module 'zapatos/schema' {
       * - `NOT NULL`, no default
       */
       linkUrl: string | db.Parameter<string> | db.SQLFragment;
+      /**
+      * **RopewikiImage.order**
+      * - `int4` in database
+      * - `NOT NULL`, no default
+      */
+      order: number | db.Parameter<number> | db.SQLFragment;
       /**
       * **RopewikiImage.ropewikiPage**
       * - `uuid` in database
@@ -326,6 +350,12 @@ declare module 'zapatos/schema' {
       */
       linkUrl?: string | db.Parameter<string> | db.SQLFragment | db.SQLFragment<any, string | db.Parameter<string> | db.SQLFragment>;
       /**
+      * **RopewikiImage.order**
+      * - `int4` in database
+      * - `NOT NULL`, no default
+      */
+      order?: number | db.Parameter<number> | db.SQLFragment | db.SQLFragment<any, number | db.Parameter<number> | db.SQLFragment>;
+      /**
       * **RopewikiImage.ropewikiPage**
       * - `uuid` in database
       * - `NOT NULL`, no default
@@ -338,7 +368,7 @@ declare module 'zapatos/schema' {
       */
       updatedAt?: (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.DefaultType | db.SQLFragment | db.SQLFragment<any, (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.DefaultType | db.SQLFragment>;
     }
-    export type UniqueIndex = 'RopewikiImage_pkey' | 'uk_ropewikiImage_ropewikiPage_betaSection_fileUrl';
+    export type UniqueIndex = 'RopewikiImage_pkey' | 'uk_ropewikiImage_ropewikiPage_betaSection_fileUrl' | 'uk_ropewikiImage_ropewikiPage_betaSection_order';
     export type Column = keyof Selectable;
     export type OnlyCols<T extends readonly Column[]> = Pick<Selectable, T[number]>;
     export type SQLExpression = Table | db.ColumnNames<Updatable | (keyof Updatable)[]> | db.ColumnValues<Updatable> | Whereable | Column | db.ParentColumn | db.GenericSQLExpression;
@@ -1180,6 +1210,12 @@ declare module 'zapatos/schema' {
       */
       latestRevisionDate: Date;
       /**
+      * **RopewikiPageBetaSection.order**
+      * - `int4` in database
+      * - `NOT NULL`, no default
+      */
+      order: number;
+      /**
       * **RopewikiPageBetaSection.ropewikiPage**
       * - `uuid` in database
       * - `NOT NULL`, no default
@@ -1229,6 +1265,12 @@ declare module 'zapatos/schema' {
       * - `NOT NULL`, default: `CURRENT_TIMESTAMP`
       */
       latestRevisionDate: db.TimestampString;
+      /**
+      * **RopewikiPageBetaSection.order**
+      * - `int4` in database
+      * - `NOT NULL`, no default
+      */
+      order: number;
       /**
       * **RopewikiPageBetaSection.ropewikiPage**
       * - `uuid` in database
@@ -1280,6 +1322,12 @@ declare module 'zapatos/schema' {
       */
       latestRevisionDate?: (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.SQLFragment | db.ParentColumn>;
       /**
+      * **RopewikiPageBetaSection.order**
+      * - `int4` in database
+      * - `NOT NULL`, no default
+      */
+      order?: number | db.Parameter<number> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, number | db.Parameter<number> | db.SQLFragment | db.ParentColumn>;
+      /**
       * **RopewikiPageBetaSection.ropewikiPage**
       * - `uuid` in database
       * - `NOT NULL`, no default
@@ -1329,6 +1377,12 @@ declare module 'zapatos/schema' {
       * - `NOT NULL`, default: `CURRENT_TIMESTAMP`
       */
       latestRevisionDate?: (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.DefaultType | db.SQLFragment;
+      /**
+      * **RopewikiPageBetaSection.order**
+      * - `int4` in database
+      * - `NOT NULL`, no default
+      */
+      order: number | db.Parameter<number> | db.SQLFragment;
       /**
       * **RopewikiPageBetaSection.ropewikiPage**
       * - `uuid` in database
@@ -1380,6 +1434,12 @@ declare module 'zapatos/schema' {
       */
       latestRevisionDate?: (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.DefaultType | db.SQLFragment | db.SQLFragment<any, (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.DefaultType | db.SQLFragment>;
       /**
+      * **RopewikiPageBetaSection.order**
+      * - `int4` in database
+      * - `NOT NULL`, no default
+      */
+      order?: number | db.Parameter<number> | db.SQLFragment | db.SQLFragment<any, number | db.Parameter<number> | db.SQLFragment>;
+      /**
       * **RopewikiPageBetaSection.ropewikiPage**
       * - `uuid` in database
       * - `NOT NULL`, no default
@@ -1404,7 +1464,7 @@ declare module 'zapatos/schema' {
       */
       updatedAt?: (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.DefaultType | db.SQLFragment | db.SQLFragment<any, (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.DefaultType | db.SQLFragment>;
     }
-    export type UniqueIndex = 'RopewikiPageBetaSection_pkey' | 'uk_ropewikiPageBetaSection_ropewikiPage_title';
+    export type UniqueIndex = 'RopewikiPageBetaSection_pkey' | 'uk_ropewikiPageBetaSection_ropewikiPage_order' | 'uk_ropewikiPageBetaSection_ropewikiPage_title';
     export type Column = keyof Selectable;
     export type OnlyCols<T extends readonly Column[]> = Pick<Selectable, T[number]>;
     export type SQLExpression = Table | db.ColumnNames<Updatable | (keyof Updatable)[]> | db.ColumnValues<Updatable> | Whereable | Column | db.ParentColumn | db.GenericSQLExpression;

@@ -7,6 +7,7 @@ export interface RopewikiRegion {
 export interface RopewikiBetaSection {
     title: string;
     text: string;
+    order: number;
 }
 
 export interface RopewikiImage {
@@ -14,6 +15,7 @@ export interface RopewikiImage {
     linkUrl: string;
     fileUrl: string;
     caption: string | undefined;
+    order: number;
 }
 
 class RopewikiPageInfo {

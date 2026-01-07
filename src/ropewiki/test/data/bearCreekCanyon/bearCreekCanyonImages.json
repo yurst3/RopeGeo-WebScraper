@@ -1,168 +1,196 @@
 [
     {
         "linkUrl": "https://ropewiki.com/File:Bear_Creek_Canyon_Banner.jpg",
-        "fileUrl": "https://ropewiki.com/images/8/80/Bear_Creek_Canyon_Banner.jpg"
+        "fileUrl": "https://ropewiki.com/images/8/80/Bear_Creek_Canyon_Banner.jpg",
+        "order": 1
     },
     {
         "betaSectionTitle": "Reference photos",
         "linkUrl": "https://ropewiki.com/File:Bear_Creek_Canyon-20250820040305_pic.jpg",
         "fileUrl": "https://ropewiki.com/images/6/61/Bear_Creek_Canyon-20250820040305_pic.jpg",
-        "caption": "<b><a href=\"/References:Bear_Creek_Canyon-20250820040305\" title=\"References:Bear Creek Canyon-20250820040305\">10 Aug 2025</a></b>: <b>Moderate-Low</b>. A bit low, still fun but not very challenging (class C1- = a4-)."
+        "caption": "<b><a href=\"/References:Bear_Creek_Canyon-20250820040305\" title=\"References:Bear Creek Canyon-20250820040305\">10 Aug 2025</a></b>: <b>Moderate-Low</b>. A bit low, still fun but not very challenging (class C1- = a4-).",
+        "order": 1
     },
     {
         "betaSectionTitle": "Reference photos",
         "linkUrl": "https://ropewiki.com/File:Bear_Creek_Canyon-20250820040824_pic.jpg",
         "fileUrl": "https://ropewiki.com/images/1/1f/Bear_Creek_Canyon-20250820040824_pic.jpg",
-        "caption": "<b><a href=\"/References:Bear_Creek_Canyon-20250820040824\" title=\"References:Bear Creek Canyon-20250820040824\">10 Aug 2025</a></b>: <b>Moderate-Low</b>. A bit low, still fun but not very challenging (class C1- = a4-)."
+        "caption": "<b><a href=\"/References:Bear_Creek_Canyon-20250820040824\" title=\"References:Bear Creek Canyon-20250820040824\">10 Aug 2025</a></b>: <b>Moderate-Low</b>. A bit low, still fun but not very challenging (class C1- = a4-).",
+        "order": 2
     },
     {
         "betaSectionTitle": "Reference photos",
         "linkUrl": "https://ropewiki.com/File:Bear_Creek_Canyon-20250820040848_pic.jpg",
         "fileUrl": "https://ropewiki.com/images/5/5a/Bear_Creek_Canyon-20250820040848_pic.jpg",
-        "caption": "<b><a href=\"/References:Bear_Creek_Canyon-20250820040848\" title=\"References:Bear Creek Canyon-20250820040848\">10 Aug 2025</a></b>: <b>Moderate-Low</b>. A bit low, still fun but not very challenging (class C1- = a4-)."
+        "caption": "<b><a href=\"/References:Bear_Creek_Canyon-20250820040848\" title=\"References:Bear Creek Canyon-20250820040848\">10 Aug 2025</a></b>: <b>Moderate-Low</b>. A bit low, still fun but not very challenging (class C1- = a4-).",
+        "order": 3
     },
     {
         "betaSectionTitle": "Introduction",
         "linkUrl": "https://ropewiki.com/File:Bear_Creek_Canyon_pic01.jpg",
         "fileUrl": "https://ropewiki.com/images/d/d4/Bear_Creek_Canyon_pic01.jpg",
-        "caption": "Bear Creek Falls, elevated water in Aug2022 after monsoonal rains"
+        "caption": "Bear Creek Falls, elevated water in Aug2022 after monsoonal rains",
+        "order": 1
     },
     {
         "betaSectionTitle": "Approach",
         "linkUrl": "https://ropewiki.com/File:Bear_Creek_Canyon_pic02.jpg",
         "fileUrl": "https://ropewiki.com/images/3/3a/Bear_Creek_Canyon_pic02.jpg",
-        "caption": "Shale covering trail"
+        "caption": "Shale covering trail",
+        "order": 1
     },
     {
         "betaSectionTitle": "Approach",
         "linkUrl": "https://ropewiki.com/File:Bear_Creek_Canyon_pic03.jpg",
         "fileUrl": "https://ropewiki.com/images/6/61/Bear_Creek_Canyon_pic03.jpg",
-        "caption": "Viewpoint (R6), R7 and R8 La Capella"
+        "caption": "Viewpoint (R6), R7 and R8 La Capella",
+        "order": 2
     },
     {
         "betaSectionTitle": "Approach",
         "linkUrl": "https://ropewiki.com/File:Bear_Creek_Canyon_pic04.jpg",
         "fileUrl": "https://ropewiki.com/images/f/f2/Bear_Creek_Canyon_pic04.jpg",
-        "caption": "Viewpoint R3 and (R4) starting the Quartzite Corridor"
+        "caption": "Viewpoint R3 and (R4) starting the Quartzite Corridor",
+        "order": 3
     },
     {
         "betaSectionTitle": "Approach",
         "linkUrl": "https://ropewiki.com/File:Bear_Creek_Canyon_pic05.jpg",
         "fileUrl": "https://ropewiki.com/images/3/33/Bear_Creek_Canyon_pic05.jpg",
-        "caption": "Pre Cambrian Ripples below R1 and R2"
+        "caption": "Pre Cambrian Ripples below R1 and R2",
+        "order": 4
     },
     {
         "betaSectionTitle": "Approach",
         "linkUrl": "https://ropewiki.com/File:Bear_Creek_Canyon_pic06.jpg",
         "fileUrl": "https://ropewiki.com/images/4/4c/Bear_Creek_Canyon_pic06.jpg",
-        "caption": "Approach on the Bear Creek Trail"
+        "caption": "Approach on the Bear Creek Trail",
+        "order": 5
     },
     {
         "betaSectionTitle": "Approach",
         "linkUrl": "https://ropewiki.com/File:Bear_Creek_Canyon_pic07.jpg",
         "fileUrl": "https://ropewiki.com/images/f/f9/Bear_Creek_Canyon_pic07.jpg",
-        "caption": "Approach on the Bear Creek Trail"
+        "caption": "Approach on the Bear Creek Trail",
+        "order": 6
     },
     {
         "betaSectionTitle": "Descent",
         "linkUrl": "https://ropewiki.com/File:Bear_Creek_Canyon_pic08.jpg",
         "fileUrl": "https://ropewiki.com/images/8/8c/Bear_Creek_Canyon_pic08.jpg",
-        "caption": "R1 & R2"
+        "caption": "R1 & R2",
+        "order": 1
     },
     {
         "betaSectionTitle": "Descent",
         "linkUrl": "https://ropewiki.com/File:Bear_Creek_Canyon_pic20.jpg",
         "fileUrl": "https://ropewiki.com/images/b/b7/Bear_Creek_Canyon_pic20.jpg",
-        "caption": "R3 anchor high on the wall on CR, tether a taller teammate when clipping - alternatively use a tree further back DCL"
+        "caption": "R3 anchor high on the wall on CR, tether a taller teammate when clipping - alternatively use a tree further back DCL",
+        "order": 2
     },
     {
         "betaSectionTitle": "Descent",
         "linkUrl": "https://ropewiki.com/File:Bear_Creek_Canyon_pic21.jpg",
         "fileUrl": "https://ropewiki.com/images/6/6f/Bear_Creek_Canyon_pic21.jpg",
-        "caption": "R3"
+        "caption": "R3",
+        "order": 3
     },
     {
         "betaSectionTitle": "Descent",
         "linkUrl": "https://ropewiki.com/File:Bear_Creek_Canyon_pic22.jpg",
         "fileUrl": "https://ropewiki.com/images/a/ae/Bear_Creek_Canyon_pic22.jpg",
-        "caption": "R3"
+        "caption": "R3",
+        "order": 4
     },
     {
         "betaSectionTitle": "Descent",
         "linkUrl": "https://ropewiki.com/File:Bear_Creek_Canyon_pic23a.jpg",
         "fileUrl": "https://ropewiki.com/images/4/44/Bear_Creek_Canyon_pic23a.jpg",
-        "caption": "Downclimb after R3"
+        "caption": "Downclimb after R3",
+        "order": 5
     },
     {
         "betaSectionTitle": "Descent",
         "linkUrl": "https://ropewiki.com/File:Bear_Creek_Canyon_pic24.jpg",
         "fileUrl": "https://ropewiki.com/images/4/4c/Bear_Creek_Canyon_pic24.jpg",
-        "caption": "Quartzite Corridor, looking upstream at (R4) DC"
+        "caption": "Quartzite Corridor, looking upstream at (R4) DC",
+        "order": 6
     },
     {
         "betaSectionTitle": "Descent",
         "linkUrl": "https://ropewiki.com/File:Bear_Creek_Canyon_pic25.jpg",
         "fileUrl": "https://ropewiki.com/images/a/a1/Bear_Creek_Canyon_pic25.jpg",
-        "caption": "Long series of large downclimbs including R5"
+        "caption": "Long series of large downclimbs including R5",
+        "order": 7
     },
     {
         "betaSectionTitle": "Descent",
         "linkUrl": "https://ropewiki.com/File:Bear_Creek_Canyon_pic26.jpg",
         "fileUrl": "https://ropewiki.com/images/3/3d/Bear_Creek_Canyon_pic26.jpg",
-        "caption": "DC DCL or R6 from a tree DCL"
+        "caption": "DC DCL or R6 from a tree DCL",
+        "order": 8
     },
     {
         "betaSectionTitle": "Descent",
         "linkUrl": "https://ropewiki.com/File:Bear_Creek_Canyon_pic27.jpg",
         "fileUrl": "https://ropewiki.com/images/a/a0/Bear_Creek_Canyon_pic27.jpg",
-        "caption": "R7"
+        "caption": "R7",
+        "order": 9
     },
     {
         "betaSectionTitle": "Descent",
         "linkUrl": "https://ropewiki.com/File:Bear_Creek_Canyon_pic28.jpg",
         "fileUrl": "https://ropewiki.com/images/9/92/Bear_Creek_Canyon_pic28.jpg",
-        "caption": "R8 La Capella from bolts DCL above the pool - Construct a guided rappel as required to protect other team members if the narrow pour spout has high flow"
+        "caption": "R8 La Capella from bolts DCL above the pool - Construct a guided rappel as required to protect other team members if the narrow pour spout has high flow",
+        "order": 10
     },
     {
         "betaSectionTitle": "Descent",
         "linkUrl": "https://ropewiki.com/File:Bear_Creek_Canyon_pic29.jpg",
         "fileUrl": "https://ropewiki.com/images/e/ee/Bear_Creek_Canyon_pic29.jpg",
-        "caption": "Downclimbs after La Capella"
+        "caption": "Downclimbs after La Capella",
+        "order": 11
     },
     {
         "betaSectionTitle": "Descent",
         "linkUrl": "https://ropewiki.com/File:Bear_Creek_Canyon_pic30.jpg",
         "fileUrl": "https://ropewiki.com/images/9/98/Bear_Creek_Canyon_pic30.jpg",
-        "caption": "Retrievable traverse line to R9 anchors around the corner on Canyon Left"
+        "caption": "Retrievable traverse line to R9 anchors around the corner on Canyon Left",
+        "order": 12
     },
     {
         "betaSectionTitle": "Descent",
         "linkUrl": "https://ropewiki.com/File:Bear_Creek_Canyon_pic31.jpg",
         "fileUrl": "https://ropewiki.com/images/0/07/Bear_Creek_Canyon_pic31.jpg",
-        "caption": "R9 on rappel in bigger water, protected by the anchor placement next to the flow"
+        "caption": "R9 on rappel in bigger water, protected by the anchor placement next to the flow",
+        "order": 13
     },
     {
         "betaSectionTitle": "Descent",
         "linkUrl": "https://ropewiki.com/File:Bear_Creek_Canyon_pic32.jpg",
         "fileUrl": "https://ropewiki.com/images/e/e2/Bear_Creek_Canyon_pic32.jpg",
-        "caption": "Queueing up team members to move them through"
+        "caption": "Queueing up team members to move them through",
+        "order": 14
     },
     {
         "betaSectionTitle": "Descent",
         "linkUrl": "https://ropewiki.com/File:Bear_Creek_Canyon_pic33.jpg",
         "fileUrl": "https://ropewiki.com/images/d/da/Bear_Creek_Canyon_pic33.jpg",
-        "caption": "Pulling the retrievable traverse line while clipped to the anchor"
+        "caption": "Pulling the retrievable traverse line while clipped to the anchor",
+        "order": 15
     },
     {
         "betaSectionTitle": "Descent",
         "linkUrl": "https://ropewiki.com/File:Bear_Creek_Canyon_pic34.jpg",
         "fileUrl": "https://ropewiki.com/images/5/53/Bear_Creek_Canyon_pic34.jpg",
-        "caption": "R9"
+        "caption": "R9",
+        "order": 16
     },
     {
         "betaSectionTitle": "Descent",
         "linkUrl": "https://ropewiki.com/File:Bear_Creek_Canyon_pic35.jpg",
         "fileUrl": "https://ropewiki.com/images/c/c0/Bear_Creek_Canyon_pic35.jpg",
-        "caption": "Nearing the end of the canyon"
+        "caption": "Nearing the end of the canyon",
+        "order": 17
     }
 ]

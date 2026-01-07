@@ -17,6 +17,8 @@ const evalPage = (): { beta: RopewikiBetaSection[], images: RopewikiImage[] } =>
     }
 
     let currentBeta: RopewikiBetaSection | null = null;
+    let betaOrder: number = 0;
+    let imageOrder: number = 0;
     const parseChildNodes = (childNodes: NodeListOf<ChildNode>) => {
         childNodes.forEach((child: ChildNode) => {
             switch (child.nodeName) {
@@ -24,7 +26,9 @@ const evalPage = (): { beta: RopewikiBetaSection[], images: RopewikiImage[] } =>
                     // Start of a new beta section
                     if (currentBeta) beta.push(currentBeta);
                     const title = getHeaderTitle(child.childNodes); // eslint-disable-line no-case-declarations
-                    currentBeta = title ? { title, text: '' } : null;
+                    currentBeta = title ? { title, text: '', order: betaOrder + 1 } : null;
+                    betaOrder += 1;
+                    imageOrder = 0;
                     break;
                 case 'A':
                 case 'B':
@@ -133,7 +137,9 @@ const evalPage = (): { beta: RopewikiBetaSection[], images: RopewikiImage[] } =>
                 linkUrl: attachDomain(linkUri),
                 fileUrl: attachDomain(fileUri),
                 caption,
+                order: imageOrder + 1,
             });
+            imageOrder += 1;
         }
     }
 
@@ -157,6 +163,7 @@ const evalPage = (): { beta: RopewikiBetaSection[], images: RopewikiImage[] } =>
                 linkUrl: attachDomain(linkUri),
                 fileUrl: attachDomain(fileUri),
                 caption: undefined,
+                order: 1,
             });
         }
     }
