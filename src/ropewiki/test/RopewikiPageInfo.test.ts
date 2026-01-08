@@ -90,7 +90,8 @@ describe('RopewikiPageInfo', () => {
         const pageInfo = new RopewikiPageInfo(invalidRawData);
 
         expect(pageInfo.isValid).toBe(false);
-        expect(pageInfo.latestRevisionDate).toBeUndefined();
+        expect(pageInfo.latestRevisionDate).toBeInstanceOf(Date);
+        expect(pageInfo.latestRevisionDate.getTime()).toBe(0); // Defaults to epoch when not found
     });
 
     it('sets isValid to true when all required fields are present', () => {
@@ -112,7 +113,7 @@ describe('RopewikiPageInfo', () => {
         expect(pageInfo.region).toBe('Test Region');
         expect(pageInfo.url).toBe('https://ropewiki.com/test');
         expect(pageInfo.latestRevisionDate).toBeInstanceOf(Date);
-        expect(pageInfo.latestRevisionDate?.getTime()).toBe(1609459200000);
+        expect(pageInfo.latestRevisionDate.getTime()).toBe(1609459200000);
     });
 
     it('parses rappelInfo correctly', () => {
@@ -267,7 +268,7 @@ describe('RopewikiPageInfo', () => {
         const pageInfo = new RopewikiPageInfo(rawData);
 
         expect(pageInfo.latestRevisionDate).toBeInstanceOf(Date);
-        expect(pageInfo.latestRevisionDate?.getTime()).toBe(1609459200000); // Unix timestamp * 1000
+        expect(pageInfo.latestRevisionDate.getTime()).toBe(1609459200000); // Unix timestamp * 1000
     });
 
     it('trims whitespace from aka and betaSites', () => {

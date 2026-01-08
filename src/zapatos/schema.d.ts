@@ -383,6 +383,18 @@ declare module 'zapatos/schema' {
     export type Table = 'RopewikiPage';
     export interface Selectable {
       /**
+      * **RopewikiPage.aka**
+      * - `jsonb` in database
+      * - Nullable, no default
+      */
+      aka: db.JSONValue | null;
+      /**
+      * **RopewikiPage.betaSites**
+      * - `jsonb` in database
+      * - Nullable, no default
+      */
+      betaSites: db.JSONValue | null;
+      /**
       * **RopewikiPage.coordinates**
       * - `jsonb` in database
       * - Nullable, no default
@@ -468,10 +480,16 @@ declare module 'zapatos/schema' {
       quality: db.NumericString | null;
       /**
       * **RopewikiPage.rappelCount**
+      * - `int4` in database
+      * - Nullable, no default
+      */
+      rappelCount: number | null;
+      /**
+      * **RopewikiPage.rappelInfo**
       * - `text` in database
       * - Nullable, no default
       */
-      rappelCount: string | null;
+      rappelInfo: string | null;
       /**
       * **RopewikiPage.rappelLongest**
       * - `jsonb` in database
@@ -527,6 +545,12 @@ declare module 'zapatos/schema' {
       */
       url: string;
       /**
+      * **RopewikiPage.userVotes**
+      * - `int4` in database
+      * - Nullable, no default
+      */
+      userVotes: number | null;
+      /**
       * **RopewikiPage.vehicle**
       * - `text` in database
       * - Nullable, no default
@@ -540,6 +564,18 @@ declare module 'zapatos/schema' {
       waterRating: string | null;
     }
     export interface JSONSelectable {
+      /**
+      * **RopewikiPage.aka**
+      * - `jsonb` in database
+      * - Nullable, no default
+      */
+      aka: db.JSONValue | null;
+      /**
+      * **RopewikiPage.betaSites**
+      * - `jsonb` in database
+      * - Nullable, no default
+      */
+      betaSites: db.JSONValue | null;
       /**
       * **RopewikiPage.coordinates**
       * - `jsonb` in database
@@ -626,10 +662,16 @@ declare module 'zapatos/schema' {
       quality: number | null;
       /**
       * **RopewikiPage.rappelCount**
+      * - `int4` in database
+      * - Nullable, no default
+      */
+      rappelCount: number | null;
+      /**
+      * **RopewikiPage.rappelInfo**
       * - `text` in database
       * - Nullable, no default
       */
-      rappelCount: string | null;
+      rappelInfo: string | null;
       /**
       * **RopewikiPage.rappelLongest**
       * - `jsonb` in database
@@ -685,6 +727,12 @@ declare module 'zapatos/schema' {
       */
       url: string;
       /**
+      * **RopewikiPage.userVotes**
+      * - `int4` in database
+      * - Nullable, no default
+      */
+      userVotes: number | null;
+      /**
       * **RopewikiPage.vehicle**
       * - `text` in database
       * - Nullable, no default
@@ -698,6 +746,18 @@ declare module 'zapatos/schema' {
       waterRating: string | null;
     }
     export interface Whereable {
+      /**
+      * **RopewikiPage.aka**
+      * - `jsonb` in database
+      * - Nullable, no default
+      */
+      aka?: db.JSONValue | db.Parameter<db.JSONValue> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, db.JSONValue | db.Parameter<db.JSONValue> | db.SQLFragment | db.ParentColumn>;
+      /**
+      * **RopewikiPage.betaSites**
+      * - `jsonb` in database
+      * - Nullable, no default
+      */
+      betaSites?: db.JSONValue | db.Parameter<db.JSONValue> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, db.JSONValue | db.Parameter<db.JSONValue> | db.SQLFragment | db.ParentColumn>;
       /**
       * **RopewikiPage.coordinates**
       * - `jsonb` in database
@@ -784,10 +844,16 @@ declare module 'zapatos/schema' {
       quality?: (number | db.NumericString) | db.Parameter<(number | db.NumericString)> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, (number | db.NumericString) | db.Parameter<(number | db.NumericString)> | db.SQLFragment | db.ParentColumn>;
       /**
       * **RopewikiPage.rappelCount**
+      * - `int4` in database
+      * - Nullable, no default
+      */
+      rappelCount?: number | db.Parameter<number> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, number | db.Parameter<number> | db.SQLFragment | db.ParentColumn>;
+      /**
+      * **RopewikiPage.rappelInfo**
       * - `text` in database
       * - Nullable, no default
       */
-      rappelCount?: string | db.Parameter<string> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, string | db.Parameter<string> | db.SQLFragment | db.ParentColumn>;
+      rappelInfo?: string | db.Parameter<string> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, string | db.Parameter<string> | db.SQLFragment | db.ParentColumn>;
       /**
       * **RopewikiPage.rappelLongest**
       * - `jsonb` in database
@@ -843,6 +909,12 @@ declare module 'zapatos/schema' {
       */
       url?: string | db.Parameter<string> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, string | db.Parameter<string> | db.SQLFragment | db.ParentColumn>;
       /**
+      * **RopewikiPage.userVotes**
+      * - `int4` in database
+      * - Nullable, no default
+      */
+      userVotes?: number | db.Parameter<number> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, number | db.Parameter<number> | db.SQLFragment | db.ParentColumn>;
+      /**
       * **RopewikiPage.vehicle**
       * - `text` in database
       * - Nullable, no default
@@ -856,6 +928,18 @@ declare module 'zapatos/schema' {
       waterRating?: string | db.Parameter<string> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, string | db.Parameter<string> | db.SQLFragment | db.ParentColumn>;
     }
     export interface Insertable {
+      /**
+      * **RopewikiPage.aka**
+      * - `jsonb` in database
+      * - Nullable, no default
+      */
+      aka?: db.JSONValue | db.Parameter<db.JSONValue> | null | db.DefaultType | db.SQLFragment;
+      /**
+      * **RopewikiPage.betaSites**
+      * - `jsonb` in database
+      * - Nullable, no default
+      */
+      betaSites?: db.JSONValue | db.Parameter<db.JSONValue> | null | db.DefaultType | db.SQLFragment;
       /**
       * **RopewikiPage.coordinates**
       * - `jsonb` in database
@@ -942,10 +1026,16 @@ declare module 'zapatos/schema' {
       quality?: (number | db.NumericString) | db.Parameter<(number | db.NumericString)> | null | db.DefaultType | db.SQLFragment;
       /**
       * **RopewikiPage.rappelCount**
+      * - `int4` in database
+      * - Nullable, no default
+      */
+      rappelCount?: number | db.Parameter<number> | null | db.DefaultType | db.SQLFragment;
+      /**
+      * **RopewikiPage.rappelInfo**
       * - `text` in database
       * - Nullable, no default
       */
-      rappelCount?: string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment;
+      rappelInfo?: string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment;
       /**
       * **RopewikiPage.rappelLongest**
       * - `jsonb` in database
@@ -1001,6 +1091,12 @@ declare module 'zapatos/schema' {
       */
       url: string | db.Parameter<string> | db.SQLFragment;
       /**
+      * **RopewikiPage.userVotes**
+      * - `int4` in database
+      * - Nullable, no default
+      */
+      userVotes?: number | db.Parameter<number> | null | db.DefaultType | db.SQLFragment;
+      /**
       * **RopewikiPage.vehicle**
       * - `text` in database
       * - Nullable, no default
@@ -1014,6 +1110,18 @@ declare module 'zapatos/schema' {
       waterRating?: string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment;
     }
     export interface Updatable {
+      /**
+      * **RopewikiPage.aka**
+      * - `jsonb` in database
+      * - Nullable, no default
+      */
+      aka?: db.JSONValue | db.Parameter<db.JSONValue> | null | db.DefaultType | db.SQLFragment | db.SQLFragment<any, db.JSONValue | db.Parameter<db.JSONValue> | null | db.DefaultType | db.SQLFragment>;
+      /**
+      * **RopewikiPage.betaSites**
+      * - `jsonb` in database
+      * - Nullable, no default
+      */
+      betaSites?: db.JSONValue | db.Parameter<db.JSONValue> | null | db.DefaultType | db.SQLFragment | db.SQLFragment<any, db.JSONValue | db.Parameter<db.JSONValue> | null | db.DefaultType | db.SQLFragment>;
       /**
       * **RopewikiPage.coordinates**
       * - `jsonb` in database
@@ -1100,10 +1208,16 @@ declare module 'zapatos/schema' {
       quality?: (number | db.NumericString) | db.Parameter<(number | db.NumericString)> | null | db.DefaultType | db.SQLFragment | db.SQLFragment<any, (number | db.NumericString) | db.Parameter<(number | db.NumericString)> | null | db.DefaultType | db.SQLFragment>;
       /**
       * **RopewikiPage.rappelCount**
+      * - `int4` in database
+      * - Nullable, no default
+      */
+      rappelCount?: number | db.Parameter<number> | null | db.DefaultType | db.SQLFragment | db.SQLFragment<any, number | db.Parameter<number> | null | db.DefaultType | db.SQLFragment>;
+      /**
+      * **RopewikiPage.rappelInfo**
       * - `text` in database
       * - Nullable, no default
       */
-      rappelCount?: string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment | db.SQLFragment<any, string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment>;
+      rappelInfo?: string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment | db.SQLFragment<any, string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment>;
       /**
       * **RopewikiPage.rappelLongest**
       * - `jsonb` in database
@@ -1158,6 +1272,12 @@ declare module 'zapatos/schema' {
       * - `NOT NULL`, no default
       */
       url?: string | db.Parameter<string> | db.SQLFragment | db.SQLFragment<any, string | db.Parameter<string> | db.SQLFragment>;
+      /**
+      * **RopewikiPage.userVotes**
+      * - `int4` in database
+      * - Nullable, no default
+      */
+      userVotes?: number | db.Parameter<number> | null | db.DefaultType | db.SQLFragment | db.SQLFragment<any, number | db.Parameter<number> | null | db.DefaultType | db.SQLFragment>;
       /**
       * **RopewikiPage.vehicle**
       * - `text` in database

@@ -1,7 +1,6 @@
 import { Queryable } from "zapatos/db";
 import getRopewikiPageInfoForRegion from "./http/getRopewikiPageInfoForRegion";
 import RopewikiPageInfo from "./types/ropewiki";
-import getRopewikiPagesRevisionDates from "./http/getRopewikiPageRevisionDate";
 import getUpdatedDatesForPages from "./database/getUpdatedDatesForPages";
 import processPages from "./processPages";
 import ProgressLogger from "../helpers/progressLogger";
@@ -28,17 +27,14 @@ const handleRopewikiPages = async (
         const invalidPagesCount = pages.length - validPages.length;
         if (invalidPagesCount > 0) console.log(`Skipping ${invalidPagesCount} invalid pages...`)
 
-        // Has a limit of 50 pageIds per request (will chunk into requests with 50 ids if larger)
-        const pageRevisionDates: {[pageId: string]: Date | null} = await getRopewikiPagesRevisionDates(validPageIds);
+        // Get updated dates from database
         const pageUpdateDates: {[pageId: string]: Date | null} = await getUpdatedDatesForPages(conn, validPageIds);
 
         const validPagesToParse: RopewikiPageInfo[] = validPages.filter(page => {
-            const revisionDate = pageRevisionDates[page.pageid];
             const updatedDate = pageUpdateDates[page.pageid];
 
-            if (!revisionDate) return false; // Ignore pages where we couldn't find a latest revision date
             if (!updatedDate) return true; // Always parse and save when we don't have an updated date
-            return updatedDate < revisionDate; // Otherwise only parse if there has been a revision since the last update
+            return updatedDate < page.latestRevisionDate; // Otherwise only parse if there has been a revision since the last update
         });
 
         const skippedPagesCount = validPages.length - validPagesToParse.length;
@@ -52,7 +48,7 @@ const handleRopewikiPages = async (
             const chunkEnd = chunkStart + validPagesToParse.length - 1;
             logger.setChunk(chunkStart, chunkEnd);
             
-            await processPages(conn, validPagesToParse, pageRevisionDates, regionNameIds, logger);
+            await processPages(conn, validPagesToParse, regionNameIds, logger);
         }
     }
 }

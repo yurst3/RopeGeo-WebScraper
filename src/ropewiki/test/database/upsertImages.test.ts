@@ -41,15 +41,17 @@ describe('upsertImages (integration)', () => {
             .run(conn);
 
         // Insert a test page (required foreign key for images)
+        const latestRevisionDate = new Date('2025-01-01T00:00:00Z');
         const pageInfo = new RopewikiPageInfo({
             printouts: {
                 pageid: ['9999'],
                 name: ['Test Page'],
                 region: [{ fulltext: 'Test Region' }],
                 url: ['https://ropewiki.com/Test_Page'],
+                latestRevisionDate: [{ timestamp: String(Math.floor(latestRevisionDate.getTime() / 1000)), raw: '2025-01-01T00:00:00Z' }],
             },
         });
-        testPageUuid = await upsertPage(conn, pageInfo, testRegionId, new Date('2025-01-01T00:00:00Z'));
+        testPageUuid = await upsertPage(conn, pageInfo, testRegionId);
 
         // Insert test beta sections to get betaTitleIds
         const betaSections: RopewikiBetaSection[] = [

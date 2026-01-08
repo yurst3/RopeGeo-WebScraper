@@ -55,10 +55,11 @@ describe('upsertPage (integration)', () => {
                 rating: ['4.5'],
                 quality: [8],
                 coordinates: [{ lat: 40.123, lon: -111.456 }],
+                latestRevisionDate: [{ timestamp: String(Math.floor(latestRevisionDate.getTime() / 1000)), raw: '2025-01-02T12:34:56Z' }],
             },
         });
 
-        const resultId = await upsertPage(conn, pageInfo, testRegionId, latestRevisionDate);
+        const resultId = await upsertPage(conn, pageInfo, testRegionId);
 
         // Verify a UUID was returned (database default generates it)
         expect(resultId).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i);
@@ -90,10 +91,11 @@ describe('upsertPage (integration)', () => {
                 region: [{ fulltext: 'Test Region' }],
                 url: ['https://ropewiki.com/Regions'],
                 rating: ['3.0'],
+                latestRevisionDate: [{ timestamp: String(Math.floor(initialRevisionDate.getTime() / 1000)), raw: '2025-01-01T00:00:00Z' }],
             },
         });
 
-        const initialId = await upsertPage(conn, initialPageInfo, testRegionId, initialRevisionDate);
+        const initialId = await upsertPage(conn, initialPageInfo, testRegionId);
         
         // Verify the initial insert returned a UUID
         expect(initialId).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i);
@@ -113,10 +115,11 @@ describe('upsertPage (integration)', () => {
                 rating: ['4.0'],
                 quality: [9],
                 technicalRating: ['5.10'],
+                latestRevisionDate: [{ timestamp: String(Math.floor(updatedRevisionDate.getTime() / 1000)), raw: '2025-01-03T14:20:10Z' }],
             },
         });
 
-        const resultId = await upsertPage(conn, updatedPageInfo, testRegionId, updatedRevisionDate);
+        const resultId = await upsertPage(conn, updatedPageInfo, testRegionId);
 
         // Should return the existing UUID, not a new one
         expect(resultId).toBe(initialId);
@@ -143,11 +146,12 @@ describe('upsertPage (integration)', () => {
                 name: ['Deleted Page'],
                 region: [{ fulltext: 'Test Region' }],
                 url: ['https://ropewiki.com/Deleted_Page'],
+                latestRevisionDate: [{ timestamp: String(Math.floor(latestRevisionDate.getTime() / 1000)), raw: '2025-01-02T12:34:56Z' }],
             },
         });
 
         // Insert a page with deletedAt set
-        const pageId = await upsertPage(conn, pageInfo, testRegionId, latestRevisionDate);
+        const pageId = await upsertPage(conn, pageInfo, testRegionId);
         await db
             .update('RopewikiPage', { deletedAt: '2025-01-01T00:00:00' as db.TimestampString }, { id: pageId })
             .run(conn);
@@ -163,9 +167,10 @@ describe('upsertPage (integration)', () => {
                 name: ['Restored Page'],
                 region: [{ fulltext: 'Test Region' }],
                 url: ['https://ropewiki.com/Restored_Page'],
+                latestRevisionDate: [{ timestamp: String(Math.floor(latestRevisionDate.getTime() / 1000)), raw: '2025-01-02T12:34:56Z' }],
             },
         });
-        await upsertPage(conn, updatedPageInfo, testRegionId, latestRevisionDate);
+        await upsertPage(conn, updatedPageInfo, testRegionId);
 
         // Verify deletedAt is now null
         const afterRows = await db.select('RopewikiPage', { id: pageId }).run(conn);
@@ -183,6 +188,7 @@ describe('upsertPage (integration)', () => {
                 name: ['Test Page'],
                 region: [{ fulltext: 'Test Region' }],
                 url: ['https://ropewiki.com/Test_Page'],
+                latestRevisionDate: [{ timestamp: String(Math.floor(latestRevisionDate.getTime() / 1000)), raw: '2025-01-04T10:00:00Z' }],
             },
         });
 
@@ -195,7 +201,7 @@ describe('upsertPage (integration)', () => {
             database: 'nonexistent_database_for_test_error_upsert_page',
         });
 
-        await expect(upsertPage(badPool, pageInfo, testRegionId, latestRevisionDate)).rejects.toBeDefined();
+        await expect(upsertPage(badPool, pageInfo, testRegionId)).rejects.toBeDefined();
 
         await badPool.end();
     });

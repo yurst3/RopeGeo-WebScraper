@@ -7,7 +7,6 @@ const upsertPage = async (
     tx: db.Queryable,
     pageInfo: RopewikiPageInfo,
     regionId: string,
-    latestRevisionDate: Date,
 ): Promise<string> => {
 
     const now = new Date();
@@ -24,6 +23,7 @@ const upsertPage = async (
         waterRating: pageInfo.waterRating ?? null,
         riskRating: pageInfo.riskRating ?? null,
         permits: pageInfo.permits ?? null,
+        rappelInfo: pageInfo.rappelInfo ?? null,
         rappelCount: pageInfo.rappelCount ?? null,
         vehicle: pageInfo.vehicle ?? null,
         quality: pageInfo.quality ?? null,
@@ -34,7 +34,10 @@ const upsertPage = async (
         maxTime: pageInfo.maxTime ? JSON.stringify(pageInfo.maxTime) : null,
         hike: pageInfo.hike ? JSON.stringify(pageInfo.hike) : null,
         months: pageInfo.months ? JSON.stringify(pageInfo.months) : null,
-        latestRevisionDate,
+        aka: pageInfo.aka && pageInfo.aka.length > 0 ? JSON.stringify(pageInfo.aka) : null,
+        betaSites: pageInfo.betaSites && pageInfo.betaSites.length > 0 ? JSON.stringify(pageInfo.betaSites) : null,
+        userVotes: pageInfo.userVotes ?? null,
+        latestRevisionDate: pageInfo.latestRevisionDate,
         updatedAt: now,
         deletedAt: null,
     };
@@ -52,6 +55,7 @@ const upsertPage = async (
                 'waterRating',
                 'riskRating',
                 'permits',
+                'rappelInfo',
                 'rappelCount',
                 'vehicle',
                 'quality',
@@ -62,6 +66,9 @@ const upsertPage = async (
                 'maxTime',
                 'hike',
                 'months',
+                'aka',
+                'betaSites',
+                'userVotes',
                 'latestRevisionDate',
                 'updatedAt',
                 'deletedAt',

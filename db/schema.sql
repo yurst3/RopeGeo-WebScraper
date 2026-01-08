@@ -1,4 +1,4 @@
-\restrict EMgnAMTbyWtvldankRVStCKE3m8UHm8qiC134bE89K0loilLCccCbAhMztACQJg
+\restrict O0zhqHrfJhYCytuQPOZPXhikn6C6OhevwGtlFXEc2ZZyqnm9PpK6paRu3zn6phm
 
 -- Dumped from database version 18.1 (Debian 18.1-1.pgdg13+2)
 -- Dumped by pg_dump version 18.1 (Homebrew)
@@ -55,7 +55,7 @@ CREATE TABLE public."RopewikiPage" (
     "waterRating" text,
     "riskRating" text,
     permits text,
-    "rappelCount" text,
+    "rappelCount" integer,
     vehicle text,
     quality numeric,
     coordinates jsonb,
@@ -68,7 +68,11 @@ CREATE TABLE public."RopewikiPage" (
     "createdAt" timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
     "updatedAt" timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
     "deletedAt" timestamp without time zone,
-    "latestRevisionDate" timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL
+    "latestRevisionDate" timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    "rappelInfo" text,
+    aka jsonb,
+    "betaSites" jsonb,
+    "userVotes" integer
 );
 
 
@@ -252,7 +256,7 @@ ALTER TABLE ONLY public."RopewikiRegion"
 -- PostgreSQL database dump complete
 --
 
-\unrestrict EMgnAMTbyWtvldankRVStCKE3m8UHm8qiC134bE89K0loilLCccCbAhMztACQJg
+\unrestrict O0zhqHrfJhYCytuQPOZPXhikn6C6OhevwGtlFXEc2ZZyqnm9PpK6paRu3zn6phm
 
 
 --
@@ -266,4 +270,5 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20251219182510'),
     ('20251219191048'),
     ('20251227152406'),
-    ('20260107210617');
+    ('20260107210617'),
+    ('20260108192140');

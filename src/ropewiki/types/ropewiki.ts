@@ -44,7 +44,7 @@ class RopewikiPageInfo {
     aka: string[]
     betaSites: string[]
     userVotes: number | undefined
-    latestRevisionDate: Date | undefined
+    latestRevisionDate: Date
     isValid: boolean
     
     constructor(raw: unknown) {
@@ -57,16 +57,16 @@ class RopewikiPageInfo {
         const region = printouts.region?.[0]?.fulltext;
         const url = printouts.url?.[0];
         
-        // Check latestRevisionDate (required for validity)
+        // Check latestRevisionDate (required for validity, use default if not found)
         const latestRevisionDateRaw = Array.isArray(printouts.latestRevisionDate) && printouts.latestRevisionDate.length > 0
             ? printouts.latestRevisionDate[0]
             : undefined;
         const latestRevisionDate = latestRevisionDateRaw && latestRevisionDateRaw.timestamp
             ? new Date(Number(latestRevisionDateRaw.timestamp) * 1000) // Convert Unix timestamp (seconds) to milliseconds
-            : undefined;
+            : new Date(0); // Default to epoch if not found
 
-        // Set isValid based on whether all required fields are present
-        this.isValid = !!(pageid && name && region && url && latestRevisionDate);
+        // Set isValid based on whether all required fields are present (including valid latestRevisionDate)
+        this.isValid = !!(pageid && name && region && url && (latestRevisionDateRaw && latestRevisionDateRaw.timestamp));
 
         // Required scalar fields - set to empty strings if missing
         this.pageid = pageid ? String(pageid) : '';

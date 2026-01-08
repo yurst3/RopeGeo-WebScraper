@@ -13,7 +13,6 @@ import ProgressLogger from "../helpers/progressLogger";
 const processPages = async (
     conn: Queryable,
     pages: RopewikiPageInfo[],
-    pageRevisionDates: {[pageId: string]: Date | null},
     regionNameIds: {[name: string]: string},
     logger: ProgressLogger,
 ) => {
@@ -21,11 +20,7 @@ const processPages = async (
     const pool = conn as Pool;
 
     for (const page of pages) {
-        const latestRevisionDate: Date | null | undefined = pageRevisionDates[page.pageid];
-        if (!latestRevisionDate) { // This should never be null/undefined since we already filtered pages
-            logger.logProgress(`Skipped ${page.pageid} ${page.name} (no revision date)`);
-            continue; 
-        }
+        const latestRevisionDate: Date = page.latestRevisionDate;
         const regionId: string | undefined = regionNameIds[page.region];
         if (!regionId) {
             console.error(`${page.pageid} ${page.name} doesn't have a valid region: ${page.region}`);
@@ -41,7 +36,7 @@ const processPages = async (
         try {
             await client.query('BEGIN');
 
-            const pageUuid: string = await upsertPage(client, page, regionId, latestRevisionDate);
+            const pageUuid: string = await upsertPage(client, page, regionId);
 
             // Upsert beta sections and image, overriding the deletedAt date if any were set
             const betaTitleIds = await upsertBetaSections(client, pageUuid, beta, latestRevisionDate);
