@@ -64,6 +64,7 @@ describe('processPages', () => {
                 name: ['Bear Creek Canyon'],
                 region: [{ fulltext: 'Test Region' }],
                 url: ['https://ropewiki.com/Bear_Creek_Canyon'],
+                latestRevisionDate: [{ timestamp: '1609459200', raw: '1/2021/1/1/0/0/0/0' }],
             },
         });
         const page2 = new RopewikiPageInfo({
@@ -72,6 +73,7 @@ describe('processPages', () => {
                 name: ['Regions'],
                 region: [{ fulltext: 'Test Region' }],
                 url: ['https://ropewiki.com/Regions'],
+                latestRevisionDate: [{ timestamp: '1609459200', raw: '1/2021/1/1/0/0/0/0' }],
             },
         });
 
@@ -89,11 +91,11 @@ describe('processPages', () => {
             .mockResolvedValueOnce('<html>Page 2</html>');
         mockParseRopewikiPage
             .mockResolvedValueOnce({
-                beta: [{ title: 'Introduction', text: 'Text 1' }],
-                images: [{ fileUrl: 'image1.jpg', linkUrl: 'link1', betaSectionTitle: undefined, caption: undefined }],
+                beta: [{ title: 'Introduction', text: 'Text 1', order: 1 }],
+                images: [{ fileUrl: 'image1.jpg', linkUrl: 'link1', betaSectionTitle: undefined, caption: undefined, order: 1 }],
             })
             .mockResolvedValueOnce({
-                beta: [{ title: 'Approach', text: 'Text 2' }],
+                beta: [{ title: 'Approach', text: 'Text 2', order: 1 }],
                 images: [],
             });
         mockUpsertPage
@@ -141,6 +143,7 @@ describe('processPages', () => {
                 name: ['Bear Creek Canyon'],
                 region: [{ fulltext: 'Test Region' }],
                 url: ['https://ropewiki.com/Bear_Creek_Canyon'],
+                latestRevisionDate: [{ timestamp: '1609459200', raw: '1/2021/1/1/0/0/0/0' }],
             },
         });
 
@@ -171,6 +174,7 @@ describe('processPages', () => {
                 name: ['Bear Creek Canyon'],
                 region: [{ fulltext: 'Invalid Region' }],
                 url: ['https://ropewiki.com/Bear_Creek_Canyon'],
+                latestRevisionDate: [{ timestamp: '1609459200', raw: '1/2021/1/1/0/0/0/0' }],
             },
         });
 
@@ -201,6 +205,7 @@ describe('processPages', () => {
                 name: ['Bear Creek Canyon'],
                 region: [{ fulltext: 'Test Region' }],
                 url: ['https://ropewiki.com/Bear_Creek_Canyon'],
+                latestRevisionDate: [{ timestamp: '1609459200', raw: '1/2021/1/1/0/0/0/0' }],
             },
         });
 
@@ -214,8 +219,8 @@ describe('processPages', () => {
 
         mockGetRopewikiPageHtml.mockResolvedValue('<html>Page</html>');
         mockParseRopewikiPage.mockResolvedValue({
-            beta: [{ title: 'Introduction', text: 'Text' }],
-            images: [{ fileUrl: 'image1.jpg', linkUrl: 'link1', betaSectionTitle: undefined, caption: undefined }],
+            beta: [{ title: 'Introduction', text: 'Text', order: 1 }],
+            images: [{ fileUrl: 'image1.jpg', linkUrl: 'link1', betaSectionTitle: undefined, caption: undefined, order: 1 }],
         });
         mockUpsertPage.mockResolvedValue('page-uuid-1');
         mockUpsertBetaSections.mockResolvedValue({ 'Introduction': 'beta-id-1' });
@@ -238,6 +243,7 @@ describe('processPages', () => {
                 name: ['Bear Creek Canyon'],
                 region: [{ fulltext: 'Test Region' }],
                 url: ['https://ropewiki.com/Bear_Creek_Canyon'],
+                latestRevisionDate: [{ timestamp: '1609459200', raw: '1/2021/1/1/0/0/0/0' }],
             },
         });
 
@@ -252,7 +258,7 @@ describe('processPages', () => {
         const htmlError = new Error('Failed to fetch HTML');
         mockGetRopewikiPageHtml.mockRejectedValue(htmlError);
 
-        await expect(processPages(mockPool, pages, pageRevisionDates, regionNameIds)).rejects.toThrow('Failed to fetch HTML');
+        await expect(processPages(mockPool, pages, pageRevisionDates, regionNameIds, mockLogger as unknown as ProgressLogger)).rejects.toThrow('Failed to fetch HTML');
         
         expect(mockPool.connect).not.toHaveBeenCalled();
     });
@@ -264,6 +270,7 @@ describe('processPages', () => {
                 name: ['Bear Creek Canyon'],
                 region: [{ fulltext: 'Test Region' }],
                 url: ['https://ropewiki.com/Bear_Creek_Canyon'],
+                latestRevisionDate: [{ timestamp: '1609459200', raw: '1/2021/1/1/0/0/0/0' }],
             },
         });
 
@@ -279,7 +286,7 @@ describe('processPages', () => {
         const dbError = new Error('Database error');
         mockUpsertPage.mockRejectedValue(dbError);
 
-        await expect(processPages(mockPool, pages, pageRevisionDates, regionNameIds)).rejects.toThrow('Database error');
+        await expect(processPages(mockPool, pages, pageRevisionDates, regionNameIds, mockLogger as unknown as ProgressLogger)).rejects.toThrow('Database error');
         
         expect(mockPool.connect).toHaveBeenCalledTimes(1);
         expect(mockClient.query).toHaveBeenCalledWith('BEGIN');
@@ -294,6 +301,7 @@ describe('processPages', () => {
                 name: ['Bear Creek Canyon'],
                 region: [{ fulltext: 'Test Region' }],
                 url: ['https://ropewiki.com/Bear_Creek_Canyon'],
+                latestRevisionDate: [{ timestamp: '1609459200', raw: '1/2021/1/1/0/0/0/0' }],
             },
         });
 
@@ -310,7 +318,7 @@ describe('processPages', () => {
         const parseError = new Error('Parse error');
         mockParseRopewikiPage.mockRejectedValue(parseError);
 
-        await expect(processPages(mockPool, pages, pageRevisionDates, regionNameIds)).rejects.toThrow('Parse error');
+        await expect(processPages(mockPool, pages, pageRevisionDates, regionNameIds, mockLogger as unknown as ProgressLogger)).rejects.toThrow('Parse error');
         
         expect(mockPool.connect).not.toHaveBeenCalled();
     });
@@ -322,6 +330,7 @@ describe('processPages', () => {
                 name: ['Bear Creek Canyon'],
                 region: [{ fulltext: 'Test Region' }],
                 url: ['https://ropewiki.com/Bear_Creek_Canyon'],
+                latestRevisionDate: [{ timestamp: '1609459200', raw: '1/2021/1/1/0/0/0/0' }],
             },
         });
 
@@ -336,13 +345,13 @@ describe('processPages', () => {
         mockGetRopewikiPageHtml.mockResolvedValue('<html>Page</html>');
         mockUpsertPage.mockResolvedValue('page-uuid-1');
         mockParseRopewikiPage.mockResolvedValue({
-            beta: [{ title: 'Introduction', text: 'Text' }],
+            beta: [{ title: 'Introduction', text: 'Text', order: 1 }],
             images: [],
         });
         const betaError = new Error('Beta sections error');
         mockUpsertBetaSections.mockRejectedValue(betaError);
 
-        await expect(processPages(mockPool, pages, pageRevisionDates, regionNameIds)).rejects.toThrow('Beta sections error');
+        await expect(processPages(mockPool, pages, pageRevisionDates, regionNameIds, mockLogger as unknown as ProgressLogger)).rejects.toThrow('Beta sections error');
         
         expect(mockPool.connect).toHaveBeenCalledTimes(1);
         expect(mockClient.query).toHaveBeenCalledWith('BEGIN');
@@ -357,6 +366,7 @@ describe('processPages', () => {
                 name: ['Bear Creek Canyon'],
                 region: [{ fulltext: 'Test Region' }],
                 url: ['https://ropewiki.com/Bear_Creek_Canyon'],
+                latestRevisionDate: [{ timestamp: '1609459200', raw: '1/2021/1/1/0/0/0/0' }],
             },
         });
 
@@ -371,14 +381,14 @@ describe('processPages', () => {
         mockGetRopewikiPageHtml.mockResolvedValue('<html>Page</html>');
         mockUpsertPage.mockResolvedValue('page-uuid-1');
         mockParseRopewikiPage.mockResolvedValue({
-            beta: [{ title: 'Introduction', text: 'Text' }],
-            images: [{ fileUrl: 'image1.jpg', linkUrl: 'link1', betaSectionTitle: undefined, caption: undefined }],
+            beta: [{ title: 'Introduction', text: 'Text', order: 1 }],
+            images: [{ fileUrl: 'image1.jpg', linkUrl: 'link1', betaSectionTitle: undefined, caption: undefined, order: 1 }],
         });
         mockUpsertBetaSections.mockResolvedValue({ 'Introduction': 'beta-id-1' });
         const imagesError = new Error('Images error');
         mockUpsertImages.mockRejectedValue(imagesError);
 
-        await expect(processPages(mockPool, pages, pageRevisionDates, regionNameIds)).rejects.toThrow('Images error');
+        await expect(processPages(mockPool, pages, pageRevisionDates, regionNameIds, mockLogger as unknown as ProgressLogger)).rejects.toThrow('Images error');
         
         expect(mockPool.connect).toHaveBeenCalledTimes(1);
         expect(mockClient.query).toHaveBeenCalledWith('BEGIN');
@@ -393,6 +403,7 @@ describe('processPages', () => {
                 name: ['Bear Creek Canyon'],
                 region: [{ fulltext: 'Test Region' }],
                 url: ['https://ropewiki.com/Bear_Creek_Canyon'],
+                latestRevisionDate: [{ timestamp: '1609459200', raw: '1/2021/1/1/0/0/0/0' }],
             },
         });
 
@@ -407,7 +418,7 @@ describe('processPages', () => {
         mockGetRopewikiPageHtml.mockResolvedValue('<html>Page</html>');
         mockUpsertPage.mockResolvedValue('page-uuid-1');
         mockParseRopewikiPage.mockResolvedValue({
-            beta: [{ title: 'Introduction', text: 'Text' }],
+            beta: [{ title: 'Introduction', text: 'Text', order: 1 }],
             images: [],
         });
         mockUpsertBetaSections.mockResolvedValue({ 'Introduction': 'beta-id-1' });
@@ -415,7 +426,7 @@ describe('processPages', () => {
         const deleteError = new Error('Delete beta sections error');
         mockSetBetaSectionsDeletedAt.mockRejectedValue(deleteError);
 
-        await expect(processPages(mockPool, pages, pageRevisionDates, regionNameIds)).rejects.toThrow('Delete beta sections error');
+        await expect(processPages(mockPool, pages, pageRevisionDates, regionNameIds, mockLogger as unknown as ProgressLogger)).rejects.toThrow('Delete beta sections error');
         
         expect(mockPool.connect).toHaveBeenCalledTimes(1);
         expect(mockClient.query).toHaveBeenCalledWith('BEGIN');
@@ -430,6 +441,7 @@ describe('processPages', () => {
                 name: ['Bear Creek Canyon'],
                 region: [{ fulltext: 'Test Region' }],
                 url: ['https://ropewiki.com/Bear_Creek_Canyon'],
+                latestRevisionDate: [{ timestamp: '1609459200', raw: '1/2021/1/1/0/0/0/0' }],
             },
         });
 
@@ -444,8 +456,8 @@ describe('processPages', () => {
         mockGetRopewikiPageHtml.mockResolvedValue('<html>Page</html>');
         mockUpsertPage.mockResolvedValue('page-uuid-1');
         mockParseRopewikiPage.mockResolvedValue({
-            beta: [{ title: 'Introduction', text: 'Text' }],
-            images: [{ fileUrl: 'image1.jpg', linkUrl: 'link1', betaSectionTitle: undefined, caption: undefined }],
+            beta: [{ title: 'Introduction', text: 'Text', order: 1 }],
+            images: [{ fileUrl: 'image1.jpg', linkUrl: 'link1', betaSectionTitle: undefined, caption: undefined, order: 1 }],
         });
         mockUpsertBetaSections.mockResolvedValue({ 'Introduction': 'beta-id-1' });
         mockUpsertImages.mockResolvedValue(['image-id-1']);
@@ -453,7 +465,7 @@ describe('processPages', () => {
         const deleteError = new Error('Delete images error');
         mockSetImagesDeletedAt.mockRejectedValue(deleteError);
 
-        await expect(processPages(mockPool, pages, pageRevisionDates, regionNameIds)).rejects.toThrow('Delete images error');
+        await expect(processPages(mockPool, pages, pageRevisionDates, regionNameIds, mockLogger as unknown as ProgressLogger)).rejects.toThrow('Delete images error');
         
         expect(mockPool.connect).toHaveBeenCalledTimes(1);
         expect(mockClient.query).toHaveBeenCalledWith('BEGIN');
@@ -470,6 +482,7 @@ describe('processPages', () => {
                 name: ['Bear Creek Canyon'],
                 region: [{ fulltext: 'Test Region' }],
                 url: ['https://ropewiki.com/Bear_Creek_Canyon'],
+                latestRevisionDate: [{ timestamp: '1609459200', raw: '1/2021/1/1/0/0/0/0' }],
             },
         });
 
@@ -483,13 +496,13 @@ describe('processPages', () => {
 
         mockGetRopewikiPageHtml.mockResolvedValue('<html>Page</html>');
         mockParseRopewikiPage.mockResolvedValue({
-            beta: [{ title: 'Introduction', text: 'Text' }],
+            beta: [{ title: 'Introduction', text: 'Text', order: 1 }],
             images: [],
         });
         const dbError = new Error('Database error');
         mockUpsertPage.mockRejectedValue(dbError);
 
-        await expect(processPages(mockPool, pages, pageRevisionDates, regionNameIds)).rejects.toThrow('Database error');
+        await expect(processPages(mockPool, pages, pageRevisionDates, regionNameIds, mockLogger as unknown as ProgressLogger)).rejects.toThrow('Database error');
 
         expect(consoleErrorSpy).toHaveBeenCalledWith('Error processing page 728 Bear Creek Canyon, transaction rolled back:', dbError);
         expect(mockPool.connect).toHaveBeenCalledTimes(1);

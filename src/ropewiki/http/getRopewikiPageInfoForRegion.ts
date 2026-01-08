@@ -1,29 +1,5 @@
 import RopewikiPageInfo from '../types/ropewiki';
 
-const apiRequestPrintouts = {
-    pageid: 'Has pageid',
-    name: 'Has name',
-    coordinates: 'Has coordinates',
-    region: 'Located in region',
-    quality: 'Has user rating',
-    rating: 'Has rating',
-    timeRating: 'Has time rating',
-    kmlUrl: 'Has KML file',
-    technicalRating: 'Has technical rating',
-    waterRating: 'Has water rating',
-    riskRating: 'Has extra risk rating',
-    permits: 'Requires permits',
-    rappelCount: 'Has info rappels',
-    rappelLongest: 'Has longest rappel',
-    months: 'Has best month',
-    shuttle: 'Has shuttle length',
-    vehicle: 'Has vehicle type',
-    minTime: 'Has fastest typical time',
-    maxTime: 'Has slowest typical time',
-    hike: 'Has length of hike',
-    url: 'Has url',
-};
-
 const encode = (input: string) => {
     return encodeURIComponent(input).replace(/%/g, '-');
 }
@@ -40,6 +16,7 @@ const getRopewikiPageInfoForRegion = async (region: string, offset: number, limi
         const url = new URL('https://ropewiki.com/index.php');
         url.searchParams.append('title', 'Special:Ask');
 
+        const apiRequestPrintouts = RopewikiPageInfo.getApiRequestPrintouts();
         const propertiesEncoded = Object.entries(apiRequestPrintouts)
             .map(([a, b]) => `${encode(b)}=${encode(a)}`)
             .join('/-3F');

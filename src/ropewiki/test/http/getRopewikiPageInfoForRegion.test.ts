@@ -34,7 +34,18 @@ describe('getRopewikiPageInfoForRegion', () => {
 
         const pageInfos = await getRopewikiPageInfoForRegion(region, offset, limit);
 
-        expect(pageInfos).toEqual(expectedResults);
+        // Convert pageInfos to JSON-compatible format for comparison
+        // Serialize and parse to normalize Date objects and remove undefined properties
+        const normalizedPageInfos = JSON.parse(JSON.stringify(pageInfos, (key, value) => {
+            // Convert Date objects to ISO strings
+            if (value instanceof Date) {
+                return value.toISOString();
+            }
+            // JSON.stringify already omits undefined, so we don't need to handle that
+            return value;
+        }));
+
+        expect(normalizedPageInfos).toEqual(expectedResults);
         expect(mockFetch).toHaveBeenCalledTimes(1);
     });
 

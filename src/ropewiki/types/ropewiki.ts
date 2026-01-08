@@ -31,7 +31,8 @@ class RopewikiPageInfo {
     waterRating: string | undefined
     riskRating: string | undefined
     permits: string | undefined
-    rappelCount: string | undefined
+    rappelInfo: string | undefined
+    rappelCount: number | undefined
     rappelLongest: { value: number, unit: string } | undefined
     months: string[]
     shuttle: { value: number, unit: string } | undefined
@@ -40,6 +41,10 @@ class RopewikiPageInfo {
     maxTime: { value: number, unit: string } | undefined
     hike: { value: number, unit: string } | undefined
     url: string
+    aka: string[]
+    betaSites: string[]
+    userVotes: number | undefined
+    latestRevisionDate: Date | undefined
     isValid: boolean
     
     constructor(raw: unknown) {
@@ -51,9 +56,17 @@ class RopewikiPageInfo {
         const name = printouts.name?.[0];
         const region = printouts.region?.[0]?.fulltext;
         const url = printouts.url?.[0];
+        
+        // Check latestRevisionDate (required for validity)
+        const latestRevisionDateRaw = Array.isArray(printouts.latestRevisionDate) && printouts.latestRevisionDate.length > 0
+            ? printouts.latestRevisionDate[0]
+            : undefined;
+        const latestRevisionDate = latestRevisionDateRaw && latestRevisionDateRaw.timestamp
+            ? new Date(Number(latestRevisionDateRaw.timestamp) * 1000) // Convert Unix timestamp (seconds) to milliseconds
+            : undefined;
 
         // Set isValid based on whether all required fields are present
-        this.isValid = !!(pageid && name && region && url);
+        this.isValid = !!(pageid && name && region && url && latestRevisionDate);
 
         // Required scalar fields - set to empty strings if missing
         this.pageid = pageid ? String(pageid) : '';
@@ -94,8 +107,12 @@ class RopewikiPageInfo {
             ? String(printouts.permits[0])
             : undefined;
 
+        this.rappelInfo = Array.isArray(printouts.rappelInfo) && printouts.rappelInfo.length > 0
+            ? String(printouts.rappelInfo[0])
+            : undefined;
+
         this.rappelCount = Array.isArray(printouts.rappelCount) && printouts.rappelCount.length > 0
-            ? String(printouts.rappelCount[0])
+            ? Number(printouts.rappelCount[0])
             : undefined;
 
         this.vehicle = Array.isArray(printouts.vehicle) && printouts.vehicle.length > 0
@@ -137,6 +154,57 @@ class RopewikiPageInfo {
         this.months = Array.isArray(printouts.months)
             ? printouts.months.map((m: unknown) => String(m))
             : [];
+
+        // AKA is a semicolon-separated string in an array; split and trim
+        this.aka = Array.isArray(printouts.aka) && printouts.aka.length > 0
+            ? String(printouts.aka[0]).split(';').map((a: string) => a.trim()).filter((a: string) => a.length > 0)
+            : [];
+
+        // BetaSites is a comma-separated string in an array; split and trim
+        this.betaSites = Array.isArray(printouts.betaSites) && printouts.betaSites.length > 0
+            ? String(printouts.betaSites[0]).split(',').map((site: string) => site.trim()).filter((site: string) => site.length > 0)
+            : [];
+
+        // UserVotes is a number in an array
+        this.userVotes = Array.isArray(printouts.userVotes) && printouts.userVotes.length > 0
+            ? Number(printouts.userVotes[0])
+            : undefined;
+
+        // LatestRevisionDate was already parsed above for the isValid check
+        this.latestRevisionDate = latestRevisionDate;
+    }
+
+    // https://ropewiki.com/index.php?title=Special:Properties&limit=500&offset=0
+    // "Has ..." is the property as described in the link above
+    static getApiRequestPrintouts() {
+        return {
+            pageid: 'Has pageid',
+            name: 'Has name',
+            coordinates: 'Has coordinates',
+            region: 'Located in region',
+            quality: 'Has user rating',
+            rating: 'Has rating',
+            timeRating: 'Has time rating',
+            kmlUrl: 'Has KML file',
+            technicalRating: 'Has technical rating',
+            waterRating: 'Has water rating',
+            riskRating: 'Has extra risk rating',
+            permits: 'Requires permits',
+            rappelInfo: 'Has info rappels',
+            rappelCount: 'Has number of rappels',
+            rappelLongest: 'Has longest rappel',
+            months: 'Has best month',
+            shuttle: 'Has shuttle length',
+            vehicle: 'Has vehicle type',
+            minTime: 'Has fastest typical time',
+            maxTime: 'Has slowest typical time',
+            hike: 'Has length of hike',
+            url: 'Has url',
+            aka: 'Has AKA',
+            betaSites: 'Has BetaSites list',
+            userVotes: 'Has total counter',
+            latestRevisionDate: 'Modification date'
+        };
     }
 }
 

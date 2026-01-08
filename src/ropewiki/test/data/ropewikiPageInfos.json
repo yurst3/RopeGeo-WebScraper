@@ -11,6 +11,12 @@
         "permits": "Yes",
         "months": [],
         "url": "https://ropewiki.com/...must_be_on_dope",
+        "aka": [
+            "Inherently Dangerous"
+        ],
+        "betaSites": [],
+        "userVotes": 1,
+        "latestRevisionDate": "2025-08-19T03:59:01.000Z",
         "isValid": true
     },
     {
@@ -28,7 +34,8 @@
         "technicalRating": "3",
         "waterRating": "C",
         "permits": "No",
-        "rappelCount": "2r",
+        "rappelInfo": "2r",
+        "rappelCount": 2,
         "rappelLongest": {
             "value": 20,
             "unit": "ft"
@@ -41,6 +48,12 @@
             "Mar"
         ],
         "url": "https://ropewiki.com/12_Mile_Delta",
+        "aka": [
+            "Queenstown Canyon, 12 Mile Creek"
+        ],
+        "betaSites": [],
+        "userVotes": 4,
+        "latestRevisionDate": "2024-03-17T04:42:39.000Z",
         "isValid": true
     },
     {
@@ -85,6 +98,13 @@
             "unit": "mi"
         },
         "url": "https://ropewiki.com/12.2-Mile_Wash",
+        "aka": [],
+        "betaSites": [
+            "http://ropewiki.com/User:Grand_Canyoneering_Book?id=12.2-Mile_Wash",
+            "http://ropewiki.com/User:Super_Amazing_Map?id=12.2-Mile_Wash_-_Grand_Canyon"
+        ],
+        "userVotes": 2,
+        "latestRevisionDate": "2019-09-04T04:07:51.000Z",
         "isValid": true
     },
     {
@@ -120,6 +140,14 @@
             "unit": "h"
         },
         "url": "https://ropewiki.com/14_Juillet",
+        "aka": [
+            "Cascades du cirque du 14 juillet"
+        ],
+        "betaSites": [
+            "http://descente-canyon.com/canyoning/canyon-description/22332"
+        ],
+        "userVotes": 10,
+        "latestRevisionDate": "2017-03-31T01:30:59.000Z",
         "isValid": true
     },
     {
@@ -137,6 +165,14 @@
         "permits": "No",
         "months": [],
         "url": "https://ropewiki.com/140_Mile",
+        "aka": [
+            "One Hundred and Forty Mile"
+        ],
+        "betaSites": [
+            "https://www.americancanyoneers.org/gcnp/great-thumb-mesa/140-mile-canyon/"
+        ],
+        "userVotes": 0,
+        "latestRevisionDate": "2025-12-12T10:12:59.000Z",
         "isValid": true
     },
     {
@@ -182,6 +218,15 @@
             "unit": "mi"
         },
         "url": "https://ropewiki.com/150_Mile_Canyon",
+        "aka": [
+            "150-Mile Canyon"
+        ],
+        "betaSites": [
+            "http://ropewiki.com/User:Super_Amazing_Map?id=150_Mile_Canyon_-_Grand_Canyon",
+            "http://ropewiki.com/User:Grand_Canyoneering_Book?id=150-Mile_Canyon"
+        ],
+        "userVotes": 20,
+        "latestRevisionDate": "2025-11-28T04:48:22.000Z",
         "isValid": true
     },
     {
@@ -196,6 +241,12 @@
         "permits": "No",
         "months": [],
         "url": "https://ropewiki.com/1601_SE_Canyon",
+        "aka": [],
+        "betaSites": [
+            "http://kiwicanyons.org/?p=823"
+        ],
+        "userVotes": 0,
+        "latestRevisionDate": "2017-02-03T23:35:29.000Z",
         "isValid": true
     },
     {
@@ -212,7 +263,8 @@
         "technicalRating": "3",
         "waterRating": "A",
         "permits": "No",
-        "rappelCount": "1r",
+        "rappelInfo": "1r",
+        "rappelCount": 1,
         "rappelLongest": {
             "value": 160,
             "unit": "ft"
@@ -246,6 +298,13 @@
             "unit": "mi"
         },
         "url": "https://ropewiki.com/2.8-Mile_Wash",
+        "aka": [],
+        "betaSites": [
+            "http://ropewiki.com/User:Super_Amazing_Map?id=2.8-Mile_Wash_-_Grand_Canyon",
+            "http://ropewiki.com/User:Grand_Canyoneering_Book?id=2.8-Mile_Wash"
+        ],
+        "userVotes": 16,
+        "latestRevisionDate": "2023-03-05T05:13:22.000Z",
         "isValid": true
     },
     {
@@ -262,7 +321,8 @@
         "technicalRating": "3",
         "waterRating": "A",
         "permits": "No",
-        "rappelCount": "1-2r",
+        "rappelInfo": "1-2r",
+        "rappelCount": 1,
         "rappelLongest": {
             "value": 85,
             "unit": "ft"
@@ -295,6 +355,12 @@
             "unit": "h"
         },
         "url": "https://ropewiki.com/20000_Steps",
+        "aka": [],
+        "betaSites": [
+            "http://canyoneeringnm.org/technical-canyoneering/north/83-canyon-beta/93-beta-20000-steps"
+        ],
+        "userVotes": 2,
+        "latestRevisionDate": "2022-12-22T22:54:57.000Z",
         "isValid": true
     },
     {
@@ -310,12 +376,429 @@
         "technicalRating": "2",
         "waterRating": "A",
         "permits": "No",
+        "rappelCount": 0,
         "rappelLongest": {
             "value": 0,
             "unit": "ft"
         },
         "months": [],
         "url": "https://ropewiki.com/209_Mile_Canyon",
+        "aka": [],
+        "betaSites": [
+            "http://ropewiki.com/User:Super_Amazing_Map?id=209_Mile_Canyon_-_Grand_Canyon"
+        ],
+        "userVotes": 0,
+        "latestRevisionDate": "2025-12-12T00:58:26.000Z",
+        "isValid": true
+    },
+    {
+        "pageid": "785",
+        "name": "22-Mile Wash",
+        "coordinates": {
+            "lat": 36.6154,
+            "lon": -111.7434
+        },
+        "region": "Grand Canyon",
+        "quality": 0,
+        "permits": "Yes",
+        "months": [],
+        "url": "https://ropewiki.com/22-Mile_Wash",
+        "aka": [],
+        "betaSites": [
+            "http://ropewiki.com/User:Super_Amazing_Map?id=22-Mile_Wash_-_Grand_Canyon"
+        ],
+        "userVotes": 0,
+        "latestRevisionDate": "2019-09-16T01:48:56.000Z",
+        "isValid": true
+    },
+    {
+        "pageid": "11461",
+        "name": "25 Mile Creek",
+        "coordinates": {
+            "lat": -44.6379,
+            "lon": 168.4732
+        },
+        "region": "Otago",
+        "quality": 0,
+        "permits": "No",
+        "months": [],
+        "url": "https://ropewiki.com/25_Mile_Creek",
+        "aka": [],
+        "betaSites": [
+            "http://kiwicanyons.org/?p=1753"
+        ],
+        "userVotes": 0,
+        "latestRevisionDate": "2017-02-03T23:36:29.000Z",
+        "isValid": true
+    },
+    {
+        "pageid": "737",
+        "name": "25 Mile Wash",
+        "coordinates": {
+            "lat": 37.5578,
+            "lon": -111.1782
+        },
+        "region": "Escalante",
+        "quality": 0,
+        "months": [],
+        "url": "https://ropewiki.com/25_Mile_Wash",
+        "aka": [],
+        "betaSites": [
+            "http://ropewiki.com/User:Super_Amazing_Map?id=25_mile_wash_-_Escalante"
+        ],
+        "userVotes": 0,
+        "latestRevisionDate": "2017-02-03T23:36:55.000Z",
+        "isValid": true
+    },
+    {
+        "pageid": "51217",
+        "name": "28 Canyon",
+        "coordinates": {
+            "lat": 9.9597,
+            "lon": -83.7278
+        },
+        "region": "Turrialba",
+        "quality": 3.6,
+        "rating": "3C1 III  (<i>v3a4&nbsp;III</i>)",
+        "timeRating": "III",
+        "kmlUrl": "https://ropewiki.com/images/7/79/28_Canyon.kml",
+        "technicalRating": "3",
+        "waterRating": "C1",
+        "permits": "No",
+        "rappelInfo": "4r",
+        "rappelCount": 4,
+        "rappelLongest": {
+            "value": 278.8714,
+            "unit": "ft"
+        },
+        "months": [
+            "Jan",
+            "Feb",
+            "Mar"
+        ],
+        "shuttle": {
+            "value": 0,
+            "unit": "minutes"
+        },
+        "vehicle": "4WD",
+        "url": "https://ropewiki.com/28_Canyon",
+        "aka": [],
+        "betaSites": [],
+        "userVotes": 4,
+        "latestRevisionDate": "2023-01-26T16:22:39.000Z",
+        "isValid": true
+    },
+    {
+        "pageid": "13958",
+        "name": "3 Fontaines",
+        "coordinates": {
+            "lat": 45.3258,
+            "lon": 5.6789
+        },
+        "region": "Isere",
+        "quality": 2.6,
+        "rating": "<i>4A&nbsp;II&nbsp;X</i> (v6a1 IV)",
+        "timeRating": "II",
+        "kmlUrl": "https://ropewiki.com/luca/rwr?gpx%3Doff&filename%3D3_Fontaines&kmlnfx&kmlx%3Dhttp://descente-canyon.com/canyoning/canyon-description/22562&ext%3D.kml",
+        "technicalRating": "4",
+        "waterRating": "A",
+        "riskRating": "X",
+        "permits": "No",
+        "rappelLongest": {
+            "value": 246.063,
+            "unit": "ft"
+        },
+        "months": [
+            "Mar",
+            "Apr",
+            "May",
+            "Dec",
+            "Jan",
+            "Feb",
+            "Jun",
+            "Jul",
+            "Aug",
+            "Sep",
+            "Oct",
+            "Nov"
+        ],
+        "shuttle": {
+            "value": 0,
+            "unit": "minutes"
+        },
+        "minTime": {
+            "value": 2,
+            "unit": "h"
+        },
+        "maxTime": {
+            "value": 3,
+            "unit": "h"
+        },
+        "url": "https://ropewiki.com/3_Fontaines",
+        "aka": [
+            "Les 3 fontaines",
+            "Combe de l'Infernet",
+            "Rau de l'Hérétang",
+            "Combe Infernet",
+            "Rau Hérétang"
+        ],
+        "betaSites": [
+            "http://descente-canyon.com/canyoning/canyon-description/22562"
+        ],
+        "userVotes": 3,
+        "latestRevisionDate": "2017-03-31T01:31:56.000Z",
+        "isValid": true
+    },
+    {
+        "pageid": "780",
+        "name": "3.7-Mile Wash",
+        "coordinates": {
+            "lat": 36.8298,
+            "lon": -111.6191
+        },
+        "region": "Grand Canyon",
+        "quality": 2,
+        "rating": "3A I  (<i>v3a1&nbsp;I</i>)",
+        "timeRating": "I",
+        "technicalRating": "3",
+        "waterRating": "A",
+        "permits": "Yes",
+        "rappelLongest": {
+            "value": 125,
+            "unit": "ft"
+        },
+        "months": [
+            "Sep",
+            "Oct",
+            "Nov",
+            "Dec",
+            "Jan",
+            "Feb",
+            "Mar",
+            "Apr",
+            "May"
+        ],
+        "minTime": {
+            "value": 2,
+            "unit": "h"
+        },
+        "maxTime": {
+            "value": 3,
+            "unit": "h"
+        },
+        "hike": {
+            "value": 4,
+            "unit": "mi"
+        },
+        "url": "https://ropewiki.com/3.7-Mile_Wash",
+        "aka": [],
+        "betaSites": [
+            "http://ropewiki.com/User:Super_Amazing_Map?id=3.7-Mile_Wash_-_Grand_Canyon",
+            "http://ropewiki.com/User:Grand_Canyoneering_Book?id=3.7-Mile_Wash"
+        ],
+        "userVotes": 4,
+        "latestRevisionDate": "2019-09-04T04:11:32.000Z",
+        "isValid": true
+    },
+    {
+        "pageid": "786",
+        "name": "35 Mile Wash",
+        "coordinates": {
+            "lat": 36.4665,
+            "lon": -111.8334
+        },
+        "region": "Grand Canyon",
+        "quality": 3,
+        "rating": "3B VI  (<i>v3a2&nbsp;VI</i>)",
+        "timeRating": "VI",
+        "technicalRating": "3",
+        "waterRating": "B",
+        "permits": "Yes",
+        "rappelLongest": {
+            "value": 160,
+            "unit": "ft"
+        },
+        "months": [
+            "Mar",
+            "Apr",
+            "May",
+            "Sep",
+            "Oct",
+            "Nov"
+        ],
+        "minTime": {
+            "value": 48,
+            "unit": "h"
+        },
+        "maxTime": {
+            "value": 96,
+            "unit": "h"
+        },
+        "hike": {
+            "value": 18.5,
+            "unit": "mi"
+        },
+        "url": "https://ropewiki.com/35_Mile_Wash",
+        "aka": [
+            "35-Mile Canyon"
+        ],
+        "betaSites": [
+            "http://ropewiki.com/User:Super_Amazing_Map?id=35_Mile_Wash_-_Grand_Canyon",
+            "http://ropewiki.com/User:Grand_Canyoneering_Book?id=35-Mile_Canyon"
+        ],
+        "userVotes": 1,
+        "latestRevisionDate": "2019-09-04T04:14:40.000Z",
+        "isValid": true
+    },
+    {
+        "pageid": "787",
+        "name": "36 Mile Canyon",
+        "coordinates": {
+            "lat": 36.4515,
+            "lon": -111.831
+        },
+        "region": "Grand Canyon",
+        "quality": 2.7,
+        "rating": "3B VI  (<i>v3a2&nbsp;VI</i>)",
+        "timeRating": "VI",
+        "technicalRating": "3",
+        "waterRating": "B",
+        "permits": "Yes",
+        "rappelLongest": {
+            "value": 120,
+            "unit": "ft"
+        },
+        "months": [
+            "Mar",
+            "Apr",
+            "May",
+            "Sep",
+            "Oct",
+            "Nov"
+        ],
+        "minTime": {
+            "value": 48,
+            "unit": "h"
+        },
+        "maxTime": {
+            "value": 96,
+            "unit": "h"
+        },
+        "hike": {
+            "value": 16.4,
+            "unit": "mi"
+        },
+        "url": "https://ropewiki.com/36_Mile_Canyon",
+        "aka": [
+            "36-Mile Canyon"
+        ],
+        "betaSites": [
+            "http://ropewiki.com/User:Super_Amazing_Map?id=36_Mile_Canyon_-_Grand_Canyon",
+            "http://ropewiki.com/User:Grand_Canyoneering_Book?id=36-Mile_Canyon"
+        ],
+        "userVotes": 2,
+        "latestRevisionDate": "2019-09-04T04:15:19.000Z",
+        "isValid": true
+    },
+    {
+        "pageid": "788",
+        "name": "36.7 Mile Canyon",
+        "coordinates": {
+            "lat": 36.4516,
+            "lon": -111.8545
+        },
+        "region": "Grand Canyon",
+        "quality": 4,
+        "rating": "4B VI R (<i>v5a2&nbsp;VI</i>)",
+        "timeRating": "VI",
+        "technicalRating": "4",
+        "waterRating": "B",
+        "riskRating": "R",
+        "rappelLongest": {
+            "value": 220,
+            "unit": "ft"
+        },
+        "months": [
+            "Mar",
+            "Apr",
+            "May",
+            "Sep",
+            "Oct",
+            "Nov"
+        ],
+        "minTime": {
+            "value": 48,
+            "unit": "h"
+        },
+        "maxTime": {
+            "value": 72,
+            "unit": "h"
+        },
+        "hike": {
+            "value": 12,
+            "unit": "mi"
+        },
+        "url": "https://ropewiki.com/36.7_Mile_Canyon",
+        "aka": [
+            "36.7-Mile Canyon"
+        ],
+        "betaSites": [
+            "http://ropewiki.com/User:Super_Amazing_Map?id=36.7_Mile_Canyon_-_Grand_Canyon",
+            "http://ropewiki.com/User:Grand_Canyoneering_Book?id=36.7-Mile_Canyon"
+        ],
+        "userVotes": 4,
+        "latestRevisionDate": "2017-04-06T08:45:15.000Z",
+        "isValid": true
+    },
+    {
+        "pageid": "781",
+        "name": "4.4-Mile Wash",
+        "coordinates": {
+            "lat": 36.8221,
+            "lon": -111.6259
+        },
+        "region": "Grand Canyon",
+        "quality": 2,
+        "rating": "3A I  (<i>v3a1&nbsp;I</i>)",
+        "timeRating": "I",
+        "technicalRating": "3",
+        "waterRating": "A",
+        "permits": "Yes",
+        "rappelLongest": {
+            "value": 75,
+            "unit": "ft"
+        },
+        "months": [
+            "Sep",
+            "Oct",
+            "Nov",
+            "Dec",
+            "Jan",
+            "Feb",
+            "Mar",
+            "Apr",
+            "May"
+        ],
+        "minTime": {
+            "value": 2,
+            "unit": "h"
+        },
+        "maxTime": {
+            "value": 3,
+            "unit": "h"
+        },
+        "hike": {
+            "value": 4,
+            "unit": "mi"
+        },
+        "url": "https://ropewiki.com/4.4-Mile_Wash",
+        "aka": [],
+        "betaSites": [
+            "http://ropewiki.com/User:Super_Amazing_Map?id=4.4-Mile_Wash_-_Grand_Canyon",
+            "http://ropewiki.com/User:Grand_Canyoneering_Book?id=4.4-Mile_Wash"
+        ],
+        "userVotes": 4,
+        "latestRevisionDate": "2019-09-04T04:10:36.000Z",
         "isValid": true
     }
 ]

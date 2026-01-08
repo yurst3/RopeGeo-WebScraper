@@ -57,6 +57,7 @@ describe('handleRopewikiPages', () => {
                 name: [name],
                 region: [{ fulltext: region }],
                 url: [`https://ropewiki.com/${name.replace(/\s+/g, '_')}`],
+                latestRevisionDate: [{ timestamp: '1609459200', raw: '1/2021/1/1/0/0/0/0' }],
             },
         });
     };
@@ -68,6 +69,7 @@ describe('handleRopewikiPages', () => {
                 name: [], // Missing name makes it invalid
                 region: [],
                 url: [],
+                latestRevisionDate: [], // Missing latestRevisionDate also makes it invalid
             },
         });
     };
