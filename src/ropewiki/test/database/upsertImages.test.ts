@@ -5,7 +5,7 @@ import { describe, it, expect, afterEach, beforeAll, afterAll } from '@jest/glob
 import upsertImages from '../../database/upsertImages';
 import type { RopewikiImage } from '../../types/ropewiki';
 import RopewikiPageInfo from '../../types/ropewiki';
-import upsertPage from '../../database/upsertPage';
+import upsertPages from '../../database/upsertPages';
 import upsertBetaSections from '../../database/upsertBetaSections';
 import type { RopewikiBetaSection } from '../../types/ropewiki';
 
@@ -20,6 +20,7 @@ describe('upsertImages (integration)', () => {
 
     const conn: db.Queryable = pool;
     const testRegionId = 'ffebfa80-656e-4e48-99a6-81608cc0051d';
+    const regionNameIds: {[name: string]: string} = { 'Test Region': testRegionId };
     let testPageUuid: string;
     let betaTitleIds: { [title: string]: string };
 
@@ -50,8 +51,9 @@ describe('upsertImages (integration)', () => {
                 url: ['https://ropewiki.com/Test_Page'],
                 latestRevisionDate: [{ timestamp: String(Math.floor(latestRevisionDate.getTime() / 1000)), raw: '2025-01-01T00:00:00Z' }],
             },
-        });
-        testPageUuid = await upsertPage(conn, pageInfo, testRegionId);
+        }, regionNameIds);
+        const results = await upsertPages(conn, [pageInfo], regionNameIds);
+        testPageUuid = results[0].id;
 
         // Insert test beta sections to get betaTitleIds
         const betaSections: RopewikiBetaSection[] = [

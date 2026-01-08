@@ -2,10 +2,10 @@ import { Pool } from 'pg';
 import * as db from 'zapatos/db';
 import type * as s from 'zapatos/schema';
 import { describe, it, expect, afterEach, beforeAll, afterAll } from '@jest/globals';
-import upsertPage from '../../database/upsertPage';
+import upsertPages from '../../database/upsertPages';
 import RopewikiPageInfo from '../../types/ropewiki';
 
-describe('upsertPage (integration)', () => {
+describe('upsertPages (integration)', () => {
     const pool = new Pool({
         user: process.env.TEST_USER,
         password: process.env.TEST_PASS,
@@ -16,6 +16,7 @@ describe('upsertPage (integration)', () => {
 
     const conn: db.Queryable = pool;
     const testRegionId = 'ffebfa80-656e-4e48-99a6-81608cc0051d';
+    const regionNameIds: {[name: string]: string} = { 'Test Region': testRegionId };
 
     beforeAll(async () => {
         // Clean tables
@@ -57,18 +58,23 @@ describe('upsertPage (integration)', () => {
                 coordinates: [{ lat: 40.123, lon: -111.456 }],
                 latestRevisionDate: [{ timestamp: String(Math.floor(latestRevisionDate.getTime() / 1000)), raw: '2025-01-02T12:34:56Z' }],
             },
-        });
+        }, regionNameIds);
 
-        const resultId = await upsertPage(conn, pageInfo, testRegionId);
+        const results = await upsertPages(conn, [pageInfo]);
 
-        // Verify a UUID was returned (database default generates it)
-        expect(resultId).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i);
+        // Verify an array with one result was returned
+        expect(results).toHaveLength(1);
+        const result = results[0]!;
+        expect(result.id).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i);
+        expect(result.pageId).toBe('728');
+        expect(result.name).toBe('Bear Creek Canyon');
+        expect(result.latestRevisionDate).toEqual(latestRevisionDate);
 
         const rows = await db.select('RopewikiPage', { pageId: '728' }).run(conn);
         expect(rows).toHaveLength(1);
 
         const page = rows[0] as s.RopewikiPage.JSONSelectable;
-        expect(page.id).toBe(resultId);
+        expect(page.id).toBe(result.id);
         expect(page.pageId).toBe('728');
         expect(page.name).toBe('Bear Creek Canyon');
         expect(page.region).toBe(testRegionId);
@@ -93,11 +99,13 @@ describe('upsertPage (integration)', () => {
                 rating: ['3.0'],
                 latestRevisionDate: [{ timestamp: String(Math.floor(initialRevisionDate.getTime() / 1000)), raw: '2025-01-01T00:00:00Z' }],
             },
-        });
+        }, regionNameIds);
 
-        const initialId = await upsertPage(conn, initialPageInfo, testRegionId);
+        const initialResults = await upsertPages(conn, [initialPageInfo]);
         
-        // Verify the initial insert returned a UUID
+        // Verify the initial insert returned an array with one result
+        expect(initialResults).toHaveLength(1);
+        const initialId = initialResults[0]!.id;
         expect(initialId).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i);
 
         // Verify the page was inserted with the expected ID
@@ -117,11 +125,13 @@ describe('upsertPage (integration)', () => {
                 technicalRating: ['5.10'],
                 latestRevisionDate: [{ timestamp: String(Math.floor(updatedRevisionDate.getTime() / 1000)), raw: '2025-01-03T14:20:10Z' }],
             },
-        });
+        }, regionNameIds);
 
-        const resultId = await upsertPage(conn, updatedPageInfo, testRegionId);
+        const updatedResults = await upsertPages(conn, [updatedPageInfo]);
 
-        // Should return the existing UUID, not a new one
+        // Should return an array with one result containing the existing UUID, not a new one
+        expect(updatedResults).toHaveLength(1);
+        const resultId = updatedResults[0]!.id;
         expect(resultId).toBe(initialId);
 
         const rows = await db.select('RopewikiPage', { pageId: '5597' }).run(conn);
@@ -148,10 +158,11 @@ describe('upsertPage (integration)', () => {
                 url: ['https://ropewiki.com/Deleted_Page'],
                 latestRevisionDate: [{ timestamp: String(Math.floor(latestRevisionDate.getTime() / 1000)), raw: '2025-01-02T12:34:56Z' }],
             },
-        });
+        }, regionNameIds);
 
         // Insert a page with deletedAt set
-        const pageId = await upsertPage(conn, pageInfo, testRegionId);
+        const initialResults = await upsertPages(conn, [pageInfo]);
+        const pageId = initialResults[0]!.id;
         await db
             .update('RopewikiPage', { deletedAt: '2025-01-01T00:00:00' as db.TimestampString }, { id: pageId })
             .run(conn);
@@ -169,8 +180,8 @@ describe('upsertPage (integration)', () => {
                 url: ['https://ropewiki.com/Restored_Page'],
                 latestRevisionDate: [{ timestamp: String(Math.floor(latestRevisionDate.getTime() / 1000)), raw: '2025-01-02T12:34:56Z' }],
             },
-        });
-        await upsertPage(conn, updatedPageInfo, testRegionId);
+        }, regionNameIds);
+        await upsertPages(conn, [updatedPageInfo]);
 
         // Verify deletedAt is now null
         const afterRows = await db.select('RopewikiPage', { id: pageId }).run(conn);
@@ -190,7 +201,7 @@ describe('upsertPage (integration)', () => {
                 url: ['https://ropewiki.com/Test_Page'],
                 latestRevisionDate: [{ timestamp: String(Math.floor(latestRevisionDate.getTime() / 1000)), raw: '2025-01-04T10:00:00Z' }],
             },
-        });
+        }, regionNameIds);
 
         // Use a client with a non-existent database to force an error
         const badPool = new Pool({
@@ -201,7 +212,7 @@ describe('upsertPage (integration)', () => {
             database: 'nonexistent_database_for_test_error_upsert_page',
         });
 
-        await expect(upsertPage(badPool, pageInfo, testRegionId)).rejects.toBeDefined();
+        await expect(upsertPages(badPool, [pageInfo])).rejects.toBeDefined();
 
         await badPool.end();
     });

@@ -4,7 +4,12 @@ const encode = (input: string) => {
     return encodeURIComponent(input).replace(/%/g, '-');
 }
 
-const getRopewikiPageInfoForRegion = async (region: string, offset: number, limit: number): Promise<RopewikiPageInfo[]> => {
+const getRopewikiPageInfoForRegion = async (
+    region: string,
+    offset: number,
+    limit: number,
+    regionNameIds: {[name: string]: string}
+): Promise<RopewikiPageInfo[]> => {
     if (limit > 2000) {
         throw new Error(`Limit must be less than or equal to 2000, got ${limit}`);
     }
@@ -34,7 +39,7 @@ const getRopewikiPageInfoForRegion = async (region: string, offset: number, limi
         if (response.ok) {
             const body = await response.json();
 
-            return Object.values(body.results).map((result: unknown) => new RopewikiPageInfo(result));
+            return Object.values(body.results).map((result: unknown) => new RopewikiPageInfo(result, regionNameIds));
         } else {
             throw new Error(`Error getting pages info for region ${region} offset ${offset} limit ${limit}: ${response.status} ${response.statusText}`);
         }

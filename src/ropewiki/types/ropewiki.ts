@@ -47,14 +47,14 @@ class RopewikiPageInfo {
     latestRevisionDate: Date
     isValid: boolean
     
-    constructor(raw: unknown) {
+    constructor(raw: unknown, regionNameIds: {[name: string]: string}) {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const { printouts } = raw as { printouts: any };
 
         // Check if required fields are present
         const pageid = printouts.pageid?.[0];
         const name = printouts.name?.[0];
-        const region = printouts.region?.[0]?.fulltext;
+        const regionName = printouts.region?.[0]?.fulltext;
         const url = printouts.url?.[0];
         
         // Check latestRevisionDate (required for validity, use default if not found)
@@ -65,13 +65,34 @@ class RopewikiPageInfo {
             ? new Date(Number(latestRevisionDateRaw.timestamp) * 1000) // Convert Unix timestamp (seconds) to milliseconds
             : new Date(0); // Default to epoch if not found
 
-        // Set isValid based on whether all required fields are present (including valid latestRevisionDate)
-        this.isValid = !!(pageid && name && region && url && (latestRevisionDateRaw && latestRevisionDateRaw.timestamp));
+        // Map region name to region ID
+        let regionId: string;
+        let hasValidRegion = false;
+        const defaultRegionId = '00000000-0000-0000-0000-000000000000'; // Default UUID for invalid regions
+        
+        if (regionName) {
+            const mappedRegionId = regionNameIds[String(regionName)];
+            if (mappedRegionId) {
+                regionId = mappedRegionId;
+                hasValidRegion = true;
+            } else {
+                // Log that we don't have an ID for this region
+                console.error(`Page ${pageid || 'unknown'} ${name || 'unknown'} has region "${regionName}" that we don't have an ID for`);
+                regionId = defaultRegionId;
+                hasValidRegion = false;
+            }
+        } else {
+            regionId = defaultRegionId;
+            hasValidRegion = false;
+        }
+
+        // Set isValid based on whether all required fields are present (including valid latestRevisionDate and valid region)
+        this.isValid = !!(pageid && name && hasValidRegion && url && (latestRevisionDateRaw && latestRevisionDateRaw.timestamp));
 
         // Required scalar fields - set to empty strings if missing
         this.pageid = pageid ? String(pageid) : '';
         this.name = name ? String(name) : '';
-        this.region = region ? String(region) : '';
+        this.region = regionId; // Store region ID, not name
         this.url = url ? String(url) : '';
 
         // Optional simple scalars

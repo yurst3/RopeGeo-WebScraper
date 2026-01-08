@@ -1,20 +1,29 @@
 import * as db from 'zapatos/db';
 import RopewikiPageInfo from '../types/ropewiki';
 
-// Insert or update a RopewikiPage.
+type UpsertedPage = {
+    id: string;
+    pageId: string;
+    name: string;
+    latestRevisionDate: Date;
+};
+
+// Insert or update RopewikiPages in batch.
 // On conflict (same pageId), update the page fields and timestamps, including latestRevisionDate.
-const upsertPage = async (
+const upsertPages = async (
     tx: db.Queryable,
-    pageInfo: RopewikiPageInfo,
-    regionId: string,
-): Promise<string> => {
+    pages: RopewikiPageInfo[],
+): Promise<UpsertedPage[]> => {
+    if (pages.length === 0) {
+        return [];
+    }
 
     const now = new Date();
 
-    const row = {
+    const rows = pages.map(pageInfo => ({
         pageId: pageInfo.pageid,
         name: pageInfo.name,
-        region: regionId,
+        region: pageInfo.region, // region is now the ID, not the name
         url: pageInfo.url,
         rating: pageInfo.rating ?? null,
         timeRating: pageInfo.timeRating ?? null,
@@ -40,44 +49,46 @@ const upsertPage = async (
         latestRevisionDate: pageInfo.latestRevisionDate,
         updatedAt: now,
         deletedAt: null,
-    };
+    }));
 
-    const result = await db
-        .upsert('RopewikiPage', row, ['pageId'], {
-            updateColumns: [
-                'name',
-                'region',
-                'url',
-                'rating',
-                'timeRating',
-                'kmlUrl',
-                'technicalRating',
-                'waterRating',
-                'riskRating',
-                'permits',
-                'rappelInfo',
-                'rappelCount',
-                'vehicle',
-                'quality',
-                'coordinates',
-                'rappelLongest',
-                'shuttle',
-                'minTime',
-                'maxTime',
-                'hike',
-                'months',
-                'aka',
-                'betaSites',
-                'userVotes',
-                'latestRevisionDate',
-                'updatedAt',
-                'deletedAt',
-            ],
-        })
-        .run(tx);
+    const results = await db.upsert('RopewikiPage', rows, ['pageId'], {
+        updateColumns: [
+            'name',
+            'region',
+            'url',
+            'rating',
+            'timeRating',
+            'kmlUrl',
+            'technicalRating',
+            'waterRating',
+            'riskRating',
+            'permits',
+            'rappelInfo',
+            'rappelCount',
+            'vehicle',
+            'quality',
+            'coordinates',
+            'rappelLongest',
+            'shuttle',
+            'minTime',
+            'maxTime',
+            'hike',
+            'months',
+            'aka',
+            'betaSites',
+            'userVotes',
+            'latestRevisionDate',
+            'updatedAt',
+            'deletedAt',
+        ],
+    }).run(tx)
 
-    return result.id;
+    return results.map(row => ({
+        id: row.id,
+        pageId: row.pageId,
+        name: row.name,
+        latestRevisionDate: new Date(row.latestRevisionDate),
+    }))
 };
 
-export default upsertPage;
-
+export default upsertPages;
