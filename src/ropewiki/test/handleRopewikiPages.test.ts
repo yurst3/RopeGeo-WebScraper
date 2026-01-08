@@ -1,4 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach, jest } from '@jest/globals';
+import { Pool } from 'pg';
 import * as db from 'zapatos/db';
 import handleRopewikiPages from '../handleRopewikiPages';
 import RopewikiPageInfo from '../types/ropewiki';
@@ -23,7 +24,11 @@ const mockParsePages = parsePages as jest.MockedFunction<typeof parsePages>;
 const MockProgressLogger = ProgressLogger as jest.MockedClass<typeof ProgressLogger>;
 
 describe('handleRopewikiPages', () => {
-    const mockConn = {} as db.Queryable;
+    let mockPool: Pool;
+    let mockClient: {
+        query: jest.MockedFunction<(query: string) => Promise<unknown>>;
+        release: jest.MockedFunction<() => void>;
+    };
     let consoleLogSpy: ReturnType<typeof jest.spyOn>;
     let consoleErrorSpy: ReturnType<typeof jest.spyOn>;
     let mockLoggerInstance: {
@@ -35,6 +40,17 @@ describe('handleRopewikiPages', () => {
         jest.clearAllMocks();
         consoleLogSpy = jest.spyOn(console, 'log').mockImplementation(() => {});
         consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+        
+        // Create mock client with query and release methods
+        mockClient = {
+            query: jest.fn<typeof mockClient.query>().mockResolvedValue({}),
+            release: jest.fn<typeof mockClient.release>(),
+        };
+        
+        // Create mock pool with connect method
+        mockPool = {
+            connect: jest.fn<() => Promise<typeof mockClient>>().mockResolvedValue(mockClient),
+        } as unknown as Pool;
         
         // Create mock logger instance
         mockLoggerInstance = {
@@ -96,12 +112,12 @@ describe('handleRopewikiPages', () => {
         ]);
         mockParsePages.mockResolvedValue(undefined);
 
-        await handleRopewikiPages(mockConn, regionName, regionPageCount, regionNameIds);
+        await handleRopewikiPages(mockPool, regionName, regionPageCount, regionNameIds);
 
         expect(mockGetRopewikiPageInfoForRegion).toHaveBeenCalledTimes(1);
         expect(mockGetRopewikiPageInfoForRegion).toHaveBeenCalledWith(regionName, 0, 2000, regionNameIds);
         // Verify getUpdatedDatesForPages is called before upsertPages (with valid page IDs from the fetched pages)
-        expect(mockGetUpdatedDatesForPages).toHaveBeenCalledWith(mockConn, ['728', '5597']);
+        expect(mockGetUpdatedDatesForPages).toHaveBeenCalledWith(mockPool, ['728', '5597']);
         expect(mockGetUpdatedDatesForPages).toHaveBeenCalledTimes(1);
         expect(mockUpsertPages).toHaveBeenCalledTimes(1);
         // Verify call order: getUpdatedDatesForPages should be called before upsertPages
@@ -110,7 +126,7 @@ describe('handleRopewikiPages', () => {
         expect(MockProgressLogger).toHaveBeenCalledWith(`Processing "${regionName}"`, regionPageCount);
         expect(mockLoggerInstance.setChunk).toHaveBeenCalledWith(0, 1); // offset=0, skippedInChunk=0, chunkEnd=0+2-1=1
         expect(mockParsePages).toHaveBeenCalledWith(
-            mockConn,
+            mockClient as unknown as db.Queryable,
             expect.arrayContaining([
                 expect.objectContaining({ id: expect.any(String), pageId: '728', name: 'Page 1', latestRevisionDate: expect.any(Date) }),
                 expect.objectContaining({ id: expect.any(String), pageId: '5597', name: 'Page 2', latestRevisionDate: expect.any(Date) }),
@@ -152,7 +168,7 @@ describe('handleRopewikiPages', () => {
         );
         mockParsePages.mockResolvedValue(undefined);
 
-        await handleRopewikiPages(mockConn, regionName, regionPageCount, regionNameIds);
+        await handleRopewikiPages(mockPool, regionName, regionPageCount, regionNameIds);
 
         expect(mockGetRopewikiPageInfoForRegion).toHaveBeenCalledTimes(2);
         expect(mockGetRopewikiPageInfoForRegion).toHaveBeenNthCalledWith(1, regionName, 0, 2000, regionNameIds);
@@ -187,15 +203,15 @@ describe('handleRopewikiPages', () => {
         ]);
         mockParsePages.mockResolvedValue(undefined);
 
-        await handleRopewikiPages(mockConn, regionName, regionPageCount, regionNameIds);
+        await handleRopewikiPages(mockPool, regionName, regionPageCount, regionNameIds);
 
         expect(consoleLogSpy).toHaveBeenCalledWith('Skipping 2 invalid pages...');
         // Verify getUpdatedDatesForPages is called before upsertPages, only with valid page IDs
-        expect(mockGetUpdatedDatesForPages).toHaveBeenCalledWith(mockConn, ['728']);
+        expect(mockGetUpdatedDatesForPages).toHaveBeenCalledWith(mockPool, ['728']);
         expect(mockGetUpdatedDatesForPages.mock.invocationCallOrder[0]).toBeLessThan(mockUpsertPages.mock.invocationCallOrder[0]!);
         expect(mockLoggerInstance.setChunk).toHaveBeenCalledWith(2, 2); // offset=0, skippedInChunk=2 (2 invalid), chunkEnd=0+2+1-1=2
         expect(mockParsePages).toHaveBeenCalledWith(
-            mockConn,
+            mockClient as unknown as db.Queryable,
             expect.arrayContaining([
                 expect.objectContaining({ id: expect.any(String), pageId: '728', name: expect.any(String), latestRevisionDate: expect.any(Date) }),
             ]),
@@ -225,10 +241,10 @@ describe('handleRopewikiPages', () => {
         ]);
         mockParsePages.mockResolvedValue(undefined);
 
-        await handleRopewikiPages(mockConn, regionName, regionPageCount, regionNameIds);
+        await handleRopewikiPages(mockPool, regionName, regionPageCount, regionNameIds);
 
         // Verify getUpdatedDatesForPages is called before upsertPages (with valid page IDs from the fetched pages)
-        expect(mockGetUpdatedDatesForPages).toHaveBeenCalledWith(mockConn, ['728', '5597']);
+        expect(mockGetUpdatedDatesForPages).toHaveBeenCalledWith(mockPool, ['728', '5597']);
         expect(mockGetUpdatedDatesForPages).toHaveBeenCalledTimes(1);
         expect(mockUpsertPages).toHaveBeenCalledTimes(1);
         // Verify call order: getUpdatedDatesForPages should be called before upsertPages
@@ -259,10 +275,10 @@ describe('handleRopewikiPages', () => {
         ]);
         mockParsePages.mockResolvedValue(undefined);
 
-        await handleRopewikiPages(mockConn, regionName, regionPageCount, regionNameIds);
+        await handleRopewikiPages(mockPool, regionName, regionPageCount, regionNameIds);
 
         // Verify getUpdatedDatesForPages is called before upsertPages (with valid page IDs from the fetched pages)
-        expect(mockGetUpdatedDatesForPages).toHaveBeenCalledWith(mockConn, ['728', '5597']);
+        expect(mockGetUpdatedDatesForPages).toHaveBeenCalledWith(mockPool, ['728', '5597']);
         expect(mockGetUpdatedDatesForPages).toHaveBeenCalledTimes(1);
         expect(mockUpsertPages).toHaveBeenCalledTimes(1);
         // Verify call order: getUpdatedDatesForPages should be called before upsertPages
@@ -270,7 +286,7 @@ describe('handleRopewikiPages', () => {
         expect(mockParsePages).toHaveBeenCalledTimes(1);
         expect(mockLoggerInstance.setChunk).toHaveBeenCalledWith(0, 1); // offset=0, skippedInChunk=0, chunkEnd=0+2-1=1
         expect(mockParsePages).toHaveBeenCalledWith(
-            mockConn,
+            mockClient as unknown as db.Queryable,
             expect.arrayContaining([
                 expect.objectContaining({ id: expect.any(String), pageId: '728', name: 'Page 1', latestRevisionDate: expect.any(Date) }),
                 expect.objectContaining({ id: expect.any(String), pageId: '5597', name: 'Page 2', latestRevisionDate: expect.any(Date) }),
@@ -296,14 +312,14 @@ describe('handleRopewikiPages', () => {
         ]);
         mockParsePages.mockResolvedValue(undefined);
 
-        await handleRopewikiPages(mockConn, regionName, regionPageCount, regionNameIds);
+        await handleRopewikiPages(mockPool, regionName, regionPageCount, regionNameIds);
 
         // Verify getUpdatedDatesForPages is called before upsertPages
         expect(mockGetUpdatedDatesForPages.mock.invocationCallOrder[0]).toBeLessThan(mockUpsertPages.mock.invocationCallOrder[0]!);
         expect(mockParsePages).toHaveBeenCalledTimes(1);
         expect(mockLoggerInstance.setChunk).toHaveBeenCalledWith(0, 0); // offset=0, skippedInChunk=0, chunkEnd=0+1-1=0
         expect(mockParsePages).toHaveBeenCalledWith(
-            mockConn,
+            mockClient as unknown as db.Queryable,
             expect.arrayContaining([
                 expect.objectContaining({ id: expect.any(String), pageId: '728', name: expect.any(String), latestRevisionDate: expect.any(Date) }),
             ]),
@@ -330,15 +346,15 @@ describe('handleRopewikiPages', () => {
         ]);
         mockParsePages.mockResolvedValue(undefined);
 
-        await handleRopewikiPages(mockConn, regionName, regionPageCount, regionNameIds);
+        await handleRopewikiPages(mockPool, regionName, regionPageCount, regionNameIds);
 
         // Verify getUpdatedDatesForPages is called before upsertPages, only with valid page IDs
-        expect(mockGetUpdatedDatesForPages).toHaveBeenCalledWith(mockConn, ['5597']);
+        expect(mockGetUpdatedDatesForPages).toHaveBeenCalledWith(mockPool, ['5597']);
         expect(mockGetUpdatedDatesForPages.mock.invocationCallOrder[0]).toBeLessThan(mockUpsertPages.mock.invocationCallOrder[0]!);
         expect(mockParsePages).toHaveBeenCalledTimes(1);
         expect(mockLoggerInstance.setChunk).toHaveBeenCalledWith(1, 1); // offset=0, skippedInChunk=1 (page1 is invalid), chunkEnd=0+1+1-1=1
         expect(mockParsePages).toHaveBeenCalledWith(
-            mockConn,
+            mockClient as unknown as db.Queryable,
             expect.arrayContaining([
                 expect.objectContaining({ id: expect.any(String), pageId: '5597', name: expect.any(String), latestRevisionDate: expect.any(Date) }),
             ]),
@@ -354,7 +370,7 @@ describe('handleRopewikiPages', () => {
         const error = new Error('API error');
         mockGetRopewikiPageInfoForRegion.mockRejectedValue(error);
 
-        await expect(handleRopewikiPages(mockConn, regionName, regionPageCount, regionNameIds)).rejects.toThrow('API error');
+        await expect(handleRopewikiPages(mockPool, regionName, regionPageCount, regionNameIds)).rejects.toThrow('API error');
     });
 
     it('propagates errors from getUpdatedDatesForPages()', async () => {
@@ -368,7 +384,7 @@ describe('handleRopewikiPages', () => {
         const error = new Error('Database error');
         mockGetUpdatedDatesForPages.mockRejectedValue(error);
 
-        await expect(handleRopewikiPages(mockConn, regionName, regionPageCount, regionNameIds)).rejects.toThrow('Database error');
+        await expect(handleRopewikiPages(mockPool, regionName, regionPageCount, regionNameIds)).rejects.toThrow('Database error');
     });
 
     it('propagates errors from parsePages()', async () => {
@@ -388,7 +404,7 @@ describe('handleRopewikiPages', () => {
         const error = new Error('Process pages error');
         mockParsePages.mockRejectedValue(error);
 
-        await expect(handleRopewikiPages(mockConn, regionName, regionPageCount, regionNameIds)).rejects.toThrow('Process pages error');
+        await expect(handleRopewikiPages(mockPool, regionName, regionPageCount, regionNameIds)).rejects.toThrow('Process pages error');
     });
 
     it('does not call parsePages when no pages need processing', async () => {
@@ -402,7 +418,7 @@ describe('handleRopewikiPages', () => {
             '728': null,
         });
 
-        await handleRopewikiPages(mockConn, regionName, regionPageCount, regionNameIds);
+        await handleRopewikiPages(mockPool, regionName, regionPageCount, regionNameIds);
 
         expect(mockParsePages).not.toHaveBeenCalled();
     });
@@ -430,16 +446,16 @@ describe('handleRopewikiPages', () => {
         ]);
         mockParsePages.mockResolvedValue(undefined);
 
-        await handleRopewikiPages(mockConn, regionName, regionPageCount, regionNameIds);
+        await handleRopewikiPages(mockPool, regionName, regionPageCount, regionNameIds);
 
         // Verify getUpdatedDatesForPages is called before upsertPages, only with valid page IDs
-        expect(mockGetUpdatedDatesForPages).toHaveBeenCalledWith(mockConn, ['728', '5597']);
+        expect(mockGetUpdatedDatesForPages).toHaveBeenCalledWith(mockPool, ['728', '5597']);
         expect(mockGetUpdatedDatesForPages.mock.invocationCallOrder[0]).toBeLessThan(mockUpsertPages.mock.invocationCallOrder[0]!);
         expect(consoleLogSpy).toHaveBeenCalledWith('Skipping parsing for 1 pages...');
         expect(mockParsePages).toHaveBeenCalledTimes(1);
         expect(mockLoggerInstance.setChunk).toHaveBeenCalledWith(2, 2); // offset=0, skippedInChunk=2 (page2 updated after revision, page3 invalid), chunkEnd=0+2+1-1=2
         expect(mockParsePages).toHaveBeenCalledWith(
-            mockConn,
+            mockClient as unknown as db.Queryable,
             expect.arrayContaining([
                 expect.objectContaining({ id: expect.any(String), pageId: '728', name: expect.any(String), latestRevisionDate: expect.any(Date) }),
             ]),

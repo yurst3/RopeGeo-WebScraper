@@ -26,10 +26,8 @@ const mockSetBetaSectionsDeletedAt = setBetaSectionsDeletedAt as jest.MockedFunc
 const mockSetImagesDeletedAt = setImagesDeletedAt as jest.MockedFunction<typeof setImagesDeletedAt>;
 
 describe('parsePages', () => {
-    let mockPool: Pool;
     let mockClient: {
         query: jest.MockedFunction<(query: string) => Promise<unknown>>;
-        release: jest.MockedFunction<() => void>;
     };
     let mockLogger: {
         logProgress: jest.MockedFunction<(message: string) => void>;
@@ -37,15 +35,10 @@ describe('parsePages', () => {
 
     beforeEach(() => {
         jest.clearAllMocks();
-        // Create mock client with query and release methods
+        // Create mock client (already in a transaction from handleRopewikiPages)
         mockClient = {
             query: jest.fn<typeof mockClient.query>().mockResolvedValue({}),
-            release: jest.fn<typeof mockClient.release>(),
         };
-        // Create mock pool with connect method
-        mockPool = {
-            connect: jest.fn<() => Promise<typeof mockClient>>().mockResolvedValue(mockClient),
-        } as unknown as Pool;
 
         // Create mock logger
         mockLogger = {
@@ -81,19 +74,18 @@ describe('parsePages', () => {
             .mockResolvedValueOnce(['image-id-1'])
             .mockResolvedValueOnce([]);
 
-        await parsePages(mockPool, pages, mockLogger as unknown as ProgressLogger);
+        await parsePages(mockClient as unknown as db.Queryable, pages, mockLogger as unknown as ProgressLogger);
 
         expect(mockLogger.logProgress).toHaveBeenCalledTimes(2);
         expect(mockLogger.logProgress).toHaveBeenNthCalledWith(1, '728 Bear Creek Canyon');
         expect(mockLogger.logProgress).toHaveBeenNthCalledWith(2, '5597 Regions');
 
-        expect(mockPool.connect).toHaveBeenCalledTimes(2);
-        expect(mockClient.query).toHaveBeenCalledTimes(4); // BEGIN + COMMIT for each of 2 pages
-        expect(mockClient.query).toHaveBeenNthCalledWith(1, 'BEGIN');
-        expect(mockClient.query).toHaveBeenNthCalledWith(2, 'COMMIT');
-        expect(mockClient.query).toHaveBeenNthCalledWith(3, 'BEGIN');
-        expect(mockClient.query).toHaveBeenNthCalledWith(4, 'COMMIT');
-        expect(mockClient.release).toHaveBeenCalledTimes(2);
+        // Should use savepoints instead of BEGIN/COMMIT
+        expect(mockClient.query).toHaveBeenCalledTimes(4); // SAVEPOINT + RELEASE for each of 2 pages
+        expect(mockClient.query).toHaveBeenNthCalledWith(1, 'SAVEPOINT sp_page_0');
+        expect(mockClient.query).toHaveBeenNthCalledWith(2, 'RELEASE SAVEPOINT sp_page_0');
+        expect(mockClient.query).toHaveBeenNthCalledWith(3, 'SAVEPOINT sp_page_1');
+        expect(mockClient.query).toHaveBeenNthCalledWith(4, 'RELEASE SAVEPOINT sp_page_1');
 
         expect(mockGetRopewikiPageHtml).toHaveBeenCalledTimes(2);
         expect(mockGetRopewikiPageHtml).toHaveBeenNthCalledWith(1, '728');
@@ -122,12 +114,11 @@ describe('parsePages', () => {
         mockUpsertBetaSections.mockResolvedValue({ 'Introduction': 'beta-id-1' });
         mockUpsertImages.mockResolvedValue(['image-id-1']);
 
-        await parsePages(mockPool, pages, mockLogger as unknown as ProgressLogger);
+        await parsePages(mockClient as unknown as db.Queryable, pages, mockLogger as unknown as ProgressLogger);
 
-        expect(mockPool.connect).toHaveBeenCalledTimes(1);
-        expect(mockClient.query).toHaveBeenCalledWith('BEGIN');
-        expect(mockClient.query).toHaveBeenCalledWith('COMMIT');
-        expect(mockClient.release).toHaveBeenCalledTimes(1);
+        // Should use savepoints instead of BEGIN/COMMIT
+        expect(mockClient.query).toHaveBeenCalledWith('SAVEPOINT sp_page_0');
+        expect(mockClient.query).toHaveBeenCalledWith('RELEASE SAVEPOINT sp_page_0');
         expect(mockSetBetaSectionsDeletedAt).toHaveBeenCalledWith(mockClient as unknown as db.Queryable, 'page-uuid-1', ['beta-id-1']);
         expect(mockSetImagesDeletedAt).toHaveBeenCalledWith(mockClient as unknown as db.Queryable, 'page-uuid-1', ['image-id-1']);
     });
@@ -142,9 +133,11 @@ describe('parsePages', () => {
         const htmlError = new Error('Failed to fetch HTML');
         mockGetRopewikiPageHtml.mockRejectedValue(htmlError);
 
-        await expect(parsePages(mockPool, pages, mockLogger as unknown as ProgressLogger)).rejects.toThrow('Failed to fetch HTML');
+        // HTTP errors are caught and logged, function continues (doesn't throw)
+        await parsePages(mockClient as unknown as db.Queryable, pages, mockLogger as unknown as ProgressLogger);
         
-        expect(mockPool.connect).not.toHaveBeenCalled();
+        expect(mockLogger.logProgress).not.toHaveBeenCalled();
+        expect(mockClient.query).not.toHaveBeenCalled();
     });
 
     it('propagates errors from parseRopewikiPage()', async () => {
@@ -157,9 +150,11 @@ describe('parsePages', () => {
         const parseError = new Error('Parse error');
         mockParseRopewikiPage.mockRejectedValue(parseError);
 
-        await expect(parsePages(mockPool, pages, mockLogger as unknown as ProgressLogger)).rejects.toThrow('Parse error');
+        // Parsing errors are caught and logged, function continues (doesn't throw)
+        await parsePages(mockClient as unknown as db.Queryable, pages, mockLogger as unknown as ProgressLogger);
         
-        expect(mockPool.connect).not.toHaveBeenCalled();
+        expect(mockLogger.logProgress).not.toHaveBeenCalled();
+        expect(mockClient.query).not.toHaveBeenCalled();
     });
 
     it('propagates errors from upsertBetaSections()', async () => {
@@ -176,12 +171,12 @@ describe('parsePages', () => {
         const betaError = new Error('Beta sections error');
         mockUpsertBetaSections.mockRejectedValue(betaError);
 
-        await expect(parsePages(mockPool, pages, mockLogger as unknown as ProgressLogger)).rejects.toThrow('Beta sections error');
+        // Database errors are caught, rolled back to savepoint, and function continues
+        await parsePages(mockClient as unknown as db.Queryable, pages, mockLogger as unknown as ProgressLogger);
         
-        expect(mockPool.connect).toHaveBeenCalledTimes(1);
-        expect(mockClient.query).toHaveBeenCalledWith('BEGIN');
-        expect(mockClient.query).toHaveBeenCalledWith('ROLLBACK');
-        expect(mockClient.release).toHaveBeenCalledTimes(1);
+        expect(mockClient.query).toHaveBeenCalledWith('SAVEPOINT sp_page_0');
+        expect(mockClient.query).toHaveBeenCalledWith('ROLLBACK TO SAVEPOINT sp_page_0');
+        expect(mockLogger.logProgress).not.toHaveBeenCalled();
     });
 
     it('propagates errors from upsertImages()', async () => {
@@ -199,12 +194,12 @@ describe('parsePages', () => {
         const imagesError = new Error('Images error');
         mockUpsertImages.mockRejectedValue(imagesError);
 
-        await expect(parsePages(mockPool, pages, mockLogger as unknown as ProgressLogger)).rejects.toThrow('Images error');
+        // Database errors are caught, rolled back to savepoint, and function continues
+        await parsePages(mockClient as unknown as db.Queryable, pages, mockLogger as unknown as ProgressLogger);
         
-        expect(mockPool.connect).toHaveBeenCalledTimes(1);
-        expect(mockClient.query).toHaveBeenCalledWith('BEGIN');
-        expect(mockClient.query).toHaveBeenCalledWith('ROLLBACK');
-        expect(mockClient.release).toHaveBeenCalledTimes(1);
+        expect(mockClient.query).toHaveBeenCalledWith('SAVEPOINT sp_page_0');
+        expect(mockClient.query).toHaveBeenCalledWith('ROLLBACK TO SAVEPOINT sp_page_0');
+        expect(mockLogger.logProgress).not.toHaveBeenCalled();
     });
 
     it('propagates errors from setBetaSectionsDeletedAt()', async () => {
@@ -223,12 +218,12 @@ describe('parsePages', () => {
         const deleteError = new Error('Delete beta sections error');
         mockSetBetaSectionsDeletedAt.mockRejectedValue(deleteError);
 
-        await expect(parsePages(mockPool, pages, mockLogger as unknown as ProgressLogger)).rejects.toThrow('Delete beta sections error');
+        // Database errors are caught, rolled back to savepoint, and function continues
+        await parsePages(mockClient as unknown as db.Queryable, pages, mockLogger as unknown as ProgressLogger);
         
-        expect(mockPool.connect).toHaveBeenCalledTimes(1);
-        expect(mockClient.query).toHaveBeenCalledWith('BEGIN');
-        expect(mockClient.query).toHaveBeenCalledWith('ROLLBACK');
-        expect(mockClient.release).toHaveBeenCalledTimes(1);
+        expect(mockClient.query).toHaveBeenCalledWith('SAVEPOINT sp_page_0');
+        expect(mockClient.query).toHaveBeenCalledWith('ROLLBACK TO SAVEPOINT sp_page_0');
+        expect(mockLogger.logProgress).not.toHaveBeenCalled();
     });
 
     it('propagates errors from setImagesDeletedAt()', async () => {
@@ -248,12 +243,12 @@ describe('parsePages', () => {
         const deleteError = new Error('Delete images error');
         mockSetImagesDeletedAt.mockRejectedValue(deleteError);
 
-        await expect(parsePages(mockPool, pages, mockLogger as unknown as ProgressLogger)).rejects.toThrow('Delete images error');
+        // Database errors are caught, rolled back to savepoint, and function continues
+        await parsePages(mockClient as unknown as db.Queryable, pages, mockLogger as unknown as ProgressLogger);
         
-        expect(mockPool.connect).toHaveBeenCalledTimes(1);
-        expect(mockClient.query).toHaveBeenCalledWith('BEGIN');
-        expect(mockClient.query).toHaveBeenCalledWith('ROLLBACK');
-        expect(mockClient.release).toHaveBeenCalledTimes(1);
+        expect(mockClient.query).toHaveBeenCalledWith('SAVEPOINT sp_page_0');
+        expect(mockClient.query).toHaveBeenCalledWith('ROLLBACK TO SAVEPOINT sp_page_0');
+        expect(mockLogger.logProgress).not.toHaveBeenCalled();
     });
 
     it('logs error and rolls back transaction on database error', async () => {
@@ -274,13 +269,13 @@ describe('parsePages', () => {
         const dbError = new Error('Database error');
         mockSetBetaSectionsDeletedAt.mockRejectedValue(dbError);
 
-        await expect(parsePages(mockPool, pages, mockLogger as unknown as ProgressLogger)).rejects.toThrow('Database error');
+        // Database errors are caught, rolled back to savepoint, and function continues
+        await parsePages(mockClient as unknown as db.Queryable, pages, mockLogger as unknown as ProgressLogger);
 
-        expect(consoleErrorSpy).toHaveBeenCalledWith('Error processing page 728 Test Page, transaction rolled back:', dbError);
-        expect(mockPool.connect).toHaveBeenCalledTimes(1);
-        expect(mockClient.query).toHaveBeenCalledWith('BEGIN');
-        expect(mockClient.query).toHaveBeenCalledWith('ROLLBACK');
-        expect(mockClient.release).toHaveBeenCalledTimes(1);
+        expect(consoleErrorSpy).toHaveBeenCalledWith('Error processing page 728 Test Page, rolled back to savepoint:', dbError);
+        expect(mockClient.query).toHaveBeenCalledWith('SAVEPOINT sp_page_0');
+        expect(mockClient.query).toHaveBeenCalledWith('ROLLBACK TO SAVEPOINT sp_page_0');
+        expect(mockLogger.logProgress).not.toHaveBeenCalled();
 
         consoleErrorSpy.mockRestore();
     });

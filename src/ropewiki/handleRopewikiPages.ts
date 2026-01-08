@@ -1,3 +1,4 @@
+import { Pool } from 'pg';
 import { Queryable } from "zapatos/db";
 import getRopewikiPageInfoForRegion from "./http/getRopewikiPageInfoForRegion";
 import RopewikiPageInfo from "./types/ropewiki";
@@ -29,28 +30,47 @@ const handleRopewikiPages = async (
         // Get updated dates BEFORE we upsert the new pages
         const pageUpdateDates: {[pageId: string]: Date | null} = await getUpdatedDatesForPages(conn, validPages.map(page => page.pageid));
 
-        const upsertedPages = await upsertPages(conn, validPages);
-
-        const validPagesToParse = upsertedPages.filter(upsertPage => {
-            const updatedDate = pageUpdateDates[upsertPage.pageId];
-
-            if (!updatedDate) return true; // Always parse and save when we don't have an updated date
-            return updatedDate < upsertPage.latestRevisionDate; // Otherwise only parse if there has been a revision since the last update
-        });
-
-        const skippedPagesCount = validPages.length - validPagesToParse.length;
-        if (skippedPagesCount > 0) console.log(`Skipping parsing for ${skippedPagesCount} pages...`); 
-
-        // Calculate chunk boundaries: start at offset + number of skipped pages in this chunk
-        const skippedInChunk = invalidPagesCount + skippedPagesCount;
+        // Get a client from the pool for the transaction
+        const pool = conn as Pool;
+        const client = await pool.connect();
         
-        if (validPagesToParse.length) {
-            const chunkStart = offset + skippedInChunk;
-            const chunkEnd = chunkStart + validPagesToParse.length - 1;
-            logger.setChunk(chunkStart, chunkEnd);
+        try {
+            // Begin transaction
+            await client.query('BEGIN');
+
+            const upsertedPages = await upsertPages(client, validPages);
+
+            const validPagesToParse = upsertedPages.filter(upsertPage => {
+                const updatedDate = pageUpdateDates[upsertPage.pageId];
+
+                if (!updatedDate) return true; // Always parse and save when we don't have an updated date
+                return updatedDate < upsertPage.latestRevisionDate; // Otherwise only parse if there has been a revision since the last update
+            });
+
+            const skippedPagesCount = validPages.length - validPagesToParse.length;
+            if (skippedPagesCount > 0) console.log(`Skipping parsing for ${skippedPagesCount} pages...`); 
+
+            // Calculate chunk boundaries: start at offset + number of skipped pages in this chunk
+            const skippedInChunk = invalidPagesCount + skippedPagesCount;
             
-            // Parse pages (beta sections and images)
-            await parsePages(conn, validPagesToParse, logger);
+            if (validPagesToParse.length) {
+                const chunkStart = offset + skippedInChunk;
+                const chunkEnd = chunkStart + validPagesToParse.length - 1;
+                logger.setChunk(chunkStart, chunkEnd);
+                
+                // Parse pages (beta sections and images) - uses savepoints internally
+                await parsePages(client, validPagesToParse, logger);
+            }
+
+            // Commit transaction
+            await client.query('COMMIT');
+        } catch (error) {
+            // Rollback transaction on error
+            await client.query('ROLLBACK');
+            console.error(`Error processing chunk at offset ${offset} for region "${regionName}", transaction rolled back:`, error);
+            throw error;
+        } finally {
+            client.release();
         }
     }
 }
