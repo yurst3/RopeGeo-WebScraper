@@ -2,6 +2,7 @@ import handleRopewikiRegions from "./handleRopewikiRegions"
 import handleRopewikiPages from './handleRopewikiPages';
 import getRegionCountsUnderLimit from './getRegionsUnderLimit';
 import getDatabaseConnection from './getDatabaseConnection';
+import handleRopewikiRoutes from "./handleRopewikiRoutes";
 
 /*
 From testing, if the query for getting ropewiki pages ever has an offset above 5000 it treats it as an offset of 0.
@@ -23,11 +24,17 @@ export const ropewikiScraperHandler = async (event: unknown, context: any) => {
         const regionCounts: {[name: string]: number} = await getRegionCountsUnderLimit(pool, 'World', REGION_COUNT_LIMIT);
         console.log(`Getting pages from ${Object.keys(regionCounts).length} regions: ${Object.keys(regionCounts).join(', ')}`);
 
+        // Collect all parsed page UUIDs from all regions
+        const updatedPageUuids: string[] = [];
+
         // Everything has to be done sequentially so we don't DDOS Ropewiki
         for (const [region, count] of Object.entries(regionCounts)) {
             // Pull all pages in the region, parse them, upsert them
-            await handleRopewikiPages(pool, region, count, regionNameIds);
+            const parsedPageUuids = await handleRopewikiPages(pool, region, count, regionNameIds);
+            updatedPageUuids.push(...parsedPageUuids);
         }
+
+        await handleRopewikiRoutes(pool, updatedPageUuids);
 
         const totalTime = (new Date().getTime()) - beginTime.getTime();
         const totalTimeHours = Math.floor(totalTime / (1000 * 60 * 60));

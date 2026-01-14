@@ -333,5 +333,149 @@ describe('RopewikiPageInfo', () => {
         
         consoleErrorSpy.mockRestore();
     });
+
+    describe('toDbRow', () => {
+        it('converts RopewikiPageInfo to database row format', () => {
+            const mockDate = new Date('2023-01-15T10:30:00.000Z');
+            jest.useFakeTimers();
+            jest.setSystemTime(mockDate);
+
+            const rawData = {
+                printouts: {
+                    pageid: ['12345'],
+                    name: ['Test Page'],
+                    region: [{ fulltext: 'Test Region' }],
+                    url: ['https://ropewiki.com/test'],
+                    latestRevisionDate: validLatestRevisionDate,
+                    rating: ['5.10a'],
+                    timeRating: ['III'],
+                    kmlUrl: ['https://ropewiki.com/test.kml'],
+                    technicalRating: ['C2'],
+                    waterRating: ['IV'],
+                    riskRating: ['Moderate'],
+                    permits: ['Required'],
+                    rappelInfo: ['2 rappels'],
+                    rappelCount: [2],
+                    vehicle: ['4WD'],
+                    quality: [3.5],
+                    coordinates: [{ lat: 37.7749, lon: -122.4194 }],
+                    rappelLongest: [{ value: 30, unit: 'm' }],
+                    shuttle: [{ value: 2, unit: 'km' }],
+                    minTime: [{ value: 4, unit: 'hours' }],
+                    maxTime: [{ value: 8, unit: 'hours' }],
+                    hike: [{ value: 1, unit: 'km' }],
+                    months: ['January', 'February', 'March'],
+                    aka: ['Alternative Name'],
+                    betaSites: ['http://beta.com'],
+                    userVotes: [10],
+                },
+            };
+
+            const pageInfo = new RopewikiPageInfo(rawData, regionNameIds);
+            const dbRow = pageInfo.toDbRow();
+
+            expect(dbRow.pageId).toBe('12345');
+            expect(dbRow.name).toBe('Test Page');
+            expect(dbRow.region).toBe(testRegionId);
+            expect(dbRow.url).toBe('https://ropewiki.com/test');
+            expect(dbRow.rating).toBe('5.10a');
+            expect(dbRow.timeRating).toBe('III');
+            expect(dbRow.kmlUrl).toBe('https://ropewiki.com/test.kml');
+            expect(dbRow.technicalRating).toBe('C2');
+            expect(dbRow.waterRating).toBe('IV');
+            expect(dbRow.riskRating).toBe('Moderate');
+            expect(dbRow.permits).toBe('Required');
+            expect(dbRow.rappelInfo).toBe('2 rappels');
+            expect(dbRow.rappelCount).toBe(2);
+            expect(dbRow.vehicle).toBe('4WD');
+            expect(dbRow.quality).toBe(3.5);
+            expect(dbRow.coordinates).toBe(JSON.stringify({ lat: 37.7749, lon: -122.4194 }));
+            expect(dbRow.rappelLongest).toBe(JSON.stringify({ value: 30, unit: 'm' }));
+            expect(dbRow.shuttle).toBe(JSON.stringify({ value: 2, unit: 'km' }));
+            expect(dbRow.minTime).toBe(JSON.stringify({ value: 4, unit: 'hours' }));
+            expect(dbRow.maxTime).toBe(JSON.stringify({ value: 8, unit: 'hours' }));
+            expect(dbRow.hike).toBe(JSON.stringify({ value: 1, unit: 'km' }));
+            expect(dbRow.months).toBe(JSON.stringify(['January', 'February', 'March']));
+            expect(dbRow.aka).toBe(JSON.stringify(['Alternative Name']));
+            expect(dbRow.betaSites).toBe(JSON.stringify(['http://beta.com']));
+            expect(dbRow.userVotes).toBe(10);
+            expect(dbRow.latestRevisionDate).toEqual(new Date(1609459200000));
+            expect(dbRow.updatedAt).toEqual(mockDate);
+            expect(dbRow.deletedAt).toBeNull();
+
+            jest.useRealTimers();
+        });
+
+        it('converts undefined fields to null in database row', () => {
+            const mockDate = new Date('2023-01-15T10:30:00.000Z');
+            jest.useFakeTimers();
+            jest.setSystemTime(mockDate);
+
+            const rawData = {
+                printouts: {
+                    pageid: ['12345'],
+                    name: ['Test Page'],
+                    region: [{ fulltext: 'Test Region' }],
+                    url: ['https://ropewiki.com/test'],
+                    latestRevisionDate: validLatestRevisionDate,
+                },
+            };
+
+            const pageInfo = new RopewikiPageInfo(rawData, regionNameIds);
+            const dbRow = pageInfo.toDbRow();
+
+            expect(dbRow.rating).toBeNull();
+            expect(dbRow.timeRating).toBeNull();
+            expect(dbRow.kmlUrl).toBeNull();
+            expect(dbRow.technicalRating).toBeNull();
+            expect(dbRow.waterRating).toBeNull();
+            expect(dbRow.riskRating).toBeNull();
+            expect(dbRow.permits).toBeNull();
+            expect(dbRow.rappelInfo).toBeNull();
+            expect(dbRow.rappelCount).toBeNull();
+            expect(dbRow.vehicle).toBeNull();
+            expect(dbRow.quality).toBeNull();
+            expect(dbRow.coordinates).toBeNull();
+            expect(dbRow.rappelLongest).toBeNull();
+            expect(dbRow.shuttle).toBeNull();
+            expect(dbRow.minTime).toBeNull();
+            expect(dbRow.maxTime).toBeNull();
+            expect(dbRow.hike).toBeNull();
+            expect(dbRow.months).toBeNull();
+            expect(dbRow.aka).toBeNull();
+            expect(dbRow.betaSites).toBeNull();
+            expect(dbRow.userVotes).toBeNull();
+            expect(dbRow.updatedAt).toEqual(mockDate);
+            expect(dbRow.deletedAt).toBeNull();
+
+            jest.useRealTimers();
+        });
+
+        it('converts empty arrays to null for aka and betaSites', () => {
+            const mockDate = new Date('2023-01-15T10:30:00.000Z');
+            jest.useFakeTimers();
+            jest.setSystemTime(mockDate);
+
+            const rawData = {
+                printouts: {
+                    pageid: ['12345'],
+                    name: ['Test Page'],
+                    region: [{ fulltext: 'Test Region' }],
+                    url: ['https://ropewiki.com/test'],
+                    latestRevisionDate: validLatestRevisionDate,
+                    aka: [],
+                    betaSites: [],
+                },
+            };
+
+            const pageInfo = new RopewikiPageInfo(rawData, regionNameIds);
+            const dbRow = pageInfo.toDbRow();
+
+            expect(dbRow.aka).toBeNull();
+            expect(dbRow.betaSites).toBeNull();
+
+            jest.useRealTimers();
+        });
+    });
 });
 

@@ -1,3 +1,5 @@
+import type * as s from 'zapatos/schema';
+
 export interface RopewikiRegion {
     id: string
     name: string
@@ -19,6 +21,7 @@ export interface RopewikiImage {
 }
 
 class RopewikiPageInfo {
+    id: string | undefined
     pageid: string
     name: string
     coordinates: { lat: number, lon: number } | undefined
@@ -46,6 +49,44 @@ class RopewikiPageInfo {
     userVotes: number | undefined
     latestRevisionDate: Date
     isValid: boolean
+
+    /**
+     * Parses an optional scalar string field from printouts
+     */
+    private static parseOptionalString(printouts: any, fieldName: string): string | undefined {
+        return Array.isArray(printouts[fieldName]) && printouts[fieldName].length > 0
+            ? String(printouts[fieldName][0])
+            : undefined;
+    }
+
+    /**
+     * Parses an optional scalar number field from printouts
+     */
+    private static parseOptionalNumber(printouts: any, fieldName: string): number | undefined {
+        return Array.isArray(printouts[fieldName]) && printouts[fieldName].length > 0
+            ? Number(printouts[fieldName][0])
+            : undefined;
+    }
+
+    /**
+     * Parses an optional value/unit object pair from printouts
+     */
+    private static parseOptionalValueUnit(printouts: any, fieldName: string): { value: number, unit: string } | undefined {
+        const field = Array.isArray(printouts[fieldName]) && printouts[fieldName].length > 0 ? printouts[fieldName][0] : undefined;
+        return field && field.value !== undefined && field.unit !== undefined
+            ? { value: Number(field.value), unit: String(field.unit) }
+            : undefined;
+    }
+
+    /**
+     * Parses coordinates (lat/lon) from printouts
+     */
+    private static parseCoordinates(printouts: any): { lat: number, lon: number } | undefined {
+        const coord = Array.isArray(printouts.coordinates) && printouts.coordinates.length > 0 ? printouts.coordinates[0] : undefined;
+        return coord && coord.lat !== undefined && coord.lon !== undefined
+            ? { lat: Number(coord.lat), lon: Number(coord.lon) }
+            : undefined;
+    }
     
     constructor(raw: unknown, regionNameIds: {[name: string]: string}) {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -96,80 +137,25 @@ class RopewikiPageInfo {
         this.url = url ? String(url) : '';
 
         // Optional simple scalars
-        this.quality = Array.isArray(printouts.quality) && printouts.quality.length > 0
-            ? Number(printouts.quality[0])
-            : undefined;
+        this.quality = RopewikiPageInfo.parseOptionalNumber(printouts, 'quality');
+        this.rating = RopewikiPageInfo.parseOptionalString(printouts, 'rating');
+        this.timeRating = RopewikiPageInfo.parseOptionalString(printouts, 'timeRating');
+        this.kmlUrl = RopewikiPageInfo.parseOptionalString(printouts, 'kmlUrl');
+        this.technicalRating = RopewikiPageInfo.parseOptionalString(printouts, 'technicalRating');
+        this.waterRating = RopewikiPageInfo.parseOptionalString(printouts, 'waterRating');
+        this.riskRating = RopewikiPageInfo.parseOptionalString(printouts, 'riskRating');
+        this.permits = RopewikiPageInfo.parseOptionalString(printouts, 'permits');
+        this.rappelInfo = RopewikiPageInfo.parseOptionalString(printouts, 'rappelInfo');
+        this.rappelCount = RopewikiPageInfo.parseOptionalNumber(printouts, 'rappelCount');
+        this.vehicle = RopewikiPageInfo.parseOptionalString(printouts, 'vehicle');
 
-        this.rating = Array.isArray(printouts.rating) && printouts.rating.length > 0
-            ? String(printouts.rating[0])
-            : undefined;
-
-        this.timeRating = Array.isArray(printouts.timeRating) && printouts.timeRating.length > 0
-            ? String(printouts.timeRating[0])
-            : undefined;
-
-        this.kmlUrl = Array.isArray(printouts.kmlUrl) && printouts.kmlUrl.length > 0
-            ? String(printouts.kmlUrl[0])
-            : undefined;
-
-        this.technicalRating = Array.isArray(printouts.technicalRating) && printouts.technicalRating.length > 0
-            ? String(printouts.technicalRating[0])
-            : undefined;
-
-        this.waterRating = Array.isArray(printouts.waterRating) && printouts.waterRating.length > 0
-            ? String(printouts.waterRating[0])
-            : undefined;
-
-        this.riskRating = Array.isArray(printouts.riskRating) && printouts.riskRating.length > 0
-            ? String(printouts.riskRating[0])
-            : undefined;
-
-        this.permits = Array.isArray(printouts.permits) && printouts.permits.length > 0
-            ? String(printouts.permits[0])
-            : undefined;
-
-        this.rappelInfo = Array.isArray(printouts.rappelInfo) && printouts.rappelInfo.length > 0
-            ? String(printouts.rappelInfo[0])
-            : undefined;
-
-        this.rappelCount = Array.isArray(printouts.rappelCount) && printouts.rappelCount.length > 0
-            ? Number(printouts.rappelCount[0])
-            : undefined;
-
-        this.vehicle = Array.isArray(printouts.vehicle) && printouts.vehicle.length > 0
-            ? String(printouts.vehicle[0])
-            : undefined;
-
-        // Optional object-valued fields (value/unit pairs)
-        const coord = Array.isArray(printouts.coordinates) && printouts.coordinates.length > 0 ? printouts.coordinates[0] : undefined;
-        this.coordinates = coord && coord.lat !== undefined && coord.lon !== undefined
-            ? { lat: Number(coord.lat), lon: Number(coord.lon) }
-            : undefined;
-
-        const rappelLongest = Array.isArray(printouts.rappelLongest) && printouts.rappelLongest.length > 0 ? printouts.rappelLongest[0] : undefined;
-        this.rappelLongest = rappelLongest && rappelLongest.value !== undefined && rappelLongest.unit !== undefined
-            ? { value: Number(rappelLongest.value), unit: String(rappelLongest.unit) }
-            : undefined;
-
-        const shuttle = Array.isArray(printouts.shuttle) && printouts.shuttle.length > 0 ? printouts.shuttle[0] : undefined;
-        this.shuttle = shuttle && shuttle.value !== undefined && shuttle.unit !== undefined
-            ? { value: Number(shuttle.value), unit: String(shuttle.unit) }
-            : undefined;
-
-        const minTime = Array.isArray(printouts.minTime) && printouts.minTime.length > 0 ? printouts.minTime[0] : undefined;
-        this.minTime = minTime && minTime.value !== undefined && minTime.unit !== undefined
-            ? { value: Number(minTime.value), unit: String(minTime.unit) }
-            : undefined;
-
-        const maxTime = Array.isArray(printouts.maxTime) && printouts.maxTime.length > 0 ? printouts.maxTime[0] : undefined;
-        this.maxTime = maxTime && maxTime.value !== undefined && maxTime.unit !== undefined
-            ? { value: Number(maxTime.value), unit: String(maxTime.unit) }
-            : undefined;
-
-        const hike = Array.isArray(printouts.hike) && printouts.hike.length > 0 ? printouts.hike[0] : undefined;
-        this.hike = hike && hike.value !== undefined && hike.unit !== undefined
-            ? { value: Number(hike.value), unit: String(hike.unit) }
-            : undefined;
+        // Optional object-valued fields
+        this.coordinates = RopewikiPageInfo.parseCoordinates(printouts);
+        this.rappelLongest = RopewikiPageInfo.parseOptionalValueUnit(printouts, 'rappelLongest');
+        this.shuttle = RopewikiPageInfo.parseOptionalValueUnit(printouts, 'shuttle');
+        this.minTime = RopewikiPageInfo.parseOptionalValueUnit(printouts, 'minTime');
+        this.maxTime = RopewikiPageInfo.parseOptionalValueUnit(printouts, 'maxTime');
+        this.hike = RopewikiPageInfo.parseOptionalValueUnit(printouts, 'hike');
 
         // Months is always an array of strings; fall back to []
         this.months = Array.isArray(printouts.months)
@@ -193,6 +179,88 @@ class RopewikiPageInfo {
 
         // LatestRevisionDate was already parsed above for the isValid check
         this.latestRevisionDate = latestRevisionDate;
+    }
+
+    toDbRow(): s.RopewikiPage.Insertable {
+        const now = new Date();
+        return {
+            pageId: this.pageid,
+            name: this.name,
+            region: this.region,
+            url: this.url,
+            rating: this.rating ?? null,
+            timeRating: this.timeRating ?? null,
+            kmlUrl: this.kmlUrl ?? null,
+            technicalRating: this.technicalRating ?? null,
+            waterRating: this.waterRating ?? null,
+            riskRating: this.riskRating ?? null,
+            permits: this.permits ?? null,
+            rappelInfo: this.rappelInfo ?? null,
+            rappelCount: this.rappelCount ?? null,
+            vehicle: this.vehicle ?? null,
+            quality: this.quality ?? null,
+            coordinates: this.coordinates ? JSON.stringify(this.coordinates) : null,
+            rappelLongest: this.rappelLongest ? JSON.stringify(this.rappelLongest) : null,
+            shuttle: this.shuttle ? JSON.stringify(this.shuttle) : null,
+            minTime: this.minTime ? JSON.stringify(this.minTime) : null,
+            maxTime: this.maxTime ? JSON.stringify(this.maxTime) : null,
+            hike: this.hike ? JSON.stringify(this.hike) : null,
+            months: this.months && this.months.length > 0 ? JSON.stringify(this.months) : null,
+            aka: this.aka && this.aka.length > 0 ? JSON.stringify(this.aka) : null,
+            betaSites: this.betaSites && this.betaSites.length > 0 ? JSON.stringify(this.betaSites) : null,
+            userVotes: this.userVotes ?? null,
+            latestRevisionDate: this.latestRevisionDate,
+            updatedAt: now,
+            deletedAt: null,
+        };
+    }
+
+    static fromDbRow(row: s.RopewikiPage.JSONSelectable): RopewikiPageInfo {
+        // Create an instance without calling the constructor
+        const instance = Object.create(RopewikiPageInfo.prototype) as RopewikiPageInfo;
+
+        // Parse JSON fields back to their original format
+        const coordinates = row.coordinates as { lat: number; lon: number } | null;
+        const rappelLongest = row.rappelLongest as { value: number; unit: string } | null;
+        const shuttle = row.shuttle as { value: number; unit: string } | null;
+        const minTime = row.minTime as { value: number; unit: string } | null;
+        const maxTime = row.maxTime as { value: number; unit: string } | null;
+        const hike = row.hike as { value: number; unit: string } | null;
+        const months = row.months as string[] | null;
+        const aka = row.aka as string[] | null;
+        const betaSites = row.betaSites as string[] | null;
+
+        // Set properties directly
+        instance.id = row.id;
+        instance.pageid = row.pageId;
+        instance.name = row.name;
+        instance.region = row.region;
+        instance.url = row.url;
+        instance.rating = row.rating ?? undefined;
+        instance.timeRating = row.timeRating ?? undefined;
+        instance.kmlUrl = row.kmlUrl ?? undefined;
+        instance.technicalRating = row.technicalRating ?? undefined;
+        instance.waterRating = row.waterRating ?? undefined;
+        instance.riskRating = row.riskRating ?? undefined;
+        instance.permits = row.permits ?? undefined;
+        instance.rappelInfo = row.rappelInfo ?? undefined;
+        instance.rappelCount = row.rappelCount ?? undefined;
+        instance.vehicle = row.vehicle ?? undefined;
+        instance.quality = row.quality ?? undefined;
+        instance.coordinates = coordinates ?? undefined;
+        instance.rappelLongest = rappelLongest ?? undefined;
+        instance.shuttle = shuttle ?? undefined;
+        instance.minTime = minTime ?? undefined;
+        instance.maxTime = maxTime ?? undefined;
+        instance.hike = hike ?? undefined;
+        instance.months = months ?? [];
+        instance.aka = aka ?? [];
+        instance.betaSites = betaSites ?? [];
+        instance.userVotes = row.userVotes ?? undefined;
+        instance.latestRevisionDate = new Date(row.latestRevisionDate);
+        instance.isValid = !!(instance.pageid && instance.name && instance.region && instance.url && instance.latestRevisionDate);
+
+        return instance;
     }
 
     // https://ropewiki.com/index.php?title=Special:Properties&limit=500&offset=0

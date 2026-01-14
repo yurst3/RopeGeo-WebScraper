@@ -1,4 +1,4 @@
-\restrict EC32BP5bfs4bUSKejt98HBfk6dJ5sgK64x2mCr2bhMymMYsaG0ihOGxJACrSFrw
+\restrict YZTL4OwdANuc9j4DErpQhEyg36bN5SInhI8TVB773LsZkLB6EqM3xdoB91oe6Mf
 
 -- Dumped from database version 18.1 (Debian 18.1-1.pgdg13+2)
 -- Dumped by pg_dump version 18.1 (Homebrew)
@@ -109,6 +109,35 @@ CREATE TABLE public."RopewikiRegion" (
 
 
 --
+-- Name: RopewikiRoute; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public."RopewikiRoute" (
+    route uuid NOT NULL,
+    "ropewikiPage" uuid NOT NULL,
+    "vectorTile" uuid,
+    "createdAt" timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    "updatedAt" timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    "deletedAt" timestamp without time zone
+);
+
+
+--
+-- Name: Route; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public."Route" (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    name text NOT NULL,
+    type text NOT NULL,
+    coordinates jsonb NOT NULL,
+    "createdAt" timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    "updatedAt" timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    "deletedAt" timestamp without time zone
+);
+
+
+--
 -- Name: schema_migrations; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -147,6 +176,14 @@ ALTER TABLE ONLY public."RopewikiPage"
 
 ALTER TABLE ONLY public."RopewikiRegion"
     ADD CONSTRAINT "RopewikiRegion_pkey" PRIMARY KEY (id);
+
+
+--
+-- Name: Route Route_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public."Route"
+    ADD CONSTRAINT "Route_pkey" PRIMARY KEY (id);
 
 
 --
@@ -206,6 +243,22 @@ ALTER TABLE ONLY public."RopewikiRegion"
 
 
 --
+-- Name: RopewikiRoute uk_ropewikiRoute_ropewikiPage; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public."RopewikiRoute"
+    ADD CONSTRAINT "uk_ropewikiRoute_ropewikiPage" UNIQUE ("ropewikiPage");
+
+
+--
+-- Name: RopewikiRoute uk_ropewikiRoute_route_ropewikiPage; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public."RopewikiRoute"
+    ADD CONSTRAINT "uk_ropewikiRoute_route_ropewikiPage" UNIQUE (route, "ropewikiPage");
+
+
+--
 -- Name: RopewikiPage_pageId_index; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -253,10 +306,26 @@ ALTER TABLE ONLY public."RopewikiRegion"
 
 
 --
+-- Name: RopewikiRoute fk_ropewikiRoute_ropewikiPage; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public."RopewikiRoute"
+    ADD CONSTRAINT "fk_ropewikiRoute_ropewikiPage" FOREIGN KEY ("ropewikiPage") REFERENCES public."RopewikiPage"(id);
+
+
+--
+-- Name: RopewikiRoute fk_ropewikiRoute_route; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public."RopewikiRoute"
+    ADD CONSTRAINT "fk_ropewikiRoute_route" FOREIGN KEY (route) REFERENCES public."Route"(id);
+
+
+--
 -- PostgreSQL database dump complete
 --
 
-\unrestrict EC32BP5bfs4bUSKejt98HBfk6dJ5sgK64x2mCr2bhMymMYsaG0ihOGxJACrSFrw
+\unrestrict YZTL4OwdANuc9j4DErpQhEyg36bN5SInhI8TVB773LsZkLB6EqM3xdoB91oe6Mf
 
 
 --
@@ -271,4 +340,6 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20251219191048'),
     ('20251227152406'),
     ('20260107210617'),
-    ('20260108192140');
+    ('20260108192140'),
+    ('20260112211225'),
+    ('20260112234228');

@@ -14,8 +14,9 @@ const handleRopewikiPages = async (
     regionName: string,
     regionPageCount: number,
     regionNameIds: {[name: string]: string}
-) => {
+): Promise<string[]> => {
     const logger = new ProgressLogger(`Processing "${regionName}"`, regionPageCount);
+    const parsedPageUuids: string[] = [];
 
     for (let offset = 0; offset < regionPageCount; offset += CHUNK_SIZE) {
         console.log(`Getting pages ${offset + 1} to ${Math.min(offset + CHUNK_SIZE, regionPageCount)} in "${regionName}" (${regionPageCount} total pages)...`)
@@ -43,23 +44,26 @@ const handleRopewikiPages = async (
             const validPagesToParse = upsertedPages.filter(upsertPage => {
                 const updatedDate = pageUpdateDates[upsertPage.pageId];
 
-                if (!updatedDate) return true; // Always parse and save when we don't have an updated date
+            if (!updatedDate) return true; // Always parse and save when we don't have an updated date
                 return updatedDate < upsertPage.latestRevisionDate; // Otherwise only parse if there has been a revision since the last update
-            });
+        });
 
             const skippedPagesCount = validPages.length - validPagesToParse.length;
             if (skippedPagesCount > 0) console.log(`Skipping parsing for ${skippedPagesCount} pages...`); 
 
             // Calculate chunk boundaries: start at offset + number of skipped pages in this chunk
             const skippedInChunk = invalidPagesCount + skippedPagesCount;
-            
-            if (validPagesToParse.length) {
+
+        if (validPagesToParse.length) {
                 const chunkStart = offset + skippedInChunk;
                 const chunkEnd = chunkStart + validPagesToParse.length - 1;
                 logger.setChunk(chunkStart, chunkEnd);
                 
                 // Parse pages (beta sections and images) - uses savepoints internally
                 await parsePages(client, validPagesToParse, logger);
+                
+                // Track the UUIDs of pages that were parsed
+                parsedPageUuids.push(...validPagesToParse.map(page => page.id));
             }
 
             // Commit transaction
@@ -73,6 +77,8 @@ const handleRopewikiPages = async (
             client.release();
         }
     }
+
+    return parsedPageUuids;
 }
 
 export default handleRopewikiPages;
