@@ -4,11 +4,7 @@ import getRopewikiPageHtml from './http/getRopewikiPageHtml';
 import fs from 'fs';
 import parseRopewikiPage from './parsers/parseRopewikiPage';
 import getRopewikiPageInfoForRegion from './http/getRopewikiPageInfoForRegion';
-
-// Detect if running in Lambda environment
-const isLambda = !!process.env.AWS_LAMBDA_FUNCTION_NAME || !!process.env.LAMBDA_TASK_ROOT;
-// Detect if running in GitHub Actions
-const isGitHubActions = !!process.env.GITHUB_ACTIONS;
+import { launchBrowser } from '../helpers/browserLauncher';
 
 (async () => {
     // const pageId = process.argv[2];
@@ -21,18 +17,7 @@ const isGitHubActions = !!process.env.GITHUB_ACTIONS;
 
     // fs.writeFileSync('bigCreekSierraNationalForest.html', pageHTML)
 
-    // const launchOptions: Parameters<typeof puppeteer.launch>[0] = {};
-    
-    // if (isLambda) {
-    //     const chromium = await import('@sparticuz/chromium');
-    //     launchOptions.args = chromium.default.args;
-    //     launchOptions.executablePath = await chromium.default.executablePath();
-    // } else if (isGitHubActions) {
-    //     // GitHub Actions requires --no-sandbox flag
-    //     launchOptions.args = ['--no-sandbox'];
-    // }
-    
-    // const browser = await puppeteer.launch(launchOptions);
+    // const browser = await launchBrowser();
     // const page = await browser.newPage();
     // await page.setContent(pageHTML);
 

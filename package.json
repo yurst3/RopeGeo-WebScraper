@@ -7,6 +7,7 @@
   "type": "commonjs",
   "main": "src/main.ts",
   "scripts": {
+    "parse:map-data": "ts-node --files src/mapData/main.ts",
     "scrape-lambda:ropewiki": "sam build; sam local invoke RopewikiScraper --event events/RopewikiScraperCronEvent.json --env-vars samEnvVars.json --docker-network my-net",
     "scrape:ropewiki": "DB_HOST=127.0.0.1 DB_PORT=8081 DB_NAME=local DB_USER=localUser DB_PASSWORD=localPass DEV_ENVIRONMENT=local ts-node --files src/ropewiki/main.ts",
     "parse-test:ropewiki": "ts-node --files src/ropewiki/parseTest.ts",
@@ -26,6 +27,7 @@
     "@aws-sdk/rds-signer": "^3.962.0",
     "@tmcw/togeojson": "^7.1.2",
     "@types/uuid": "^10.0.0",
+    "@xmldom/xmldom": "^0.8.11",
     "cli-progress": "^3.12.0",
     "config": "^4.1.1",
     "dotenv": "^17.2.3",
@@ -46,7 +48,6 @@
     "@types/jest": "^29.5.14",
     "@types/lodash": "^4.17.21",
     "@types/node": "^24.10.2",
-    "@xmldom/xmldom": "^0.8.11",
     "dbmate": "^2.28.0",
     "eslint": "^9.39.2",
     "ts-jest": "^29.2.5",
