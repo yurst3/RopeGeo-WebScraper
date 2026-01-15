@@ -1,7 +1,11 @@
 import puppeteer from 'puppeteer';
 import { RopewikiBetaSection, RopewikiImage } from '../types/ropewiki';
 import uniqBy from 'lodash/uniqBy';
-import { launchBrowser } from '../../helpers/browserLauncher';
+
+// Detect if running in Lambda environment
+const isLambda = !!process.env.AWS_LAMBDA_FUNCTION_NAME || !!process.env.LAMBDA_TASK_ROOT;
+// Detect if running in GitHub Actions
+const isGitHubActions = !!process.env.GITHUB_ACTIONS;
 
 const evalPage = (): { beta: RopewikiBetaSection[], images: RopewikiImage[] } => {
     // Functions have to be defined inside evalPage() because it is being run in a browser context and can't reference other functions
@@ -13,8 +17,6 @@ const evalPage = (): { beta: RopewikiBetaSection[], images: RopewikiImage[] } =>
     }
 
     let currentBeta: RopewikiBetaSection | null = null;
-    let betaOrder: number = 0;
-    let imageOrder: number = 0;
     const parseChildNodes = (childNodes: NodeListOf<ChildNode>) => {
         childNodes.forEach((child: ChildNode) => {
             switch (child.nodeName) {
@@ -22,9 +24,7 @@ const evalPage = (): { beta: RopewikiBetaSection[], images: RopewikiImage[] } =>
                     // Start of a new beta section
                     if (currentBeta) beta.push(currentBeta);
                     const title = getHeaderTitle(child.childNodes); // eslint-disable-line no-case-declarations
-                    currentBeta = title ? { title, text: '', order: betaOrder + 1 } : null;
-                    betaOrder += 1;
-                    imageOrder = 0;
+                    currentBeta = title ? { title, text: '' } : null;
                     break;
                 case 'A':
                 case 'B':
@@ -133,9 +133,7 @@ const evalPage = (): { beta: RopewikiBetaSection[], images: RopewikiImage[] } =>
                 linkUrl: attachDomain(linkUri),
                 fileUrl: attachDomain(fileUri),
                 caption,
-                order: imageOrder + 1,
             });
-            imageOrder += 1;
         }
     }
 
@@ -159,7 +157,6 @@ const evalPage = (): { beta: RopewikiBetaSection[], images: RopewikiImage[] } =>
                 linkUrl: attachDomain(linkUri),
                 fileUrl: attachDomain(fileUri),
                 caption: undefined,
-                order: 1,
             });
         }
     }
@@ -207,7 +204,18 @@ const removeEmptyBetaSectionsWithoutImages = (
 }
 
 const parseRopewikiPage = async (html: string) => {
-    const browser = await launchBrowser();
+    const launchOptions: Parameters<typeof puppeteer.launch>[0] = {};
+    
+    if (isLambda) {
+        const chromium = await import('@sparticuz/chromium');
+        launchOptions.args = chromium.default.args;
+        launchOptions.executablePath = await chromium.default.executablePath();
+    } else if (isGitHubActions) {
+        // GitHub Actions requires --no-sandbox flag
+        launchOptions.args = ['--no-sandbox'];
+    }
+    
+    const browser = await puppeteer.launch(launchOptions);
     const page = await browser.newPage();
     await page.setContent(html);
 

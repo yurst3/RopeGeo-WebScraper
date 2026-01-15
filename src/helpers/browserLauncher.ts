@@ -12,7 +12,10 @@ const isGitHubActions = !!process.env.GITHUB_ACTIONS;
  * @returns A Promise that resolves to a launched Browser instance
  */
 export const launchBrowser = async (): Promise<Browser> => {
-    const launchOptions: Parameters<typeof puppeteer.launch>[0] = {};
+    const launchOptions: Parameters<typeof puppeteer.launch>[0] = {
+        args: ['--disable-audio-output'],
+        headless: false
+    };
     
     if (isLambda) {
         const chromium = await import('@sparticuz/chromium');
