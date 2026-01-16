@@ -1,19 +1,12 @@
 import * as db from 'zapatos/db';
 import RopewikiPageInfo from '../types/ropewiki';
 
-type UpsertedPage = {
-    id: string;
-    pageId: string;
-    name: string;
-    latestRevisionDate: Date;
-};
-
 // Insert or update RopewikiPages in batch.
 // On conflict (same pageId), update the page fields and timestamps, including latestRevisionDate.
 const upsertPages = async (
     tx: db.Queryable,
     pages: RopewikiPageInfo[],
-): Promise<UpsertedPage[]> => {
+): Promise<RopewikiPageInfo[]> => {
     if (pages.length === 0) {
         return [];
     }
@@ -52,12 +45,7 @@ const upsertPages = async (
         ],
     }).run(tx)
 
-    return results.map(row => ({
-        id: row.id,
-        pageId: row.pageId,
-        name: row.name,
-        latestRevisionDate: new Date(row.latestRevisionDate),
-    }))
+    return results.map(row => RopewikiPageInfo.fromDbRow(row));
 };
 
 export default upsertPages;

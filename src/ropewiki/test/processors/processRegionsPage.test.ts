@@ -1,8 +1,8 @@
 import { describe, it, expect, beforeEach, jest } from '@jest/globals';
 import * as db from 'zapatos/db';
 import type * as s from 'zapatos/schema';
-import handleRopewikiRegions from '../handleRopewikiRegions';
-import type { RopewikiRegion } from '../types/ropewiki';
+import processRegionsPage from '../../processors/processRegionsPage';
+import type { RopewikiRegion } from '../../types/ropewiki';
 
 // Mock all dependencies
 jest.mock('../http/getRopewikiPageRevisionDate');
@@ -17,12 +17,12 @@ jest.mock('uuid', () => ({
     v5: (value: string, namespace: string): string => value, // eslint-disable-line @typescript-eslint/no-unused-vars
 }));
 
-import getRopewikiPagesRevisionDates from '../http/getRopewikiPageRevisionDate';
-import getUpdatedDateForRegions from '../database/getUpdatedDateForRegions';
-import getRopewikiPageHtml from '../http/getRopewikiPageHtml';
-import parseRopewikiRegions from '../parsers/parseRopewikiRegions';
-import upsertRegions from '../database/upsertRegions';
-import getRegions from '../database/getRegions';
+import getRopewikiPagesRevisionDates from '../../http/getRopewikiPageRevisionDate';
+import getUpdatedDateForRegions from '../../database/getUpdatedDateForRegions';
+import getRopewikiPageHtml from '../../http/getRopewikiPageHtml';
+import parseRopewikiRegions from '../../parsers/parseRopewikiRegions';
+import upsertRegions from '../../database/upsertRegions';
+import getRegions from '../../database/getRegions';
 
 const mockedGetRopewikiPagesRevisionDates = getRopewikiPagesRevisionDates as jest.MockedFunction<typeof getRopewikiPagesRevisionDates>;
 const mockedGetUpdatedDateForRegions = getUpdatedDateForRegions as jest.MockedFunction<typeof getUpdatedDateForRegions>;
@@ -31,7 +31,7 @@ const mockedParseRopewikiRegions = parseRopewikiRegions as jest.MockedFunction<t
 const mockedUpsertRegions = upsertRegions as jest.MockedFunction<typeof upsertRegions>;
 const mockedGetRegions = getRegions as jest.MockedFunction<typeof getRegions>;
 
-describe('handleRopewikiRegions', () => {
+describe('processRegionsPage', () => {
     const conn = {} as db.Queryable;
     const REGIONS_PAGE_ID = '5597';
 
@@ -73,7 +73,7 @@ describe('handleRopewikiRegions', () => {
         mockedParseRopewikiRegions.mockResolvedValue(mockRegions);
         mockedUpsertRegions.mockResolvedValue(undefined);
 
-        const result = await handleRopewikiRegions(conn);
+        const result = await processRegionsPage(conn);
 
         expect(mockedGetRopewikiPagesRevisionDates).toHaveBeenCalledWith([REGIONS_PAGE_ID]);
         expect(mockedGetUpdatedDateForRegions).toHaveBeenCalledWith(conn);
@@ -92,7 +92,7 @@ describe('handleRopewikiRegions', () => {
         mockedParseRopewikiRegions.mockResolvedValue(mockRegions);
         mockedUpsertRegions.mockResolvedValue(undefined);
 
-        const result = await handleRopewikiRegions(conn);
+        const result = await processRegionsPage(conn);
 
         expect(mockedGetRopewikiPagesRevisionDates).toHaveBeenCalledWith([REGIONS_PAGE_ID]);
         expect(mockedGetUpdatedDateForRegions).toHaveBeenCalledWith(conn);
@@ -109,7 +109,7 @@ describe('handleRopewikiRegions', () => {
         mockedGetUpdatedDateForRegions.mockResolvedValue(updatedAt);
         mockedGetRegions.mockResolvedValue(mockDbRegions);
 
-        const result = await handleRopewikiRegions(conn);
+        const result = await processRegionsPage(conn);
 
         expect(mockedGetRopewikiPagesRevisionDates).toHaveBeenCalledWith([REGIONS_PAGE_ID]);
         expect(mockedGetUpdatedDateForRegions).toHaveBeenCalledWith(conn);
@@ -124,14 +124,14 @@ describe('handleRopewikiRegions', () => {
         const error = new Error('Network error');
         mockedGetRopewikiPagesRevisionDates.mockRejectedValue(error);
 
-        await expect(handleRopewikiRegions(conn)).rejects.toThrow('Network error');
+        await expect(processRegionsPage(conn)).rejects.toThrow('Network error');
         expect(mockedGetUpdatedDateForRegions).not.toHaveBeenCalled();
     });
 
     it('failure - getRopewikiPagesRevisionDates() doesn\'t return a date for REGIONS_PAGE_ID', async () => {
         mockedGetRopewikiPagesRevisionDates.mockResolvedValue({ [REGIONS_PAGE_ID]: null });
 
-        await expect(handleRopewikiRegions(conn)).rejects.toThrow('Error getting Regions page revision date');
+        await expect(processRegionsPage(conn)).rejects.toThrow('Error getting Regions page revision date');
         expect(mockedGetUpdatedDateForRegions).not.toHaveBeenCalled();
     });
 
@@ -141,7 +141,7 @@ describe('handleRopewikiRegions', () => {
         mockedGetRopewikiPagesRevisionDates.mockResolvedValue({ [REGIONS_PAGE_ID]: revisionDate });
         mockedGetUpdatedDateForRegions.mockRejectedValue(error);
 
-        await expect(handleRopewikiRegions(conn)).rejects.toThrow('Database connection error');
+        await expect(processRegionsPage(conn)).rejects.toThrow('Database connection error');
         expect(mockedGetRopewikiPageHtml).not.toHaveBeenCalled();
     });
 
@@ -152,7 +152,7 @@ describe('handleRopewikiRegions', () => {
         mockedGetUpdatedDateForRegions.mockResolvedValue(null);
         mockedGetRopewikiPageHtml.mockRejectedValue(error);
 
-        await expect(handleRopewikiRegions(conn)).rejects.toThrow('HTTP error');
+        await expect(processRegionsPage(conn)).rejects.toThrow('HTTP error');
         expect(mockedParseRopewikiRegions).not.toHaveBeenCalled();
     });
 
@@ -164,7 +164,7 @@ describe('handleRopewikiRegions', () => {
         mockedGetRopewikiPageHtml.mockResolvedValue('<html>regions html</html>');
         mockedParseRopewikiRegions.mockRejectedValue(error);
 
-        await expect(handleRopewikiRegions(conn)).rejects.toThrow('Parse error');
+        await expect(processRegionsPage(conn)).rejects.toThrow('Parse error');
         expect(mockedUpsertRegions).not.toHaveBeenCalled();
     });
 
@@ -177,7 +177,7 @@ describe('handleRopewikiRegions', () => {
         mockedParseRopewikiRegions.mockResolvedValue(mockRegions);
         mockedUpsertRegions.mockRejectedValue(error);
 
-        await expect(handleRopewikiRegions(conn)).rejects.toThrow('Upsert error');
+        await expect(processRegionsPage(conn)).rejects.toThrow('Upsert error');
     });
 
     it('failure - getRegions() throws an error', async () => {
@@ -188,7 +188,7 @@ describe('handleRopewikiRegions', () => {
         mockedGetUpdatedDateForRegions.mockResolvedValue(updatedAt);
         mockedGetRegions.mockRejectedValue(error);
 
-        await expect(handleRopewikiRegions(conn)).rejects.toThrow('Get regions error');
+        await expect(processRegionsPage(conn)).rejects.toThrow('Get regions error');
     });
 });
 

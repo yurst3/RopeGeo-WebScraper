@@ -1,8 +1,10 @@
-import handleRopewikiRegions from "./handleRopewikiRegions"
-import handleRopewikiPages from './handleRopewikiPages';
-import getRegionCountsUnderLimit from './getRegionsUnderLimit';
-import getDatabaseConnection from './getDatabaseConnection';
-import handleRopewikiRoutes from "./handleRopewikiRoutes";
+import processRegionsPage from "./processors/processRegionsPage"
+import { getProcessRegionFn } from './processors/processRegion';
+import type { ProcessPagesChunkHookFn } from './hook-functions/processPagesChunk';
+import getRegionCountsUnderLimit from './util/getRegionsUnderLimit';
+import getDatabaseConnection from '../helpers/getDatabaseConnection';
+import processRoutes from "./processors/processRoutes";
+import { nodeProcessPagesChunk } from "./hook-functions/processPagesChunk";
 
 /*
 From testing, if the query for getting ropewiki pages ever has an offset above 5000 it treats it as an offset of 0.
@@ -12,14 +14,13 @@ Since 7000 isn't a multiple of 2000, we'll go with 6000 to make the code a littl
 */
 const REGION_COUNT_LIMIT = 6000;
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const ropewikiScraperHandler = async (event: unknown, context: any) => {
+export default async function main(processPagesChunkHookFn: ProcessPagesChunkHookFn): Promise<number> {
     const beginTime = new Date();
     const pool = await getDatabaseConnection();
 
     try {
         // If there has been a recent revision to the Regions page, pull the Regions, parse, upsert them, and return the resulting ids
-        const regionNameIds: {[name: string]: string} = await handleRopewikiRegions(pool);
+        const regionNameIds: {[name: string]: string} = await processRegionsPage(pool);
         // Find which regions have a page count under the limit
         const regionCounts: {[name: string]: number} = await getRegionCountsUnderLimit(pool, 'World', REGION_COUNT_LIMIT);
         console.log(`Getting pages from ${Object.keys(regionCounts).length} regions: ${Object.keys(regionCounts).join(', ')}`);
@@ -27,46 +28,33 @@ export const ropewikiScraperHandler = async (event: unknown, context: any) => {
         // Collect all parsed page UUIDs from all regions
         const updatedPageUuids: string[] = [];
 
+        // Get the processRegion function that uses the provided pool and hook function.
+        const processRegion = getProcessRegionFn(pool, processPagesChunkHookFn);
+
         // Everything has to be done sequentially so we don't DDOS Ropewiki
         for (const [region, count] of Object.entries(regionCounts)) {
             // Pull all pages in the region, parse them, upsert them
-            const parsedPageUuids = await handleRopewikiPages(pool, region, count, regionNameIds);
+            const parsedPageUuids = await processRegion(region, count, regionNameIds);
             updatedPageUuids.push(...parsedPageUuids);
         }
 
-        await handleRopewikiRoutes(pool, updatedPageUuids);
+        await processRoutes(pool, updatedPageUuids);
 
-        const totalTime = (new Date().getTime()) - beginTime.getTime();
-        const totalTimeHours = Math.floor(totalTime / (1000 * 60 * 60));
-        const totalTimeMinutes = Math.floor(totalTime / (1000 * 60)) - (totalTimeHours * 60);
-        const totalTimeSeconds = Math.floor(totalTime / 1000) - (totalTimeMinutes * 60);
-        console.log(`\nTotal time: ${totalTimeHours}h ${totalTimeMinutes}m ${totalTimeSeconds}s`);
-
-        return {
-            statusCode: 200,
-            body: JSON.stringify({
-                message: 'Ropewiki scraper completed successfully',
-                regionsProcessed: Object.keys(regionCounts).length,
-                totalTime: `${totalTimeHours}h ${totalTimeMinutes}m ${totalTimeSeconds}s`,
-            }),
-        };
-    } catch (error) {
-        console.error('Error in Ropewiki scraper:', error);
-        return {
-            statusCode: 500,
-            body: JSON.stringify({
-                message: 'Ropewiki scraper failed',
-                error: error instanceof Error ? error.message : String(error),
-            }),
-        };
+        const elapsedTimeMs = new Date().getTime() - beginTime.getTime();
+        const elapsedTimeSeconds = Math.floor(elapsedTimeMs / 1000);
+        
+        return elapsedTimeSeconds;
     } finally {
         await pool.end();
     }
-};
+}
 
-// Allow running as a Node.js script (not just Lambda handler)
+// Use the node hook functions which will directly invoke the processors
+const processPagesChunkHookFn = nodeProcessPagesChunk;
+
+// Allow running as a Node.js script
 if (require.main === module) {
-    ropewikiScraperHandler({}, {}).then(() => {
+    main(processPagesChunkHookFn).then(() => {
         process.exit(0);
     }).catch((error) => {
         console.error('Error:', error);

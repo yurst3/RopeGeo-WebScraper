@@ -1,4 +1,5 @@
 import type * as s from 'zapatos/schema';
+import type { SqsRecord } from '@aws-lambda-powertools/parser/types';
 
 export interface RopewikiRegion {
     id: string
@@ -258,6 +259,66 @@ class RopewikiPageInfo {
         instance.betaSites = betaSites ?? [];
         instance.userVotes = row.userVotes ?? undefined;
         instance.latestRevisionDate = new Date(row.latestRevisionDate);
+        instance.isValid = !!(instance.pageid && instance.name && instance.region && instance.url && instance.latestRevisionDate);
+
+        return instance;
+    }
+
+    static fromSQSEventRecord(record: SqsRecord): RopewikiPageInfo {
+        // Parse the body JSON string
+        const pageData = JSON.parse(record.body) as { [key: string]: unknown };
+
+        if (!pageData || !pageData.pageid) {
+            throw new Error('Invalid SQS record body: missing page data or pageid');
+        }
+
+        // Create an instance without calling the constructor
+        const instance = Object.create(RopewikiPageInfo.prototype) as RopewikiPageInfo;
+
+        // Parse JSON fields back to their original format
+        const coordinates = pageData.coordinates as { lat: number; lon: number } | undefined;
+        const rappelLongest = pageData.rappelLongest as { value: number; unit: string } | undefined;
+        const shuttle = pageData.shuttle as { value: number; unit: string } | undefined;
+        const minTime = pageData.minTime as { value: number; unit: string } | undefined;
+        const maxTime = pageData.maxTime as { value: number; unit: string } | undefined;
+        const hike = pageData.hike as { value: number; unit: string } | undefined;
+        const months = pageData.months as string[] | undefined;
+        const aka = pageData.aka as string[] | undefined;
+        const betaSites = pageData.betaSites as string[] | undefined;
+
+        // Set properties directly
+        instance.id = pageData.id as string | undefined;
+        instance.pageid = pageData.pageid as string;
+        instance.name = pageData.name as string;
+        instance.region = (pageData.region as string) || '';
+        instance.url = (pageData.url as string) || '';
+        instance.rating = pageData.rating as string | undefined;
+        instance.timeRating = pageData.timeRating as string | undefined;
+        instance.kmlUrl = pageData.kmlUrl as string | undefined;
+        instance.technicalRating = pageData.technicalRating as string | undefined;
+        instance.waterRating = pageData.waterRating as string | undefined;
+        instance.riskRating = pageData.riskRating as string | undefined;
+        instance.permits = pageData.permits as string | undefined;
+        instance.rappelInfo = pageData.rappelInfo as string | undefined;
+        instance.rappelCount = pageData.rappelCount as number | undefined;
+        instance.vehicle = pageData.vehicle as string | undefined;
+        instance.quality = pageData.quality as number | undefined;
+        instance.coordinates = coordinates;
+        instance.rappelLongest = rappelLongest;
+        instance.shuttle = shuttle;
+        instance.minTime = minTime;
+        instance.maxTime = maxTime;
+        instance.hike = hike;
+        instance.months = months || [];
+        instance.aka = aka || [];
+        instance.betaSites = betaSites || [];
+        instance.userVotes = pageData.userVotes as number | undefined;
+        
+        // Convert latestRevisionDate string back to Date object if needed
+        instance.latestRevisionDate = pageData.latestRevisionDate instanceof Date
+            ? pageData.latestRevisionDate
+            : new Date(pageData.latestRevisionDate as string);
+        
         instance.isValid = !!(instance.pageid && instance.name && instance.region && instance.url && instance.latestRevisionDate);
 
         return instance;

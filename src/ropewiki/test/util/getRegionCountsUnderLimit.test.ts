@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, jest } from '@jest/globals';
-import getRegionCountsUnderLimit from '../getRegionsUnderLimit';
-import getRegionCounts from '../http/getRegionCounts';
-import getChildRegions from '../database/getChildRegions';
+import getRegionCountsUnderLimit from '../../util/getRegionsUnderLimit';
+import getRegionCounts from '../../http/getRegionCounts';
+import getChildRegions from '../../database/getChildRegions';
 import * as db from 'zapatos/db';
 
 // Mock the dependencies

@@ -212,7 +212,15 @@ Resources:
       BuildMethod: *nodejsRuntime
       BuildArchitecture: *chromiumArch
 
-  # Lambda function that scrapes Ropewiki pages and stores them in the database
+  # SQS Queue for Ropewiki page processing
+  RopewikiPageProcessingQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !Sub '${devEnvironment}-ropewiki-page-processing-queue'
+      VisibilityTimeout: 960
+      MessageRetentionPeriod: 345600
+
+  # Lambda function that scrapes ALL Ropewiki pages and stores them in the database
   RopewikiScraper:
     Type: AWS::Serverless::Function
     Properties:
@@ -222,7 +230,7 @@ Resources:
         - *chromiumArch
       Layers:
         - !Ref ChromiumLayer
-      Handler: src/ropewiki/main.ropewikiScraperHandler
+      Handler: src/ropewiki/lambda-handlers/ropewikiScraperHandler.mainHandler
       # This property associates this Lambda function with a scheduled CloudWatch Event. For all available properties, see
       # https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#schedule
       # This runs once a week on Sunday at midnight UTC.
@@ -231,6 +239,54 @@ Resources:
           Type: Schedule
           Properties:
             Schedule: cron(0 0 ? * SUN *)
+      MemorySize: 1024
+      Timeout: 900
+      VpcConfig:
+        SecurityGroupIds:
+          - !Ref LambdaSecurityGroup
+        SubnetIds:
+          - !Ref PrivateSubnet1
+      Environment:
+        Variables:
+          DEV_ENVIRONMENT: !Ref devEnvironment
+          AWS_REGION: !Ref AWS::Region
+          DB_HOST: !GetAtt Database.Endpoint.Address
+          DB_PORT: !GetAtt Database.Endpoint.Port
+          DB_NAME: !Sub '${devEnvironment}-db'
+          DB_USER: !Ref DatabaseUsername
+          DB_PASSWORD: !Ref DatabasePassword
+          ROPEWIKI_PAGE_PROCESSING_QUEUE_URL: !Ref RopewikiPageProcessingQueue
+      Policies:
+        - SQSSendMessagePolicy:
+            QueueName: !GetAtt RopewikiPageProcessingQueue.QueueName
+    Metadata: # Manage esbuild properties
+      BuildMethod: esbuild
+      BuildProperties:
+        Minify: true
+        Target: "esnext"
+        Sourcemap: true
+        EntryPoints: 
+        - src/ropewiki/main.ts
+        External:
+        - "@sparticuz/chromium"
+
+  # Lambda function that processes individual Ropewiki pages
+  RopewikiPageProcessor:
+    Type: AWS::Serverless::Function
+    Properties:
+      Description: A Lambda function that processes individual Ropewiki pages (beta sections and images)
+      Runtime: nodejs22.x
+      Architectures:
+        - *chromiumArch
+      Layers:
+        - !Ref ChromiumLayer
+      Handler: src/ropewiki/lambda-handlers/processPageHandler.processPageHandler
+      Events:
+        SQSEvent:
+          Type: SQS
+          Properties:
+            Queue: !GetAtt RopewikiPageProcessingQueue.Arn
+            BatchSize: 1
       MemorySize: 1024
       Timeout: 900
       VpcConfig:

@@ -1,16 +1,16 @@
-import getRopewikiPageHtml from "./http/getRopewikiPageHtml";
-import getRopewikiPagesRevisionDates from "./http/getRopewikiPageRevisionDate";
-import getUpdatedDateForRegions from "./database/getUpdatedDateForRegions";
+import getRopewikiPageHtml from "../http/getRopewikiPageHtml";
+import getRopewikiPagesRevisionDates from "../http/getRopewikiPageRevisionDate";
+import getUpdatedDateForRegions from "../database/getUpdatedDateForRegions";
 import { Queryable } from "zapatos/db";
-import parseRopewikiRegions from "./parsers/parseRopewikiRegions";
-import { RopewikiRegion } from "./types/ropewiki";
-import upsertRegions from "./database/upsertRegions";
+import parseRopewikiRegions from "../parsers/parseRopewikiRegions";
+import { RopewikiRegion } from "../types/ropewiki";
+import upsertRegions from "../database/upsertRegions";
 import type * as s from 'zapatos/schema';
-import getRegions from "./database/getRegions";
+import getRegions from "../database/getRegions";
 
 const REGIONS_PAGE_ID = '5597';
 
-const handleRopewikiRegions = async (conn: Queryable): Promise<{[name: string]: string}> => {
+const processRegionsPage = async (conn: Queryable): Promise<{[name: string]: string}> => {
     console.log('Pulling the latest revision date for the Ropewiki Regions page HTML...')
     const regionsPageRevisionDate = (await getRopewikiPagesRevisionDates([REGIONS_PAGE_ID]))[REGIONS_PAGE_ID];
     if (!regionsPageRevisionDate) throw new Error('Error getting Regions page revision date');
@@ -44,4 +44,4 @@ const handleRopewikiRegions = async (conn: Queryable): Promise<{[name: string]: 
     );
 }
 
-export default handleRopewikiRegions;
+export default processRegionsPage;
