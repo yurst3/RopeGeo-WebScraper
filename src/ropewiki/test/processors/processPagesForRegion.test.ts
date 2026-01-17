@@ -1,26 +1,28 @@
 import { describe, it, expect, beforeEach, afterEach, jest } from '@jest/globals';
 import { Pool, PoolClient } from 'pg';
 import * as db from 'zapatos/db';
-import { getProcessRegionFn } from '../../processors/processRegion';
+import { getProcessPagesForRegionFn } from '../../processors/processPagesForRegion';
 import type { ProcessPagesChunkHookFn } from '../../hook-functions/processPagesChunk';
-import RopewikiPageInfo from '../../types/ropewiki';
+import RopewikiPage from '../../types/page';
 import ProgressLogger from '../../../helpers/progressLogger';
 
 // Mock all dependencies
-jest.mock('../../http/getRopewikiPageInfoForRegion');
+jest.mock('../../http/getRopewikiPageForRegion');
 jest.mock('../../database/getUpdatedDatesForPages');
 jest.mock('../../database/upsertPages');
+import ProgressLogger from '../../../helpers/progressLogger';
 jest.mock('../../../helpers/progressLogger');
 
-import getRopewikiPageInfoForRegion from '../../http/getRopewikiPageInfoForRegion';
+import getRopewikiPageForRegion from '../../http/getRopewikiPageForRegion';
 import getUpdatedDatesForPages from '../../database/getUpdatedDatesForPages';
 import upsertPages from '../../database/upsertPages';
 
-const mockGetRopewikiPageInfoForRegion = getRopewikiPageInfoForRegion as jest.MockedFunction<typeof getRopewikiPageInfoForRegion>;
+const mockGetRopewikiPageForRegion = getRopewikiPageForRegion as jest.MockedFunction<typeof getRopewikiPageForRegion>;
 const mockGetUpdatedDatesForPages = getUpdatedDatesForPages as jest.MockedFunction<typeof getUpdatedDatesForPages>;
 const mockUpsertPages = upsertPages as jest.MockedFunction<typeof upsertPages>;
+const MockedProgressLogger = ProgressLogger as jest.MockedClass<typeof ProgressLogger>;
 
-describe('processRegion', () => {
+describe('processPagesForRegion', () => {
     let mockPool: Pool;
     let mockClient: {
         query: jest.MockedFunction<(query: string) => Promise<unknown>>;
@@ -33,7 +35,7 @@ describe('processRegion', () => {
         setChunk: jest.MockedFunction<(start: number, end: number) => void>;
         logProgress: jest.MockedFunction<(message: string) => void>;
     };
-    let processRegion: ReturnType<typeof getProcessRegionFn>;
+    let processPagesForRegion: ReturnType<typeof getProcessPagesForRegionFn>;
 
     beforeEach(() => {
         jest.clearAllMocks();
@@ -57,11 +59,14 @@ describe('processRegion', () => {
             logProgress: jest.fn(),
         };
         
+        // Mock ProgressLogger constructor to return our mock instance
+        MockedProgressLogger.mockImplementation(() => mockLoggerInstance as unknown as ProgressLogger);
+        
         // Create mock ProcessPagesChunkHookFn
         mockProcessPagesChunkHookFn = jest.fn<ProcessPagesChunkHookFn>().mockResolvedValue(undefined);
         
-        // Get the processRegion function using getProcessRegionFn
-        processRegion = getProcessRegionFn(mockPool, mockProcessPagesChunkHookFn);
+        // Get the processPagesForRegion function using getProcessPagesForRegionFn
+        processPagesForRegion = getProcessPagesForRegionFn(mockPool, mockProcessPagesChunkHookFn);
     });
 
     afterEach(() => {
@@ -69,10 +74,10 @@ describe('processRegion', () => {
         consoleErrorSpy.mockRestore();
     });
 
-    const createValidPage = (pageid: string, name: string, region: string, regionNameIds: {[name: string]: string}, revisionDate?: Date): RopewikiPageInfo => {
+    const createValidPage = (pageid: string, name: string, region: string, regionNameIds: {[name: string]: string}, revisionDate?: Date): RopewikiPage => {
         const date = revisionDate || new Date('2024-01-01T00:00:00Z');
         const timestamp = Math.floor(date.getTime() / 1000).toString();
-        return new RopewikiPageInfo({
+        return RopewikiPage.fromResponseBody({
             printouts: {
                 pageid: [pageid],
                 name: [name],
@@ -83,8 +88,8 @@ describe('processRegion', () => {
         }, regionNameIds);
     };
 
-    const createInvalidPage = (pageid: string, regionNameIds: {[name: string]: string}): RopewikiPageInfo => {
-        return new RopewikiPageInfo({
+    const createInvalidPage = (pageid: string, regionNameIds: {[name: string]: string}): RopewikiPage => {
+        return RopewikiPage.fromResponseBody({
             printouts: {
                 pageid: [pageid],
                 name: [], // Missing name makes it invalid
@@ -95,7 +100,7 @@ describe('processRegion', () => {
         }, regionNameIds);
     };
 
-    const createUpsertedPage = (pageid: string, name: string, region: string, regionNameIds: {[name: string]: string}, id: string, revisionDate?: Date): RopewikiPageInfo => {
+    const createUpsertedPage = (pageid: string, name: string, region: string, regionNameIds: {[name: string]: string}, id: string, revisionDate?: Date): RopewikiPage => {
         const page = createValidPage(pageid, name, region, regionNameIds, revisionDate);
         page.id = id;
         return page;
@@ -110,7 +115,7 @@ describe('processRegion', () => {
         const page2 = createValidPage('5597', 'Page 2', regionName, regionNameIds, new Date('2024-01-02T00:00:00Z'));
         const pages = [page1, page2];
 
-        mockGetRopewikiPageInfoForRegion.mockResolvedValue(pages);
+        mockGetRopewikiPageForRegion.mockResolvedValue(pages);
         mockGetUpdatedDatesForPages.mockResolvedValue({
             '728': null,
             '5597': null,
@@ -120,10 +125,10 @@ describe('processRegion', () => {
         mockUpsertPages.mockResolvedValueOnce([upsertedPage1, upsertedPage2]);
         mockProcessPagesChunkHookFn.mockResolvedValue(undefined);
 
-        await processRegion(regionName, regionPageCount, regionNameIds);
+        await processPagesForRegion(regionName, regionPageCount, regionNameIds);
 
-        expect(mockGetRopewikiPageInfoForRegion).toHaveBeenCalledTimes(1);
-        expect(mockGetRopewikiPageInfoForRegion).toHaveBeenCalledWith(regionName, 0, 2000, regionNameIds);
+        expect(mockGetRopewikiPageForRegion).toHaveBeenCalledTimes(1);
+        expect(mockGetRopewikiPageForRegion).toHaveBeenCalledWith(regionName, 0, 2000, regionNameIds);
         // Verify getUpdatedDatesForPages is called before upsertPages (with valid page IDs from the fetched pages)
         expect(mockGetUpdatedDatesForPages).toHaveBeenCalledWith(mockPool, ['728', '5597']);
         expect(mockGetUpdatedDatesForPages).toHaveBeenCalledTimes(1);
@@ -150,7 +155,7 @@ describe('processRegion', () => {
         const chunk1Pages = Array.from({ length: 2000 }, (_, i) => createValidPage(`${i + 1}`, `Page ${i + 1}`, regionName, regionNameIds, new Date('2024-01-01T00:00:00Z')));
         const chunk2Pages = Array.from({ length: 1500 }, (_, i) => createValidPage(`${i + 2001}`, `Page ${i + 2001}`, regionName, regionNameIds, new Date('2024-01-01T00:00:00Z')));
 
-        mockGetRopewikiPageInfoForRegion
+        mockGetRopewikiPageForRegion
             .mockResolvedValueOnce(chunk1Pages)
             .mockResolvedValueOnce(chunk2Pages);
 
@@ -165,9 +170,9 @@ describe('processRegion', () => {
             .mockResolvedValueOnce(chunk1UpdateDates)
             .mockResolvedValueOnce(chunk2UpdateDates);
 
-        mockUpsertPages.mockImplementation((_, pages: RopewikiPageInfo[]) => 
+        mockUpsertPages.mockImplementation((_, pages: RopewikiPage[]) => 
             Promise.resolve(pages.map(pageInfo => {
-                const upserted = new RopewikiPageInfo({
+                const upserted = RopewikiPage.fromResponseBody({
                     printouts: {
                         pageid: [pageInfo.pageid],
                         name: [pageInfo.name],
@@ -182,11 +187,11 @@ describe('processRegion', () => {
         );
         mockProcessPagesChunkHookFn.mockResolvedValue(undefined);
 
-        await processRegion(regionName, regionPageCount, regionNameIds);
+        await processPagesForRegion(regionName, regionPageCount, regionNameIds);
 
-        expect(mockGetRopewikiPageInfoForRegion).toHaveBeenCalledTimes(2);
-        expect(mockGetRopewikiPageInfoForRegion).toHaveBeenNthCalledWith(1, regionName, 0, 2000, regionNameIds);
-        expect(mockGetRopewikiPageInfoForRegion).toHaveBeenNthCalledWith(2, regionName, 2000, 2000, regionNameIds);
+        expect(mockGetRopewikiPageForRegion).toHaveBeenCalledTimes(2);
+        expect(mockGetRopewikiPageForRegion).toHaveBeenNthCalledWith(1, regionName, 0, 2000, regionNameIds);
+        expect(mockGetRopewikiPageForRegion).toHaveBeenNthCalledWith(2, regionName, 2000, 2000, regionNameIds);
         expect(mockGetUpdatedDatesForPages).toHaveBeenCalledTimes(2);
         // Verify getUpdatedDatesForPages is called before upsertPages for each chunk
         expect(mockGetUpdatedDatesForPages.mock.invocationCallOrder[0]).toBeLessThan(mockUpsertPages.mock.invocationCallOrder[0]!);
@@ -207,7 +212,7 @@ describe('processRegion', () => {
         const invalidPage2 = createInvalidPage('9998', regionNameIds);
         const pages = [validPage, invalidPage1, invalidPage2];
 
-        mockGetRopewikiPageInfoForRegion.mockResolvedValue(pages);
+        mockGetRopewikiPageForRegion.mockResolvedValue(pages);
         mockGetUpdatedDatesForPages.mockResolvedValue({
             '728': null,
         });
@@ -215,7 +220,7 @@ describe('processRegion', () => {
         mockUpsertPages.mockResolvedValueOnce([upsertedPage1]);
         mockProcessPagesChunkHookFn.mockResolvedValue(undefined);
 
-        await processRegion(regionName, regionPageCount, regionNameIds);
+        await processPagesForRegion(regionName, regionPageCount, regionNameIds);
 
         expect(consoleLogSpy).toHaveBeenCalledWith('Skipping 2 invalid pages...');
         // Verify getUpdatedDatesForPages is called before upsertPages, only with valid page IDs
@@ -240,7 +245,7 @@ describe('processRegion', () => {
         const page2 = createValidPage('5597', 'Page 2', regionName, regionNameIds, new Date('2024-01-02T00:00:00Z'));
         const pages = [page1, page2];
 
-        mockGetRopewikiPageInfoForRegion.mockResolvedValue(pages);
+        mockGetRopewikiPageForRegion.mockResolvedValue(pages);
         // getUpdatedDatesForPages is called BEFORE upsertPages
         mockGetUpdatedDatesForPages.mockResolvedValue({
             '728': new Date('2024-01-02T00:00:00Z'), // Updated after revision
@@ -252,7 +257,7 @@ describe('processRegion', () => {
         mockUpsertPages.mockResolvedValueOnce([upsertedPage1, upsertedPage2]);
         mockProcessPagesChunkHookFn.mockResolvedValue(undefined);
 
-        await processRegion(regionName, regionPageCount, regionNameIds);
+        await processPagesForRegion(regionName, regionPageCount, regionNameIds);
 
         // Verify getUpdatedDatesForPages is called before upsertPages (with valid page IDs from the fetched pages)
         expect(mockGetUpdatedDatesForPages).toHaveBeenCalledWith(mockPool, ['728', '5597']);
@@ -273,7 +278,7 @@ describe('processRegion', () => {
         const page2 = createValidPage('5597', 'Page 2', regionName, regionNameIds, new Date('2024-01-04T00:00:00Z'));
         const pages = [page1, page2];
 
-        mockGetRopewikiPageInfoForRegion.mockResolvedValue(pages);
+        mockGetRopewikiPageForRegion.mockResolvedValue(pages);
         // getUpdatedDatesForPages is called BEFORE upsertPages
         mockGetUpdatedDatesForPages.mockResolvedValue({
             '728': new Date('2024-01-01T00:00:00Z'), // Updated before revision
@@ -285,7 +290,7 @@ describe('processRegion', () => {
         mockUpsertPages.mockResolvedValueOnce([upsertedPage1, upsertedPage2]);
         mockProcessPagesChunkHookFn.mockResolvedValue(undefined);
 
-        await processRegion(regionName, regionPageCount, regionNameIds);
+        await processPagesForRegion(regionName, regionPageCount, regionNameIds);
 
         // Verify getUpdatedDatesForPages is called before upsertPages (with valid page IDs from the fetched pages)
         expect(mockGetUpdatedDatesForPages).toHaveBeenCalledWith(mockPool, ['728', '5597']);
@@ -313,7 +318,7 @@ describe('processRegion', () => {
         const page = createValidPage('728', 'Page 1', regionName, regionNameIds, new Date('2024-01-01T00:00:00Z'));
         const pages = [page];
 
-        mockGetRopewikiPageInfoForRegion.mockResolvedValue(pages);
+        mockGetRopewikiPageForRegion.mockResolvedValue(pages);
         mockGetUpdatedDatesForPages.mockResolvedValue({
             '728': null, // No update date
         });
@@ -321,7 +326,7 @@ describe('processRegion', () => {
         mockUpsertPages.mockResolvedValueOnce([upsertedPage1]);
         mockProcessPagesChunkHookFn.mockResolvedValue(undefined);
 
-        await processRegion(regionName, regionPageCount, regionNameIds);
+        await processPagesForRegion(regionName, regionPageCount, regionNameIds);
 
         // Verify getUpdatedDatesForPages is called before upsertPages
         expect(mockGetUpdatedDatesForPages.mock.invocationCallOrder[0]).toBeLessThan(mockUpsertPages.mock.invocationCallOrder[0]!);
@@ -345,7 +350,7 @@ describe('processRegion', () => {
         const page2 = createValidPage('5597', 'Page 2', regionName, regionNameIds, new Date('2024-01-01T00:00:00Z'));
         const pages = [page1, page2];
 
-        mockGetRopewikiPageInfoForRegion.mockResolvedValue(pages);
+        mockGetRopewikiPageForRegion.mockResolvedValue(pages);
         // getUpdatedDatesForPages is called BEFORE upsertPages, only for valid pages (page1 is invalid)
         mockGetUpdatedDatesForPages.mockResolvedValue({
             '5597': null,
@@ -354,7 +359,7 @@ describe('processRegion', () => {
         mockUpsertPages.mockResolvedValueOnce([upsertedPage2]);
         mockProcessPagesChunkHookFn.mockResolvedValue(undefined);
 
-        await processRegion(regionName, regionPageCount, regionNameIds);
+        await processPagesForRegion(regionName, regionPageCount, regionNameIds);
 
         // Verify getUpdatedDatesForPages is called before upsertPages, only with valid page IDs
         expect(mockGetUpdatedDatesForPages).toHaveBeenCalledWith(mockPool, ['5597']);
@@ -370,15 +375,15 @@ describe('processRegion', () => {
         );
     });
 
-    it('propagates errors from getRopewikiPageInfoForRegion()', async () => {
+    it('propagates errors from getRopewikiPageForRegion()', async () => {
         const regionName = 'Test Region';
         const regionPageCount = 100;
         const regionNameIds = { 'Test Region': 'region-id-123' };
 
         const error = new Error('API error');
-        mockGetRopewikiPageInfoForRegion.mockRejectedValue(error);
+        mockGetRopewikiPageForRegion.mockRejectedValue(error);
 
-        await expect(processRegion(regionName, regionPageCount, regionNameIds)).rejects.toThrow('API error');
+        await expect(processPagesForRegion(regionName, regionPageCount, regionNameIds)).rejects.toThrow('API error');
     });
 
     it('propagates errors from getUpdatedDatesForPages()', async () => {
@@ -387,12 +392,12 @@ describe('processRegion', () => {
         const regionNameIds = { 'Test Region': 'region-id-123' };
 
         const page = createValidPage('728', 'Page 1', regionName, regionNameIds, new Date('2024-01-01T00:00:00Z'));
-        mockGetRopewikiPageInfoForRegion.mockResolvedValue([page]);
+        mockGetRopewikiPageForRegion.mockResolvedValue([page]);
 
         const error = new Error('Database error');
         mockGetUpdatedDatesForPages.mockRejectedValue(error);
 
-        await expect(processRegion(regionName, regionPageCount, regionNameIds)).rejects.toThrow('Database error');
+        await expect(processPagesForRegion(regionName, regionPageCount, regionNameIds)).rejects.toThrow('Database error');
     });
 
     it('propagates errors from processPage()', async () => {
@@ -401,7 +406,7 @@ describe('processRegion', () => {
         const regionNameIds = { 'Test Region': 'region-id-123' };
 
         const page = createValidPage('728', 'Page 1', regionName, regionNameIds, new Date('2024-01-01T00:00:00Z'));
-        mockGetRopewikiPageInfoForRegion.mockResolvedValue([page]);
+        mockGetRopewikiPageForRegion.mockResolvedValue([page]);
         mockGetUpdatedDatesForPages.mockResolvedValue({
             '728': null,
         });
@@ -411,7 +416,7 @@ describe('processRegion', () => {
         const error = new Error('Process pages error');
         mockProcessPagesChunkHookFn.mockRejectedValue(error);
 
-        await expect(processRegion(regionName, regionPageCount, regionNameIds)).rejects.toThrow('Process pages error');
+        await expect(processPagesForRegion(regionName, regionPageCount, regionNameIds)).rejects.toThrow('Process pages error');
     });
 
     it('does not call processPage when no pages need processing', async () => {
@@ -420,12 +425,12 @@ describe('processRegion', () => {
         const regionNameIds = { 'Test Region': 'region-id-123' };
 
         const page = createInvalidPage('728', regionNameIds); // Invalid page has no revision date, so page will be filtered out
-        mockGetRopewikiPageInfoForRegion.mockResolvedValue([page]);
+        mockGetRopewikiPageForRegion.mockResolvedValue([page]);
         mockGetUpdatedDatesForPages.mockResolvedValue({
             '728': null,
         });
 
-        await processRegion(regionName, regionPageCount, regionNameIds);
+        await processPagesForRegion(regionName, regionPageCount, regionNameIds);
 
         expect(mockProcessPagesChunkHookFn).not.toHaveBeenCalled();
     });
@@ -440,7 +445,7 @@ describe('processRegion', () => {
         const page3 = createInvalidPage('9999', regionNameIds); // Invalid page has no revision date
         const pages = [page1, page2, page3];
 
-        mockGetRopewikiPageInfoForRegion.mockResolvedValue(pages);
+        mockGetRopewikiPageForRegion.mockResolvedValue(pages);
         // getUpdatedDatesForPages is called BEFORE upsertPages, only for valid pages
         mockGetUpdatedDatesForPages.mockResolvedValue({
             '728': new Date('2024-01-01T00:00:00Z'), // Updated before revision - should process
@@ -452,7 +457,7 @@ describe('processRegion', () => {
         mockUpsertPages.mockResolvedValueOnce([upsertedPage1, upsertedPage2]);
         mockProcessPagesChunkHookFn.mockResolvedValue(undefined);
 
-        await processRegion(regionName, regionPageCount, regionNameIds);
+        await processPagesForRegion(regionName, regionPageCount, regionNameIds);
 
         // Verify getUpdatedDatesForPages is called before upsertPages, only with valid page IDs
         expect(mockGetUpdatedDatesForPages).toHaveBeenCalledWith(mockPool, ['728', '5597']);

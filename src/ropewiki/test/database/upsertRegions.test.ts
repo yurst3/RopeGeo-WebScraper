@@ -2,7 +2,7 @@ import { Pool } from 'pg';
 import * as db from 'zapatos/db';
 import type * as s from 'zapatos/schema';
 import upsertRegions from '../../database/upsertRegions';
-import type { RopewikiRegion } from '../../types/ropewiki';
+import { RopewikiRegion } from '../../types/region';
 import { describe, it, expect, afterEach, beforeAll, afterAll } from '@jest/globals';
 
 describe('upsertRegions (integration)', () => {
@@ -31,9 +31,7 @@ describe('upsertRegions (integration)', () => {
   });
 
   it('does nothing when regions array is empty', async () => {
-    const latestRevisionDate = new Date('2024-01-01T00:00:00Z');
-
-    await upsertRegions(conn, [], latestRevisionDate);
+    await upsertRegions(conn, []);
 
     const rows = await db.select('RopewikiRegion', {}).run(conn);
     expect(rows).toHaveLength(0);
@@ -44,11 +42,11 @@ describe('upsertRegions (integration)', () => {
     const worldUuid = 'ffebfa80-656e-4e48-99a6-81608cc0051d';
     const africaUuid = 'd1d9139d-38db-433c-b7cd-a28f79331667';
     const regions: RopewikiRegion[] = [
-      { id: worldUuid, name: 'World', parentRegion: undefined },
-      { id: africaUuid, name: 'Africa', parentRegion: worldUuid },
+      new RopewikiRegion('World', undefined, 0, 0, undefined, [], false, false, latestRevisionDate, undefined, worldUuid),
+      new RopewikiRegion('Africa', 'World', 0, 1, undefined, [], false, false, latestRevisionDate, undefined, africaUuid),
     ];
 
-    await upsertRegions(conn, regions, latestRevisionDate);
+    await upsertRegions(conn, regions);
 
     const rows = await db
       .select('RopewikiRegion', {}, { order: { by: 'name', direction: 'ASC' } })
@@ -64,7 +62,7 @@ describe('upsertRegions (integration)', () => {
     expect(new Date(world.latestRevisionDate).toISOString()).toBe(latestRevisionDate.toISOString());
 
     expect(africa.name).toBe('Africa');
-    expect(africa.parentRegion).toBe(worldUuid);
+    expect(africa.parentRegion).toBe('World');
     expect(new Date(africa.latestRevisionDate).toISOString()).toBe(latestRevisionDate.toISOString());
   });
 
@@ -77,15 +75,13 @@ describe('upsertRegions (integration)', () => {
     // Seed an existing region
     await upsertRegions(
       conn,
-      [{ id, name: 'World', parentRegion: undefined }],
-      initialRevisionDate,
+      [new RopewikiRegion('World', undefined, 0, 0, undefined, [], false, false, initialRevisionDate, undefined, id)],
     );
 
     // Update the same region
     await upsertRegions(
       conn,
-      [{ id, name: 'World Updated', parentRegion: undefined }],
-      latestRevisionDate,
+      [new RopewikiRegion('World Updated', undefined, 0, 0, undefined, [], false, false, latestRevisionDate, undefined, id)],
     );
 
     const rows = await db.select('RopewikiRegion', { id }).run(conn);
@@ -111,6 +107,12 @@ describe('upsertRegions (integration)', () => {
         parentRegion: null,
         latestRevisionDate: '2024-01-01T00:00:00' as db.TimestampString,
         deletedAt: '2024-01-01T00:00:00' as db.TimestampString,
+        pageCount: 0,
+        level: 0,
+        bestMonths: JSON.stringify([]),
+        isMajorRegion: false,
+        isTopLevelRegion: false,
+        url: 'https://ropewiki.com/Deleted_Region',
       })
       .run(conn);
 
@@ -121,8 +123,7 @@ describe('upsertRegions (integration)', () => {
     // Upsert the region
     await upsertRegions(
       conn,
-      [{ id, name: 'Restored Region', parentRegion: undefined }],
-      latestRevisionDate,
+      [new RopewikiRegion('Restored Region', undefined, 0, 0, undefined, [], false, false, latestRevisionDate, undefined, id)],
     );
 
     // Verify deletedAt is now null
@@ -136,7 +137,7 @@ describe('upsertRegions (integration)', () => {
   it('propagates errors from the database layer', async () => {
     const latestRevisionDate = new Date('2024-03-01T00:00:00Z');
     const regions: RopewikiRegion[] = [
-      { id: '25062f24-745c-4991-8a7b-1ff73b19054e', name: 'World', parentRegion: undefined },
+      new RopewikiRegion('World', undefined, 0, 0, undefined, [], false, false, latestRevisionDate, undefined, '25062f24-745c-4991-8a7b-1ff73b19054e'),
     ];
 
     // Use a client with a closed pool to force an error
@@ -148,7 +149,7 @@ describe('upsertRegions (integration)', () => {
       database: 'nonexistent_database_for_test_error',
     });
 
-    await expect(upsertRegions(badPool, regions, latestRevisionDate)).rejects.toBeDefined();
+    await expect(upsertRegions(badPool, regions)).rejects.toBeDefined();
 
     await badPool.end();
   });

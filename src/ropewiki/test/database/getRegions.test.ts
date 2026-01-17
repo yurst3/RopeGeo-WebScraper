@@ -42,12 +42,20 @@ describe('getRegions (integration)', () => {
                     parentRegion: null,
                     name: 'World',
                     latestRevisionDate,
+                    pageCount: 0,
+                    level: 0,
+                    bestMonths: JSON.stringify([]),
+                    url: 'https://ropewiki.com/World',
                 },
                 {
                     id: africaId,
                     parentRegion: worldId,
                     name: 'Africa',
                     latestRevisionDate,
+                    pageCount: 0,
+                    level: 0,
+                    bestMonths: JSON.stringify([]),
+                    url: 'https://ropewiki.com/Africa',
                 },
             ])
             .run(conn);

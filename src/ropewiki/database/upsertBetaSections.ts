@@ -1,5 +1,5 @@
 import * as db from 'zapatos/db';
-import { RopewikiBetaSection } from '../types/ropewiki';
+import { RopewikiBetaSection } from '../types/page';
 
 // Insert or update beta sections for a page.
 // On conflict (same ropewikiPage & title), update the text and timestamps, including latestRevisionDate.

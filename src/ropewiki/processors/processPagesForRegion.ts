@@ -1,7 +1,7 @@
-import { Pool, PoolClient } from 'pg';
+import { Pool } from 'pg';
 import { Queryable } from "zapatos/db";
-import getRopewikiPageInfoForRegion from "../http/getRopewikiPageInfoForRegion";
-import RopewikiPageInfo from "../types/ropewiki";
+import getRopewikiPageForRegion from "../http/getRopewikiPageForRegion";
+import RopewikiPage from "../types/page";
 import getUpdatedDatesForPages from "../database/getUpdatedDatesForPages";
 import upsertPages from "../database/upsertPages";
 import ProgressLogger from "../../helpers/progressLogger";
@@ -9,14 +9,14 @@ import type { ProcessPagesChunkHookFn } from "../hook-functions/processPagesChun
 
 const CHUNK_SIZE = 2000; // DO NOT EXCEED 2000
 
-type ProcessRegionFn = (regionName: string, regionPageCount: number, regionNameIds: {[name: string]: string}) => Promise<string[]>;
+type ProcessPagesForRegionFn = (regionName: string, regionPageCount: number, regionNameIds: {[name: string]: string}) => Promise<string[]>;
 
 /* 
 We want a more generic function that takes in a hook so we can either send SQS messages if we're running in a lambda or
 directly invoke processPagesChunk if we're running as a node script. Remember that lambdas can only run for 900 seconds before they time
 out and if we have to do a full scrape from scratch it will take roughly 3.5 hours. Europe alone takes about 2 hours.
 */
-export const getProcessRegionFn = (conn: Queryable, processPagesChunkHookFn: ProcessPagesChunkHookFn): ProcessRegionFn => {
+export const getProcessPagesForRegionFn = (conn: Queryable, processPagesChunkHookFn: ProcessPagesChunkHookFn): ProcessPagesForRegionFn => {
     return async (
         regionName: string,
         regionPageCount: number,
@@ -28,10 +28,10 @@ export const getProcessRegionFn = (conn: Queryable, processPagesChunkHookFn: Pro
         for (let offset = 0; offset < regionPageCount; offset += CHUNK_SIZE) {
             console.log(`Getting pages ${offset + 1} to ${Math.min(offset + CHUNK_SIZE, regionPageCount)} in "${regionName}" (${regionPageCount} total pages)...`)
             // Has a limit of 2000 pages per request
-            const pages: RopewikiPageInfo[] = await getRopewikiPageInfoForRegion(regionName, offset, CHUNK_SIZE, regionNameIds);
+            const pages: RopewikiPage[] = await getRopewikiPageForRegion(regionName, offset, CHUNK_SIZE, regionNameIds);
     
             // We only want to store valid pages (must have a pageid, name, region, url, and latestRevisionDate)
-            const validPages: RopewikiPageInfo[] = pages.filter(page => page.isValid);
+            const validPages: RopewikiPage[] = pages.filter(page => page.isValid);
             const invalidPagesCount = pages.length - validPages.length;
             if (invalidPagesCount > 0) console.log(`Skipping ${invalidPagesCount} invalid pages...`)
     

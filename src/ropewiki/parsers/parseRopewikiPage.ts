@@ -1,5 +1,4 @@
-import puppeteer from 'puppeteer';
-import { RopewikiBetaSection, RopewikiImage } from '../types/ropewiki';
+import { RopewikiBetaSection, RopewikiImage } from '../types/page';
 import uniqBy from 'lodash/uniqBy';
 import { launchBrowser } from '../../helpers/browserLauncher';
 

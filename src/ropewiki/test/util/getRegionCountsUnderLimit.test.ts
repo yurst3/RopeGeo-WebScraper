@@ -1,15 +1,33 @@
 import { describe, it, expect, beforeEach, jest } from '@jest/globals';
 import getRegionCountsUnderLimit from '../../util/getRegionsUnderLimit';
-import getRegionCounts from '../../http/getRegionCounts';
+import getRegion from '../../database/getRegion';
 import getChildRegions from '../../database/getChildRegions';
+import { RopewikiRegion } from '../../types/region';
 import * as db from 'zapatos/db';
 
 // Mock the dependencies
-jest.mock('../http/getRegionCounts');
-jest.mock('../database/getChildRegions');
+jest.mock('../../database/getRegion');
+jest.mock('../../database/getChildRegions');
 
-const mockGetRegionCounts = getRegionCounts as jest.MockedFunction<typeof getRegionCounts>;
+const mockGetRegion = getRegion as jest.MockedFunction<typeof getRegion>;
 const mockGetChildRegions = getChildRegions as jest.MockedFunction<typeof getChildRegions>;
+
+// Helper function to create mock RopewikiRegion objects
+const createMockRegion = (name: string, pageCount: number, parentRegion?: string, id?: string): RopewikiRegion => {
+    return new RopewikiRegion(
+        name,
+        parentRegion,
+        pageCount,
+        0,
+        undefined,
+        [],
+        false,
+        false,
+        new Date('2025-01-01'),
+        `https://ropewiki.com/${name.replace(/ /g, '_')}`,
+        id ?? `mock-id-${name}`,
+    );
+};
 
 describe('getRegionCountsUnderLimit', () => {
     const mockConn = {} as db.Queryable;
@@ -18,94 +36,95 @@ describe('getRegionCountsUnderLimit', () => {
         jest.clearAllMocks();
     });
 
-    it('returns counts when root region has count under the limit', async () => {
-        mockGetRegionCounts.mockResolvedValue({
-            'World': 50,
-        });
+    it('returns root region when it has pageCount under the limit', async () => {
+        const worldRegion = createMockRegion('World', 50);
+        mockGetRegion.mockResolvedValue(worldRegion);
 
         const result = await getRegionCountsUnderLimit(mockConn, 'World', 100);
 
-        expect(result).toEqual({ 'World': 50 });
-        expect(mockGetRegionCounts).toHaveBeenCalledTimes(1);
-        expect(mockGetRegionCounts).toHaveBeenCalledWith(['World']);
+        expect(result).toHaveLength(1);
+        expect(result[0]?.name).toBe('World');
+        expect(result[0]?.pageCount).toBe(50);
+        expect(mockGetRegion).toHaveBeenCalledTimes(1);
+        expect(mockGetRegion).toHaveBeenCalledWith(mockConn, 'World');
         expect(mockGetChildRegions).not.toHaveBeenCalled();
     });
 
-    it('returns children counts when root region exceeds limit but children are under limit', async () => {
-        mockGetRegionCounts
-            .mockResolvedValueOnce({
-                'World': 500, // Over limit
-            })
-            .mockResolvedValueOnce({
-                'Africa': 50,
-                'Asia': 75,
-                'Europe': 30,
-            });
+    it('returns children when root region exceeds limit but children are under limit', async () => {
+        const worldRegion = createMockRegion('World', 500); // Over limit
+        const africaRegion = createMockRegion('Africa', 50, 'World');
+        const asiaRegion = createMockRegion('Asia', 75, 'World');
+        const europeRegion = createMockRegion('Europe', 30, 'World');
 
-        mockGetChildRegions.mockResolvedValue(['Africa', 'Asia', 'Europe']);
+        mockGetRegion.mockResolvedValueOnce(worldRegion);
+        mockGetChildRegions.mockResolvedValue([africaRegion, asiaRegion, europeRegion]);
 
         const result = await getRegionCountsUnderLimit(mockConn, 'World', 100);
 
-        expect(result).toEqual({
-            'Africa': 50,
-            'Asia': 75,
-            'Europe': 30,
-        });
-        expect(mockGetRegionCounts).toHaveBeenCalledTimes(2);
-        expect(mockGetRegionCounts).toHaveBeenNthCalledWith(1, ['World']);
-        expect(mockGetRegionCounts).toHaveBeenNthCalledWith(2, ['Africa', 'Asia', 'Europe']);
+        expect(result).toHaveLength(3);
+        expect(result.map(r => r.name)).toContain('Africa');
+        expect(result.map(r => r.name)).toContain('Asia');
+        expect(result.map(r => r.name)).toContain('Europe');
+        expect(result.find(r => r.name === 'Africa')?.pageCount).toBe(50);
+        expect(result.find(r => r.name === 'Asia')?.pageCount).toBe(75);
+        expect(result.find(r => r.name === 'Europe')?.pageCount).toBe(30);
+        expect(mockGetRegion).toHaveBeenCalledTimes(1);
         expect(mockGetChildRegions).toHaveBeenCalledTimes(1);
         expect(mockGetChildRegions).toHaveBeenCalledWith(mockConn, 'World');
     });
 
-    it('returns grandchildren counts when root region and children exceed limit', async () => {
-        mockGetRegionCounts
-            .mockResolvedValueOnce({
-                'World': 500, // Over limit
-            })
-            .mockResolvedValueOnce({
-                'Africa': 200, // Over limit
-                'Asia': 50, // Under limit
-            })
-            .mockResolvedValueOnce({
-                'Kenya': 30,
-                'Egypt': 40,
-            });
+    it('returns grandchildren when root region and children exceed limit', async () => {
+        const worldRegion = createMockRegion('World', 500); // Over limit
+        const africaRegion = createMockRegion('Africa', 200, 'World'); // Over limit
+        const asiaRegion = createMockRegion('Asia', 50, 'World'); // Under limit
+        const kenyaRegion = createMockRegion('Kenya', 30, 'Africa');
+        const egyptRegion = createMockRegion('Egypt', 40, 'Africa');
 
+        mockGetRegion.mockResolvedValueOnce(worldRegion);
         mockGetChildRegions
-            .mockResolvedValueOnce(['Africa', 'Asia'])
-            .mockResolvedValueOnce(['Kenya', 'Egypt']);
+            .mockResolvedValueOnce([africaRegion, asiaRegion]) // Children of World
+            .mockResolvedValueOnce([kenyaRegion, egyptRegion]); // Children of Africa
 
         const result = await getRegionCountsUnderLimit(mockConn, 'World', 100);
 
-        expect(result).toEqual({
-            'Asia': 50,
-            'Kenya': 30,
-            'Egypt': 40,
-        });
-        expect(mockGetRegionCounts).toHaveBeenCalledTimes(3);
-        expect(mockGetRegionCounts).toHaveBeenNthCalledWith(1, ['World']);
-        expect(mockGetRegionCounts).toHaveBeenNthCalledWith(2, ['Africa', 'Asia']);
-        expect(mockGetRegionCounts).toHaveBeenNthCalledWith(3, ['Kenya', 'Egypt']);
+        expect(result).toHaveLength(3);
+        expect(result.map(r => r.name)).toContain('Asia');
+        expect(result.map(r => r.name)).toContain('Kenya');
+        expect(result.map(r => r.name)).toContain('Egypt');
+        expect(result.find(r => r.name === 'Asia')?.pageCount).toBe(50);
+        expect(result.find(r => r.name === 'Kenya')?.pageCount).toBe(30);
+        expect(result.find(r => r.name === 'Egypt')?.pageCount).toBe(40);
+        expect(mockGetRegion).toHaveBeenCalledTimes(1);
         expect(mockGetChildRegions).toHaveBeenCalledTimes(2);
         expect(mockGetChildRegions).toHaveBeenNthCalledWith(1, mockConn, 'World');
         expect(mockGetChildRegions).toHaveBeenNthCalledWith(2, mockConn, 'Africa');
     });
 
     it('throws an error when a region with no children exceeds the limit', async () => {
-        mockGetRegionCounts.mockResolvedValue({
-            'World': 500, // Over limit
-        });
+        const worldRegion = createMockRegion('World', 500); // Over limit
 
+        mockGetRegion.mockResolvedValue(worldRegion);
         mockGetChildRegions.mockResolvedValue([]); // No children
 
         await expect(getRegionCountsUnderLimit(mockConn, 'World', 100)).rejects.toThrow(
             'A region without any children exceeds the limit of 100'
         );
 
-        expect(mockGetRegionCounts).toHaveBeenCalledTimes(1);
+        expect(mockGetRegion).toHaveBeenCalledTimes(1);
         expect(mockGetChildRegions).toHaveBeenCalledTimes(1);
         expect(mockGetChildRegions).toHaveBeenCalledWith(mockConn, 'World');
+    });
+
+    it('throws an error when root region is not found', async () => {
+        mockGetRegion.mockResolvedValue(undefined);
+
+        await expect(getRegionCountsUnderLimit(mockConn, 'NonExistent', 100)).rejects.toThrow(
+            'Region not found: NonExistent'
+        );
+
+        expect(mockGetRegion).toHaveBeenCalledTimes(1);
+        expect(mockGetRegion).toHaveBeenCalledWith(mockConn, 'NonExistent');
+        expect(mockGetChildRegions).not.toHaveBeenCalled();
     });
 
     it('throws an error when limit is less than or equal to 0', async () => {
@@ -117,33 +136,31 @@ describe('getRegionCountsUnderLimit', () => {
             'Limit must be greater than 0'
         );
 
-        expect(mockGetRegionCounts).not.toHaveBeenCalled();
+        expect(mockGetRegion).not.toHaveBeenCalled();
         expect(mockGetChildRegions).not.toHaveBeenCalled();
     });
 
-    it('propagates errors from getRegionCounts()', async () => {
-        const regionCountsError = new Error('Network error');
-        mockGetRegionCounts.mockRejectedValue(regionCountsError);
+    it('propagates errors from getRegion()', async () => {
+        const regionError = new Error('Database error');
+        mockGetRegion.mockRejectedValue(regionError);
 
-        await expect(getRegionCountsUnderLimit(mockConn, 'World', 100)).rejects.toThrow('Network error');
+        await expect(getRegionCountsUnderLimit(mockConn, 'World', 100)).rejects.toThrow('Database error');
 
-        expect(mockGetRegionCounts).toHaveBeenCalledTimes(1);
+        expect(mockGetRegion).toHaveBeenCalledTimes(1);
         expect(mockGetChildRegions).not.toHaveBeenCalled();
     });
 
     it('propagates errors from getChildRegions()', async () => {
-        mockGetRegionCounts.mockResolvedValue({
-            'World': 500, // Over limit
-        });
+        const worldRegion = createMockRegion('World', 500); // Over limit
 
-        const childRegionsError = new Error('Region not found: World');
+        mockGetRegion.mockResolvedValue(worldRegion);
+        const childRegionsError = new Error('Database connection failed');
         mockGetChildRegions.mockRejectedValue(childRegionsError);
 
-        await expect(getRegionCountsUnderLimit(mockConn, 'World', 100)).rejects.toThrow('Region not found: World');
+        await expect(getRegionCountsUnderLimit(mockConn, 'World', 100)).rejects.toThrow('Database connection failed');
 
-        expect(mockGetRegionCounts).toHaveBeenCalledTimes(1);
+        expect(mockGetRegion).toHaveBeenCalledTimes(1);
         expect(mockGetChildRegions).toHaveBeenCalledTimes(1);
         expect(mockGetChildRegions).toHaveBeenCalledWith(mockConn, 'World');
     });
 });
-

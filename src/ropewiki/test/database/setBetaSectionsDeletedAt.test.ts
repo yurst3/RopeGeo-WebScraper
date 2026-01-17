@@ -29,6 +29,10 @@ describe('setBetaSectionsDeletedAt (integration)', () => {
                 parentRegion: null,
                 name: 'Test Region',
                 latestRevisionDate: '2025-01-01T00:00:00' as db.TimestampString,
+                pageCount: 0,
+                level: 0,
+                bestMonths: JSON.stringify([]),
+                url: 'https://ropewiki.com/Test_Region',
             })
             .run(conn);
 

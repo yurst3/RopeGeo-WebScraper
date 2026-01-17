@@ -1,4 +1,4 @@
-\restrict YZTL4OwdANuc9j4DErpQhEyg36bN5SInhI8TVB773LsZkLB6EqM3xdoB91oe6Mf
+\restrict omEiXn9CWkHUmfSaYYRL1x4Z7hnHcCHx3wsL9uBWWh6H05ovRjd14uQckkBhoFN
 
 -- Dumped from database version 18.1 (Debian 18.1-1.pgdg13+2)
 -- Dumped by pg_dump version 18.1 (Homebrew)
@@ -98,13 +98,20 @@ CREATE TABLE public."RopewikiPageBetaSection" (
 --
 
 CREATE TABLE public."RopewikiRegion" (
-    id uuid NOT NULL,
-    "parentRegion" uuid,
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    "parentRegion" text,
     name text NOT NULL,
     "createdAt" timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
     "updatedAt" timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
     "deletedAt" timestamp without time zone,
-    "latestRevisionDate" timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL
+    "latestRevisionDate" timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    "pageCount" integer NOT NULL,
+    level integer NOT NULL,
+    overview text,
+    "bestMonths" jsonb NOT NULL,
+    "isMajorRegion" boolean,
+    "isTopLevelRegion" boolean,
+    url text NOT NULL
 );
 
 
@@ -298,14 +305,6 @@ ALTER TABLE ONLY public."RopewikiPage"
 
 
 --
--- Name: RopewikiRegion fk_ropewikiRegion_parentRegion; Type: FK CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public."RopewikiRegion"
-    ADD CONSTRAINT "fk_ropewikiRegion_parentRegion" FOREIGN KEY ("parentRegion") REFERENCES public."RopewikiRegion"(id);
-
-
---
 -- Name: RopewikiRoute fk_ropewikiRoute_ropewikiPage; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -325,7 +324,7 @@ ALTER TABLE ONLY public."RopewikiRoute"
 -- PostgreSQL database dump complete
 --
 
-\unrestrict YZTL4OwdANuc9j4DErpQhEyg36bN5SInhI8TVB773LsZkLB6EqM3xdoB91oe6Mf
+\unrestrict omEiXn9CWkHUmfSaYYRL1x4Z7hnHcCHx3wsL9uBWWh6H05ovRjd14uQckkBhoFN
 
 
 --
@@ -342,4 +341,6 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20260107210617'),
     ('20260108192140'),
     ('20260112211225'),
-    ('20260112234228');
+    ('20260112234228'),
+    ('20260117175122'),
+    ('20260117184634');

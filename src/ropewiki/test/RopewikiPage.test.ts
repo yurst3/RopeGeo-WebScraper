@@ -1,7 +1,7 @@
 import { describe, it, expect, jest } from '@jest/globals';
-import RopewikiPageInfo from '../types/ropewiki';
+import RopewikiPage from '../types/page';
 
-describe('RopewikiPageInfo', () => {
+describe('RopewikiPage', () => {
     const validLatestRevisionDate = [{ timestamp: '1609459200', raw: '1/2021/1/1/0/0/0/0' }]; // 2021-01-01 00:00:00 UTC
     const testRegionId = '00000000-0000-0000-0000-000000000001';
     const regionNameIds: {[name: string]: string} = { 'Test Region': testRegionId };
@@ -17,7 +17,7 @@ describe('RopewikiPageInfo', () => {
             },
         };
 
-        const pageInfo = new RopewikiPageInfo(invalidRawData, regionNameIds);
+        const pageInfo = RopewikiPage.fromResponseBody(invalidRawData, regionNameIds);
 
         expect(pageInfo.isValid).toBe(false);
         expect(pageInfo.pageid).toBe('');
@@ -37,7 +37,7 @@ describe('RopewikiPageInfo', () => {
             },
         };
 
-        const pageInfo = new RopewikiPageInfo(invalidRawData, regionNameIds);
+        const pageInfo = RopewikiPage.fromResponseBody(invalidRawData, regionNameIds);
 
         expect(pageInfo.isValid).toBe(false);
         expect(pageInfo.pageid).toBe('12345');
@@ -55,7 +55,7 @@ describe('RopewikiPageInfo', () => {
             },
         };
 
-        const pageInfo = new RopewikiPageInfo(invalidRawData, regionNameIds);
+        const pageInfo = RopewikiPage.fromResponseBody(invalidRawData, regionNameIds);
 
         expect(pageInfo.isValid).toBe(false);
         expect(pageInfo.region).toBe('00000000-0000-0000-0000-000000000000'); // Default UUID when region is missing
@@ -72,7 +72,7 @@ describe('RopewikiPageInfo', () => {
             },
         };
 
-        const pageInfo = new RopewikiPageInfo(invalidRawData, regionNameIds);
+        const pageInfo = RopewikiPage.fromResponseBody(invalidRawData, regionNameIds);
 
         expect(pageInfo.isValid).toBe(false);
         expect(pageInfo.url).toBe('');
@@ -89,7 +89,7 @@ describe('RopewikiPageInfo', () => {
             },
         };
 
-        const pageInfo = new RopewikiPageInfo(invalidRawData, regionNameIds);
+        const pageInfo = RopewikiPage.fromResponseBody(invalidRawData, regionNameIds);
 
         expect(pageInfo.isValid).toBe(false);
         expect(pageInfo.latestRevisionDate).toBeInstanceOf(Date);
@@ -107,7 +107,7 @@ describe('RopewikiPageInfo', () => {
             },
         };
 
-        const pageInfo = new RopewikiPageInfo(validRawData, regionNameIds);
+        const pageInfo = RopewikiPage.fromResponseBody(validRawData, regionNameIds);
 
         expect(pageInfo.isValid).toBe(true);
         expect(pageInfo.pageid).toBe('12345');
@@ -130,7 +130,7 @@ describe('RopewikiPageInfo', () => {
             },
         };
 
-        const pageInfo = new RopewikiPageInfo(rawData, regionNameIds);
+        const pageInfo = RopewikiPage.fromResponseBody(rawData, regionNameIds);
 
         expect(pageInfo.rappelInfo).toBe('2r');
     });
@@ -147,7 +147,7 @@ describe('RopewikiPageInfo', () => {
             },
         };
 
-        const pageInfo = new RopewikiPageInfo(rawData, regionNameIds);
+        const pageInfo = RopewikiPage.fromResponseBody(rawData, regionNameIds);
 
         expect(pageInfo.rappelCount).toBe(2);
         expect(typeof pageInfo.rappelCount).toBe('number');
@@ -165,7 +165,7 @@ describe('RopewikiPageInfo', () => {
             },
         };
 
-        const pageInfo = new RopewikiPageInfo(rawData, regionNameIds);
+        const pageInfo = RopewikiPage.fromResponseBody(rawData, regionNameIds);
 
         expect(pageInfo.rappelCount).toBe(0);
     });
@@ -182,7 +182,7 @@ describe('RopewikiPageInfo', () => {
             },
         };
 
-        const pageInfo = new RopewikiPageInfo(rawData, regionNameIds);
+        const pageInfo = RopewikiPage.fromResponseBody(rawData, regionNameIds);
 
         expect(pageInfo.aka).toEqual(['First AKA', 'Second AKA', 'Third AKA']);
     });
@@ -199,7 +199,7 @@ describe('RopewikiPageInfo', () => {
             },
         };
 
-        const pageInfo = new RopewikiPageInfo(rawData, regionNameIds);
+        const pageInfo = RopewikiPage.fromResponseBody(rawData, regionNameIds);
 
         expect(pageInfo.aka).toEqual([]);
     });
@@ -216,7 +216,7 @@ describe('RopewikiPageInfo', () => {
             },
         };
 
-        const pageInfo = new RopewikiPageInfo(rawData, regionNameIds);
+        const pageInfo = RopewikiPage.fromResponseBody(rawData, regionNameIds);
 
         expect(pageInfo.betaSites).toEqual(['http://site1.com', 'http://site2.com', 'http://site3.com']);
     });
@@ -233,7 +233,7 @@ describe('RopewikiPageInfo', () => {
             },
         };
 
-        const pageInfo = new RopewikiPageInfo(rawData, regionNameIds);
+        const pageInfo = RopewikiPage.fromResponseBody(rawData, regionNameIds);
 
         expect(pageInfo.betaSites).toEqual([]);
     });
@@ -250,7 +250,7 @@ describe('RopewikiPageInfo', () => {
             },
         };
 
-        const pageInfo = new RopewikiPageInfo(rawData, regionNameIds);
+        const pageInfo = RopewikiPage.fromResponseBody(rawData, regionNameIds);
 
         expect(pageInfo.userVotes).toBe(5);
         expect(typeof pageInfo.userVotes).toBe('number');
@@ -267,7 +267,7 @@ describe('RopewikiPageInfo', () => {
             },
         };
 
-        const pageInfo = new RopewikiPageInfo(rawData, regionNameIds);
+        const pageInfo = RopewikiPage.fromResponseBody(rawData, regionNameIds);
 
         expect(pageInfo.latestRevisionDate).toBeInstanceOf(Date);
         expect(pageInfo.latestRevisionDate.getTime()).toBe(1609459200000); // Unix timestamp * 1000
@@ -286,7 +286,7 @@ describe('RopewikiPageInfo', () => {
             },
         };
 
-        const pageInfo = new RopewikiPageInfo(rawData, regionNameIds);
+        const pageInfo = RopewikiPage.fromResponseBody(rawData, regionNameIds);
 
         expect(pageInfo.aka).toEqual(['First AKA', 'Second AKA', 'Third AKA']);
         expect(pageInfo.betaSites).toEqual(['http://site1.com', 'http://site2.com', 'http://site3.com']);
@@ -305,7 +305,7 @@ describe('RopewikiPageInfo', () => {
             },
         };
 
-        const pageInfo = new RopewikiPageInfo(rawData, regionNameIds);
+        const pageInfo = RopewikiPage.fromResponseBody(rawData, regionNameIds);
 
         expect(pageInfo.aka).toEqual(['First AKA', 'Second AKA']);
         expect(pageInfo.betaSites).toEqual(['http://site1.com', 'http://site2.com']);
@@ -325,7 +325,7 @@ describe('RopewikiPageInfo', () => {
             },
         };
 
-        const pageInfo = new RopewikiPageInfo(rawData, emptyRegionNameIds);
+        const pageInfo = RopewikiPage.fromResponseBody(rawData, emptyRegionNameIds);
 
         expect(pageInfo.isValid).toBe(false);
         expect(pageInfo.region).toBe('00000000-0000-0000-0000-000000000000'); // Default UUID
@@ -335,7 +335,7 @@ describe('RopewikiPageInfo', () => {
     });
 
     describe('toDbRow', () => {
-        it('converts RopewikiPageInfo to database row format', () => {
+        it('converts RopewikiPage to database row format', () => {
             const mockDate = new Date('2023-01-15T10:30:00.000Z');
             jest.useFakeTimers();
             jest.setSystemTime(mockDate);
@@ -371,7 +371,7 @@ describe('RopewikiPageInfo', () => {
                 },
             };
 
-            const pageInfo = new RopewikiPageInfo(rawData, regionNameIds);
+            const pageInfo = RopewikiPage.fromResponseBody(rawData, regionNameIds);
             const dbRow = pageInfo.toDbRow();
 
             expect(dbRow.pageId).toBe('12345');
@@ -421,7 +421,7 @@ describe('RopewikiPageInfo', () => {
                 },
             };
 
-            const pageInfo = new RopewikiPageInfo(rawData, regionNameIds);
+            const pageInfo = RopewikiPage.fromResponseBody(rawData, regionNameIds);
             const dbRow = pageInfo.toDbRow();
 
             expect(dbRow.rating).toBeNull();
@@ -468,7 +468,7 @@ describe('RopewikiPageInfo', () => {
                 },
             };
 
-            const pageInfo = new RopewikiPageInfo(rawData, regionNameIds);
+            const pageInfo = RopewikiPage.fromResponseBody(rawData, regionNameIds);
             const dbRow = pageInfo.toDbRow();
 
             expect(dbRow.aka).toBeNull();

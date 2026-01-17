@@ -2,7 +2,7 @@ import { Pool } from 'pg';
 import * as db from 'zapatos/db';
 import { describe, it, expect, afterEach, beforeAll, afterAll } from '@jest/globals';
 import updatePageRoute from '../../database/updatePageRoute';
-import RopewikiPageInfo from '../../types/ropewiki';
+import RopewikiPage from '../../types/page';
 
 describe('updatePageRoute (integration)', () => {
     const pool = new Pool({
@@ -31,6 +31,10 @@ describe('updatePageRoute (integration)', () => {
                 parentRegion: null,
                 name: 'Test Region',
                 latestRevisionDate: '2025-01-01T00:00:00' as db.TimestampString,
+                pageCount: 0,
+                level: 0,
+                bestMonths: JSON.stringify([]),
+                url: 'https://ropewiki.com/Test_Region',
             })
             .run(conn);
     });
@@ -54,7 +58,7 @@ describe('updatePageRoute (integration)', () => {
         const latestRevisionDate = new Date('2025-01-02T12:34:56Z');
         
         // Create page
-        const page = new RopewikiPageInfo({
+        const page = RopewikiPage.fromResponseBody({
             printouts: {
                 pageid: ['728'],
                 name: ['Test Page'],
@@ -93,9 +97,9 @@ describe('updatePageRoute (integration)', () => {
             })
             .run(conn);
 
-        // Fetch page from database to get RopewikiPageInfo object with ID
+        // Fetch page from database to get RopewikiPage object with ID
         const dbPages = await db.select('RopewikiPage', { id: pageId }).run(conn);
-        const pageWithId = RopewikiPageInfo.fromDbRow(dbPages[0]!);
+        const pageWithId = RopewikiPage.fromDbRow(dbPages[0]!);
 
         // Update the page name and coordinates
         pageWithId.name = 'Updated Page Name';
@@ -120,7 +124,7 @@ describe('updatePageRoute (integration)', () => {
         const latestRevisionDate = new Date('2025-01-02T12:34:56Z');
         
         // Create page without ID (from constructor)
-        const page = new RopewikiPageInfo({
+        const page = RopewikiPage.fromResponseBody({
             printouts: {
                 pageid: ['728'],
                 name: ['Test Page'],
@@ -139,7 +143,7 @@ describe('updatePageRoute (integration)', () => {
         const latestRevisionDate = new Date('2025-01-02T12:34:56Z');
         
         // Create page
-        const page = new RopewikiPageInfo({
+        const page = RopewikiPage.fromResponseBody({
             printouts: {
                 pageid: ['728'],
                 name: ['Test Page'],
@@ -154,9 +158,9 @@ describe('updatePageRoute (integration)', () => {
         const inserted = await db.insert('RopewikiPage', dbRow).run(conn);
         const pageId = inserted.id;
 
-        // Fetch page from database to get RopewikiPageInfo object with ID
+        // Fetch page from database to get RopewikiPage object with ID
         const dbPages = await db.select('RopewikiPage', { id: pageId }).run(conn);
-        const pageWithId = RopewikiPageInfo.fromDbRow(dbPages[0]!);
+        const pageWithId = RopewikiPage.fromDbRow(dbPages[0]!);
 
         // Remove coordinates
         pageWithId.coordinates = undefined;
@@ -169,7 +173,7 @@ describe('updatePageRoute (integration)', () => {
         const latestRevisionDate = new Date('2025-01-02T12:34:56Z');
         
         // Create page
-        const page = new RopewikiPageInfo({
+        const page = RopewikiPage.fromResponseBody({
             printouts: {
                 pageid: ['728'],
                 name: ['Test Page'],
@@ -199,9 +203,9 @@ describe('updatePageRoute (integration)', () => {
             })
             .run(conn);
 
-        // Fetch page from database to get RopewikiPageInfo object with ID
+        // Fetch page from database to get RopewikiPage object with ID
         const dbPages = await db.select('RopewikiPage', { id: pageId }).run(conn);
-        const pageWithId = RopewikiPageInfo.fromDbRow(dbPages[0]!);
+        const pageWithId = RopewikiPage.fromDbRow(dbPages[0]!);
 
         // Update the page name and coordinates
         pageWithId.name = 'Updated Page Name';
@@ -222,7 +226,7 @@ describe('updatePageRoute (integration)', () => {
         const latestRevisionDate = new Date('2025-01-02T12:34:56Z');
         
         // Create page
-        const page = new RopewikiPageInfo({
+        const page = RopewikiPage.fromResponseBody({
             printouts: {
                 pageid: ['728'],
                 name: ['Test Page'],
@@ -266,9 +270,9 @@ describe('updatePageRoute (integration)', () => {
             .update('RopewikiRoute', { deletedAt: now }, { route: routeId, ropewikiPage: pageId })
             .run(conn);
 
-        // Fetch page from database to get RopewikiPageInfo object with ID
+        // Fetch page from database to get RopewikiPage object with ID
         const dbPages = await db.select('RopewikiPage', { id: pageId }).run(conn);
-        const pageWithId = RopewikiPageInfo.fromDbRow(dbPages[0]!);
+        const pageWithId = RopewikiPage.fromDbRow(dbPages[0]!);
 
         // Update the page name and coordinates
         pageWithId.name = 'Updated Page Name';

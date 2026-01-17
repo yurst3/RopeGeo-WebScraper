@@ -1,9 +1,9 @@
 import * as db from 'zapatos/db';
-import RopewikiPageInfo from '../types/ropewiki';
+import RopewikiPage from '../types/page';
 
 const updatePageRoute = async (
     conn: db.Queryable,
-    page: RopewikiPageInfo,
+    page: RopewikiPage,
 ): Promise<void> => {
     if (!page.id) {
         throw new Error('Page must have an id to update route');

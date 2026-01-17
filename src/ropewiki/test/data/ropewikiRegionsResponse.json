@@ -1,0 +1,207 @@
+{
+    "printrequests": [
+        {
+            "label": "latestRevisionDate",
+            "key": "Max_Modification_date",
+            "redi": "",
+            "typeid": "_dat",
+            "mode": 1,
+            "format": ""
+        },
+        {
+            "label": "parentRegion",
+            "key": "Located_in_region",
+            "redi": "",
+            "typeid": "_wpg",
+            "mode": 1,
+            "format": ""
+        },
+        {
+            "label": "pageCount",
+            "key": "Has_location_count",
+            "redi": "",
+            "typeid": "_num",
+            "mode": 1,
+            "format": ""
+        },
+        {
+            "label": "level",
+            "key": "Has_region_level",
+            "redi": "",
+            "typeid": "_num",
+            "mode": 1,
+            "format": ""
+        },
+        {
+            "label": "overview",
+            "key": "Has_overview",
+            "redi": "",
+            "typeid": "_txt",
+            "mode": 1,
+            "format": ""
+        },
+        {
+            "label": "bestMonths",
+            "key": "Has_best_month",
+            "redi": "",
+            "typeid": "_txt",
+            "mode": 1,
+            "format": ""
+        },
+        {
+            "label": "isMajorRegion",
+            "key": "Is_major_region",
+            "redi": "",
+            "typeid": "_boo",
+            "mode": 1,
+            "format": ""
+        },
+        {
+            "label": "isTopLevelRegion",
+            "key": "Is_top_level_region",
+            "redi": "",
+            "typeid": "_boo",
+            "mode": 1,
+            "format": ""
+        }
+    ],
+    "results": {
+        "Zion West Side": {
+            "printouts": {
+                "latestRevisionDate": [
+                    {
+                        "timestamp": "1709239731",
+                        "raw": "1/2024/2/29/20/48/51/0"
+                    }
+                ],
+                "parentRegion": [
+                    {
+                        "fulltext": "Zion National Park",
+                        "fullurl": "https://ropewiki.com/Zion_National_Park",
+                        "namespace": 0,
+                        "exists": "1",
+                        "displaytitle": ""
+                    }
+                ],
+                "pageCount": [
+                    15
+                ],
+                "level": [
+                    7
+                ],
+                "overview": [],
+                "bestMonths": [],
+                "isMajorRegion": [
+                    "f"
+                ],
+                "isTopLevelRegion": [
+                    "f"
+                ]
+            }
+        },
+        "Zion National Park": {
+            "printouts": {
+                "latestRevisionDate": [
+                    {
+                        "timestamp": "1709238662",
+                        "raw": "1/2024/2/29/20/31/2/0"
+                    }
+                ],
+                "parentRegion": [
+                    {
+                        "fulltext": "Southwest Utah",
+                        "fullurl": "https://ropewiki.com/Southwest_Utah",
+                        "namespace": 0,
+                        "exists": "1",
+                        "displaytitle": ""
+                    }
+                ],
+                "pageCount": [
+                    86
+                ],
+                "level": [
+                    6
+                ],
+                "overview": [
+                    "Zion National Park and surrounding region consists of many classic and picturesque sandstone slot canyons."
+                ],
+                "bestMonths": [],
+                "isMajorRegion": [
+                    "f"
+                ],
+                "isTopLevelRegion": [
+                    "f"
+                ]
+            }
+        },
+        "Zion Main Canyon": {
+            "printouts": {
+                "latestRevisionDate": [
+                    {
+                        "timestamp": "1709238662",
+                        "raw": "1/2024/2/29/20/31/2/0"
+                    }
+                ],
+                "parentRegion": [
+                    {
+                        "fulltext": "Zion National Park",
+                        "fullurl": "https://ropewiki.com/Zion_National_Park",
+                        "namespace": 0,
+                        "exists": "1",
+                        "displaytitle": ""
+                    }
+                ],
+                "pageCount": [
+                    17
+                ],
+                "level": [
+                    7
+                ],
+                "overview": [],
+                "bestMonths": [],
+                "isMajorRegion": [
+                    "f"
+                ],
+                "isTopLevelRegion": [
+                    "f"
+                ]
+            }
+        },
+        "Zion East Side": {
+            "printouts": {
+                "latestRevisionDate": [
+                    {
+                        "timestamp": "1709239717",
+                        "raw": "1/2024/2/29/20/48/37/0"
+                    }
+                ],
+                "parentRegion": [
+                    {
+                        "fulltext": "Zion National Park",
+                        "fullurl": "https://ropewiki.com/Zion_National_Park",
+                        "namespace": 0,
+                        "exists": "1",
+                        "displaytitle": ""
+                    }
+                ],
+                "pageCount": [
+                    37
+                ],
+                "level": [
+                    7
+                ],
+                "overview": [],
+                "bestMonths": [],
+                "isMajorRegion": [
+                    "f"
+                ],
+                "isTopLevelRegion": [
+                    "f"
+                ]
+            }
+        }
+    },
+    "serializer": "SMW\\Serializers\\QueryResultSerializer",
+    "version": 2,
+    "rows": 886
+}

@@ -8,7 +8,7 @@ import setBetaSectionsDeletedAt from "../database/setBetaSectionsDeletedAt";
 import setImagesDeletedAt from "../database/setImagesDeletedAt";
 import ProgressLogger from "../../helpers/progressLogger";
 
-import RopewikiPageInfo from "../types/ropewiki";
+import RopewikiPage from "../types/page";
 
 /**
  * Processes a single Ropewiki page.
@@ -21,7 +21,7 @@ import RopewikiPageInfo from "../types/ropewiki";
  */
 const processPage = async (
     client: Queryable,
-    page: RopewikiPageInfo,
+    page: RopewikiPage,
     logger?: ProgressLogger,
     savepointName?: string,
 ): Promise<void> => {

@@ -1,5 +1,5 @@
-import processRegionsPage from "./processors/processRegionsPage"
-import { getProcessRegionFn } from './processors/processRegion';
+import processRegions from "./processors/processRegions"
+import { getProcessPagesForRegionFn } from './processors/processPagesForRegion';
 import type { ProcessPagesChunkHookFn } from './hook-functions/processPagesChunk';
 import getRegionCountsUnderLimit from './util/getRegionsUnderLimit';
 import getDatabaseConnection from '../helpers/getDatabaseConnection';
@@ -19,22 +19,22 @@ export default async function main(processPagesChunkHookFn: ProcessPagesChunkHoo
     const pool = await getDatabaseConnection();
 
     try {
-        // If there has been a recent revision to the Regions page, pull the Regions, parse, upsert them, and return the resulting ids
-        const regionNameIds: {[name: string]: string} = await processRegionsPage(pool);
+        // Fetch regions from API, upsert them, and get the mapping of names to IDs
+        const regionNameIds = await processRegions(pool);
         // Find which regions have a page count under the limit
-        const regionCounts: {[name: string]: number} = await getRegionCountsUnderLimit(pool, 'World', REGION_COUNT_LIMIT);
-        console.log(`Getting pages from ${Object.keys(regionCounts).length} regions: ${Object.keys(regionCounts).join(', ')}`);
+        const regionsUnderLimit = await getRegionCountsUnderLimit(pool, 'World', REGION_COUNT_LIMIT);
+        console.log(`Getting pages from ${regionsUnderLimit.length} regions: ${regionsUnderLimit.map(r => r.name).join(', ')}`);
 
         // Collect all parsed page UUIDs from all regions
         const updatedPageUuids: string[] = [];
 
-        // Get the processRegion function that uses the provided pool and hook function.
-        const processRegion = getProcessRegionFn(pool, processPagesChunkHookFn);
+        // Get the processPagesForRegion function that uses the provided pool and hook function.
+        const processPagesForRegion = getProcessPagesForRegionFn(pool, processPagesChunkHookFn);
 
         // Everything has to be done sequentially so we don't DDOS Ropewiki
-        for (const [region, count] of Object.entries(regionCounts)) {
+        for (const region of regionsUnderLimit) {
             // Pull all pages in the region, parse them, upsert them
-            const parsedPageUuids = await processRegion(region, count, regionNameIds);
+            const parsedPageUuids = await processPagesForRegion(region.name, region.pageCount, regionNameIds);
             updatedPageUuids.push(...parsedPageUuids);
         }
 

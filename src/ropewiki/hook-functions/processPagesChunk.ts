@@ -2,10 +2,10 @@ import { SQSClient, SendMessageCommand } from '@aws-sdk/client-sqs';
 import { PoolClient } from 'pg';
 import { Queryable } from 'zapatos/db';
 import { processPage } from '../processors/processPage';
-import RopewikiPageInfo from '../types/ropewiki';
+import RopewikiPage from '../types/page';
 import ProgressLogger from '../../helpers/progressLogger';
 
-export type ProcessPagesChunkHookFn = (client: PoolClient, upsertedPages: RopewikiPageInfo[], logger: ProgressLogger) => Promise<void>;
+export type ProcessPagesChunkHookFn = (client: PoolClient, upsertedPages: RopewikiPage[], logger: ProgressLogger) => Promise<void>;
 
 /**
  * Hook function for Node.js that processes pages directly.
@@ -17,7 +17,7 @@ export type ProcessPagesChunkHookFn = (client: PoolClient, upsertedPages: Ropewi
  */
 export const nodeProcessPagesChunk = async (
     client: Queryable,
-    pages: RopewikiPageInfo[],
+    pages: RopewikiPage[],
     logger?: ProgressLogger,
 ): Promise<void> => {
     for (let i = 0; i < pages.length; i++) {
@@ -36,7 +36,7 @@ export const nodeProcessPagesChunk = async (
  */
 export const lambdaProcessPagesChunk: ProcessPagesChunkHookFn = async (
     client: PoolClient,
-    upsertedPages: RopewikiPageInfo[],
+    upsertedPages: RopewikiPage[],
     logger: ProgressLogger,
 ): Promise<void> => {
     const devEnvironment = process.env.DEV_ENVIRONMENT;

@@ -1,31 +1,24 @@
 import * as db from 'zapatos/db';
-import { RopewikiRegion } from '../types/ropewiki';
+import { RopewikiRegion } from '../types/region';
 
 // Insert or update a batch of regions.
-// On conflict (same name & parentRegion), update the region fields and timestamps, including latestRevisionDate.
+// On conflict (same id), update all region fields and timestamps.
+// Returns all upserted regions from the database.
 const upsertRegions = async (
     conn: db.Queryable,
     regions: RopewikiRegion[],
-    latestRevisionDate: Date,
-): Promise<void> => {
-    if (regions.length === 0) return;
+): Promise<RopewikiRegion[]> => {
+    if (regions.length === 0) return [];
 
-    const now = new Date();
+    const rows = regions.map((region) => region.toDbRow());
 
-    const rows = regions.map((region) => ({
-        id: region.id,
-        name: region.name,
-        parentRegion: region.parentRegion ?? null,
-        latestRevisionDate,
-        updatedAt: now,
-        deletedAt: null,
-    }));
-
-    await db
+    const results = await db
         .upsert('RopewikiRegion', rows, ['id'], {
-            updateColumns: ['name', 'parentRegion', 'latestRevisionDate', 'updatedAt', 'deletedAt'],
+            updateColumns: ['name', 'parentRegion', 'pageCount', 'level', 'overview', 'bestMonths', 'isMajorRegion', 'isTopLevelRegion', 'latestRevisionDate', 'url', 'updatedAt', 'deletedAt'],
         })
         .run(conn);
+
+    return results.map((row) => RopewikiRegion.fromDbRow(row));
 };
 
 export default upsertRegions;

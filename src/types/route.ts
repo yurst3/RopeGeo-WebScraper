@@ -1,5 +1,5 @@
 import type * as s from 'zapatos/schema';
-import RopewikiPageInfo from '../ropewiki/types/ropewiki';
+import RopewikiPage from '../ropewiki/types/page';
 
 export enum RouteType {
     Cave = 'Cave',
@@ -33,7 +33,7 @@ export class Route {
         return instance;
     }
 
-    static fromRopewikiPage(page: RopewikiPageInfo): Route {
+    static fromRopewikiPage(page: RopewikiPage): Route {
         // Determine type based on rating
         let type = RouteType.Canyon; // default
         if (!page.rating) {

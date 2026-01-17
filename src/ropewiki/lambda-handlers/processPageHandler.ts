@@ -1,11 +1,11 @@
 import getDatabaseConnection from '../../helpers/getDatabaseConnection';
 import { processPage } from '../processors/processPage';
-import RopewikiPageInfo from '../types/ropewiki';
+import RopewikiPage from '../types/page';
 import type { SqsEvent } from '@aws-lambda-powertools/parser/types';
 
 /**
  * Lambda handler for processing a single Ropewiki page.
- * Expects an SQS event with Records array containing the RopewikiPageInfo in the body.
+ * Expects an SQS event with Records array containing the RopewikiPage in the body.
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const processPageHandler = async (event: SqsEvent, context: any) => {
@@ -20,7 +20,7 @@ export const processPageHandler = async (event: SqsEvent, context: any) => {
 
         // Process the first record (BatchSize is 1, so there should only be one)
         const record = event.Records[0]!;
-        const page = RopewikiPageInfo.fromSQSEventRecord(record);
+        const page = RopewikiPage.fromSQSEventRecord(record);
 
         // Begin transaction
         await client.query('BEGIN');

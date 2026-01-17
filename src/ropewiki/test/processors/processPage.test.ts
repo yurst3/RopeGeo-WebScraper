@@ -9,15 +9,15 @@ import setBetaSectionsDeletedAt from '../../database/setBetaSectionsDeletedAt';
 import setImagesDeletedAt from '../../database/setImagesDeletedAt';
 import ProgressLogger from '../../../helpers/progressLogger';
 import * as db from 'zapatos/db';
-import RopewikiPageInfo from '../../types/ropewiki';
+import RopewikiPage from '../../types/page';
 
 // Mock the dependencies
-jest.mock('../http/getRopewikiPageHtml');
-jest.mock('../parsers/parseRopewikiPage');
-jest.mock('../database/upsertBetaSections');
-jest.mock('../database/upsertImages');
-jest.mock('../database/setBetaSectionsDeletedAt');
-jest.mock('../database/setImagesDeletedAt');
+jest.mock('../../http/getRopewikiPageHtml');
+jest.mock('../../parsers/parseRopewikiPage');
+jest.mock('../../database/upsertBetaSections');
+jest.mock('../../database/upsertImages');
+jest.mock('../../database/setBetaSectionsDeletedAt');
+jest.mock('../../database/setImagesDeletedAt');
 
 const mockGetRopewikiPageHtml = getRopewikiPageHtml as jest.MockedFunction<typeof getRopewikiPageHtml>;
 const mockParseRopewikiPage = parseRopewikiPage as jest.MockedFunction<typeof parseRopewikiPage>;
@@ -35,23 +35,43 @@ describe('processPage', () => {
     };
     const regionNameIds = { 'Test Region': 'region-id-123' };
 
-    const createPage = (pageid: string, name: string, id: string, revisionDate: Date): RopewikiPageInfo => {
-        const page = new RopewikiPageInfo({
-            printouts: {
-                pageid: [pageid],
-                name: [name],
-                region: [{ fulltext: 'Test Region' }],
-                url: [`https://ropewiki.com/${name.replace(/\s+/g, '_')}`],
-                latestRevisionDate: [{ timestamp: String(Math.floor(revisionDate.getTime() / 1000)), raw: revisionDate.toISOString() }],
-            },
-        }, regionNameIds);
-        page.id = id;
-        return page;
+    const createPage = (pageid: string, name: string, id: string, revisionDate: Date): RopewikiPage => {
+        const regionId = regionNameIds['Test Region'] || 'region-id-123';
+        const url = `https://ropewiki.com/${name.replace(/\s+/g, '_')}`;
+        return new RopewikiPage(
+            pageid,
+            name,
+            regionId,
+            url,
+            revisionDate,
+            undefined, // coordinates
+            undefined, // quality
+            undefined, // rating
+            undefined, // timeRating
+            undefined, // kmlUrl
+            undefined, // technicalRating
+            undefined, // waterRating
+            undefined, // riskRating
+            undefined, // permits
+            undefined, // rappelInfo
+            undefined, // rappelCount
+            undefined, // rappelLongest
+            [], // months
+            undefined, // shuttle
+            undefined, // vehicle
+            undefined, // minTime
+            undefined, // maxTime
+            undefined, // hike
+            [], // aka
+            [], // betaSites
+            undefined, // userVotes
+            id // id
+        );
     };
 
     beforeEach(() => {
         jest.clearAllMocks();
-        // Create mock client (already in a transaction from processRegion)
+        // Create mock client (already in a transaction from processPagesForRegion)
         mockClient = {
             query: jest.fn<typeof mockClient.query>().mockResolvedValue({}),
         };

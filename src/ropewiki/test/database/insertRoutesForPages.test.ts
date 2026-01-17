@@ -2,7 +2,7 @@ import { Pool } from 'pg';
 import * as db from 'zapatos/db';
 import { describe, it, expect, afterEach, beforeAll, afterAll } from '@jest/globals';
 import insertRoutesForPages from '../../database/insertRoutesForPages';
-import RopewikiPageInfo from '../../types/ropewiki';
+import RopewikiPage from '../../types/page';
 import { RouteType } from '../../../types/route';
 
 describe('insertRoutesForPages (integration)', () => {
@@ -32,6 +32,10 @@ describe('insertRoutesForPages (integration)', () => {
                 parentRegion: null,
                 name: 'Test Region',
                 latestRevisionDate: '2025-01-01T00:00:00' as db.TimestampString,
+                pageCount: 0,
+                level: 0,
+                bestMonths: JSON.stringify([]),
+                url: 'https://ropewiki.com/Test_Region',
             })
             .run(conn);
     });
@@ -60,7 +64,7 @@ describe('insertRoutesForPages (integration)', () => {
         const latestRevisionDate = new Date('2025-01-02T12:34:56Z');
         
         // Create page without ID (from constructor)
-        const page = new RopewikiPageInfo({
+        const page = RopewikiPage.fromResponseBody({
             printouts: {
                 pageid: ['728'],
                 name: ['Test Page'],
@@ -79,7 +83,7 @@ describe('insertRoutesForPages (integration)', () => {
         const latestRevisionDate = new Date('2025-01-02T12:34:56Z');
         
         // Create pages
-        const page1 = new RopewikiPageInfo({
+        const page1 = RopewikiPage.fromResponseBody({
             printouts: {
                 pageid: ['728'],
                 name: ['Canyon Route'],
@@ -91,7 +95,7 @@ describe('insertRoutesForPages (integration)', () => {
             },
         }, regionNameIds);
 
-        const page2 = new RopewikiPageInfo({
+        const page2 = RopewikiPage.fromResponseBody({
             printouts: {
                 pageid: ['5597'],
                 name: ['Cave Route'],
@@ -112,12 +116,12 @@ describe('insertRoutesForPages (integration)', () => {
         const page1Id = inserted1.id;
         const page2Id = inserted2.id;
 
-        // Fetch pages from database to get RopewikiPageInfo objects with IDs
+        // Fetch pages from database to get RopewikiPage objects with IDs
         const dbPages1 = await db.select('RopewikiPage', { id: page1Id }).run(conn);
         const dbPages2 = await db.select('RopewikiPage', { id: page2Id }).run(conn);
         const pages = [
-            RopewikiPageInfo.fromDbRow(dbPages1[0]!),
-            RopewikiPageInfo.fromDbRow(dbPages2[0]!),
+            RopewikiPage.fromDbRow(dbPages1[0]!),
+            RopewikiPage.fromDbRow(dbPages2[0]!),
         ];
 
         // Insert routes
@@ -160,7 +164,7 @@ describe('insertRoutesForPages (integration)', () => {
         const latestRevisionDate = new Date('2025-01-02T12:34:56Z');
         
         // Create pages with different ratings
-        const canyonPage = new RopewikiPageInfo({
+        const canyonPage = RopewikiPage.fromResponseBody({
             printouts: {
                 pageid: ['1'],
                 name: ['Canyon Page'],
@@ -172,7 +176,7 @@ describe('insertRoutesForPages (integration)', () => {
             },
         }, regionNameIds);
 
-        const cavePage = new RopewikiPageInfo({
+        const cavePage = RopewikiPage.fromResponseBody({
             printouts: {
                 pageid: ['2'],
                 name: ['Cave Page'],
@@ -184,7 +188,7 @@ describe('insertRoutesForPages (integration)', () => {
             },
         }, regionNameIds);
 
-        const poiPage = new RopewikiPageInfo({
+        const poiPage = RopewikiPage.fromResponseBody({
             printouts: {
                 pageid: ['3'],
                 name: ['POI Page'],
@@ -196,7 +200,7 @@ describe('insertRoutesForPages (integration)', () => {
             },
         }, regionNameIds);
 
-        const unknownPage = new RopewikiPageInfo({
+        const unknownPage = RopewikiPage.fromResponseBody({
             printouts: {
                 pageid: ['4'],
                 name: ['Unknown Page'],
@@ -213,16 +217,16 @@ describe('insertRoutesForPages (integration)', () => {
         const insertedPOI = await db.insert('RopewikiPage', poiPage.toDbRow()).run(conn);
         const insertedUnknown = await db.insert('RopewikiPage', unknownPage.toDbRow()).run(conn);
 
-        // Fetch pages from database to get RopewikiPageInfo objects with IDs
+        // Fetch pages from database to get RopewikiPage objects with IDs
         const dbCanyon = await db.select('RopewikiPage', { id: insertedCanyon.id }).run(conn);
         const dbCave = await db.select('RopewikiPage', { id: insertedCave.id }).run(conn);
         const dbPOI = await db.select('RopewikiPage', { id: insertedPOI.id }).run(conn);
         const dbUnknown = await db.select('RopewikiPage', { id: insertedUnknown.id }).run(conn);
         const pages = [
-            RopewikiPageInfo.fromDbRow(dbCanyon[0]!),
-            RopewikiPageInfo.fromDbRow(dbCave[0]!),
-            RopewikiPageInfo.fromDbRow(dbPOI[0]!),
-            RopewikiPageInfo.fromDbRow(dbUnknown[0]!),
+            RopewikiPage.fromDbRow(dbCanyon[0]!),
+            RopewikiPage.fromDbRow(dbCave[0]!),
+            RopewikiPage.fromDbRow(dbPOI[0]!),
+            RopewikiPage.fromDbRow(dbUnknown[0]!),
         ];
 
         // Insert routes
@@ -257,7 +261,7 @@ describe('insertRoutesForPages (integration)', () => {
         const insertedPageIds = [];
 
         for (let i = 0; i < 5; i++) {
-            const page = new RopewikiPageInfo({
+            const page = RopewikiPage.fromResponseBody({
                 printouts: {
                     pageid: [String(100 + i)],
                     name: [`Page ${i}`],
@@ -272,7 +276,7 @@ describe('insertRoutesForPages (integration)', () => {
             insertedPageIds.push(inserted.id);
 
             const dbPage = await db.select('RopewikiPage', { id: inserted.id }).run(conn);
-            pages.push(RopewikiPageInfo.fromDbRow(dbPage[0]!));
+            pages.push(RopewikiPage.fromDbRow(dbPage[0]!));
         }
 
         // Insert routes

@@ -1,10 +1,10 @@
 import * as db from 'zapatos/db';
-import RopewikiPageInfo from '../types/ropewiki';
+import RopewikiPage from '../types/page';
 
 const getPagesWithCoordinates = async (
     conn: db.Queryable,
     pageUuids: string[],
-): Promise<RopewikiPageInfo[]> => {
+): Promise<RopewikiPage[]> => {
     if (pageUuids.length === 0) {
         return [];
     }
@@ -20,8 +20,8 @@ const getPagesWithCoordinates = async (
     // Filter for pages where coordinates is not null
     const rows = allRows.filter(row => row.coordinates !== null);
 
-    // Transform database rows to RopewikiPageInfo objects
-    return rows.map(row => RopewikiPageInfo.fromDbRow(row));
+    // Transform database rows to RopewikiPage objects
+    return rows.map(row => RopewikiPage.fromDbRow(row));
 };
 
 export default getPagesWithCoordinates;
