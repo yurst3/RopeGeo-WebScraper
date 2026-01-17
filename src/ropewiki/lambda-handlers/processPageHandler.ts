@@ -1,4 +1,3 @@
-import { Pool } from 'pg';
 import getDatabaseConnection from '../../helpers/getDatabaseConnection';
 import { processPage } from '../processors/processPage';
 import RopewikiPageInfo from '../types/ropewiki';
