@@ -3,14 +3,14 @@ import puppeteer from 'puppeteer';
 import getRopewikiPageHtml from './http/getRopewikiPageHtml';
 import fs from 'fs';
 import parseRopewikiPage from './parsers/parseRopewikiPage';
-import getRopewikiPageInfoForRegion from './http/getRopewikiPageInfoForRegion';
+import getRopewikiPageForRegion from './http/getRopewikiPageForRegion';
 import { launchBrowser } from '../helpers/browserLauncher';
 
 (async () => {
     // const pageId = process.argv[2];
     // if (!pageId) throw new Error('parse-test needs an pageId arg');
 
-    const result = await getRopewikiPageInfoForRegion('world', 0, 20);
+    const result = await getRopewikiPageForRegion('world', 0, 20);
     fs.writeFileSync('result.json', JSON.stringify(result, null, 4))
 
     // const pageHTML = await getRopewikiPageHtml(pageId);

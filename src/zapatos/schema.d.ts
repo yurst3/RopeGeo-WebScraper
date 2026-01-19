@@ -1599,6 +1599,12 @@ declare module 'zapatos/schema' {
     export type Table = 'RopewikiRegion';
     export interface Selectable {
       /**
+      * **RopewikiRegion.bestMonths**
+      * - `jsonb` in database
+      * - `NOT NULL`, no default
+      */
+      bestMonths: db.JSONValue;
+      /**
       * **RopewikiRegion.createdAt**
       * - `timestamp` in database
       * - `NOT NULL`, default: `CURRENT_TIMESTAMP`
@@ -1613,9 +1619,21 @@ declare module 'zapatos/schema' {
       /**
       * **RopewikiRegion.id**
       * - `uuid` in database
-      * - `NOT NULL`, no default
+      * - `NOT NULL`, default: `gen_random_uuid()`
       */
       id: string;
+      /**
+      * **RopewikiRegion.isMajorRegion**
+      * - `bool` in database
+      * - Nullable, no default
+      */
+      isMajorRegion: boolean | null;
+      /**
+      * **RopewikiRegion.isTopLevelRegion**
+      * - `bool` in database
+      * - Nullable, no default
+      */
+      isTopLevelRegion: boolean | null;
       /**
       * **RopewikiRegion.latestRevisionDate**
       * - `timestamp` in database
@@ -1623,14 +1641,32 @@ declare module 'zapatos/schema' {
       */
       latestRevisionDate: Date;
       /**
+      * **RopewikiRegion.level**
+      * - `int4` in database
+      * - `NOT NULL`, no default
+      */
+      level: number;
+      /**
       * **RopewikiRegion.name**
       * - `text` in database
       * - `NOT NULL`, no default
       */
       name: string;
       /**
+      * **RopewikiRegion.overview**
+      * - `text` in database
+      * - Nullable, no default
+      */
+      overview: string | null;
+      /**
+      * **RopewikiRegion.pageCount**
+      * - `int4` in database
+      * - `NOT NULL`, no default
+      */
+      pageCount: number;
+      /**
       * **RopewikiRegion.parentRegion**
-      * - `uuid` in database
+      * - `text` in database
       * - Nullable, no default
       */
       parentRegion: string | null;
@@ -1640,8 +1676,20 @@ declare module 'zapatos/schema' {
       * - `NOT NULL`, default: `CURRENT_TIMESTAMP`
       */
       updatedAt: Date;
+      /**
+      * **RopewikiRegion.url**
+      * - `text` in database
+      * - `NOT NULL`, no default
+      */
+      url: string;
     }
     export interface JSONSelectable {
+      /**
+      * **RopewikiRegion.bestMonths**
+      * - `jsonb` in database
+      * - `NOT NULL`, no default
+      */
+      bestMonths: db.JSONValue;
       /**
       * **RopewikiRegion.createdAt**
       * - `timestamp` in database
@@ -1657,9 +1705,21 @@ declare module 'zapatos/schema' {
       /**
       * **RopewikiRegion.id**
       * - `uuid` in database
-      * - `NOT NULL`, no default
+      * - `NOT NULL`, default: `gen_random_uuid()`
       */
       id: string;
+      /**
+      * **RopewikiRegion.isMajorRegion**
+      * - `bool` in database
+      * - Nullable, no default
+      */
+      isMajorRegion: boolean | null;
+      /**
+      * **RopewikiRegion.isTopLevelRegion**
+      * - `bool` in database
+      * - Nullable, no default
+      */
+      isTopLevelRegion: boolean | null;
       /**
       * **RopewikiRegion.latestRevisionDate**
       * - `timestamp` in database
@@ -1667,14 +1727,32 @@ declare module 'zapatos/schema' {
       */
       latestRevisionDate: db.TimestampString;
       /**
+      * **RopewikiRegion.level**
+      * - `int4` in database
+      * - `NOT NULL`, no default
+      */
+      level: number;
+      /**
       * **RopewikiRegion.name**
       * - `text` in database
       * - `NOT NULL`, no default
       */
       name: string;
       /**
+      * **RopewikiRegion.overview**
+      * - `text` in database
+      * - Nullable, no default
+      */
+      overview: string | null;
+      /**
+      * **RopewikiRegion.pageCount**
+      * - `int4` in database
+      * - `NOT NULL`, no default
+      */
+      pageCount: number;
+      /**
       * **RopewikiRegion.parentRegion**
-      * - `uuid` in database
+      * - `text` in database
       * - Nullable, no default
       */
       parentRegion: string | null;
@@ -1684,8 +1762,20 @@ declare module 'zapatos/schema' {
       * - `NOT NULL`, default: `CURRENT_TIMESTAMP`
       */
       updatedAt: db.TimestampString;
+      /**
+      * **RopewikiRegion.url**
+      * - `text` in database
+      * - `NOT NULL`, no default
+      */
+      url: string;
     }
     export interface Whereable {
+      /**
+      * **RopewikiRegion.bestMonths**
+      * - `jsonb` in database
+      * - `NOT NULL`, no default
+      */
+      bestMonths?: db.JSONValue | db.Parameter<db.JSONValue> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, db.JSONValue | db.Parameter<db.JSONValue> | db.SQLFragment | db.ParentColumn>;
       /**
       * **RopewikiRegion.createdAt**
       * - `timestamp` in database
@@ -1701,9 +1791,21 @@ declare module 'zapatos/schema' {
       /**
       * **RopewikiRegion.id**
       * - `uuid` in database
-      * - `NOT NULL`, no default
+      * - `NOT NULL`, default: `gen_random_uuid()`
       */
       id?: string | db.Parameter<string> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, string | db.Parameter<string> | db.SQLFragment | db.ParentColumn>;
+      /**
+      * **RopewikiRegion.isMajorRegion**
+      * - `bool` in database
+      * - Nullable, no default
+      */
+      isMajorRegion?: boolean | db.Parameter<boolean> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, boolean | db.Parameter<boolean> | db.SQLFragment | db.ParentColumn>;
+      /**
+      * **RopewikiRegion.isTopLevelRegion**
+      * - `bool` in database
+      * - Nullable, no default
+      */
+      isTopLevelRegion?: boolean | db.Parameter<boolean> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, boolean | db.Parameter<boolean> | db.SQLFragment | db.ParentColumn>;
       /**
       * **RopewikiRegion.latestRevisionDate**
       * - `timestamp` in database
@@ -1711,14 +1813,32 @@ declare module 'zapatos/schema' {
       */
       latestRevisionDate?: (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.SQLFragment | db.ParentColumn>;
       /**
+      * **RopewikiRegion.level**
+      * - `int4` in database
+      * - `NOT NULL`, no default
+      */
+      level?: number | db.Parameter<number> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, number | db.Parameter<number> | db.SQLFragment | db.ParentColumn>;
+      /**
       * **RopewikiRegion.name**
       * - `text` in database
       * - `NOT NULL`, no default
       */
       name?: string | db.Parameter<string> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, string | db.Parameter<string> | db.SQLFragment | db.ParentColumn>;
       /**
+      * **RopewikiRegion.overview**
+      * - `text` in database
+      * - Nullable, no default
+      */
+      overview?: string | db.Parameter<string> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, string | db.Parameter<string> | db.SQLFragment | db.ParentColumn>;
+      /**
+      * **RopewikiRegion.pageCount**
+      * - `int4` in database
+      * - `NOT NULL`, no default
+      */
+      pageCount?: number | db.Parameter<number> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, number | db.Parameter<number> | db.SQLFragment | db.ParentColumn>;
+      /**
       * **RopewikiRegion.parentRegion**
-      * - `uuid` in database
+      * - `text` in database
       * - Nullable, no default
       */
       parentRegion?: string | db.Parameter<string> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, string | db.Parameter<string> | db.SQLFragment | db.ParentColumn>;
@@ -1728,8 +1848,20 @@ declare module 'zapatos/schema' {
       * - `NOT NULL`, default: `CURRENT_TIMESTAMP`
       */
       updatedAt?: (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.SQLFragment | db.ParentColumn>;
+      /**
+      * **RopewikiRegion.url**
+      * - `text` in database
+      * - `NOT NULL`, no default
+      */
+      url?: string | db.Parameter<string> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, string | db.Parameter<string> | db.SQLFragment | db.ParentColumn>;
     }
     export interface Insertable {
+      /**
+      * **RopewikiRegion.bestMonths**
+      * - `jsonb` in database
+      * - `NOT NULL`, no default
+      */
+      bestMonths: db.JSONValue | db.Parameter<db.JSONValue> | db.SQLFragment;
       /**
       * **RopewikiRegion.createdAt**
       * - `timestamp` in database
@@ -1745,9 +1877,21 @@ declare module 'zapatos/schema' {
       /**
       * **RopewikiRegion.id**
       * - `uuid` in database
-      * - `NOT NULL`, no default
+      * - `NOT NULL`, default: `gen_random_uuid()`
       */
-      id: string | db.Parameter<string> | db.SQLFragment;
+      id?: string | db.Parameter<string> | db.DefaultType | db.SQLFragment;
+      /**
+      * **RopewikiRegion.isMajorRegion**
+      * - `bool` in database
+      * - Nullable, no default
+      */
+      isMajorRegion?: boolean | db.Parameter<boolean> | null | db.DefaultType | db.SQLFragment;
+      /**
+      * **RopewikiRegion.isTopLevelRegion**
+      * - `bool` in database
+      * - Nullable, no default
+      */
+      isTopLevelRegion?: boolean | db.Parameter<boolean> | null | db.DefaultType | db.SQLFragment;
       /**
       * **RopewikiRegion.latestRevisionDate**
       * - `timestamp` in database
@@ -1755,14 +1899,32 @@ declare module 'zapatos/schema' {
       */
       latestRevisionDate?: (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.DefaultType | db.SQLFragment;
       /**
+      * **RopewikiRegion.level**
+      * - `int4` in database
+      * - `NOT NULL`, no default
+      */
+      level: number | db.Parameter<number> | db.SQLFragment;
+      /**
       * **RopewikiRegion.name**
       * - `text` in database
       * - `NOT NULL`, no default
       */
       name: string | db.Parameter<string> | db.SQLFragment;
       /**
+      * **RopewikiRegion.overview**
+      * - `text` in database
+      * - Nullable, no default
+      */
+      overview?: string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment;
+      /**
+      * **RopewikiRegion.pageCount**
+      * - `int4` in database
+      * - `NOT NULL`, no default
+      */
+      pageCount: number | db.Parameter<number> | db.SQLFragment;
+      /**
       * **RopewikiRegion.parentRegion**
-      * - `uuid` in database
+      * - `text` in database
       * - Nullable, no default
       */
       parentRegion?: string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment;
@@ -1772,8 +1934,20 @@ declare module 'zapatos/schema' {
       * - `NOT NULL`, default: `CURRENT_TIMESTAMP`
       */
       updatedAt?: (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.DefaultType | db.SQLFragment;
+      /**
+      * **RopewikiRegion.url**
+      * - `text` in database
+      * - `NOT NULL`, no default
+      */
+      url: string | db.Parameter<string> | db.SQLFragment;
     }
     export interface Updatable {
+      /**
+      * **RopewikiRegion.bestMonths**
+      * - `jsonb` in database
+      * - `NOT NULL`, no default
+      */
+      bestMonths?: db.JSONValue | db.Parameter<db.JSONValue> | db.SQLFragment | db.SQLFragment<any, db.JSONValue | db.Parameter<db.JSONValue> | db.SQLFragment>;
       /**
       * **RopewikiRegion.createdAt**
       * - `timestamp` in database
@@ -1789,9 +1963,21 @@ declare module 'zapatos/schema' {
       /**
       * **RopewikiRegion.id**
       * - `uuid` in database
-      * - `NOT NULL`, no default
+      * - `NOT NULL`, default: `gen_random_uuid()`
       */
-      id?: string | db.Parameter<string> | db.SQLFragment | db.SQLFragment<any, string | db.Parameter<string> | db.SQLFragment>;
+      id?: string | db.Parameter<string> | db.DefaultType | db.SQLFragment | db.SQLFragment<any, string | db.Parameter<string> | db.DefaultType | db.SQLFragment>;
+      /**
+      * **RopewikiRegion.isMajorRegion**
+      * - `bool` in database
+      * - Nullable, no default
+      */
+      isMajorRegion?: boolean | db.Parameter<boolean> | null | db.DefaultType | db.SQLFragment | db.SQLFragment<any, boolean | db.Parameter<boolean> | null | db.DefaultType | db.SQLFragment>;
+      /**
+      * **RopewikiRegion.isTopLevelRegion**
+      * - `bool` in database
+      * - Nullable, no default
+      */
+      isTopLevelRegion?: boolean | db.Parameter<boolean> | null | db.DefaultType | db.SQLFragment | db.SQLFragment<any, boolean | db.Parameter<boolean> | null | db.DefaultType | db.SQLFragment>;
       /**
       * **RopewikiRegion.latestRevisionDate**
       * - `timestamp` in database
@@ -1799,14 +1985,32 @@ declare module 'zapatos/schema' {
       */
       latestRevisionDate?: (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.DefaultType | db.SQLFragment | db.SQLFragment<any, (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.DefaultType | db.SQLFragment>;
       /**
+      * **RopewikiRegion.level**
+      * - `int4` in database
+      * - `NOT NULL`, no default
+      */
+      level?: number | db.Parameter<number> | db.SQLFragment | db.SQLFragment<any, number | db.Parameter<number> | db.SQLFragment>;
+      /**
       * **RopewikiRegion.name**
       * - `text` in database
       * - `NOT NULL`, no default
       */
       name?: string | db.Parameter<string> | db.SQLFragment | db.SQLFragment<any, string | db.Parameter<string> | db.SQLFragment>;
       /**
+      * **RopewikiRegion.overview**
+      * - `text` in database
+      * - Nullable, no default
+      */
+      overview?: string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment | db.SQLFragment<any, string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment>;
+      /**
+      * **RopewikiRegion.pageCount**
+      * - `int4` in database
+      * - `NOT NULL`, no default
+      */
+      pageCount?: number | db.Parameter<number> | db.SQLFragment | db.SQLFragment<any, number | db.Parameter<number> | db.SQLFragment>;
+      /**
       * **RopewikiRegion.parentRegion**
-      * - `uuid` in database
+      * - `text` in database
       * - Nullable, no default
       */
       parentRegion?: string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment | db.SQLFragment<any, string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment>;
@@ -1816,6 +2020,12 @@ declare module 'zapatos/schema' {
       * - `NOT NULL`, default: `CURRENT_TIMESTAMP`
       */
       updatedAt?: (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.DefaultType | db.SQLFragment | db.SQLFragment<any, (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.DefaultType | db.SQLFragment>;
+      /**
+      * **RopewikiRegion.url**
+      * - `text` in database
+      * - `NOT NULL`, no default
+      */
+      url?: string | db.Parameter<string> | db.SQLFragment | db.SQLFragment<any, string | db.Parameter<string> | db.SQLFragment>;
     }
     export type UniqueIndex = 'RopewikiRegion_pkey' | 'uk_ropewikiRegion_name_parentRegion';
     export type Column = keyof Selectable;

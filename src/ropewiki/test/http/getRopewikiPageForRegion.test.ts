@@ -1,7 +1,7 @@
 import { describe, it, expect, afterEach, jest } from '@jest/globals';
 import fs from 'fs';
 import path from 'path';
-import getRopewikiPageInfoForRegion from '../../http/getRopewikiPageInfoForRegion';
+import getRopewikiPageForRegion from '../../http/getRopewikiPageForRegion';
 
 const responseFixturePath = path.join(__dirname, '..', 'data', 'ropewikiPageInfosResponse.json');
 const responseFixture = JSON.parse(fs.readFileSync(responseFixturePath, 'utf-8'));
@@ -20,7 +20,7 @@ expectedResults.forEach((result: { region: string }) => {
 
 type MockFetch = ReturnType<typeof jest.fn<typeof fetch>>;
 
-describe('getRopewikiPageInfoForRegion', () => {
+describe('getRopewikiPageForRegion', () => {
     afterEach(() => {
         const mockFetch = globalThis.fetch as MockFetch | undefined;
         if (mockFetch && typeof mockFetch.mockClear === 'function') {
@@ -30,7 +30,7 @@ describe('getRopewikiPageInfoForRegion', () => {
         globalThis.fetch = undefined;
     });
 
-    it('returns RopewikiPageInfo array when fetch succeeds', async () => {
+    it('returns RopewikiPage array when fetch succeeds', async () => {
         const region = 'World';
         const offset = 0;
         const limit = 10;
@@ -42,7 +42,7 @@ describe('getRopewikiPageInfoForRegion', () => {
         } as Response);
         globalThis.fetch = mockFetch as unknown as typeof fetch;
 
-        const pageInfos = await getRopewikiPageInfoForRegion(region, offset, limit, regionNameIds);
+        const pageInfos = await getRopewikiPageForRegion(region, offset, limit, regionNameIds);
 
         // Convert pageInfos to JSON-compatible format for comparison
         // Serialize and parse to normalize Date objects and remove undefined properties
@@ -78,7 +78,7 @@ describe('getRopewikiPageInfoForRegion', () => {
         } as Response);
         globalThis.fetch = mockFetch as unknown as typeof fetch;
 
-        await expect(getRopewikiPageInfoForRegion(region, offset, limit, {})).rejects.toThrow(
+        await expect(getRopewikiPageForRegion(region, offset, limit, {})).rejects.toThrow(
             'Error getting pages info for region World offset 0 limit 10: 500 Internal Server Error'
         );
         expect(mockFetch).toHaveBeenCalledTimes(1);
@@ -91,7 +91,7 @@ describe('getRopewikiPageInfoForRegion', () => {
         const mockFetch = jest.fn<typeof fetch>().mockRejectedValue(new Error('network failure'));
         globalThis.fetch = mockFetch as unknown as typeof fetch;
 
-        await expect(getRopewikiPageInfoForRegion(region, offset, limit, {})).rejects.toThrow(
+        await expect(getRopewikiPageForRegion(region, offset, limit, {})).rejects.toThrow(
             'Error getting pages info for region World offset 0 limit 10: Error: network failure'
         );
         expect(mockFetch).toHaveBeenCalledTimes(1);
@@ -102,7 +102,7 @@ describe('getRopewikiPageInfoForRegion', () => {
         const offset = 0;
         const limit = 2001;
 
-        await expect(getRopewikiPageInfoForRegion(region, offset, limit, {})).rejects.toThrow(
+        await expect(getRopewikiPageForRegion(region, offset, limit, {})).rejects.toThrow(
             'Limit must be less than or equal to 2000, got 2001'
         );
     });
@@ -119,7 +119,7 @@ describe('getRopewikiPageInfoForRegion', () => {
         } as Response);
         globalThis.fetch = mockFetch as unknown as typeof fetch;
 
-        await getRopewikiPageInfoForRegion(region, offset, limit, {});
+        await getRopewikiPageForRegion(region, offset, limit, {});
 
         expect(mockFetch).toHaveBeenCalledTimes(1);
     });
@@ -129,7 +129,7 @@ describe('getRopewikiPageInfoForRegion', () => {
         const offset = 5001;
         const limit = 10;
 
-        await expect(getRopewikiPageInfoForRegion(region, offset, limit)).rejects.toThrow(
+        await expect(getRopewikiPageForRegion(region, offset, limit)).rejects.toThrow(
             'Offset must be less than or equal to 5000, got 5001'
         );
     });
@@ -146,7 +146,7 @@ describe('getRopewikiPageInfoForRegion', () => {
         } as Response);
         globalThis.fetch = mockFetch as unknown as typeof fetch;
 
-        await getRopewikiPageInfoForRegion(region, offset, limit, {});
+        await getRopewikiPageForRegion(region, offset, limit, {});
 
         expect(mockFetch).toHaveBeenCalledTimes(1);
     });
@@ -163,7 +163,7 @@ describe('getRopewikiPageInfoForRegion', () => {
         } as Response);
         globalThis.fetch = mockFetch as unknown as typeof fetch;
 
-        await getRopewikiPageInfoForRegion(region, offset, limit, {});
+        await getRopewikiPageForRegion(region, offset, limit, {});
 
         expect(mockFetch).toHaveBeenCalledTimes(1);
     });

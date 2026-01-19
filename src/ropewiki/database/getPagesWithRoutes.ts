@@ -1,10 +1,10 @@
 import * as db from 'zapatos/db';
-import RopewikiPageInfo from '../types/ropewiki';
+import RopewikiPage from '../types/page';
 
 const getPagesWithRoutes = async (
     conn: db.Queryable,
-    pages: RopewikiPageInfo[],
-): Promise<RopewikiPageInfo[]> => {
+    pages: RopewikiPage[],
+): Promise<RopewikiPage[]> => {
     if (pages.length === 0) {
         return [];
     }

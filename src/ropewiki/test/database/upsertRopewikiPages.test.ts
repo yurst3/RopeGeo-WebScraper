@@ -3,7 +3,7 @@ import * as db from 'zapatos/db';
 import type * as s from 'zapatos/schema';
 import { describe, it, expect, afterEach, beforeAll, afterAll } from '@jest/globals';
 import upsertPages from '../../database/upsertPages';
-import RopewikiPageInfo from '../../types/ropewiki';
+import RopewikiPage from '../../types/page';
 
 describe('upsertPages (integration)', () => {
     const pool = new Pool({
@@ -30,6 +30,10 @@ describe('upsertPages (integration)', () => {
                 parentRegion: null,
                 name: 'Test Region',
                 latestRevisionDate: '2025-01-01T00:00:00' as db.TimestampString,
+                pageCount: 0,
+                level: 0,
+                bestMonths: JSON.stringify([]),
+                url: 'https://ropewiki.com/Test_Region',
             })
             .run(conn);
     });
@@ -47,7 +51,7 @@ describe('upsertPages (integration)', () => {
 
     it('inserts a net new page', async () => {
         const latestRevisionDate = new Date('2025-01-02T12:34:56Z');
-        const pageInfo = new RopewikiPageInfo({
+        const pageInfo = RopewikiPage.fromResponseBody({
             printouts: {
                 pageid: ['728'],
                 name: ['Bear Creek Canyon'],
@@ -66,7 +70,7 @@ describe('upsertPages (integration)', () => {
         expect(results).toHaveLength(1);
         const result = results[0]!;
         expect(result.id).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i);
-        expect(result.pageId).toBe('728');
+        expect(result.pageid).toBe('728');
         expect(result.name).toBe('Bear Creek Canyon');
         expect(result.latestRevisionDate).toEqual(latestRevisionDate);
 
@@ -90,7 +94,7 @@ describe('upsertPages (integration)', () => {
         const updatedRevisionDate = new Date('2025-01-03T14:20:10Z');
 
         // First, insert a page
-        const initialPageInfo = new RopewikiPageInfo({
+        const initialPageInfo = RopewikiPage.fromResponseBody({
             printouts: {
                 pageid: ['5597'],
                 name: ['Regions'],
@@ -114,7 +118,7 @@ describe('upsertPages (integration)', () => {
         expect(initialRows[0]?.id).toBe(initialId);
 
         // Now update the same page with new data
-        const updatedPageInfo = new RopewikiPageInfo({
+        const updatedPageInfo = RopewikiPage.fromResponseBody({
             printouts: {
                 pageid: ['5597'],
                 name: ['Regions Updated'],
@@ -150,7 +154,7 @@ describe('upsertPages (integration)', () => {
 
     it('sets deletedAt to null when upserting', async () => {
         const latestRevisionDate = new Date('2025-01-02T12:34:56Z');
-        const pageInfo = new RopewikiPageInfo({
+        const pageInfo = RopewikiPage.fromResponseBody({
             printouts: {
                 pageid: ['8888'],
                 name: ['Deleted Page'],
@@ -172,7 +176,7 @@ describe('upsertPages (integration)', () => {
         expect(beforeRows[0]?.deletedAt).not.toBeNull();
 
         // Upsert the page
-        const updatedPageInfo = new RopewikiPageInfo({
+        const updatedPageInfo = RopewikiPage.fromResponseBody({
             printouts: {
                 pageid: ['8888'],
                 name: ['Restored Page'],
@@ -193,7 +197,7 @@ describe('upsertPages (integration)', () => {
 
     it('propagates errors from the database layer', async () => {
         const latestRevisionDate = new Date('2025-01-04T10:00:00Z');
-        const pageInfo = new RopewikiPageInfo({
+        const pageInfo = RopewikiPage.fromResponseBody({
             printouts: {
                 pageid: ['9999'],
                 name: ['Test Page'],

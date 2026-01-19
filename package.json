@@ -25,6 +25,8 @@
     "test:deploy": "jest -i"
   },
   "dependencies": {
+    "@aws-lambda-powertools/parser": "^2.30.2",
+    "@aws-sdk/client-sqs": "^3.971.0",
     "@aws-sdk/rds-signer": "^3.962.0",
     "@tmcw/togeojson": "^7.1.2",
     "@types/uuid": "^10.0.0",

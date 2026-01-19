@@ -1,10 +1,5 @@
 import type * as s from 'zapatos/schema';
-
-export interface RopewikiRegion {
-    id: string
-    name: string
-    parentRegion: string | undefined
-}
+import type { SqsRecord } from '@aws-lambda-powertools/parser/types';
 
 export interface RopewikiBetaSection {
     title: string;
@@ -20,7 +15,7 @@ export interface RopewikiImage {
     order: number;
 }
 
-class RopewikiPageInfo {
+class RopewikiPage {
     id: string | undefined
     pageid: string
     name: string
@@ -49,6 +44,71 @@ class RopewikiPageInfo {
     userVotes: number | undefined
     latestRevisionDate: Date
     isValid: boolean
+
+    constructor(
+        pageid: string,
+        name: string,
+        region: string,
+        url: string,
+        latestRevisionDate: Date,
+        coordinates?: { lat: number, lon: number },
+        quality?: number,
+        rating?: string,
+        timeRating?: string,
+        kmlUrl?: string,
+        technicalRating?: string,
+        waterRating?: string,
+        riskRating?: string,
+        permits?: string,
+        rappelInfo?: string,
+        rappelCount?: number,
+        rappelLongest?: { value: number, unit: string },
+        months?: string[],
+        shuttle?: { value: number, unit: string },
+        vehicle?: string,
+        minTime?: { value: number, unit: string },
+        maxTime?: { value: number, unit: string },
+        hike?: { value: number, unit: string },
+        aka?: string[],
+        betaSites?: string[],
+        userVotes?: number,
+        id?: string,
+    ) {
+        this.pageid = pageid;
+        this.name = name;
+        this.region = region;
+        this.url = url;
+        this.latestRevisionDate = latestRevisionDate;
+        this.coordinates = coordinates;
+        this.quality = quality;
+        this.rating = rating;
+        this.timeRating = timeRating;
+        this.kmlUrl = kmlUrl;
+        this.technicalRating = technicalRating;
+        this.waterRating = waterRating;
+        this.riskRating = riskRating;
+        this.permits = permits;
+        this.rappelInfo = rappelInfo;
+        this.rappelCount = rappelCount;
+        this.rappelLongest = rappelLongest;
+        this.months = months ?? [];
+        this.shuttle = shuttle;
+        this.vehicle = vehicle;
+        this.minTime = minTime;
+        this.maxTime = maxTime;
+        this.hike = hike;
+        this.aka = aka ?? [];
+        this.betaSites = betaSites ?? [];
+        this.userVotes = userVotes;
+        this.id = id;
+
+        // Calculate isValid based on required fields
+        // Must have: pageid, name, valid region (not default UUID), url, and valid latestRevisionDate (not epoch)
+        const defaultRegionId = '00000000-0000-0000-0000-000000000000';
+        const hasValidRegion = region && region !== defaultRegionId;
+        const hasValidRevisionDate = latestRevisionDate && latestRevisionDate.getTime() !== 0;
+        this.isValid = !!(pageid && name && hasValidRegion && url && hasValidRevisionDate);
+    }
 
     /**
      * Parses an optional scalar string field from printouts
@@ -87,8 +147,8 @@ class RopewikiPageInfo {
             ? { lat: Number(coord.lat), lon: Number(coord.lon) }
             : undefined;
     }
-    
-    constructor(raw: unknown, regionNameIds: {[name: string]: string}) {
+
+    static fromResponseBody(raw: unknown, regionNameIds: {[name: string]: string}): RopewikiPage {
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const { printouts } = raw as { printouts: any };
 
@@ -108,77 +168,95 @@ class RopewikiPageInfo {
 
         // Map region name to region ID
         let regionId: string;
-        let hasValidRegion = false;
         const defaultRegionId = '00000000-0000-0000-0000-000000000000'; // Default UUID for invalid regions
         
         if (regionName) {
             const mappedRegionId = regionNameIds[String(regionName)];
             if (mappedRegionId) {
                 regionId = mappedRegionId;
-                hasValidRegion = true;
             } else {
                 // Log that we don't have an ID for this region
                 console.error(`Page ${pageid || 'unknown'} ${name || 'unknown'} has region "${regionName}" that we don't have an ID for`);
                 regionId = defaultRegionId;
-                hasValidRegion = false;
             }
         } else {
             regionId = defaultRegionId;
-            hasValidRegion = false;
         }
 
-        // Set isValid based on whether all required fields are present (including valid latestRevisionDate and valid region)
-        this.isValid = !!(pageid && name && hasValidRegion && url && (latestRevisionDateRaw && latestRevisionDateRaw.timestamp));
-
         // Required scalar fields - set to empty strings if missing
-        this.pageid = pageid ? String(pageid) : '';
-        this.name = name ? String(name) : '';
-        this.region = regionId; // Store region ID, not name
-        this.url = url ? String(url) : '';
+        const parsedPageid = pageid ? String(pageid) : '';
+        const parsedName = name ? String(name) : '';
+        const parsedUrl = url ? String(url) : '';
 
         // Optional simple scalars
-        this.quality = RopewikiPageInfo.parseOptionalNumber(printouts, 'quality');
-        this.rating = RopewikiPageInfo.parseOptionalString(printouts, 'rating');
-        this.timeRating = RopewikiPageInfo.parseOptionalString(printouts, 'timeRating');
-        this.kmlUrl = RopewikiPageInfo.parseOptionalString(printouts, 'kmlUrl');
-        this.technicalRating = RopewikiPageInfo.parseOptionalString(printouts, 'technicalRating');
-        this.waterRating = RopewikiPageInfo.parseOptionalString(printouts, 'waterRating');
-        this.riskRating = RopewikiPageInfo.parseOptionalString(printouts, 'riskRating');
-        this.permits = RopewikiPageInfo.parseOptionalString(printouts, 'permits');
-        this.rappelInfo = RopewikiPageInfo.parseOptionalString(printouts, 'rappelInfo');
-        this.rappelCount = RopewikiPageInfo.parseOptionalNumber(printouts, 'rappelCount');
-        this.vehicle = RopewikiPageInfo.parseOptionalString(printouts, 'vehicle');
+        const quality = RopewikiPage.parseOptionalNumber(printouts, 'quality');
+        const rating = RopewikiPage.parseOptionalString(printouts, 'rating');
+        const timeRating = RopewikiPage.parseOptionalString(printouts, 'timeRating');
+        const kmlUrl = RopewikiPage.parseOptionalString(printouts, 'kmlUrl');
+        const technicalRating = RopewikiPage.parseOptionalString(printouts, 'technicalRating');
+        const waterRating = RopewikiPage.parseOptionalString(printouts, 'waterRating');
+        const riskRating = RopewikiPage.parseOptionalString(printouts, 'riskRating');
+        const permits = RopewikiPage.parseOptionalString(printouts, 'permits');
+        const rappelInfo = RopewikiPage.parseOptionalString(printouts, 'rappelInfo');
+        const rappelCount = RopewikiPage.parseOptionalNumber(printouts, 'rappelCount');
+        const vehicle = RopewikiPage.parseOptionalString(printouts, 'vehicle');
 
         // Optional object-valued fields
-        this.coordinates = RopewikiPageInfo.parseCoordinates(printouts);
-        this.rappelLongest = RopewikiPageInfo.parseOptionalValueUnit(printouts, 'rappelLongest');
-        this.shuttle = RopewikiPageInfo.parseOptionalValueUnit(printouts, 'shuttle');
-        this.minTime = RopewikiPageInfo.parseOptionalValueUnit(printouts, 'minTime');
-        this.maxTime = RopewikiPageInfo.parseOptionalValueUnit(printouts, 'maxTime');
-        this.hike = RopewikiPageInfo.parseOptionalValueUnit(printouts, 'hike');
+        const coordinates = RopewikiPage.parseCoordinates(printouts);
+        const rappelLongest = RopewikiPage.parseOptionalValueUnit(printouts, 'rappelLongest');
+        const shuttle = RopewikiPage.parseOptionalValueUnit(printouts, 'shuttle');
+        const minTime = RopewikiPage.parseOptionalValueUnit(printouts, 'minTime');
+        const maxTime = RopewikiPage.parseOptionalValueUnit(printouts, 'maxTime');
+        const hike = RopewikiPage.parseOptionalValueUnit(printouts, 'hike');
 
         // Months is always an array of strings; fall back to []
-        this.months = Array.isArray(printouts.months)
+        const months = Array.isArray(printouts.months)
             ? printouts.months.map((m: unknown) => String(m))
             : [];
 
         // AKA is a semicolon-separated string in an array; split and trim
-        this.aka = Array.isArray(printouts.aka) && printouts.aka.length > 0
+        const aka = Array.isArray(printouts.aka) && printouts.aka.length > 0
             ? String(printouts.aka[0]).split(';').map((a: string) => a.trim()).filter((a: string) => a.length > 0)
             : [];
 
         // BetaSites is a comma-separated string in an array; split and trim
-        this.betaSites = Array.isArray(printouts.betaSites) && printouts.betaSites.length > 0
+        const betaSites = Array.isArray(printouts.betaSites) && printouts.betaSites.length > 0
             ? String(printouts.betaSites[0]).split(',').map((site: string) => site.trim()).filter((site: string) => site.length > 0)
             : [];
 
         // UserVotes is a number in an array
-        this.userVotes = Array.isArray(printouts.userVotes) && printouts.userVotes.length > 0
+        const userVotes = Array.isArray(printouts.userVotes) && printouts.userVotes.length > 0
             ? Number(printouts.userVotes[0])
             : undefined;
 
-        // LatestRevisionDate was already parsed above for the isValid check
-        this.latestRevisionDate = latestRevisionDate;
+        return new RopewikiPage(
+            parsedPageid,
+            parsedName,
+            regionId,
+            parsedUrl,
+            latestRevisionDate,
+            coordinates,
+            quality,
+            rating,
+            timeRating,
+            kmlUrl,
+            technicalRating,
+            waterRating,
+            riskRating,
+            permits,
+            rappelInfo,
+            rappelCount,
+            rappelLongest,
+            months,
+            shuttle,
+            vehicle,
+            minTime,
+            maxTime,
+            hike,
+            aka,
+            betaSites,
+            userVotes
+        );
     }
 
     toDbRow(): s.RopewikiPage.Insertable {
@@ -215,10 +293,7 @@ class RopewikiPageInfo {
         };
     }
 
-    static fromDbRow(row: s.RopewikiPage.JSONSelectable): RopewikiPageInfo {
-        // Create an instance without calling the constructor
-        const instance = Object.create(RopewikiPageInfo.prototype) as RopewikiPageInfo;
-
+    static fromDbRow(row: s.RopewikiPage.JSONSelectable): RopewikiPage {
         // Parse JSON fields back to their original format
         const coordinates = row.coordinates as { lat: number; lon: number } | null;
         const rappelLongest = row.rappelLongest as { value: number; unit: string } | null;
@@ -230,37 +305,92 @@ class RopewikiPageInfo {
         const aka = row.aka as string[] | null;
         const betaSites = row.betaSites as string[] | null;
 
-        // Set properties directly
-        instance.id = row.id;
-        instance.pageid = row.pageId;
-        instance.name = row.name;
-        instance.region = row.region;
-        instance.url = row.url;
-        instance.rating = row.rating ?? undefined;
-        instance.timeRating = row.timeRating ?? undefined;
-        instance.kmlUrl = row.kmlUrl ?? undefined;
-        instance.technicalRating = row.technicalRating ?? undefined;
-        instance.waterRating = row.waterRating ?? undefined;
-        instance.riskRating = row.riskRating ?? undefined;
-        instance.permits = row.permits ?? undefined;
-        instance.rappelInfo = row.rappelInfo ?? undefined;
-        instance.rappelCount = row.rappelCount ?? undefined;
-        instance.vehicle = row.vehicle ?? undefined;
-        instance.quality = row.quality ?? undefined;
-        instance.coordinates = coordinates ?? undefined;
-        instance.rappelLongest = rappelLongest ?? undefined;
-        instance.shuttle = shuttle ?? undefined;
-        instance.minTime = minTime ?? undefined;
-        instance.maxTime = maxTime ?? undefined;
-        instance.hike = hike ?? undefined;
-        instance.months = months ?? [];
-        instance.aka = aka ?? [];
-        instance.betaSites = betaSites ?? [];
-        instance.userVotes = row.userVotes ?? undefined;
-        instance.latestRevisionDate = new Date(row.latestRevisionDate);
-        instance.isValid = !!(instance.pageid && instance.name && instance.region && instance.url && instance.latestRevisionDate);
+        // Create instance using constructor
+        return new RopewikiPage(
+            row.pageId,
+            row.name,
+            row.region,
+            row.url,
+            new Date(row.latestRevisionDate),
+            coordinates ?? undefined,
+            row.quality ?? undefined,
+            row.rating ?? undefined,
+            row.timeRating ?? undefined,
+            row.kmlUrl ?? undefined,
+            row.technicalRating ?? undefined,
+            row.waterRating ?? undefined,
+            row.riskRating ?? undefined,
+            row.permits ?? undefined,
+            row.rappelInfo ?? undefined,
+            row.rappelCount ?? undefined,
+            rappelLongest ?? undefined,
+            months ?? [],
+            shuttle ?? undefined,
+            row.vehicle ?? undefined,
+            minTime ?? undefined,
+            maxTime ?? undefined,
+            hike ?? undefined,
+            aka ?? [],
+            betaSites ?? [],
+            row.userVotes ?? undefined,
+            row.id
+        );
+    }
 
-        return instance;
+    static fromSQSEventRecord(record: SqsRecord): RopewikiPage {
+        // Parse the body JSON string
+        const pageData = JSON.parse(record.body) as { [key: string]: unknown };
+
+        if (!pageData || !pageData.pageid) {
+            throw new Error('Invalid SQS record body: missing page data or pageid');
+        }
+
+        // Parse JSON fields back to their original format
+        const coordinates = pageData.coordinates as { lat: number; lon: number } | undefined;
+        const rappelLongest = pageData.rappelLongest as { value: number; unit: string } | undefined;
+        const shuttle = pageData.shuttle as { value: number; unit: string } | undefined;
+        const minTime = pageData.minTime as { value: number; unit: string } | undefined;
+        const maxTime = pageData.maxTime as { value: number; unit: string } | undefined;
+        const hike = pageData.hike as { value: number; unit: string } | undefined;
+        const months = pageData.months as string[] | undefined;
+        const aka = pageData.aka as string[] | undefined;
+        const betaSites = pageData.betaSites as string[] | undefined;
+
+        // Convert latestRevisionDate string back to Date object if needed
+        const latestRevisionDate = pageData.latestRevisionDate instanceof Date
+            ? pageData.latestRevisionDate
+            : new Date(pageData.latestRevisionDate as string);
+
+        // Create instance using constructor
+        return new RopewikiPage(
+            pageData.pageid as string,
+            pageData.name as string,
+            (pageData.region as string) || '',
+            (pageData.url as string) || '',
+            latestRevisionDate,
+            coordinates,
+            pageData.quality as number | undefined,
+            pageData.rating as string | undefined,
+            pageData.timeRating as string | undefined,
+            pageData.kmlUrl as string | undefined,
+            pageData.technicalRating as string | undefined,
+            pageData.waterRating as string | undefined,
+            pageData.riskRating as string | undefined,
+            pageData.permits as string | undefined,
+            pageData.rappelInfo as string | undefined,
+            pageData.rappelCount as number | undefined,
+            rappelLongest,
+            months || [],
+            shuttle,
+            pageData.vehicle as string | undefined,
+            minTime,
+            maxTime,
+            hike,
+            aka || [],
+            betaSites || [],
+            pageData.userVotes as number | undefined,
+            pageData.id as string | undefined
+        );
     }
 
     // https://ropewiki.com/index.php?title=Special:Properties&limit=500&offset=0
@@ -297,4 +427,4 @@ class RopewikiPageInfo {
     }
 }
 
-export default RopewikiPageInfo;
+export default RopewikiPage;

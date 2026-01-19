@@ -2,7 +2,7 @@ import { Pool } from 'pg';
 import * as db from 'zapatos/db';
 import { describe, it, expect, afterEach, beforeAll, afterAll } from '@jest/globals';
 import getPagesWithCoordinates from '../../database/getPagesWithCoordinates';
-import RopewikiPageInfo from '../../types/ropewiki';
+import RopewikiPage from '../../types/page';
 
 describe('getPagesWithCoordinates (integration)', () => {
     const pool = new Pool({
@@ -29,6 +29,10 @@ describe('getPagesWithCoordinates (integration)', () => {
                 parentRegion: null,
                 name: 'Test Region',
                 latestRevisionDate: '2025-01-01T00:00:00' as db.TimestampString,
+                pageCount: 0,
+                level: 0,
+                bestMonths: JSON.stringify([]),
+                url: 'https://ropewiki.com/Test_Region',
             })
             .run(conn);
     });
@@ -48,7 +52,7 @@ describe('getPagesWithCoordinates (integration)', () => {
         const latestRevisionDate = new Date('2025-01-02T12:34:56Z');
         
         // Create pages with coordinates
-        const page1 = new RopewikiPageInfo({
+        const page1 = RopewikiPage.fromResponseBody({
             printouts: {
                 pageid: ['728'],
                 name: ['Bear Creek Canyon'],
@@ -59,7 +63,7 @@ describe('getPagesWithCoordinates (integration)', () => {
             },
         }, regionNameIds);
 
-        const page2 = new RopewikiPageInfo({
+        const page2 = RopewikiPage.fromResponseBody({
             printouts: {
                 pageid: ['5597'],
                 name: ['Test Page 2'],
@@ -102,7 +106,7 @@ describe('getPagesWithCoordinates (integration)', () => {
         const latestRevisionDate = new Date('2025-01-02T12:34:56Z');
         
         // Create page with coordinates
-        const pageWithCoords = new RopewikiPageInfo({
+        const pageWithCoords = RopewikiPage.fromResponseBody({
             printouts: {
                 pageid: ['728'],
                 name: ['Page With Coordinates'],
@@ -114,7 +118,7 @@ describe('getPagesWithCoordinates (integration)', () => {
         }, regionNameIds);
 
         // Create page without coordinates
-        const pageWithoutCoords = new RopewikiPageInfo({
+        const pageWithoutCoords = RopewikiPage.fromResponseBody({
             printouts: {
                 pageid: ['5597'],
                 name: ['Page Without Coordinates'],
@@ -158,7 +162,7 @@ describe('getPagesWithCoordinates (integration)', () => {
         const latestRevisionDate = new Date('2025-01-02T12:34:56Z');
         
         // Create page without coordinates
-        const page = new RopewikiPageInfo({
+        const page = RopewikiPage.fromResponseBody({
             printouts: {
                 pageid: ['728'],
                 name: ['Page Without Coordinates'],
@@ -183,7 +187,7 @@ describe('getPagesWithCoordinates (integration)', () => {
         const latestRevisionDate = new Date('2025-01-02T12:34:56Z');
         
         // Create page with many optional fields
-        const page = new RopewikiPageInfo({
+        const page = RopewikiPage.fromResponseBody({
             printouts: {
                 pageid: ['728'],
                 name: ['Complex Page'],

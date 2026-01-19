@@ -3,8 +3,8 @@ import * as db from 'zapatos/db';
 import type * as s from 'zapatos/schema';
 import { describe, it, expect, afterEach, beforeAll, afterAll } from '@jest/globals';
 import upsertBetaSections from '../../database/upsertBetaSections';
-import type { RopewikiBetaSection } from '../../types/ropewiki';
-import RopewikiPageInfo from '../../types/ropewiki';
+import type { RopewikiBetaSection } from '../../types/page';
+import RopewikiPage from '../../types/page';
 import upsertPages from '../../database/upsertPages';
 
 describe('upsertBetaSections (integration)', () => {
@@ -34,12 +34,16 @@ describe('upsertBetaSections (integration)', () => {
                 parentRegion: null,
                 name: 'Test Region',
                 latestRevisionDate: '2025-01-01T00:00:00' as db.TimestampString,
+                pageCount: 0,
+                level: 0,
+                bestMonths: JSON.stringify([]),
+                url: 'https://ropewiki.com/Test_Region',
             })
             .run(conn);
 
         // Insert a test page (required foreign key for beta sections)
         const latestRevisionDate = new Date('2025-01-01T00:00:00Z');
-        const pageInfo = new RopewikiPageInfo({
+        const pageInfo = RopewikiPage.fromResponseBody({
             printouts: {
                 pageid: ['9999'],
                 name: ['Test Page'],

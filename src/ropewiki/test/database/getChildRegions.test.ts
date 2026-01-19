@@ -2,6 +2,7 @@ import { Pool } from 'pg';
 import { describe, it, expect, beforeAll, afterAll, afterEach } from '@jest/globals';
 import * as db from 'zapatos/db';
 import getChildRegions from '../../database/getChildRegions';
+import { RopewikiRegion } from '../../types/region';
 
 describe('getChildRegions (integration)', () => {
     const pool = new Pool({
@@ -28,7 +29,7 @@ describe('getChildRegions (integration)', () => {
         await pool.end();
     });
 
-    it('returns child region names when parent has children', async () => {
+    it('returns child region objects when parent has children', async () => {
         const worldId = 'ffebfa80-656e-4e48-99a6-81608cc0051d';
         const africaId = 'd1d9139d-38db-433c-b7cd-a28f79331667';
         const asiaId = 'e2e9240e-49ec-544d-c8de-b39f90442778';
@@ -43,24 +44,52 @@ describe('getChildRegions (integration)', () => {
                     parentRegion: null,
                     name: 'World',
                     latestRevisionDate,
+                    pageCount: 0,
+                    level: 0,
+                    overview: null,
+                    bestMonths: JSON.stringify([]),
+                    isMajorRegion: false,
+                    isTopLevelRegion: true,
+                    url: 'https://ropewiki.com/World',
                 },
                 {
                     id: africaId,
-                    parentRegion: worldId,
+                    parentRegion: 'World',
                     name: 'Africa',
                     latestRevisionDate,
+                    pageCount: 0,
+                    level: 1,
+                    overview: null,
+                    bestMonths: JSON.stringify([]),
+                    isMajorRegion: false,
+                    isTopLevelRegion: false,
+                    url: 'https://ropewiki.com/Africa',
                 },
                 {
                     id: asiaId,
-                    parentRegion: worldId,
+                    parentRegion: 'World',
                     name: 'Asia',
                     latestRevisionDate,
+                    pageCount: 0,
+                    level: 1,
+                    overview: null,
+                    bestMonths: JSON.stringify([]),
+                    isMajorRegion: false,
+                    isTopLevelRegion: false,
+                    url: 'https://ropewiki.com/Asia',
                 },
                 {
                     id: europeId,
-                    parentRegion: worldId,
+                    parentRegion: 'World',
                     name: 'Europe',
                     latestRevisionDate,
+                    pageCount: 0,
+                    level: 1,
+                    overview: null,
+                    bestMonths: JSON.stringify([]),
+                    isMajorRegion: false,
+                    isTopLevelRegion: false,
+                    url: 'https://ropewiki.com/Europe',
                 },
             ])
             .run(conn);
@@ -68,9 +97,13 @@ describe('getChildRegions (integration)', () => {
         const result = await getChildRegions(conn, 'World');
 
         expect(result).toHaveLength(3);
-        expect(result).toContain('Africa');
-        expect(result).toContain('Asia');
-        expect(result).toContain('Europe');
+        expect(result.every(r => r instanceof RopewikiRegion)).toBe(true);
+        expect(result.map(r => r.name)).toContain('Africa');
+        expect(result.map(r => r.name)).toContain('Asia');
+        expect(result.map(r => r.name)).toContain('Europe');
+        expect(result.find(r => r.name === 'Africa')?.id).toBe(africaId);
+        expect(result.find(r => r.name === 'Asia')?.id).toBe(asiaId);
+        expect(result.find(r => r.name === 'Europe')?.id).toBe(europeId);
     });
 
     it('returns empty array when parent has no children', async () => {
@@ -86,12 +119,26 @@ describe('getChildRegions (integration)', () => {
                     parentRegion: null,
                     name: 'World',
                     latestRevisionDate,
+                    pageCount: 0,
+                    level: 0,
+                    overview: null,
+                    bestMonths: JSON.stringify([]),
+                    isMajorRegion: false,
+                    isTopLevelRegion: true,
+                    url: 'https://ropewiki.com/World',
                 },
                 {
                     id: africaId,
-                    parentRegion: worldId,
+                    parentRegion: 'World',
                     name: 'Africa',
                     latestRevisionDate,
+                    pageCount: 0,
+                    level: 1,
+                    overview: null,
+                    bestMonths: JSON.stringify([]),
+                    isMajorRegion: false,
+                    isTopLevelRegion: false,
+                    url: 'https://ropewiki.com/Africa',
                 },
             ])
             .run(conn);
@@ -101,10 +148,9 @@ describe('getChildRegions (integration)', () => {
         expect(result).toEqual([]);
     });
 
-    it('throws an error when parent region does not exist', async () => {
-        await expect(getChildRegions(conn, 'NonExistentRegion')).rejects.toThrow(
-            'Region not found: NonExistentRegion'
-        );
+    it('returns empty array when parent region does not exist', async () => {
+        const result = await getChildRegions(conn, 'NonExistentRegion');
+        expect(result).toEqual([]);
     });
 
     it('only returns direct children, not grandchildren', async () => {
@@ -121,18 +167,39 @@ describe('getChildRegions (integration)', () => {
                     parentRegion: null,
                     name: 'World',
                     latestRevisionDate,
+                    pageCount: 0,
+                    level: 0,
+                    overview: null,
+                    bestMonths: JSON.stringify([]),
+                    isMajorRegion: false,
+                    isTopLevelRegion: true,
+                    url: 'https://ropewiki.com/World',
                 },
                 {
                     id: africaId,
-                    parentRegion: worldId,
+                    parentRegion: 'World',
                     name: 'Africa',
                     latestRevisionDate,
+                    pageCount: 0,
+                    level: 1,
+                    overview: null,
+                    bestMonths: JSON.stringify([]),
+                    isMajorRegion: false,
+                    isTopLevelRegion: false,
+                    url: 'https://ropewiki.com/Africa',
                 },
                 {
                     id: kenyaId,
-                    parentRegion: africaId,
+                    parentRegion: 'Africa',
                     name: 'Kenya',
                     latestRevisionDate,
+                    pageCount: 0,
+                    level: 2,
+                    overview: null,
+                    bestMonths: JSON.stringify([]),
+                    isMajorRegion: false,
+                    isTopLevelRegion: false,
+                    url: 'https://ropewiki.com/Kenya',
                 },
             ])
             .run(conn);
@@ -140,11 +207,11 @@ describe('getChildRegions (integration)', () => {
         const result = await getChildRegions(conn, 'World');
 
         expect(result).toHaveLength(1);
-        expect(result).toContain('Africa');
-        expect(result).not.toContain('Kenya');
+        expect(result[0]?.name).toBe('Africa');
+        expect(result.map(r => r.name)).not.toContain('Kenya');
     });
 
-    it('returns child region names in correct order', async () => {
+    it('returns child region objects in correct order', async () => {
         const worldId = 'ffebfa80-656e-4e48-99a6-81608cc0051d';
         const africaId = 'd1d9139d-38db-433c-b7cd-a28f79331667';
         const asiaId = 'e2e9240e-49ec-544d-c8de-b39f90442778';
@@ -158,18 +225,39 @@ describe('getChildRegions (integration)', () => {
                     parentRegion: null,
                     name: 'World',
                     latestRevisionDate,
+                    pageCount: 0,
+                    level: 0,
+                    overview: null,
+                    bestMonths: JSON.stringify([]),
+                    isMajorRegion: false,
+                    isTopLevelRegion: true,
+                    url: 'https://ropewiki.com/World',
                 },
                 {
                     id: africaId,
-                    parentRegion: worldId,
+                    parentRegion: 'World',
                     name: 'Africa',
                     latestRevisionDate,
+                    pageCount: 0,
+                    level: 1,
+                    overview: null,
+                    bestMonths: JSON.stringify([]),
+                    isMajorRegion: false,
+                    isTopLevelRegion: false,
+                    url: 'https://ropewiki.com/Africa',
                 },
                 {
                     id: asiaId,
-                    parentRegion: worldId,
+                    parentRegion: 'World',
                     name: 'Asia',
                     latestRevisionDate,
+                    pageCount: 0,
+                    level: 1,
+                    overview: null,
+                    bestMonths: JSON.stringify([]),
+                    isMajorRegion: false,
+                    isTopLevelRegion: false,
+                    url: 'https://ropewiki.com/Asia',
                 },
             ])
             .run(conn);
@@ -177,8 +265,9 @@ describe('getChildRegions (integration)', () => {
         const result = await getChildRegions(conn, 'World');
 
         expect(result).toHaveLength(2);
-        expect(result).toContain('Africa');
-        expect(result).toContain('Asia');
+        expect(result.map(r => r.name)).toContain('Africa');
+        expect(result.map(r => r.name)).toContain('Asia');
+        expect(result.every(r => r instanceof RopewikiRegion)).toBe(true);
     });
 
     it('propagates errors from the database layer', async () => {

@@ -2,7 +2,7 @@ import { Pool } from 'pg';
 import * as db from 'zapatos/db';
 import { describe, it, expect, afterEach, beforeAll, afterAll } from '@jest/globals';
 import getPagesWithoutRoutes from '../../database/getPagesWithoutRoutes';
-import RopewikiPageInfo from '../../types/ropewiki';
+import RopewikiPage from '../../types/page';
 
 describe('getPagesWithoutRoutes (integration)', () => {
     const pool = new Pool({
@@ -31,6 +31,10 @@ describe('getPagesWithoutRoutes (integration)', () => {
                 parentRegion: null,
                 name: 'Test Region',
                 latestRevisionDate: '2025-01-01T00:00:00' as db.TimestampString,
+                pageCount: 0,
+                level: 0,
+                bestMonths: JSON.stringify([]),
+                url: 'https://ropewiki.com/Test_Region',
             })
             .run(conn);
     });
@@ -54,7 +58,7 @@ describe('getPagesWithoutRoutes (integration)', () => {
         const latestRevisionDate = new Date('2025-01-02T12:34:56Z');
         
         // Create pages
-        const page1 = new RopewikiPageInfo({
+        const page1 = RopewikiPage.fromResponseBody({
             printouts: {
                 pageid: ['728'],
                 name: ['Page Without Route'],
@@ -64,7 +68,7 @@ describe('getPagesWithoutRoutes (integration)', () => {
             },
         }, regionNameIds);
 
-        const page2 = new RopewikiPageInfo({
+        const page2 = RopewikiPage.fromResponseBody({
             printouts: {
                 pageid: ['5597'],
                 name: ['Another Page Without Route'],
@@ -83,12 +87,12 @@ describe('getPagesWithoutRoutes (integration)', () => {
         const page1Id = inserted1.id;
         const page2Id = inserted2.id;
 
-        // Fetch pages from database to get RopewikiPageInfo objects with IDs
+        // Fetch pages from database to get RopewikiPage objects with IDs
         const dbPages1 = await db.select('RopewikiPage', { id: page1Id }).run(conn);
         const dbPages2 = await db.select('RopewikiPage', { id: page2Id }).run(conn);
         const pages = [
-            RopewikiPageInfo.fromDbRow(dbPages1[0]!),
-            RopewikiPageInfo.fromDbRow(dbPages2[0]!),
+            RopewikiPage.fromDbRow(dbPages1[0]!),
+            RopewikiPage.fromDbRow(dbPages2[0]!),
         ];
 
         // Query for pages without routes
@@ -104,7 +108,7 @@ describe('getPagesWithoutRoutes (integration)', () => {
         const latestRevisionDate = new Date('2025-01-02T12:34:56Z');
         
         // Create page with route
-        const pageWithRoute = new RopewikiPageInfo({
+        const pageWithRoute = RopewikiPage.fromResponseBody({
             printouts: {
                 pageid: ['728'],
                 name: ['Page With Route'],
@@ -115,7 +119,7 @@ describe('getPagesWithoutRoutes (integration)', () => {
         }, regionNameIds);
 
         // Create page without route
-        const pageWithoutRoute = new RopewikiPageInfo({
+        const pageWithoutRoute = RopewikiPage.fromResponseBody({
             printouts: {
                 pageid: ['5597'],
                 name: ['Page Without Route'],
@@ -154,12 +158,12 @@ describe('getPagesWithoutRoutes (integration)', () => {
             })
             .run(conn);
 
-        // Fetch pages from database to get RopewikiPageInfo objects with IDs
+        // Fetch pages from database to get RopewikiPage objects with IDs
         const dbPagesWithRoute = await db.select('RopewikiPage', { id: pageWithRouteId }).run(conn);
         const dbPagesWithoutRoute = await db.select('RopewikiPage', { id: pageWithoutRouteId }).run(conn);
         const pages = [
-            RopewikiPageInfo.fromDbRow(dbPagesWithRoute[0]!),
-            RopewikiPageInfo.fromDbRow(dbPagesWithoutRoute[0]!),
+            RopewikiPage.fromDbRow(dbPagesWithRoute[0]!),
+            RopewikiPage.fromDbRow(dbPagesWithoutRoute[0]!),
         ];
 
         // Query for pages without routes
@@ -181,7 +185,7 @@ describe('getPagesWithoutRoutes (integration)', () => {
         const latestRevisionDate = new Date('2025-01-02T12:34:56Z');
         
         // Create pages without IDs (from constructor)
-        const page1 = new RopewikiPageInfo({
+        const page1 = RopewikiPage.fromResponseBody({
             printouts: {
                 pageid: ['728'],
                 name: ['Page Without ID'],
@@ -200,7 +204,7 @@ describe('getPagesWithoutRoutes (integration)', () => {
         const latestRevisionDate = new Date('2025-01-02T12:34:56Z');
         
         // Create page with route
-        const page = new RopewikiPageInfo({
+        const page = RopewikiPage.fromResponseBody({
             printouts: {
                 pageid: ['728'],
                 name: ['Page With Route'],
@@ -235,9 +239,9 @@ describe('getPagesWithoutRoutes (integration)', () => {
             })
             .run(conn);
 
-        // Fetch page from database to get RopewikiPageInfo object with ID
+        // Fetch page from database to get RopewikiPage object with ID
         const dbPages = await db.select('RopewikiPage', { id: pageId }).run(conn);
-        const pages = [RopewikiPageInfo.fromDbRow(dbPages[0]!)];
+        const pages = [RopewikiPage.fromDbRow(dbPages[0]!)];
 
         // Query for pages without routes
         const results = await getPagesWithoutRoutes(conn, pages);
@@ -249,7 +253,7 @@ describe('getPagesWithoutRoutes (integration)', () => {
         const latestRevisionDate = new Date('2025-01-02T12:34:56Z');
         
         // Create page
-        const page = new RopewikiPageInfo({
+        const page = RopewikiPage.fromResponseBody({
             printouts: {
                 pageid: ['728'],
                 name: ['Page With Deleted Route'],
@@ -289,9 +293,9 @@ describe('getPagesWithoutRoutes (integration)', () => {
             .update('RopewikiRoute', { deletedAt: now }, { route: routeId, ropewikiPage: pageId })
             .run(conn);
 
-        // Fetch page from database to get RopewikiPageInfo object with ID
+        // Fetch page from database to get RopewikiPage object with ID
         const dbPages = await db.select('RopewikiPage', { id: pageId }).run(conn);
-        const pages = [RopewikiPageInfo.fromDbRow(dbPages[0]!)];
+        const pages = [RopewikiPage.fromDbRow(dbPages[0]!)];
 
         // Query for pages without routes (deleted routes are treated as no route)
         const results = await getPagesWithoutRoutes(conn, pages);
@@ -305,7 +309,7 @@ describe('getPagesWithoutRoutes (integration)', () => {
         const latestRevisionDate = new Date('2025-01-02T12:34:56Z');
         
         // Create page
-        const page = new RopewikiPageInfo({
+        const page = RopewikiPage.fromResponseBody({
             printouts: {
                 pageid: ['728'],
                 name: ['Deleted Page'],
@@ -326,9 +330,9 @@ describe('getPagesWithoutRoutes (integration)', () => {
             .update('RopewikiPage', { deletedAt: now }, { id: pageId })
             .run(conn);
 
-        // Fetch page from database to get RopewikiPageInfo object with ID
+        // Fetch page from database to get RopewikiPage object with ID
         const dbPages = await db.select('RopewikiPage', { id: pageId }).run(conn);
-        const pages = [RopewikiPageInfo.fromDbRow(dbPages[0]!)];
+        const pages = [RopewikiPage.fromDbRow(dbPages[0]!)];
 
         // Query for pages without routes
         // The function queries for pages WITH routes (non-deleted), then filters input pages

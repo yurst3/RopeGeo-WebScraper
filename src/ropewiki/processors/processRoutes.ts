@@ -1,11 +1,11 @@
-import getPagesWithCoordinates from "./database/getPagesWithCoordinates";
+import getPagesWithCoordinates from "../database/getPagesWithCoordinates";
 import { Queryable } from "zapatos/db";
-import getPagesWithRoutes from "./database/getPagesWithRoutes";
-import updatePageRoute from "./database/updatePageRoute";
-import getPagesWithoutRoutes from "./database/getPagesWithoutRoutes";
-import insertRoutesForPages from "./database/insertRoutesForPages";
+import getPagesWithRoutes from "../database/getPagesWithRoutes";
+import updatePageRoute from "../database/updatePageRoute";
+import getPagesWithoutRoutes from "../database/getPagesWithoutRoutes";
+import insertRoutesForPages from "../database/insertRoutesForPages";
 
-const handleRopewikiRoutes = async (conn: Queryable, upsertedPageUuids: string[]) => {
+const processRoutes = async (conn: Queryable, upsertedPageUuids: string[]) => {
     // Routes need coordinates, not all upserted pages have coordinates
     const pagesWithCoords = await getPagesWithCoordinates(conn, upsertedPageUuids);
 
@@ -23,4 +23,4 @@ const handleRopewikiRoutes = async (conn: Queryable, upsertedPageUuids: string[]
     }
 }
 
-export default handleRopewikiRoutes;
+export default processRoutes;

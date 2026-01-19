@@ -1,5 +1,5 @@
 import * as db from 'zapatos/db';
-import { RopewikiImage } from '../types/ropewiki';
+import { RopewikiImage } from '../types/page';
 
 // Insert or update images for a page.
 // On conflict (same ropewikiPage, betaSection & fileUrl), update the image fields and timestamps, including latestRevisionDate.

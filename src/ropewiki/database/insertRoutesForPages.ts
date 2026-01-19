@@ -1,11 +1,11 @@
 import * as db from 'zapatos/db';
-import RopewikiPageInfo from '../types/ropewiki';
+import RopewikiPage from '../types/page';
 import { Route } from '../../types/route';
 import zip from 'lodash/zip';
 
 const insertRoutesForPages = async (
     conn: db.Queryable,
-    pages: RopewikiPageInfo[],
+    pages: RopewikiPage[],
 ): Promise<string[][]> => {
     if (pages.length === 0) {
         return [];
