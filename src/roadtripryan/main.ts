@@ -1,9 +1,7 @@
-import { launchBrowser } from '../helpers/browserLauncher'
 import getPageHtml from './http/getPageHtml';
 import parseCanyonsPage from './parsers/parseCanyonsPage';
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const roadTripRyanScraperHandler = async (event: unknown, context: any) => {
+export const main = async () => {
     console.log('Road Trip Ryan Scraper');
 
     const pageHtml = await getPageHtml("https://www.roadtripryan.com/go/type/canyon");
@@ -11,7 +9,7 @@ export const roadTripRyanScraperHandler = async (event: unknown, context: any) =
 
 };
 
-roadTripRyanScraperHandler({},{})
+main()
 
 // Allow running as a Node.js script (not just Lambda handler)
 // if (require.main === module) {
