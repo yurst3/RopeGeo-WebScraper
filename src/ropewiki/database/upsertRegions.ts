@@ -2,7 +2,7 @@ import * as db from 'zapatos/db';
 import { RopewikiRegion } from '../types/region';
 
 // Insert or update a batch of regions.
-// On conflict (same id), update all region fields and timestamps.
+// On conflict (same name and parentRegion), update all region fields and timestamps.
 // Returns all upserted regions from the database.
 const upsertRegions = async (
     conn: db.Queryable,
@@ -13,8 +13,8 @@ const upsertRegions = async (
     const rows = regions.map((region) => region.toDbRow());
 
     const results = await db
-        .upsert('RopewikiRegion', rows, ['id'], {
-            updateColumns: ['name', 'parentRegion', 'pageCount', 'level', 'overview', 'bestMonths', 'isMajorRegion', 'isTopLevelRegion', 'latestRevisionDate', 'url', 'updatedAt', 'deletedAt'],
+        .upsert('RopewikiRegion', rows, ['name', 'parentRegion'], {
+            updateColumns: ['pageCount', 'level', 'overview', 'bestMonths', 'isMajorRegion', 'isTopLevelRegion', 'latestRevisionDate', 'url', 'updatedAt', 'deletedAt'],
         })
         .run(conn);
 

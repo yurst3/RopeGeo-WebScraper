@@ -18,8 +18,8 @@
     "local-db:stop": "docker stop local-db",
     "test-db:start": "docker run --publish 127.0.0.1:8080:5432/tcp --name test-db -e POSTGRES_PASSWORD=testPass -e POSTGRES_USER=testUser -e POSTGRES_DB=test -d postgres; sleep 0.5; npm run migrate-test:up",
     "test-db:delete": "docker stop test-db; docker rm test-db",
-    "test:unit": "jest -i --testPathIgnorePatterns=/src/ropewiki/test/database/*",
-    "test:database": "TEST_USER=testUser TEST_PASS=testPass TEST_HOST=127.0.0.1 TEST_PORT=8080 TEST_DB=test jest -i --testPathPatterns=/src/ropewiki/test/database/*",
+    "test:unit": "jest -i --testPathIgnorePatterns=/test/ropewiki/database/*",
+    "test:database": "TEST_USER=testUser TEST_PASS=testPass TEST_HOST=127.0.0.1 TEST_PORT=8080 TEST_DB=test jest -i --testPathPatterns=/test/ropewiki/database/*",
     "test:local": "npm run test:unit; npm run test-db:start; npm run test:database; npm run test-db:delete",
     "test:deploy": "jest -i"
   },

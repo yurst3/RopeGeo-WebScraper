@@ -10,7 +10,7 @@ phases:
       # Discover and run unit tests
       - npm run test
       # Remove all unit tests to reduce the size of the package that will be ultimately uploaded to Lambda
-      - rm -rf ./src/ropewiki/test
+      - rm -rf ./test
       # Remove all dependencies not needed for the Lambda deployment package (the packages from devDependencies in package.json)
       - npm prune --production
   build:

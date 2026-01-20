@@ -1,4 +1,4 @@
-\restrict omEiXn9CWkHUmfSaYYRL1x4Z7hnHcCHx3wsL9uBWWh6H05ovRjd14uQckkBhoFN
+\restrict 0kuttbum0evPlgxndb1qIWAh9F2Z5XjQM0ZFnOHnlFNaUBkNmtR3UhaYI6oPpSJ
 
 -- Dumped from database version 18.1 (Debian 18.1-1.pgdg13+2)
 -- Dumped by pg_dump version 18.1 (Homebrew)
@@ -246,7 +246,7 @@ ALTER TABLE ONLY public."RopewikiPage"
 --
 
 ALTER TABLE ONLY public."RopewikiRegion"
-    ADD CONSTRAINT "uk_ropewikiRegion_name_parentRegion" UNIQUE (name, "parentRegion");
+    ADD CONSTRAINT "uk_ropewikiRegion_name_parentRegion" UNIQUE NULLS NOT DISTINCT (name, "parentRegion");
 
 
 --
@@ -324,7 +324,7 @@ ALTER TABLE ONLY public."RopewikiRoute"
 -- PostgreSQL database dump complete
 --
 
-\unrestrict omEiXn9CWkHUmfSaYYRL1x4Z7hnHcCHx3wsL9uBWWh6H05ovRjd14uQckkBhoFN
+\unrestrict 0kuttbum0evPlgxndb1qIWAh9F2Z5XjQM0ZFnOHnlFNaUBkNmtR3UhaYI6oPpSJ
 
 
 --
@@ -343,4 +343,5 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20260112211225'),
     ('20260112234228'),
     ('20260117175122'),
-    ('20260117184634');
+    ('20260117184634'),
+    ('20260120163351');
