@@ -23,6 +23,269 @@ declare module 'zapatos/schema' {
   /* --- tables --- */
 
   /**
+   * **MapData**
+   * - Table in database
+   */
+  export namespace MapData {
+    export type Table = 'MapData';
+    export interface Selectable {
+      /**
+      * **MapData.createdAt**
+      * - `timestamp` in database
+      * - `NOT NULL`, default: `CURRENT_TIMESTAMP`
+      */
+      createdAt: Date;
+      /**
+      * **MapData.deletedAt**
+      * - `timestamp` in database
+      * - Nullable, no default
+      */
+      deletedAt: Date | null;
+      /**
+      * **MapData.geoJsonUrl**
+      * - `text` in database
+      * - Nullable, no default
+      */
+      geoJsonUrl: string | null;
+      /**
+      * **MapData.gpxUrl**
+      * - `text` in database
+      * - Nullable, no default
+      */
+      gpxUrl: string | null;
+      /**
+      * **MapData.id**
+      * - `uuid` in database
+      * - `NOT NULL`, default: `gen_random_uuid()`
+      */
+      id: string;
+      /**
+      * **MapData.kmlUrl**
+      * - `text` in database
+      * - Nullable, no default
+      */
+      kmlUrl: string | null;
+      /**
+      * **MapData.updatedAt**
+      * - `timestamp` in database
+      * - `NOT NULL`, default: `CURRENT_TIMESTAMP`
+      */
+      updatedAt: Date;
+      /**
+      * **MapData.vectorTileUrl**
+      * - `text` in database
+      * - Nullable, no default
+      */
+      vectorTileUrl: string | null;
+    }
+    export interface JSONSelectable {
+      /**
+      * **MapData.createdAt**
+      * - `timestamp` in database
+      * - `NOT NULL`, default: `CURRENT_TIMESTAMP`
+      */
+      createdAt: db.TimestampString;
+      /**
+      * **MapData.deletedAt**
+      * - `timestamp` in database
+      * - Nullable, no default
+      */
+      deletedAt: db.TimestampString | null;
+      /**
+      * **MapData.geoJsonUrl**
+      * - `text` in database
+      * - Nullable, no default
+      */
+      geoJsonUrl: string | null;
+      /**
+      * **MapData.gpxUrl**
+      * - `text` in database
+      * - Nullable, no default
+      */
+      gpxUrl: string | null;
+      /**
+      * **MapData.id**
+      * - `uuid` in database
+      * - `NOT NULL`, default: `gen_random_uuid()`
+      */
+      id: string;
+      /**
+      * **MapData.kmlUrl**
+      * - `text` in database
+      * - Nullable, no default
+      */
+      kmlUrl: string | null;
+      /**
+      * **MapData.updatedAt**
+      * - `timestamp` in database
+      * - `NOT NULL`, default: `CURRENT_TIMESTAMP`
+      */
+      updatedAt: db.TimestampString;
+      /**
+      * **MapData.vectorTileUrl**
+      * - `text` in database
+      * - Nullable, no default
+      */
+      vectorTileUrl: string | null;
+    }
+    export interface Whereable {
+      /**
+      * **MapData.createdAt**
+      * - `timestamp` in database
+      * - `NOT NULL`, default: `CURRENT_TIMESTAMP`
+      */
+      createdAt?: (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.SQLFragment | db.ParentColumn>;
+      /**
+      * **MapData.deletedAt**
+      * - `timestamp` in database
+      * - Nullable, no default
+      */
+      deletedAt?: (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.SQLFragment | db.ParentColumn>;
+      /**
+      * **MapData.geoJsonUrl**
+      * - `text` in database
+      * - Nullable, no default
+      */
+      geoJsonUrl?: string | db.Parameter<string> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, string | db.Parameter<string> | db.SQLFragment | db.ParentColumn>;
+      /**
+      * **MapData.gpxUrl**
+      * - `text` in database
+      * - Nullable, no default
+      */
+      gpxUrl?: string | db.Parameter<string> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, string | db.Parameter<string> | db.SQLFragment | db.ParentColumn>;
+      /**
+      * **MapData.id**
+      * - `uuid` in database
+      * - `NOT NULL`, default: `gen_random_uuid()`
+      */
+      id?: string | db.Parameter<string> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, string | db.Parameter<string> | db.SQLFragment | db.ParentColumn>;
+      /**
+      * **MapData.kmlUrl**
+      * - `text` in database
+      * - Nullable, no default
+      */
+      kmlUrl?: string | db.Parameter<string> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, string | db.Parameter<string> | db.SQLFragment | db.ParentColumn>;
+      /**
+      * **MapData.updatedAt**
+      * - `timestamp` in database
+      * - `NOT NULL`, default: `CURRENT_TIMESTAMP`
+      */
+      updatedAt?: (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.SQLFragment | db.ParentColumn>;
+      /**
+      * **MapData.vectorTileUrl**
+      * - `text` in database
+      * - Nullable, no default
+      */
+      vectorTileUrl?: string | db.Parameter<string> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, string | db.Parameter<string> | db.SQLFragment | db.ParentColumn>;
+    }
+    export interface Insertable {
+      /**
+      * **MapData.createdAt**
+      * - `timestamp` in database
+      * - `NOT NULL`, default: `CURRENT_TIMESTAMP`
+      */
+      createdAt?: (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.DefaultType | db.SQLFragment;
+      /**
+      * **MapData.deletedAt**
+      * - `timestamp` in database
+      * - Nullable, no default
+      */
+      deletedAt?: (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | null | db.DefaultType | db.SQLFragment;
+      /**
+      * **MapData.geoJsonUrl**
+      * - `text` in database
+      * - Nullable, no default
+      */
+      geoJsonUrl?: string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment;
+      /**
+      * **MapData.gpxUrl**
+      * - `text` in database
+      * - Nullable, no default
+      */
+      gpxUrl?: string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment;
+      /**
+      * **MapData.id**
+      * - `uuid` in database
+      * - `NOT NULL`, default: `gen_random_uuid()`
+      */
+      id?: string | db.Parameter<string> | db.DefaultType | db.SQLFragment;
+      /**
+      * **MapData.kmlUrl**
+      * - `text` in database
+      * - Nullable, no default
+      */
+      kmlUrl?: string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment;
+      /**
+      * **MapData.updatedAt**
+      * - `timestamp` in database
+      * - `NOT NULL`, default: `CURRENT_TIMESTAMP`
+      */
+      updatedAt?: (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.DefaultType | db.SQLFragment;
+      /**
+      * **MapData.vectorTileUrl**
+      * - `text` in database
+      * - Nullable, no default
+      */
+      vectorTileUrl?: string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment;
+    }
+    export interface Updatable {
+      /**
+      * **MapData.createdAt**
+      * - `timestamp` in database
+      * - `NOT NULL`, default: `CURRENT_TIMESTAMP`
+      */
+      createdAt?: (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.DefaultType | db.SQLFragment | db.SQLFragment<any, (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.DefaultType | db.SQLFragment>;
+      /**
+      * **MapData.deletedAt**
+      * - `timestamp` in database
+      * - Nullable, no default
+      */
+      deletedAt?: (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | null | db.DefaultType | db.SQLFragment | db.SQLFragment<any, (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | null | db.DefaultType | db.SQLFragment>;
+      /**
+      * **MapData.geoJsonUrl**
+      * - `text` in database
+      * - Nullable, no default
+      */
+      geoJsonUrl?: string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment | db.SQLFragment<any, string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment>;
+      /**
+      * **MapData.gpxUrl**
+      * - `text` in database
+      * - Nullable, no default
+      */
+      gpxUrl?: string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment | db.SQLFragment<any, string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment>;
+      /**
+      * **MapData.id**
+      * - `uuid` in database
+      * - `NOT NULL`, default: `gen_random_uuid()`
+      */
+      id?: string | db.Parameter<string> | db.DefaultType | db.SQLFragment | db.SQLFragment<any, string | db.Parameter<string> | db.DefaultType | db.SQLFragment>;
+      /**
+      * **MapData.kmlUrl**
+      * - `text` in database
+      * - Nullable, no default
+      */
+      kmlUrl?: string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment | db.SQLFragment<any, string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment>;
+      /**
+      * **MapData.updatedAt**
+      * - `timestamp` in database
+      * - `NOT NULL`, default: `CURRENT_TIMESTAMP`
+      */
+      updatedAt?: (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.DefaultType | db.SQLFragment | db.SQLFragment<any, (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.DefaultType | db.SQLFragment>;
+      /**
+      * **MapData.vectorTileUrl**
+      * - `text` in database
+      * - Nullable, no default
+      */
+      vectorTileUrl?: string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment | db.SQLFragment<any, string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment>;
+    }
+    export type UniqueIndex = 'MapData_pkey';
+    export type Column = keyof Selectable;
+    export type OnlyCols<T extends readonly Column[]> = Pick<Selectable, T[number]>;
+    export type SQLExpression = Table | db.ColumnNames<Updatable | (keyof Updatable)[]> | db.ColumnValues<Updatable> | Whereable | Column | db.ParentColumn | db.GenericSQLExpression;
+    export type SQL = SQLExpression | SQLExpression[];
+  }
+
+  /**
    * **RopewikiImage**
    * - Table in database
    */
@@ -2054,6 +2317,12 @@ declare module 'zapatos/schema' {
       */
       deletedAt: Date | null;
       /**
+      * **RopewikiRoute.mapData**
+      * - `uuid` in database
+      * - Nullable, no default
+      */
+      mapData: string | null;
+      /**
       * **RopewikiRoute.ropewikiPage**
       * - `uuid` in database
       * - `NOT NULL`, no default
@@ -2071,12 +2340,6 @@ declare module 'zapatos/schema' {
       * - `NOT NULL`, default: `CURRENT_TIMESTAMP`
       */
       updatedAt: Date;
-      /**
-      * **RopewikiRoute.vectorTile**
-      * - `uuid` in database
-      * - Nullable, no default
-      */
-      vectorTile: string | null;
     }
     export interface JSONSelectable {
       /**
@@ -2091,6 +2354,12 @@ declare module 'zapatos/schema' {
       * - Nullable, no default
       */
       deletedAt: db.TimestampString | null;
+      /**
+      * **RopewikiRoute.mapData**
+      * - `uuid` in database
+      * - Nullable, no default
+      */
+      mapData: string | null;
       /**
       * **RopewikiRoute.ropewikiPage**
       * - `uuid` in database
@@ -2109,12 +2378,6 @@ declare module 'zapatos/schema' {
       * - `NOT NULL`, default: `CURRENT_TIMESTAMP`
       */
       updatedAt: db.TimestampString;
-      /**
-      * **RopewikiRoute.vectorTile**
-      * - `uuid` in database
-      * - Nullable, no default
-      */
-      vectorTile: string | null;
     }
     export interface Whereable {
       /**
@@ -2129,6 +2392,12 @@ declare module 'zapatos/schema' {
       * - Nullable, no default
       */
       deletedAt?: (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.SQLFragment | db.ParentColumn>;
+      /**
+      * **RopewikiRoute.mapData**
+      * - `uuid` in database
+      * - Nullable, no default
+      */
+      mapData?: string | db.Parameter<string> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, string | db.Parameter<string> | db.SQLFragment | db.ParentColumn>;
       /**
       * **RopewikiRoute.ropewikiPage**
       * - `uuid` in database
@@ -2147,12 +2416,6 @@ declare module 'zapatos/schema' {
       * - `NOT NULL`, default: `CURRENT_TIMESTAMP`
       */
       updatedAt?: (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.SQLFragment | db.ParentColumn>;
-      /**
-      * **RopewikiRoute.vectorTile**
-      * - `uuid` in database
-      * - Nullable, no default
-      */
-      vectorTile?: string | db.Parameter<string> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, string | db.Parameter<string> | db.SQLFragment | db.ParentColumn>;
     }
     export interface Insertable {
       /**
@@ -2167,6 +2430,12 @@ declare module 'zapatos/schema' {
       * - Nullable, no default
       */
       deletedAt?: (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | null | db.DefaultType | db.SQLFragment;
+      /**
+      * **RopewikiRoute.mapData**
+      * - `uuid` in database
+      * - Nullable, no default
+      */
+      mapData?: string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment;
       /**
       * **RopewikiRoute.ropewikiPage**
       * - `uuid` in database
@@ -2185,12 +2454,6 @@ declare module 'zapatos/schema' {
       * - `NOT NULL`, default: `CURRENT_TIMESTAMP`
       */
       updatedAt?: (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.DefaultType | db.SQLFragment;
-      /**
-      * **RopewikiRoute.vectorTile**
-      * - `uuid` in database
-      * - Nullable, no default
-      */
-      vectorTile?: string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment;
     }
     export interface Updatable {
       /**
@@ -2205,6 +2468,12 @@ declare module 'zapatos/schema' {
       * - Nullable, no default
       */
       deletedAt?: (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | null | db.DefaultType | db.SQLFragment | db.SQLFragment<any, (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | null | db.DefaultType | db.SQLFragment>;
+      /**
+      * **RopewikiRoute.mapData**
+      * - `uuid` in database
+      * - Nullable, no default
+      */
+      mapData?: string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment | db.SQLFragment<any, string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment>;
       /**
       * **RopewikiRoute.ropewikiPage**
       * - `uuid` in database
@@ -2223,12 +2492,6 @@ declare module 'zapatos/schema' {
       * - `NOT NULL`, default: `CURRENT_TIMESTAMP`
       */
       updatedAt?: (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.DefaultType | db.SQLFragment | db.SQLFragment<any, (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.DefaultType | db.SQLFragment>;
-      /**
-      * **RopewikiRoute.vectorTile**
-      * - `uuid` in database
-      * - Nullable, no default
-      */
-      vectorTile?: string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment | db.SQLFragment<any, string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment>;
     }
     export type UniqueIndex = 'uk_ropewikiRoute_ropewikiPage' | 'uk_ropewikiRoute_route_ropewikiPage';
     export type Column = keyof Selectable;
@@ -2526,20 +2789,20 @@ declare module 'zapatos/schema' {
   /* --- aggregate types --- */
 
   export namespace public {  
-    export type Table = RopewikiImage.Table | RopewikiPage.Table | RopewikiPageBetaSection.Table | RopewikiRegion.Table | RopewikiRoute.Table | Route.Table | schema_migrations.Table;
-    export type Selectable = RopewikiImage.Selectable | RopewikiPage.Selectable | RopewikiPageBetaSection.Selectable | RopewikiRegion.Selectable | RopewikiRoute.Selectable | Route.Selectable | schema_migrations.Selectable;
-    export type JSONSelectable = RopewikiImage.JSONSelectable | RopewikiPage.JSONSelectable | RopewikiPageBetaSection.JSONSelectable | RopewikiRegion.JSONSelectable | RopewikiRoute.JSONSelectable | Route.JSONSelectable | schema_migrations.JSONSelectable;
-    export type Whereable = RopewikiImage.Whereable | RopewikiPage.Whereable | RopewikiPageBetaSection.Whereable | RopewikiRegion.Whereable | RopewikiRoute.Whereable | Route.Whereable | schema_migrations.Whereable;
-    export type Insertable = RopewikiImage.Insertable | RopewikiPage.Insertable | RopewikiPageBetaSection.Insertable | RopewikiRegion.Insertable | RopewikiRoute.Insertable | Route.Insertable | schema_migrations.Insertable;
-    export type Updatable = RopewikiImage.Updatable | RopewikiPage.Updatable | RopewikiPageBetaSection.Updatable | RopewikiRegion.Updatable | RopewikiRoute.Updatable | Route.Updatable | schema_migrations.Updatable;
-    export type UniqueIndex = RopewikiImage.UniqueIndex | RopewikiPage.UniqueIndex | RopewikiPageBetaSection.UniqueIndex | RopewikiRegion.UniqueIndex | RopewikiRoute.UniqueIndex | Route.UniqueIndex | schema_migrations.UniqueIndex;
-    export type Column = RopewikiImage.Column | RopewikiPage.Column | RopewikiPageBetaSection.Column | RopewikiRegion.Column | RopewikiRoute.Column | Route.Column | schema_migrations.Column;
+    export type Table = MapData.Table | RopewikiImage.Table | RopewikiPage.Table | RopewikiPageBetaSection.Table | RopewikiRegion.Table | RopewikiRoute.Table | Route.Table | schema_migrations.Table;
+    export type Selectable = MapData.Selectable | RopewikiImage.Selectable | RopewikiPage.Selectable | RopewikiPageBetaSection.Selectable | RopewikiRegion.Selectable | RopewikiRoute.Selectable | Route.Selectable | schema_migrations.Selectable;
+    export type JSONSelectable = MapData.JSONSelectable | RopewikiImage.JSONSelectable | RopewikiPage.JSONSelectable | RopewikiPageBetaSection.JSONSelectable | RopewikiRegion.JSONSelectable | RopewikiRoute.JSONSelectable | Route.JSONSelectable | schema_migrations.JSONSelectable;
+    export type Whereable = MapData.Whereable | RopewikiImage.Whereable | RopewikiPage.Whereable | RopewikiPageBetaSection.Whereable | RopewikiRegion.Whereable | RopewikiRoute.Whereable | Route.Whereable | schema_migrations.Whereable;
+    export type Insertable = MapData.Insertable | RopewikiImage.Insertable | RopewikiPage.Insertable | RopewikiPageBetaSection.Insertable | RopewikiRegion.Insertable | RopewikiRoute.Insertable | Route.Insertable | schema_migrations.Insertable;
+    export type Updatable = MapData.Updatable | RopewikiImage.Updatable | RopewikiPage.Updatable | RopewikiPageBetaSection.Updatable | RopewikiRegion.Updatable | RopewikiRoute.Updatable | Route.Updatable | schema_migrations.Updatable;
+    export type UniqueIndex = MapData.UniqueIndex | RopewikiImage.UniqueIndex | RopewikiPage.UniqueIndex | RopewikiPageBetaSection.UniqueIndex | RopewikiRegion.UniqueIndex | RopewikiRoute.UniqueIndex | Route.UniqueIndex | schema_migrations.UniqueIndex;
+    export type Column = MapData.Column | RopewikiImage.Column | RopewikiPage.Column | RopewikiPageBetaSection.Column | RopewikiRegion.Column | RopewikiRoute.Column | Route.Column | schema_migrations.Column;
   
-    export type AllBaseTables = [RopewikiImage.Table, RopewikiPage.Table, RopewikiPageBetaSection.Table, RopewikiRegion.Table, RopewikiRoute.Table, Route.Table, schema_migrations.Table];
+    export type AllBaseTables = [MapData.Table, RopewikiImage.Table, RopewikiPage.Table, RopewikiPageBetaSection.Table, RopewikiRegion.Table, RopewikiRoute.Table, Route.Table, schema_migrations.Table];
     export type AllForeignTables = [];
     export type AllViews = [];
     export type AllMaterializedViews = [];
-    export type AllTablesAndViews = [RopewikiImage.Table, RopewikiPage.Table, RopewikiPageBetaSection.Table, RopewikiRegion.Table, RopewikiRoute.Table, Route.Table, schema_migrations.Table];
+    export type AllTablesAndViews = [MapData.Table, RopewikiImage.Table, RopewikiPage.Table, RopewikiPageBetaSection.Table, RopewikiRegion.Table, RopewikiRoute.Table, Route.Table, schema_migrations.Table];
   }
 
 
@@ -2567,6 +2830,7 @@ declare module 'zapatos/schema' {
   /* === lookups === */
 
   export type SelectableForTable<T extends Table> = {
+    "MapData": MapData.Selectable;
     "RopewikiImage": RopewikiImage.Selectable;
     "RopewikiPage": RopewikiPage.Selectable;
     "RopewikiPageBetaSection": RopewikiPageBetaSection.Selectable;
@@ -2577,6 +2841,7 @@ declare module 'zapatos/schema' {
   }[T];
 
   export type JSONSelectableForTable<T extends Table> = {
+    "MapData": MapData.JSONSelectable;
     "RopewikiImage": RopewikiImage.JSONSelectable;
     "RopewikiPage": RopewikiPage.JSONSelectable;
     "RopewikiPageBetaSection": RopewikiPageBetaSection.JSONSelectable;
@@ -2587,6 +2852,7 @@ declare module 'zapatos/schema' {
   }[T];
 
   export type WhereableForTable<T extends Table> = {
+    "MapData": MapData.Whereable;
     "RopewikiImage": RopewikiImage.Whereable;
     "RopewikiPage": RopewikiPage.Whereable;
     "RopewikiPageBetaSection": RopewikiPageBetaSection.Whereable;
@@ -2597,6 +2863,7 @@ declare module 'zapatos/schema' {
   }[T];
 
   export type InsertableForTable<T extends Table> = {
+    "MapData": MapData.Insertable;
     "RopewikiImage": RopewikiImage.Insertable;
     "RopewikiPage": RopewikiPage.Insertable;
     "RopewikiPageBetaSection": RopewikiPageBetaSection.Insertable;
@@ -2607,6 +2874,7 @@ declare module 'zapatos/schema' {
   }[T];
 
   export type UpdatableForTable<T extends Table> = {
+    "MapData": MapData.Updatable;
     "RopewikiImage": RopewikiImage.Updatable;
     "RopewikiPage": RopewikiPage.Updatable;
     "RopewikiPageBetaSection": RopewikiPageBetaSection.Updatable;
@@ -2617,6 +2885,7 @@ declare module 'zapatos/schema' {
   }[T];
 
   export type UniqueIndexForTable<T extends Table> = {
+    "MapData": MapData.UniqueIndex;
     "RopewikiImage": RopewikiImage.UniqueIndex;
     "RopewikiPage": RopewikiPage.UniqueIndex;
     "RopewikiPageBetaSection": RopewikiPageBetaSection.UniqueIndex;
@@ -2627,6 +2896,7 @@ declare module 'zapatos/schema' {
   }[T];
 
   export type ColumnForTable<T extends Table> = {
+    "MapData": MapData.Column;
     "RopewikiImage": RopewikiImage.Column;
     "RopewikiPage": RopewikiPage.Column;
     "RopewikiPageBetaSection": RopewikiPageBetaSection.Column;
@@ -2637,6 +2907,7 @@ declare module 'zapatos/schema' {
   }[T];
 
   export type SQLForTable<T extends Table> = {
+    "MapData": MapData.SQL;
     "RopewikiImage": RopewikiImage.SQL;
     "RopewikiPage": RopewikiPage.SQL;
     "RopewikiPageBetaSection": RopewikiPageBetaSection.SQL;

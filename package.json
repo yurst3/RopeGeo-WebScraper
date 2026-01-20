@@ -18,13 +18,14 @@
     "local-db:stop": "docker stop local-db",
     "test-db:start": "docker run --publish 127.0.0.1:8080:5432/tcp --name test-db -e POSTGRES_PASSWORD=testPass -e POSTGRES_USER=testUser -e POSTGRES_DB=test -d postgres; sleep 0.5; npm run migrate-test:up",
     "test-db:delete": "docker stop test-db; docker rm test-db",
-    "test:unit": "jest -i --testPathIgnorePatterns=/test/ropewiki/database/*",
-    "test:database": "TEST_USER=testUser TEST_PASS=testPass TEST_HOST=127.0.0.1 TEST_PORT=8080 TEST_DB=test jest -i --testPathPatterns=/test/ropewiki/database/*",
+    "test:unit": "NODE_OPTIONS=\"$NODE_OPTIONS --experimental-vm-modules\" jest -i --testPathIgnorePatterns=/test/ropewiki/database/* --testPathIgnorePatterns=/test/map-data/database/*",
+    "test:database": "TEST_USER=testUser TEST_PASS=testPass TEST_HOST=127.0.0.1 TEST_PORT=8080 TEST_DB=test jest -i --testPathPatterns=/test/ropewiki/database/* --testPathPatterns=/test/map-data/database/*",
     "test:local": "npm run test:unit; npm run test-db:start; npm run test:database; npm run test-db:delete",
     "test:deploy": "jest -i"
   },
   "dependencies": {
     "@aws-lambda-powertools/parser": "^2.30.2",
+    "@aws-sdk/client-s3": "^3.971.0",
     "@aws-sdk/client-sqs": "^3.971.0",
     "@aws-sdk/rds-signer": "^3.962.0",
     "@tmcw/togeojson": "^7.1.2",

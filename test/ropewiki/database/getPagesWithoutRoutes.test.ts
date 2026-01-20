@@ -154,7 +154,7 @@ describe('getPagesWithoutRoutes (integration)', () => {
             .insert('RopewikiRoute', {
                 route: routeId,
                 ropewikiPage: pageWithRouteId,
-                vectorTile: null,
+                mapData: null,
             })
             .run(conn);
 
@@ -235,7 +235,7 @@ describe('getPagesWithoutRoutes (integration)', () => {
             .insert('RopewikiRoute', {
                 route: routeId,
                 ropewikiPage: pageId,
-                vectorTile: null,
+                mapData: null,
             })
             .run(conn);
 
@@ -284,7 +284,7 @@ describe('getPagesWithoutRoutes (integration)', () => {
             .insert('RopewikiRoute', {
                 route: routeId,
                 ropewikiPage: pageId,
-                vectorTile: null,
+                mapData: null,
             })
             .run(conn);
 

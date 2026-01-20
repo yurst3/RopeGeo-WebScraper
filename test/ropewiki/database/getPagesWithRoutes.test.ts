@@ -114,12 +114,12 @@ describe('getPagesWithRoutes (integration)', () => {
                 {
                     route: route1Id,
                     ropewikiPage: page1Id,
-                    vectorTile: null,
+                    mapData: null,
                 },
                 {
                     route: route2Id,
                     ropewikiPage: page2Id,
-                    vectorTile: null,
+                    mapData: null,
                 },
             ])
             .run(conn);
@@ -191,7 +191,7 @@ describe('getPagesWithRoutes (integration)', () => {
             .insert('RopewikiRoute', {
                 route: routeId,
                 ropewikiPage: pageWithRouteId,
-                vectorTile: null,
+                mapData: null,
             })
             .run(conn);
 
@@ -301,7 +301,7 @@ describe('getPagesWithRoutes (integration)', () => {
             .insert('RopewikiRoute', {
                 route: routeId,
                 ropewikiPage: pageId,
-                vectorTile: null,
+                mapData: null,
             })
             .run(conn);
 
@@ -355,7 +355,7 @@ describe('getPagesWithRoutes (integration)', () => {
             .insert('RopewikiRoute', {
                 route: routeId,
                 ropewikiPage: pageId,
-                vectorTile: null,
+                mapData: null,
             })
             .run(conn);
 

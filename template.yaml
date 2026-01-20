@@ -220,6 +220,25 @@ Resources:
       VisibilityTimeout: 960
       MessageRetentionPeriod: 345600
 
+  # SQS Queue for map data processing
+  MapDataProcessingQueue:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !Sub '${devEnvironment}-map-data-processing-queue'
+      VisibilityTimeout: 960
+      MessageRetentionPeriod: 345600
+
+  # S3 Bucket for storing map data files
+  MapDataBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub '${devEnvironment}-map-data-bucket'
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+
   # Lambda function that scrapes ALL Ropewiki pages and stores them in the database
   RopewikiScraper:
     Type: AWS::Serverless::Function
@@ -256,9 +275,12 @@ Resources:
           DB_USER: !Ref DatabaseUsername
           DB_PASSWORD: !Ref DatabasePassword
           ROPEWIKI_PAGE_PROCESSING_QUEUE_URL: !Ref RopewikiPageProcessingQueue
+          MAP_DATA_PROCESSING_QUEUE_URL: !Ref MapDataProcessingQueue
       Policies:
         - SQSSendMessagePolicy:
             QueueName: !GetAtt RopewikiPageProcessingQueue.QueueName
+        - SQSSendMessagePolicy:
+            QueueName: !GetAtt MapDataProcessingQueue.QueueName
     Metadata: # Manage esbuild properties
       BuildMethod: esbuild
       BuildProperties:
@@ -313,6 +335,44 @@ Resources:
         - src/ropewiki/main.ts
         External:
         - "@sparticuz/chromium"
+
+  # Lambda function that processes map data (KML to MBTiles conversion)
+  MapDataProcessor:
+    Type: AWS::Serverless::Function
+    Properties:
+      Description: A Lambda function that processes map data by converting KML files to MBTiles
+      Runtime: nodejs22.x
+      Handler: src/map-data/lambda-handlers/mainHandler.mainHandler
+      Events:
+        SQSEvent:
+          Type: SQS
+          Properties:
+            Queue: !GetAtt MapDataProcessingQueue.Arn
+            BatchSize: 1
+      MemorySize: 1024
+      Timeout: 900
+      VpcConfig:
+        SecurityGroupIds:
+          - !Ref LambdaSecurityGroup
+        SubnetIds:
+          - !Ref PrivateSubnet1
+      Environment:
+        Variables:
+          DEV_ENVIRONMENT: !Ref devEnvironment
+          AWS_REGION: !Ref AWS::Region
+          DB_HOST: !GetAtt Database.Endpoint.Address
+          DB_PORT: !GetAtt Database.Endpoint.Port
+          DB_NAME: !Sub '${devEnvironment}-db'
+          DB_USER: !Ref DatabaseUsername
+          DB_PASSWORD: !Ref DatabasePassword
+          MAP_DATA_BUCKET_NAME: !Ref MapDataBucket
+      Policies:
+        - S3WritePolicy:
+            BucketName: !Ref MapDataBucket
+    Metadata:
+      BuildMethod: makefile
+      BuildProperties:
+        Makefile: src/map-data/Makefile
 
 # # More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
 Globals:

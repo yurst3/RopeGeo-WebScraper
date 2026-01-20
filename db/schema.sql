@@ -1,4 +1,4 @@
-\restrict 0kuttbum0evPlgxndb1qIWAh9F2Z5XjQM0ZFnOHnlFNaUBkNmtR3UhaYI6oPpSJ
+\restrict YxNhGe4bBmf22EW6XtaYfxm5Lh3DtSkVF94CZLwanmA81HHjp6c2Z03fvzONdri
 
 -- Dumped from database version 18.1 (Debian 18.1-1.pgdg13+2)
 -- Dumped by pg_dump version 18.1 (Homebrew)
@@ -18,6 +18,22 @@ SET row_security = off;
 SET default_tablespace = '';
 
 SET default_table_access_method = heap;
+
+--
+-- Name: MapData; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public."MapData" (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    "gpxUrl" text,
+    "kmlUrl" text,
+    "geoJsonUrl" text,
+    "vectorTileUrl" text,
+    "createdAt" timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    "updatedAt" timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    "deletedAt" timestamp without time zone
+);
+
 
 --
 -- Name: RopewikiImage; Type: TABLE; Schema: public; Owner: -
@@ -122,7 +138,7 @@ CREATE TABLE public."RopewikiRegion" (
 CREATE TABLE public."RopewikiRoute" (
     route uuid NOT NULL,
     "ropewikiPage" uuid NOT NULL,
-    "vectorTile" uuid,
+    "mapData" uuid,
     "createdAt" timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
     "updatedAt" timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
     "deletedAt" timestamp without time zone
@@ -151,6 +167,14 @@ CREATE TABLE public."Route" (
 CREATE TABLE public.schema_migrations (
     version character varying NOT NULL
 );
+
+
+--
+-- Name: MapData MapData_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public."MapData"
+    ADD CONSTRAINT "MapData_pkey" PRIMARY KEY (id);
 
 
 --
@@ -305,6 +329,14 @@ ALTER TABLE ONLY public."RopewikiPage"
 
 
 --
+-- Name: RopewikiRoute fk_ropewikiRoute_mapData; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public."RopewikiRoute"
+    ADD CONSTRAINT "fk_ropewikiRoute_mapData" FOREIGN KEY ("mapData") REFERENCES public."MapData"(id);
+
+
+--
 -- Name: RopewikiRoute fk_ropewikiRoute_ropewikiPage; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -324,7 +356,7 @@ ALTER TABLE ONLY public."RopewikiRoute"
 -- PostgreSQL database dump complete
 --
 
-\unrestrict 0kuttbum0evPlgxndb1qIWAh9F2Z5XjQM0ZFnOHnlFNaUBkNmtR3UhaYI6oPpSJ
+\unrestrict YxNhGe4bBmf22EW6XtaYfxm5Lh3DtSkVF94CZLwanmA81HHjp6c2Z03fvzONdri
 
 
 --
@@ -344,4 +376,5 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20260112234228'),
     ('20260117175122'),
     ('20260117184634'),
-    ('20260120163351');
+    ('20260120163351'),
+    ('20260120174146');

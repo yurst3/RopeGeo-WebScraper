@@ -93,7 +93,7 @@ describe('updatePageRoute (integration)', () => {
             .insert('RopewikiRoute', {
                 route: routeId,
                 ropewikiPage: pageId,
-                vectorTile: null,
+                mapData: null,
             })
             .run(conn);
 
@@ -261,7 +261,7 @@ describe('updatePageRoute (integration)', () => {
             .insert('RopewikiRoute', {
                 route: routeId,
                 ropewikiPage: pageId,
-                vectorTile: null,
+                mapData: null,
             })
             .run(conn);
 
