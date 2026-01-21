@@ -94,10 +94,10 @@ describe('getRopewikiRoute (integration)', () => {
             .insert('MapData', [
                 {
                     id: mapDataId,
-                    gpxUrl: null,
-                    kmlUrl: null,
-                    geoJsonUrl: null,
-                    vectorTileUrl: null,
+                    gpx: null,
+                    kml: null,
+                    geoJson: null,
+                    vectorTile: null,
                 },
             ])
             .run(conn);
@@ -118,7 +118,7 @@ describe('getRopewikiRoute (integration)', () => {
         expect(result).toBeDefined();
         expect(result).toBeInstanceOf(RopewikiRoute);
         expect(result!.route).toBe(routeId);
-        expect(result!.ropewikiPage).toBe(pageId);
+        expect(result!.page).toBe(pageId);
         expect(result!.mapData).toBe(mapDataId);
     });
 
@@ -189,7 +189,7 @@ describe('getRopewikiRoute (integration)', () => {
         expect(result).toBeDefined();
         expect(result).toBeInstanceOf(RopewikiRoute);
         expect(result!.route).toBe(routeId);
-        expect(result!.ropewikiPage).toBe(pageId);
+        expect(result!.page).toBe(pageId);
         expect(result!.mapData).toBeUndefined();
     });
 
@@ -259,10 +259,10 @@ describe('getRopewikiRoute (integration)', () => {
             .insert('MapData', [
                 {
                     id: mapDataId,
-                    gpxUrl: null,
-                    kmlUrl: null,
-                    geoJsonUrl: null,
-                    vectorTileUrl: null,
+                    gpx: null,
+                    kml: null,
+                    geoJson: null,
+                    vectorTile: null,
                 },
             ])
             .run(conn);
@@ -358,17 +358,17 @@ describe('getRopewikiRoute (integration)', () => {
             .insert('MapData', [
                 {
                     id: mapDataId1,
-                    gpxUrl: null,
-                    kmlUrl: null,
-                    geoJsonUrl: null,
-                    vectorTileUrl: null,
+                    gpx: null,
+                    kml: null,
+                    geoJson: null,
+                    vectorTile: null,
                 },
                 {
                     id: mapDataId2,
-                    gpxUrl: null,
-                    kmlUrl: null,
-                    geoJsonUrl: null,
-                    vectorTileUrl: null,
+                    gpx: null,
+                    kml: null,
+                    geoJson: null,
+                    vectorTile: null,
                 },
             ])
             .run(conn);
@@ -395,13 +395,13 @@ describe('getRopewikiRoute (integration)', () => {
         expect(result1).toBeDefined();
         expect(result1).toBeInstanceOf(RopewikiRoute);
         expect(result1!.route).toBe(routeId1);
-        expect(result1!.ropewikiPage).toBe(pageId1);
+        expect(result1!.page).toBe(pageId1);
         expect(result1!.mapData).toBe(mapDataId1);
 
         expect(result2).toBeDefined();
         expect(result2).toBeInstanceOf(RopewikiRoute);
         expect(result2!.route).toBe(routeId2);
-        expect(result2!.ropewikiPage).toBe(pageId2);
+        expect(result2!.page).toBe(pageId2);
         expect(result2!.mapData).toBe(mapDataId2);
     });
 

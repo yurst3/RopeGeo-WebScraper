@@ -41,19 +41,18 @@ describe('upsertMapData (integration)', () => {
 
         expect(result).toBeInstanceOf(MapData);
         expect(result.id).toBeDefined();
-        expect(result.gpxUrl).toBe('https://example.com/file.gpx');
-        expect(result.kmlUrl).toBe('https://example.com/file.kml');
-        expect(result.geoJsonUrl).toBe('https://example.com/file.geojson');
-        expect(result.vectorTileUrl).toBe('https://example.com/file.mbtiles');
-        expect(result.deletedAt).toBeUndefined();
+        expect(result.gpx).toBe('https://example.com/file.gpx');
+        expect(result.kml).toBe('https://example.com/file.kml');
+        expect(result.geoJson).toBe('https://example.com/file.geojson');
+        expect(result.vectorTile).toBe('https://example.com/file.mbtiles');
 
         // Verify it was actually inserted in the database
         const dbRow = await db.selectOne('MapData', { id: result.id }).run(conn);
         expect(dbRow).toBeDefined();
-        expect(dbRow!.gpxUrl).toBe('https://example.com/file.gpx');
-        expect(dbRow!.kmlUrl).toBe('https://example.com/file.kml');
-        expect(dbRow!.geoJsonUrl).toBe('https://example.com/file.geojson');
-        expect(dbRow!.vectorTileUrl).toBe('https://example.com/file.mbtiles');
+        expect(dbRow!.gpx).toBe('https://example.com/file.gpx');
+        expect(dbRow!.kml).toBe('https://example.com/file.kml');
+        expect(dbRow!.geoJson).toBe('https://example.com/file.geojson');
+        expect(dbRow!.vectorTile).toBe('https://example.com/file.mbtiles');
     });
 
     it('inserts a new MapData record when id is provided', async () => {
@@ -63,7 +62,6 @@ describe('upsertMapData (integration)', () => {
             'https://example.com/file.kml',
             'https://example.com/file.geojson',
             'https://example.com/file.mbtiles',
-            undefined,
             mapDataId,
         );
 
@@ -71,10 +69,10 @@ describe('upsertMapData (integration)', () => {
 
         expect(result).toBeInstanceOf(MapData);
         expect(result.id).toBe(mapDataId);
-        expect(result.gpxUrl).toBe('https://example.com/file.gpx');
-        expect(result.kmlUrl).toBe('https://example.com/file.kml');
-        expect(result.geoJsonUrl).toBe('https://example.com/file.geojson');
-        expect(result.vectorTileUrl).toBe('https://example.com/file.mbtiles');
+        expect(result.gpx).toBe('https://example.com/file.gpx');
+        expect(result.kml).toBe('https://example.com/file.kml');
+        expect(result.geoJson).toBe('https://example.com/file.geojson');
+        expect(result.vectorTile).toBe('https://example.com/file.mbtiles');
     });
 
     it('updates an existing MapData record when id is provided', async () => {
@@ -86,7 +84,6 @@ describe('upsertMapData (integration)', () => {
             'https://example.com/old.kml',
             'https://example.com/old.geojson',
             'https://example.com/old.mbtiles',
-            undefined,
             mapDataId,
         );
         await upsertMapData(conn, initialMapData);
@@ -100,24 +97,23 @@ describe('upsertMapData (integration)', () => {
             'https://example.com/new.kml',
             'https://example.com/new.geojson',
             'https://example.com/new.mbtiles',
-            undefined,
             mapDataId,
         );
         const result = await upsertMapData(conn, updatedMapData);
 
         expect(result).toBeInstanceOf(MapData);
         expect(result.id).toBe(mapDataId);
-        expect(result.gpxUrl).toBe('https://example.com/new.gpx');
-        expect(result.kmlUrl).toBe('https://example.com/new.kml');
-        expect(result.geoJsonUrl).toBe('https://example.com/new.geojson');
-        expect(result.vectorTileUrl).toBe('https://example.com/new.mbtiles');
+        expect(result.gpx).toBe('https://example.com/new.gpx');
+        expect(result.kml).toBe('https://example.com/new.kml');
+        expect(result.geoJson).toBe('https://example.com/new.geojson');
+        expect(result.vectorTile).toBe('https://example.com/new.mbtiles');
 
         // Verify the old values are gone
         const dbRow = await db.selectOne('MapData', { id: mapDataId }).run(conn);
-        expect(dbRow!.gpxUrl).toBe('https://example.com/new.gpx');
-        expect(dbRow!.kmlUrl).toBe('https://example.com/new.kml');
-        expect(dbRow!.geoJsonUrl).toBe('https://example.com/new.geojson');
-        expect(dbRow!.vectorTileUrl).toBe('https://example.com/new.mbtiles');
+        expect(dbRow!.gpx).toBe('https://example.com/new.gpx');
+        expect(dbRow!.kml).toBe('https://example.com/new.kml');
+        expect(dbRow!.geoJson).toBe('https://example.com/new.geojson');
+        expect(dbRow!.vectorTile).toBe('https://example.com/new.mbtiles');
     });
 
     it('handles null/undefined values correctly', async () => {
@@ -132,53 +128,19 @@ describe('upsertMapData (integration)', () => {
 
         expect(result).toBeInstanceOf(MapData);
         expect(result.id).toBeDefined();
-        expect(result.gpxUrl).toBeUndefined();
-        expect(result.kmlUrl).toBeUndefined();
-        expect(result.geoJsonUrl).toBeUndefined();
-        expect(result.vectorTileUrl).toBeUndefined();
+        expect(result.gpx).toBeUndefined();
+        expect(result.kml).toBeUndefined();
+        expect(result.geoJson).toBeUndefined();
+        expect(result.vectorTile).toBeUndefined();
 
         // Verify null values in database
         const dbRow = await db.selectOne('MapData', { id: result.id }).run(conn);
-        expect(dbRow!.gpxUrl).toBeNull();
-        expect(dbRow!.kmlUrl).toBeNull();
-        expect(dbRow!.geoJsonUrl).toBeNull();
-        expect(dbRow!.vectorTileUrl).toBeNull();
+        expect(dbRow!.gpx).toBeNull();
+        expect(dbRow!.kml).toBeNull();
+        expect(dbRow!.geoJson).toBeNull();
+        expect(dbRow!.vectorTile).toBeNull();
     });
 
-    it('updates deletedAt field', async () => {
-        const mapDataId = '11111111-1111-1111-1111-111111111111';
-        
-        // Insert initial record
-        const initialMapData = new MapData(
-            'https://example.com/file.gpx',
-            'https://example.com/file.kml',
-            'https://example.com/file.geojson',
-            'https://example.com/file.mbtiles',
-            undefined,
-            mapDataId,
-        );
-        await upsertMapData(conn, initialMapData);
-
-        // Update with deletedAt
-        const deletedDate = new Date();
-        const deletedMapData = new MapData(
-            'https://example.com/file.gpx',
-            'https://example.com/file.kml',
-            'https://example.com/file.geojson',
-            'https://example.com/file.mbtiles',
-            deletedDate,
-            mapDataId,
-        );
-        const result = await upsertMapData(conn, deletedMapData);
-
-        expect(result.deletedAt).toBeDefined();
-        expect(result.deletedAt).toEqual(deletedDate);
-
-        // Verify in database
-        const dbRow = await db.selectOne('MapData', { id: mapDataId }).run(conn);
-        expect(dbRow!.deletedAt).toBeDefined();
-        expect(new Date(dbRow!.deletedAt!)).toEqual(deletedDate);
-    });
 
     it('updates updatedAt timestamp on upsert', async () => {
         const mapDataId = '11111111-1111-1111-1111-111111111111';
@@ -189,7 +151,6 @@ describe('upsertMapData (integration)', () => {
             'https://example.com/file.kml',
             'https://example.com/file.geojson',
             'https://example.com/file.mbtiles',
-            undefined,
             mapDataId,
         );
         const initialResult = await upsertMapData(conn, initialMapData);
@@ -207,7 +168,6 @@ describe('upsertMapData (integration)', () => {
             'https://example.com/new.kml',
             'https://example.com/new.geojson',
             'https://example.com/new.mbtiles',
-            undefined,
             mapDataId,
         );
         await upsertMapData(conn, updatedMapData);
@@ -227,7 +187,6 @@ describe('upsertMapData (integration)', () => {
             'https://example.com/file.kml',
             'https://example.com/file.geojson',
             'https://example.com/file.mbtiles',
-            undefined,
             mapDataId,
         );
         await upsertMapData(conn, initialMapData);
@@ -235,19 +194,18 @@ describe('upsertMapData (integration)', () => {
         // Update only some fields
         const partialMapData = new MapData(
             'https://example.com/new.gpx',
-            undefined, // Keep kmlUrl as is
+            undefined, // Keep kml as is
             'https://example.com/new.geojson',
-            undefined, // Keep vectorTileUrl as is
-            undefined,
+            undefined, // Keep vectorTile as is
             mapDataId,
         );
         const result = await upsertMapData(conn, partialMapData);
 
-        expect(result.gpxUrl).toBe('https://example.com/new.gpx');
-        expect(result.geoJsonUrl).toBe('https://example.com/new.geojson');
-        // kmlUrl and vectorTileUrl should be null/undefined after update
-        expect(result.kmlUrl).toBeUndefined();
-        expect(result.vectorTileUrl).toBeUndefined();
+        expect(result.gpx).toBe('https://example.com/new.gpx');
+        expect(result.geoJson).toBe('https://example.com/new.geojson');
+        // kml and vectorTile should be null/undefined after update
+        expect(result.kml).toBeUndefined();
+        expect(result.vectorTile).toBeUndefined();
     });
 
     it('propagates errors from the database layer', async () => {

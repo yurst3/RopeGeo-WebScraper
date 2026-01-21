@@ -1,36 +1,8 @@
 import { main } from '../main';
 import type { SqsEvent, SqsRecord } from '@aws-lambda-powertools/parser/types';
 import { PageDataSource } from '../types/mapData';
-
-export interface MapDataEvent {
-    source: PageDataSource;
-    routeId: string;
-    pageId: string;
-}
-
-/**
- * Parses a MapDataEvent from an SQS record body.
- */
-export const fromSQSEventRecord = (record: SqsRecord): MapDataEvent => {
-    if (!record.body) {
-        throw new Error('SQS record missing body');
-    }
-
-    try {
-        const parsed = JSON.parse(record.body) as MapDataEvent;
-        
-        if (!parsed.source || !parsed.routeId || !parsed.pageId) {
-            throw new Error('Invalid MapDataEvent: missing required fields (source, routeId, pageId)');
-        }
-
-        return parsed;
-    } catch (error) {
-        if (error instanceof SyntaxError) {
-            throw new Error(`Failed to parse SQS record body as JSON: ${error.message}`);
-        }
-        throw error;
-    }
-};
+import { lambdaSaveMapData } from '../hook-functions/saveMapData';
+import { MapDataEvent } from '../types/lambdaEvent';
 
 /**
  * Lambda handler for processing map data (KML to MBTiles conversion).
@@ -46,7 +18,7 @@ export const mainHandler = async (event: SqsEvent, context: any) => {
 
         // Process the first record (BatchSize is 1, so there should only be one)
         const record: SqsRecord = event.Records[0]!;
-        const mapDataEvent = fromSQSEventRecord(record);
+        const mapDataEvent = MapDataEvent.fromSQSEventRecord(record);
 
         // Validate source
         if (mapDataEvent.source !== PageDataSource.Ropewiki) {
@@ -54,7 +26,7 @@ export const mainHandler = async (event: SqsEvent, context: any) => {
         }
 
         // Process the map data using the main function
-        await main(mapDataEvent.source, mapDataEvent.pageId, mapDataEvent.routeId);
+        await main(lambdaSaveMapData, mapDataEvent.source, mapDataEvent.pageId, mapDataEvent.routeId);
 
         return {
             statusCode: 200,

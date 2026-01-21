@@ -42,17 +42,17 @@ declare module 'zapatos/schema' {
       */
       deletedAt: Date | null;
       /**
-      * **MapData.geoJsonUrl**
+      * **MapData.geoJson**
       * - `text` in database
       * - Nullable, no default
       */
-      geoJsonUrl: string | null;
+      geoJson: string | null;
       /**
-      * **MapData.gpxUrl**
+      * **MapData.gpx**
       * - `text` in database
       * - Nullable, no default
       */
-      gpxUrl: string | null;
+      gpx: string | null;
       /**
       * **MapData.id**
       * - `uuid` in database
@@ -60,11 +60,11 @@ declare module 'zapatos/schema' {
       */
       id: string;
       /**
-      * **MapData.kmlUrl**
+      * **MapData.kml**
       * - `text` in database
       * - Nullable, no default
       */
-      kmlUrl: string | null;
+      kml: string | null;
       /**
       * **MapData.updatedAt**
       * - `timestamp` in database
@@ -72,11 +72,11 @@ declare module 'zapatos/schema' {
       */
       updatedAt: Date;
       /**
-      * **MapData.vectorTileUrl**
+      * **MapData.vectorTile**
       * - `text` in database
       * - Nullable, no default
       */
-      vectorTileUrl: string | null;
+      vectorTile: string | null;
     }
     export interface JSONSelectable {
       /**
@@ -92,17 +92,17 @@ declare module 'zapatos/schema' {
       */
       deletedAt: db.TimestampString | null;
       /**
-      * **MapData.geoJsonUrl**
+      * **MapData.geoJson**
       * - `text` in database
       * - Nullable, no default
       */
-      geoJsonUrl: string | null;
+      geoJson: string | null;
       /**
-      * **MapData.gpxUrl**
+      * **MapData.gpx**
       * - `text` in database
       * - Nullable, no default
       */
-      gpxUrl: string | null;
+      gpx: string | null;
       /**
       * **MapData.id**
       * - `uuid` in database
@@ -110,11 +110,11 @@ declare module 'zapatos/schema' {
       */
       id: string;
       /**
-      * **MapData.kmlUrl**
+      * **MapData.kml**
       * - `text` in database
       * - Nullable, no default
       */
-      kmlUrl: string | null;
+      kml: string | null;
       /**
       * **MapData.updatedAt**
       * - `timestamp` in database
@@ -122,11 +122,11 @@ declare module 'zapatos/schema' {
       */
       updatedAt: db.TimestampString;
       /**
-      * **MapData.vectorTileUrl**
+      * **MapData.vectorTile**
       * - `text` in database
       * - Nullable, no default
       */
-      vectorTileUrl: string | null;
+      vectorTile: string | null;
     }
     export interface Whereable {
       /**
@@ -142,17 +142,17 @@ declare module 'zapatos/schema' {
       */
       deletedAt?: (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.SQLFragment | db.ParentColumn>;
       /**
-      * **MapData.geoJsonUrl**
+      * **MapData.geoJson**
       * - `text` in database
       * - Nullable, no default
       */
-      geoJsonUrl?: string | db.Parameter<string> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, string | db.Parameter<string> | db.SQLFragment | db.ParentColumn>;
+      geoJson?: string | db.Parameter<string> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, string | db.Parameter<string> | db.SQLFragment | db.ParentColumn>;
       /**
-      * **MapData.gpxUrl**
+      * **MapData.gpx**
       * - `text` in database
       * - Nullable, no default
       */
-      gpxUrl?: string | db.Parameter<string> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, string | db.Parameter<string> | db.SQLFragment | db.ParentColumn>;
+      gpx?: string | db.Parameter<string> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, string | db.Parameter<string> | db.SQLFragment | db.ParentColumn>;
       /**
       * **MapData.id**
       * - `uuid` in database
@@ -160,11 +160,11 @@ declare module 'zapatos/schema' {
       */
       id?: string | db.Parameter<string> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, string | db.Parameter<string> | db.SQLFragment | db.ParentColumn>;
       /**
-      * **MapData.kmlUrl**
+      * **MapData.kml**
       * - `text` in database
       * - Nullable, no default
       */
-      kmlUrl?: string | db.Parameter<string> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, string | db.Parameter<string> | db.SQLFragment | db.ParentColumn>;
+      kml?: string | db.Parameter<string> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, string | db.Parameter<string> | db.SQLFragment | db.ParentColumn>;
       /**
       * **MapData.updatedAt**
       * - `timestamp` in database
@@ -172,11 +172,11 @@ declare module 'zapatos/schema' {
       */
       updatedAt?: (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.SQLFragment | db.ParentColumn>;
       /**
-      * **MapData.vectorTileUrl**
+      * **MapData.vectorTile**
       * - `text` in database
       * - Nullable, no default
       */
-      vectorTileUrl?: string | db.Parameter<string> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, string | db.Parameter<string> | db.SQLFragment | db.ParentColumn>;
+      vectorTile?: string | db.Parameter<string> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, string | db.Parameter<string> | db.SQLFragment | db.ParentColumn>;
     }
     export interface Insertable {
       /**
@@ -192,17 +192,17 @@ declare module 'zapatos/schema' {
       */
       deletedAt?: (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | null | db.DefaultType | db.SQLFragment;
       /**
-      * **MapData.geoJsonUrl**
+      * **MapData.geoJson**
       * - `text` in database
       * - Nullable, no default
       */
-      geoJsonUrl?: string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment;
+      geoJson?: string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment;
       /**
-      * **MapData.gpxUrl**
+      * **MapData.gpx**
       * - `text` in database
       * - Nullable, no default
       */
-      gpxUrl?: string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment;
+      gpx?: string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment;
       /**
       * **MapData.id**
       * - `uuid` in database
@@ -210,11 +210,11 @@ declare module 'zapatos/schema' {
       */
       id?: string | db.Parameter<string> | db.DefaultType | db.SQLFragment;
       /**
-      * **MapData.kmlUrl**
+      * **MapData.kml**
       * - `text` in database
       * - Nullable, no default
       */
-      kmlUrl?: string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment;
+      kml?: string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment;
       /**
       * **MapData.updatedAt**
       * - `timestamp` in database
@@ -222,11 +222,11 @@ declare module 'zapatos/schema' {
       */
       updatedAt?: (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.DefaultType | db.SQLFragment;
       /**
-      * **MapData.vectorTileUrl**
+      * **MapData.vectorTile**
       * - `text` in database
       * - Nullable, no default
       */
-      vectorTileUrl?: string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment;
+      vectorTile?: string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment;
     }
     export interface Updatable {
       /**
@@ -242,17 +242,17 @@ declare module 'zapatos/schema' {
       */
       deletedAt?: (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | null | db.DefaultType | db.SQLFragment | db.SQLFragment<any, (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | null | db.DefaultType | db.SQLFragment>;
       /**
-      * **MapData.geoJsonUrl**
+      * **MapData.geoJson**
       * - `text` in database
       * - Nullable, no default
       */
-      geoJsonUrl?: string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment | db.SQLFragment<any, string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment>;
+      geoJson?: string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment | db.SQLFragment<any, string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment>;
       /**
-      * **MapData.gpxUrl**
+      * **MapData.gpx**
       * - `text` in database
       * - Nullable, no default
       */
-      gpxUrl?: string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment | db.SQLFragment<any, string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment>;
+      gpx?: string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment | db.SQLFragment<any, string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment>;
       /**
       * **MapData.id**
       * - `uuid` in database
@@ -260,11 +260,11 @@ declare module 'zapatos/schema' {
       */
       id?: string | db.Parameter<string> | db.DefaultType | db.SQLFragment | db.SQLFragment<any, string | db.Parameter<string> | db.DefaultType | db.SQLFragment>;
       /**
-      * **MapData.kmlUrl**
+      * **MapData.kml**
       * - `text` in database
       * - Nullable, no default
       */
-      kmlUrl?: string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment | db.SQLFragment<any, string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment>;
+      kml?: string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment | db.SQLFragment<any, string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment>;
       /**
       * **MapData.updatedAt**
       * - `timestamp` in database
@@ -272,11 +272,11 @@ declare module 'zapatos/schema' {
       */
       updatedAt?: (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.DefaultType | db.SQLFragment | db.SQLFragment<any, (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.DefaultType | db.SQLFragment>;
       /**
-      * **MapData.vectorTileUrl**
+      * **MapData.vectorTile**
       * - `text` in database
       * - Nullable, no default
       */
-      vectorTileUrl?: string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment | db.SQLFragment<any, string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment>;
+      vectorTile?: string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment | db.SQLFragment<any, string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment>;
     }
     export type UniqueIndex = 'MapData_pkey';
     export type Column = keyof Selectable;

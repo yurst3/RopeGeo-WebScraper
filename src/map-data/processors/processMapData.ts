@@ -7,20 +7,22 @@ import { randomUUID } from 'crypto';
 import { kml, gpx } from '@tmcw/togeojson';
 import { DOMParser } from '@xmldom/xmldom';
 import MapData from '../types/mapData';
-import { uploadMapDataFilesToS3 } from '../util/uploadMapDataFilesToS3';
+import type { SaveMapDataHookFn } from '../hook-functions/saveMapData';
 
 const execAsync = promisify(exec);
 
 /**
  * Processes map data by downloading the source file, converting to GeoJSON and vector tiles,
- * then uploading all files to S3.
+ * then saving all files (e.g., upload to S3 in Lambda, or move locally in Node).
  * 
  * @param sourceFileUrl - URL of the source file (KML or GPX)
+ * @param saveMapDataHookFn - Hook function to persist produced files and return URLs.
  * @param mapDataId - Optional UUID for the map data. If not provided, a new UUID will be generated.
  * @returns Promise that resolves to a MapData object with S3 URLs
  */
 export const processMapData = async (
     sourceFileUrl: string,
+    saveMapDataHookFn: SaveMapDataHookFn,
     mapDataId?: string | null,
 ): Promise<MapData> => {
     // Create temporary directory for processing
@@ -77,8 +79,8 @@ export const processMapData = async (
         const tippecanoeCommand = `${tippecanoePath} -o "${vectorTileFilePath}" "${geoJsonFilePath}"`;
         await execAsync(tippecanoeCommand);
 
-        // Upload files to S3
-        const { sourceS3Url, geoJsonS3Url, vectorTileS3Url } = await uploadMapDataFilesToS3(
+        // Save files via hook (Lambda uploads to S3; Node moves locally)
+        const { sourceFile, geoJsonFile, vectorTileFile } = await saveMapDataHookFn(
             sourceFilePath,
             geoJsonFilePath,
             vectorTileFilePath,
@@ -88,11 +90,10 @@ export const processMapData = async (
 
         // Create and return MapData object
         const mapData = new MapData(
-            isGpx ? sourceS3Url : undefined,
-            isKml ? sourceS3Url : undefined,
-            geoJsonS3Url,
-            vectorTileS3Url,
-            undefined,
+            isGpx ? sourceFile : undefined,
+            isKml ? sourceFile : undefined,
+            geoJsonFile,
+            vectorTileFile,
             finalMapDataId,
         );
 

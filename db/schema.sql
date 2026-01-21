@@ -1,4 +1,4 @@
-\restrict YxNhGe4bBmf22EW6XtaYfxm5Lh3DtSkVF94CZLwanmA81HHjp6c2Z03fvzONdri
+\restrict qlaJgwPp8TsMpbIiFzmjacJDOCtKQ6BTYc88rGLXFF9xPpz7Y3KsLx7D5BlzsNv
 
 -- Dumped from database version 18.1 (Debian 18.1-1.pgdg13+2)
 -- Dumped by pg_dump version 18.1 (Homebrew)
@@ -25,10 +25,10 @@ SET default_table_access_method = heap;
 
 CREATE TABLE public."MapData" (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
-    "gpxUrl" text,
-    "kmlUrl" text,
-    "geoJsonUrl" text,
-    "vectorTileUrl" text,
+    gpx text,
+    kml text,
+    "geoJson" text,
+    "vectorTile" text,
     "createdAt" timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
     "updatedAt" timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
     "deletedAt" timestamp without time zone
@@ -356,7 +356,7 @@ ALTER TABLE ONLY public."RopewikiRoute"
 -- PostgreSQL database dump complete
 --
 
-\unrestrict YxNhGe4bBmf22EW6XtaYfxm5Lh3DtSkVF94CZLwanmA81HHjp6c2Z03fvzONdri
+\unrestrict qlaJgwPp8TsMpbIiFzmjacJDOCtKQ6BTYc88rGLXFF9xPpz7Y3KsLx7D5BlzsNv
 
 
 --
@@ -377,4 +377,5 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20260117175122'),
     ('20260117184634'),
     ('20260120163351'),
-    ('20260120174146');
+    ('20260120174146'),
+    ('20260121110901');

@@ -6,17 +6,21 @@ import { processMapData } from './processors/processMapData';
 import upsertMapData from './database/upsertMapData';
 import upsertPageRoute from './util/upsertPageRoute';
 import { PageRoute } from '../types/pageRoute';
+import type { SaveMapDataHookFn } from './hook-functions/saveMapData';
+import { nodeSaveMapData } from './hook-functions/saveMapData';
 
 /**
  * Processes map data by reading source file URL from the database, downloading it,
- * converting to GeoJSON, then to MBTiles, and uploading to S3.
+ * converting to GeoJSON, then to MBTiles, and saving via the provided hook function.
  * 
+ * @param saveMapDataHookFn - Hook function to persist produced files and return URLs
  * @param pageDataSource - Source of the page data (e.g., PageDataSource.Ropewiki)
  * @param pageId - ID of the page
  * @param routeId - ID of the route
  * @returns Promise that resolves when processing is complete
  */
 export const main = async (
+    saveMapDataHookFn: SaveMapDataHookFn,
     pageDataSource: PageDataSource,
     pageId: string,
     routeId: string,
@@ -25,29 +29,23 @@ export const main = async (
     const client = await pool.connect();
 
     try {
-        // Get existing pageRoute if there is one
-        const existingPageRoute = await getPageRoute(client, pageDataSource, pageId, routeId);
+        // Get existing pageRoute if there is one or make a new one
+        const pageRoute: PageRoute = await getPageRoute(client, pageDataSource, pageId, routeId) ?? new PageRoute(routeId, pageId);
 
         // Get the source file URL
         const sourceFileUrl = await getSourceFileUrl(client, pageDataSource, pageId);
 
-        // Start with existing mapDataId if available
-        let mapDataId: string | undefined = existingPageRoute?.mapData;
-
         // If source file exists, process it
         if (sourceFileUrl) {
-            // Process the source file (download, convert, upload to S3)
-            const mapData = await processMapData(sourceFileUrl, mapDataId);
+            const mapDataId: string | undefined = pageRoute.mapData;
+
+            // Process the source file (download, convert, save via hook)
+            const mapData = await processMapData(sourceFileUrl, saveMapDataHookFn, mapDataId);
 
             // Upsert the MapData object to the database
             const upsertedMapData = await upsertMapData(client, mapData);
-            mapDataId = upsertedMapData.id;
+            pageRoute.mapData = upsertedMapData.id;
         }
-
-        // Use existing pageRoute or create a new one with the mapDataId
-        const pageRoute = existingPageRoute 
-            ? new PageRoute(existingPageRoute.route, existingPageRoute.page, mapDataId)
-            : new PageRoute(routeId, pageId, mapDataId);
 
         // Upsert the page-route link (regardless of whether map data was created)
         await upsertPageRoute(client, pageDataSource, pageRoute);
@@ -56,6 +54,9 @@ export const main = async (
         await pool.end();
     }
 };
+
+// Use the node hook functions which will save files locally
+const saveMapDataHookFn = nodeSaveMapData;
 
 // Allow running as a Node.js script (not just Lambda handler)
 if (require.main === module) {
@@ -75,7 +76,7 @@ if (require.main === module) {
         process.exit(1);
     }
 
-    main(pageDataSource, pageId, routeId)
+    main(saveMapDataHookFn, pageDataSource, pageId, routeId)
         .then(() => {
             console.log('Map data processing complete.');
             process.exit(0);

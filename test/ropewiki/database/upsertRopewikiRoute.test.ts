@@ -94,10 +94,10 @@ describe('upsertRopewikiRoute (integration)', () => {
             .insert('MapData', [
                 {
                     id: mapDataId,
-                    gpxUrl: null,
-                    kmlUrl: null,
-                    geoJsonUrl: null,
-                    vectorTileUrl: null,
+                    gpx: null,
+                    kml: null,
+                    geoJson: null,
+                    vectorTile: null,
                 },
             ])
             .run(conn);
@@ -245,17 +245,17 @@ describe('upsertRopewikiRoute (integration)', () => {
             .insert('MapData', [
                 {
                     id: mapDataId1,
-                    gpxUrl: null,
-                    kmlUrl: null,
-                    geoJsonUrl: null,
-                    vectorTileUrl: null,
+                    gpx: null,
+                    kml: null,
+                    geoJson: null,
+                    vectorTile: null,
                 },
                 {
                     id: mapDataId2,
-                    gpxUrl: null,
-                    kmlUrl: null,
-                    geoJsonUrl: null,
-                    vectorTileUrl: null,
+                    gpx: null,
+                    kml: null,
+                    geoJson: null,
+                    vectorTile: null,
                 },
             ])
             .run(conn);
@@ -350,10 +350,10 @@ describe('upsertRopewikiRoute (integration)', () => {
             .insert('MapData', [
                 {
                     id: mapDataId,
-                    gpxUrl: null,
-                    kmlUrl: null,
-                    geoJsonUrl: null,
-                    vectorTileUrl: null,
+                    gpx: null,
+                    kml: null,
+                    geoJson: null,
+                    vectorTile: null,
                 },
             ])
             .run(conn);
@@ -442,10 +442,10 @@ describe('upsertRopewikiRoute (integration)', () => {
             .insert('MapData', [
                 {
                     id: mapDataId,
-                    gpxUrl: null,
-                    kmlUrl: null,
-                    geoJsonUrl: null,
-                    vectorTileUrl: null,
+                    gpx: null,
+                    kml: null,
+                    geoJson: null,
+                    vectorTile: null,
                 },
             ])
             .run(conn);

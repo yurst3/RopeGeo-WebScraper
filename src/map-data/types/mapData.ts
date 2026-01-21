@@ -6,37 +6,34 @@ export enum PageDataSource {
 
 export class MapData {
     id: string | undefined;
-    gpxUrl: string | undefined;
-    kmlUrl: string | undefined;
-    geoJsonUrl: string | undefined;
-    vectorTileUrl: string | undefined;
-    deletedAt: Date | undefined;
+    gpx: string | undefined;
+    kml: string | undefined;
+    geoJson: string | undefined;
+    vectorTile: string | undefined;
 
     constructor(
-        gpxUrl?: string,
-        kmlUrl?: string,
-        geoJsonUrl?: string,
-        vectorTileUrl?: string,
-        deletedAt?: Date,
+        gpx?: string,
+        kml?: string,
+        geoJson?: string,
+        vectorTile?: string,
         id?: string,
     ) {
-        this.gpxUrl = gpxUrl;
-        this.kmlUrl = kmlUrl;
-        this.geoJsonUrl = geoJsonUrl;
-        this.vectorTileUrl = vectorTileUrl;
-        this.deletedAt = deletedAt;
+        this.gpx = gpx;
+        this.kml = kml;
+        this.geoJson = geoJson;
+        this.vectorTile = vectorTile;
         this.id = id;
     }
 
     toDbRow(): s.MapData.Insertable {
         const now = new Date();
         const row: s.MapData.Insertable = {
-            gpxUrl: this.gpxUrl ?? null,
-            kmlUrl: this.kmlUrl ?? null,
-            geoJsonUrl: this.geoJsonUrl ?? null,
-            vectorTileUrl: this.vectorTileUrl ?? null,
+            gpx: this.gpx ?? null,
+            kml: this.kml ?? null,
+            geoJson: this.geoJson ?? null,
+            vectorTile: this.vectorTile ?? null,
             updatedAt: now,
-            deletedAt: this.deletedAt ?? null,
+            deletedAt: null,
         };
 
         // Only include id if it's set (non-empty), allowing the database default to generate it
@@ -49,11 +46,10 @@ export class MapData {
 
     static fromDbRow(row: s.MapData.JSONSelectable): MapData {
         return new MapData(
-            row.gpxUrl ?? undefined,
-            row.kmlUrl ?? undefined,
-            row.geoJsonUrl ?? undefined,
-            row.vectorTileUrl ?? undefined,
-            row.deletedAt ? new Date(row.deletedAt) : undefined,
+            row.gpx ?? undefined,
+            row.kml ?? undefined,
+            row.geoJson ?? undefined,
+            row.vectorTile ?? undefined,
             row.id,
         );
     }
