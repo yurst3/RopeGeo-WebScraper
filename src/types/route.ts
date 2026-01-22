@@ -22,15 +22,12 @@ export class Route {
     }
 
     static fromDbRow(row: s.Route.JSONSelectable): Route {
-        // Create an instance without calling the constructor
-        const instance = Object.create(Route.prototype) as Route;
-
-        // Set properties directly
-        instance.name = row.name;
-        instance.type = row.type as RouteType;
-        instance.coordinates = row.coordinates;
-
-        return instance;
+        return new Route(
+            row.id,
+            row.name,
+            row.type as RouteType,
+            row.coordinates
+        );
     }
 
     static fromRopewikiPage(page: RopewikiPage): Route {

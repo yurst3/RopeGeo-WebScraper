@@ -1,7 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach, jest } from '@jest/globals';
 import { Pool, PoolClient } from 'pg';
 import * as db from 'zapatos/db';
-import { getProcessPagesForRegionFn } from '../../../src/ropewiki/processors/processPagesForRegion';
 import type { ProcessPagesChunkHookFn } from '../../../src/ropewiki/hook-functions/processPagesChunk';
 import RopewikiPage from '../../../src/ropewiki/types/page';
 import ProgressLogger from '../../../src/helpers/progressLogger';
@@ -22,6 +21,7 @@ const mockUpsertPages = upsertPages as jest.MockedFunction<typeof upsertPages>;
 const MockedProgressLogger = ProgressLogger as jest.MockedClass<typeof ProgressLogger>;
 
 describe('processPagesForRegion', () => {
+    const originalEnv = process.env;
     let mockPool: Pool;
     let mockClient: {
         query: jest.MockedFunction<(query: string) => Promise<unknown>>;
@@ -34,10 +34,15 @@ describe('processPagesForRegion', () => {
         setChunk: jest.MockedFunction<(start: number, end: number) => void>;
         logProgress: jest.MockedFunction<(message: string) => void>;
     };
-    let processPagesForRegion: ReturnType<typeof getProcessPagesForRegionFn>;
+    let processPagesForRegion: ReturnType<typeof import('../../../src/ropewiki/processors/processPagesForRegion').getProcessPagesForRegionFn>;
 
     beforeEach(() => {
         jest.clearAllMocks();
+        process.env = { ...originalEnv };
+        // Default to Node.js environment (not Lambda)
+        delete process.env.AWS_LAMBDA_FUNCTION_NAME;
+        delete process.env.LAMBDA_TASK_ROOT;
+        
         consoleLogSpy = jest.spyOn(console, 'log').mockImplementation(() => {});
         consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
         
@@ -59,16 +64,19 @@ describe('processPagesForRegion', () => {
         };
         
         // Mock ProgressLogger constructor to return our mock instance
-        MockedProgressLogger.mockImplementation(() => mockLoggerInstance as unknown as ProgressLogger);
+        MockedProgressLogger.mockImplementation(() => mockLoggerInstance as any);
         
         // Create mock ProcessPagesChunkHookFn
         mockProcessPagesChunkHookFn = jest.fn<ProcessPagesChunkHookFn>().mockResolvedValue(undefined);
         
         // Get the processPagesForRegion function using getProcessPagesForRegionFn
+        // Note: For Lambda detection tests, we'll reset modules and re-import
+        const { getProcessPagesForRegionFn } = require('../../../src/ropewiki/processors/processPagesForRegion');
         processPagesForRegion = getProcessPagesForRegionFn(mockPool, mockProcessPagesChunkHookFn);
     });
 
     afterEach(() => {
+        process.env = originalEnv;
         consoleLogSpy.mockRestore();
         consoleErrorSpy.mockRestore();
     });
@@ -124,8 +132,9 @@ describe('processPagesForRegion', () => {
         mockUpsertPages.mockResolvedValueOnce([upsertedPage1, upsertedPage2]);
         mockProcessPagesChunkHookFn.mockResolvedValue(undefined);
 
-        await processPagesForRegion(regionName, regionPageCount, regionNameIds);
+        const result = await processPagesForRegion(regionName, regionPageCount, regionNameIds);
 
+        expect(result).toEqual([upsertedPage1, upsertedPage2]);
         expect(mockGetRopewikiPageForRegion).toHaveBeenCalledTimes(1);
         expect(mockGetRopewikiPageForRegion).toHaveBeenCalledWith(regionName, 0, 2000, regionNameIds);
         // Verify getUpdatedDatesForPages is called before upsertPages (with valid page IDs from the fetched pages)
@@ -186,8 +195,13 @@ describe('processPagesForRegion', () => {
         );
         mockProcessPagesChunkHookFn.mockResolvedValue(undefined);
 
-        await processPagesForRegion(regionName, regionPageCount, regionNameIds);
+        const result = await processPagesForRegion(regionName, regionPageCount, regionNameIds);
 
+        expect(result.length).toBe(3500); // All pages should be returned
+        expect(result[0]?.id).toBe('uuid-1');
+        expect(result[1999]?.id).toBe('uuid-2000');
+        expect(result[2000]?.id).toBe('uuid-2001');
+        expect(result[3499]?.id).toBe('uuid-3500');
         expect(mockGetRopewikiPageForRegion).toHaveBeenCalledTimes(2);
         expect(mockGetRopewikiPageForRegion).toHaveBeenNthCalledWith(1, regionName, 0, 2000, regionNameIds);
         expect(mockGetRopewikiPageForRegion).toHaveBeenNthCalledWith(2, regionName, 2000, 2000, regionNameIds);
@@ -219,8 +233,9 @@ describe('processPagesForRegion', () => {
         mockUpsertPages.mockResolvedValueOnce([upsertedPage1]);
         mockProcessPagesChunkHookFn.mockResolvedValue(undefined);
 
-        await processPagesForRegion(regionName, regionPageCount, regionNameIds);
+        const result = await processPagesForRegion(regionName, regionPageCount, regionNameIds);
 
+        expect(result).toEqual([upsertedPage1]);
         expect(consoleLogSpy).toHaveBeenCalledWith('Skipping 2 invalid pages...');
         // Verify getUpdatedDatesForPages is called before upsertPages, only with valid page IDs
         expect(mockGetUpdatedDatesForPages).toHaveBeenCalledWith(mockPool, ['728']);
@@ -256,8 +271,9 @@ describe('processPagesForRegion', () => {
         mockUpsertPages.mockResolvedValueOnce([upsertedPage1, upsertedPage2]);
         mockProcessPagesChunkHookFn.mockResolvedValue(undefined);
 
-        await processPagesForRegion(regionName, regionPageCount, regionNameIds);
+        const result = await processPagesForRegion(regionName, regionPageCount, regionNameIds);
 
+        expect(result).toEqual([]); // No pages were parsed, so empty array
         // Verify getUpdatedDatesForPages is called before upsertPages (with valid page IDs from the fetched pages)
         expect(mockGetUpdatedDatesForPages).toHaveBeenCalledWith(mockPool, ['728', '5597']);
         expect(mockGetUpdatedDatesForPages).toHaveBeenCalledTimes(1);
@@ -289,8 +305,9 @@ describe('processPagesForRegion', () => {
         mockUpsertPages.mockResolvedValueOnce([upsertedPage1, upsertedPage2]);
         mockProcessPagesChunkHookFn.mockResolvedValue(undefined);
 
-        await processPagesForRegion(regionName, regionPageCount, regionNameIds);
+        const result = await processPagesForRegion(regionName, regionPageCount, regionNameIds);
 
+        expect(result).toEqual([upsertedPage1, upsertedPage2]);
         // Verify getUpdatedDatesForPages is called before upsertPages (with valid page IDs from the fetched pages)
         expect(mockGetUpdatedDatesForPages).toHaveBeenCalledWith(mockPool, ['728', '5597']);
         expect(mockGetUpdatedDatesForPages).toHaveBeenCalledTimes(1);
@@ -325,8 +342,9 @@ describe('processPagesForRegion', () => {
         mockUpsertPages.mockResolvedValueOnce([upsertedPage1]);
         mockProcessPagesChunkHookFn.mockResolvedValue(undefined);
 
-        await processPagesForRegion(regionName, regionPageCount, regionNameIds);
+        const result = await processPagesForRegion(regionName, regionPageCount, regionNameIds);
 
+        expect(result).toEqual([upsertedPage1]);
         // Verify getUpdatedDatesForPages is called before upsertPages
         expect(mockGetUpdatedDatesForPages.mock.invocationCallOrder[0]).toBeLessThan(mockUpsertPages.mock.invocationCallOrder[0]!);
         expect(mockProcessPagesChunkHookFn).toHaveBeenCalledTimes(1);
@@ -358,8 +376,9 @@ describe('processPagesForRegion', () => {
         mockUpsertPages.mockResolvedValueOnce([upsertedPage2]);
         mockProcessPagesChunkHookFn.mockResolvedValue(undefined);
 
-        await processPagesForRegion(regionName, regionPageCount, regionNameIds);
+        const result = await processPagesForRegion(regionName, regionPageCount, regionNameIds);
 
+        expect(result).toEqual([upsertedPage2]);
         // Verify getUpdatedDatesForPages is called before upsertPages, only with valid page IDs
         expect(mockGetUpdatedDatesForPages).toHaveBeenCalledWith(mockPool, ['5597']);
         expect(mockGetUpdatedDatesForPages.mock.invocationCallOrder[0]).toBeLessThan(mockUpsertPages.mock.invocationCallOrder[0]!);
@@ -429,8 +448,9 @@ describe('processPagesForRegion', () => {
             '728': null,
         });
 
-        await processPagesForRegion(regionName, regionPageCount, regionNameIds);
+        const result = await processPagesForRegion(regionName, regionPageCount, regionNameIds);
 
+        expect(result).toEqual([]); // No pages were parsed
         expect(mockProcessPagesChunkHookFn).not.toHaveBeenCalled();
     });
 
@@ -456,8 +476,9 @@ describe('processPagesForRegion', () => {
         mockUpsertPages.mockResolvedValueOnce([upsertedPage1, upsertedPage2]);
         mockProcessPagesChunkHookFn.mockResolvedValue(undefined);
 
-        await processPagesForRegion(regionName, regionPageCount, regionNameIds);
+        const result = await processPagesForRegion(regionName, regionPageCount, regionNameIds);
 
+        expect(result).toEqual([upsertedPage1]); // Only page1 was parsed
         // Verify getUpdatedDatesForPages is called before upsertPages, only with valid page IDs
         expect(mockGetUpdatedDatesForPages).toHaveBeenCalledWith(mockPool, ['728', '5597']);
         expect(mockGetUpdatedDatesForPages.mock.invocationCallOrder[0]).toBeLessThan(mockUpsertPages.mock.invocationCallOrder[0]!);
@@ -471,6 +492,166 @@ describe('processPagesForRegion', () => {
             ]),
             mockLoggerInstance
         );
+    });
+
+    describe('Lambda environment detection', () => {
+        const setupTestWithEnv = (isLambdaEnv: boolean) => {
+            if (isLambdaEnv) {
+                process.env.AWS_LAMBDA_FUNCTION_NAME = 'test-lambda-function';
+                delete process.env.LAMBDA_TASK_ROOT;
+            } else {
+                delete process.env.AWS_LAMBDA_FUNCTION_NAME;
+                delete process.env.LAMBDA_TASK_ROOT;
+            }
+            
+            // Clear module cache and re-import to pick up environment variable change
+            jest.resetModules();
+            const { getProcessPagesForRegionFn } = require('../../../src/ropewiki/processors/processPagesForRegion');
+            // Re-import mocks after resetModules
+            const getRopewikiPageForRegionMock = require('../../../src/ropewiki/http/getRopewikiPageForRegion');
+            const getUpdatedDatesForPagesMock = require('../../../src/ropewiki/database/getUpdatedDatesForPages');
+            const upsertPagesMock = require('../../../src/ropewiki/database/upsertPages');
+            
+            return {
+                processPagesForRegionFn: getProcessPagesForRegionFn(mockPool, mockProcessPagesChunkHookFn),
+                getRopewikiPageForRegion: getRopewikiPageForRegionMock.default || getRopewikiPageForRegionMock,
+                getUpdatedDatesForPages: getUpdatedDatesForPagesMock.default || getUpdatedDatesForPagesMock,
+                upsertPages: upsertPagesMock.default || upsertPagesMock,
+            };
+        };
+
+        it('manages transactions in Node.js environment (not Lambda)', async () => {
+            const { processPagesForRegionFn, getRopewikiPageForRegion, getUpdatedDatesForPages, upsertPages } = setupTestWithEnv(false);
+            
+            const regionName = 'Test Region';
+            const regionPageCount = 1;
+            const regionNameIds = { 'Test Region': 'region-id-123' };
+
+            const page = createValidPage('728', 'Page 1', regionName, regionNameIds, new Date('2024-01-01T00:00:00Z'));
+            (getRopewikiPageForRegion as jest.MockedFunction<any>).mockResolvedValue([page]);
+            (getUpdatedDatesForPages as jest.MockedFunction<any>).mockResolvedValue({
+                '728': null,
+            });
+            const upsertedPage1 = createUpsertedPage('728', 'Page 1', regionName, regionNameIds, 'page-uuid-1', new Date('2024-01-01T00:00:00Z'));
+            (upsertPages as jest.MockedFunction<any>).mockResolvedValueOnce([upsertedPage1]);
+            mockProcessPagesChunkHookFn.mockResolvedValue(undefined);
+
+            await processPagesForRegionFn(regionName, regionPageCount, regionNameIds);
+
+            // Verify transaction management in Node.js
+            expect(mockClient.query).toHaveBeenCalledWith('BEGIN');
+            expect(mockClient.query).toHaveBeenCalledWith('COMMIT');
+            expect(mockClient.query).not.toHaveBeenCalledWith('ROLLBACK');
+        });
+
+        it('does not manage transactions in Lambda environment (AWS_LAMBDA_FUNCTION_NAME)', async () => {
+            const { processPagesForRegionFn, getRopewikiPageForRegion, getUpdatedDatesForPages, upsertPages } = setupTestWithEnv(true);
+            
+            const regionName = 'Test Region';
+            const regionPageCount = 1;
+            const regionNameIds = { 'Test Region': 'region-id-123' };
+
+            const page = createValidPage('728', 'Page 1', regionName, regionNameIds, new Date('2024-01-01T00:00:00Z'));
+            (getRopewikiPageForRegion as jest.MockedFunction<any>).mockResolvedValue([page]);
+            (getUpdatedDatesForPages as jest.MockedFunction<any>).mockResolvedValue({
+                '728': null,
+            });
+            const upsertedPage1 = createUpsertedPage('728', 'Page 1', regionName, regionNameIds, 'page-uuid-1', new Date('2024-01-01T00:00:00Z'));
+            (upsertPages as jest.MockedFunction<any>).mockResolvedValueOnce([upsertedPage1]);
+            mockProcessPagesChunkHookFn.mockResolvedValue(undefined);
+
+            await processPagesForRegionFn(regionName, regionPageCount, regionNameIds);
+
+            // Verify no transaction management in Lambda
+            expect(mockClient.query).not.toHaveBeenCalledWith('BEGIN');
+            expect(mockClient.query).not.toHaveBeenCalledWith('COMMIT');
+            expect(mockClient.query).not.toHaveBeenCalledWith('ROLLBACK');
+        });
+
+        it('does not manage transactions in Lambda environment (LAMBDA_TASK_ROOT)', async () => {
+            delete process.env.AWS_LAMBDA_FUNCTION_NAME;
+            process.env.LAMBDA_TASK_ROOT = '/var/task';
+            
+            // Clear module cache and re-import to pick up environment variable change
+            jest.resetModules();
+            const { getProcessPagesForRegionFn } = require('../../../src/ropewiki/processors/processPagesForRegion');
+            const getRopewikiPageForRegionMock = require('../../../src/ropewiki/http/getRopewikiPageForRegion');
+            const getUpdatedDatesForPagesMock = require('../../../src/ropewiki/database/getUpdatedDatesForPages');
+            const upsertPagesMock = require('../../../src/ropewiki/database/upsertPages');
+            const processPagesForRegionFn = getProcessPagesForRegionFn(mockPool, mockProcessPagesChunkHookFn);
+            
+            const regionName = 'Test Region';
+            const regionPageCount = 1;
+            const regionNameIds = { 'Test Region': 'region-id-123' };
+
+            const page = createValidPage('728', 'Page 1', regionName, regionNameIds, new Date('2024-01-01T00:00:00Z'));
+            (getRopewikiPageForRegionMock.default || getRopewikiPageForRegionMock).mockResolvedValue([page]);
+            (getUpdatedDatesForPagesMock.default || getUpdatedDatesForPagesMock).mockResolvedValue({
+                '728': null,
+            });
+            const upsertedPage1 = createUpsertedPage('728', 'Page 1', regionName, regionNameIds, 'page-uuid-1', new Date('2024-01-01T00:00:00Z'));
+            (upsertPagesMock.default || upsertPagesMock).mockResolvedValueOnce([upsertedPage1]);
+            mockProcessPagesChunkHookFn.mockResolvedValue(undefined);
+
+            await processPagesForRegionFn(regionName, regionPageCount, regionNameIds);
+
+            // Verify no transaction management in Lambda
+            expect(mockClient.query).not.toHaveBeenCalledWith('BEGIN');
+            expect(mockClient.query).not.toHaveBeenCalledWith('COMMIT');
+            expect(mockClient.query).not.toHaveBeenCalledWith('ROLLBACK');
+        });
+
+        it('rolls back transaction on error in Node.js environment', async () => {
+            const { processPagesForRegionFn, getRopewikiPageForRegion, getUpdatedDatesForPages, upsertPages } = setupTestWithEnv(false);
+            
+            const regionName = 'Test Region';
+            const regionPageCount = 1;
+            const regionNameIds = { 'Test Region': 'region-id-123' };
+
+            const page = createValidPage('728', 'Page 1', regionName, regionNameIds, new Date('2024-01-01T00:00:00Z'));
+            (getRopewikiPageForRegion as jest.MockedFunction<any>).mockResolvedValue([page]);
+            (getUpdatedDatesForPages as jest.MockedFunction<any>).mockResolvedValue({
+                '728': null,
+            });
+            const upsertedPage1 = createUpsertedPage('728', 'Page 1', regionName, regionNameIds, 'page-uuid-1', new Date('2024-01-01T00:00:00Z'));
+            (upsertPages as jest.MockedFunction<any>).mockResolvedValueOnce([upsertedPage1]);
+            
+            const error = new Error('Processing error');
+            mockProcessPagesChunkHookFn.mockRejectedValue(error);
+
+            await expect(processPagesForRegionFn(regionName, regionPageCount, regionNameIds)).rejects.toThrow('Processing error');
+
+            // Verify transaction rollback in Node.js
+            expect(mockClient.query).toHaveBeenCalledWith('BEGIN');
+            expect(mockClient.query).toHaveBeenCalledWith('ROLLBACK');
+            expect(mockClient.query).not.toHaveBeenCalledWith('COMMIT');
+        });
+
+        it('does not roll back transaction on error in Lambda environment', async () => {
+            const { processPagesForRegionFn, getRopewikiPageForRegion, getUpdatedDatesForPages, upsertPages } = setupTestWithEnv(true);
+            
+            const regionName = 'Test Region';
+            const regionPageCount = 1;
+            const regionNameIds = { 'Test Region': 'region-id-123' };
+
+            const page = createValidPage('728', 'Page 1', regionName, regionNameIds, new Date('2024-01-01T00:00:00Z'));
+            (getRopewikiPageForRegion as jest.MockedFunction<any>).mockResolvedValue([page]);
+            (getUpdatedDatesForPages as jest.MockedFunction<any>).mockResolvedValue({
+                '728': null,
+            });
+            const upsertedPage1 = createUpsertedPage('728', 'Page 1', regionName, regionNameIds, 'page-uuid-1', new Date('2024-01-01T00:00:00Z'));
+            (upsertPages as jest.MockedFunction<any>).mockResolvedValueOnce([upsertedPage1]);
+            
+            const error = new Error('Processing error');
+            mockProcessPagesChunkHookFn.mockRejectedValue(error);
+
+            await expect(processPagesForRegionFn(regionName, regionPageCount, regionNameIds)).rejects.toThrow('Processing error');
+
+            // Verify no transaction management in Lambda (even on error)
+            expect(mockClient.query).not.toHaveBeenCalledWith('BEGIN');
+            expect(mockClient.query).not.toHaveBeenCalledWith('COMMIT');
+            expect(mockClient.query).not.toHaveBeenCalledWith('ROLLBACK');
+        });
     });
 });
 

@@ -1,10 +1,10 @@
 import { Pool } from 'pg';
 import * as db from 'zapatos/db';
 import { describe, it, expect, afterEach, beforeAll, afterAll } from '@jest/globals';
-import updatePageRoute from '../../../src/ropewiki/database/updatePageRoute';
+import updateRouteForPage from '../../../src/ropewiki/database/updateRouteForPage';
 import RopewikiPage from '../../../src/ropewiki/types/page';
 
-describe('updatePageRoute (integration)', () => {
+describe('updateRouteForPage (integration)', () => {
     const pool = new Pool({
         user: process.env.TEST_USER,
         password: process.env.TEST_PASS,
@@ -109,7 +109,7 @@ describe('updatePageRoute (integration)', () => {
         await new Promise(resolve => setTimeout(resolve, 10));
 
         // Update the route
-        await updatePageRoute(conn, pageWithId);
+        await updateRouteForPage(conn, pageWithId);
 
         // Verify the route was updated
         const updatedRoute = await db.selectOne('Route', { id: routeId }).run(conn);
@@ -136,7 +136,7 @@ describe('updatePageRoute (integration)', () => {
         }, regionNameIds);
 
         // Attempt to update route - should throw error
-        await expect(updatePageRoute(conn, page)).rejects.toThrow('Page must have an id to update route');
+        await expect(updateRouteForPage(conn, page)).rejects.toThrow('Page must have an id to update route');
     });
 
     it('throws error when page has no coordinates', async () => {
@@ -166,7 +166,7 @@ describe('updatePageRoute (integration)', () => {
         pageWithId.coordinates = undefined;
 
         // Attempt to update route - should throw error
-        await expect(updatePageRoute(conn, pageWithId)).rejects.toThrow('Page must have coordinates to update route');
+        await expect(updateRouteForPage(conn, pageWithId)).rejects.toThrow('Page must have coordinates to update route');
     });
 
     it('does not update route when page has no linked route', async () => {
@@ -212,7 +212,7 @@ describe('updatePageRoute (integration)', () => {
         pageWithId.coordinates = { lat: 40.789, lon: -111.123 };
 
         // Update the route (should not affect anything since page has no linked route)
-        await updatePageRoute(conn, pageWithId);
+        await updateRouteForPage(conn, pageWithId);
 
         // Verify the route was not updated
         const route = await db.selectOne('Route', { id: routeId }).run(conn);
@@ -279,7 +279,7 @@ describe('updatePageRoute (integration)', () => {
         pageWithId.coordinates = { lat: 40.789, lon: -111.123 };
 
         // Update the route (should not affect anything since RopewikiRoute is deleted)
-        await updatePageRoute(conn, pageWithId);
+        await updateRouteForPage(conn, pageWithId);
 
         // Verify the route was not updated
         const route = await db.selectOne('Route', { id: routeId }).run(conn);

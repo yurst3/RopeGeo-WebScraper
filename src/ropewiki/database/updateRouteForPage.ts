@@ -1,7 +1,7 @@
 import * as db from 'zapatos/db';
 import RopewikiPage from '../types/page';
 
-const updatePageRoute = async (
+const updateRouteForPage = async (
     conn: db.Queryable,
     page: RopewikiPage,
 ): Promise<void> => {
@@ -30,4 +30,4 @@ const updatePageRoute = async (
     `.run(conn);
 };
 
-export default updatePageRoute;
+export default updateRouteForPage;

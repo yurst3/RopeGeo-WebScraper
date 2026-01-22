@@ -1,10 +1,13 @@
 import processRegions from "./processors/processRegions"
 import { getProcessPagesForRegionFn } from './processors/processPagesForRegion';
 import type { ProcessPagesChunkHookFn } from './hook-functions/processPagesChunk';
+import type { ProcessRopewikiRoutesHookFn } from './hook-functions/processRopewikiRoutes';
 import getRegionCountsUnderLimit from './util/getRegionsUnderLimit';
 import getDatabaseConnection from '../helpers/getDatabaseConnection';
 import processRoutes from "./processors/processRoutes";
 import { nodeProcessPagesChunk } from "./hook-functions/processPagesChunk";
+import { nodeProcessRopewikiRoutes } from "./hook-functions/processRopewikiRoutes";
+import type RopewikiPage from "./types/page";
 
 /*
 From testing, if the query for getting ropewiki pages ever has an offset above 5000 it treats it as an offset of 0.
@@ -14,7 +17,10 @@ Since 7000 isn't a multiple of 2000, we'll go with 6000 to make the code a littl
 */
 const REGION_COUNT_LIMIT = 6000;
 
-export default async function main(processPagesChunkHookFn: ProcessPagesChunkHookFn): Promise<number> {
+export const main = async (
+    processPagesChunkHookFn: ProcessPagesChunkHookFn,
+    processRopewikiRoutesHookFn: ProcessRopewikiRoutesHookFn,
+): Promise<number> => {
     const beginTime = new Date();
     const pool = await getDatabaseConnection();
 
@@ -25,8 +31,8 @@ export default async function main(processPagesChunkHookFn: ProcessPagesChunkHoo
         const regionsUnderLimit = await getRegionCountsUnderLimit(pool, 'World', REGION_COUNT_LIMIT);
         console.log(`Getting pages from ${regionsUnderLimit.length} regions: ${regionsUnderLimit.map(r => r.name).join(', ')}`);
 
-        // Collect all parsed page UUIDs from all regions
-        const updatedPageUuids: string[] = [];
+        // Collect all parsed pages from all regions
+        const updatedPages: Array<RopewikiPage> = [];
 
         // Get the processPagesForRegion function that uses the provided pool and hook function.
         const processPagesForRegion = getProcessPagesForRegionFn(pool, processPagesChunkHookFn);
@@ -34,11 +40,11 @@ export default async function main(processPagesChunkHookFn: ProcessPagesChunkHoo
         // Everything has to be done sequentially so we don't DDOS Ropewiki
         for (const region of regionsUnderLimit) {
             // Pull all pages in the region, parse them, upsert them
-            const parsedPageUuids = await processPagesForRegion(region.name, region.pageCount, regionNameIds);
-            updatedPageUuids.push(...parsedPageUuids);
+            const parsedPages = await processPagesForRegion(region.name, region.pageCount, regionNameIds);
+            updatedPages.push(...parsedPages);
         }
 
-        await processRoutes(pool, updatedPageUuids);
+        await processRoutes(pool, updatedPages, processRopewikiRoutesHookFn);
 
         const elapsedTimeMs = new Date().getTime() - beginTime.getTime();
         const elapsedTimeSeconds = Math.floor(elapsedTimeMs / 1000);
@@ -51,10 +57,11 @@ export default async function main(processPagesChunkHookFn: ProcessPagesChunkHoo
 
 // Use the node hook functions which will directly invoke the processors
 const processPagesChunkHookFn = nodeProcessPagesChunk;
+const processRopewikiRoutesHookFn = nodeProcessRopewikiRoutes;
 
 // Allow running as a Node.js script
 if (require.main === module) {
-    main(processPagesChunkHookFn).then(() => {
+    main(processPagesChunkHookFn, processRopewikiRoutesHookFn).then(() => {
         process.exit(0);
     }).catch((error) => {
         console.error('Error:', error);

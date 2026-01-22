@@ -9,7 +9,9 @@ import type { ProcessPagesChunkHookFn } from "../hook-functions/processPagesChun
 
 const CHUNK_SIZE = 2000; // DO NOT EXCEED 2000
 
-type ProcessPagesForRegionFn = (regionName: string, regionPageCount: number, regionNameIds: {[name: string]: string}) => Promise<string[]>;
+const isLambda = !!process.env.AWS_LAMBDA_FUNCTION_NAME || !!process.env.LAMBDA_TASK_ROOT;
+
+type ProcessPagesForRegionFn = (regionName: string, regionPageCount: number, regionNameIds: {[name: string]: string}) => Promise<RopewikiPage[]>;
 
 /* 
 We want a more generic function that takes in a hook so we can either send SQS messages if we're running in a lambda or
@@ -21,9 +23,9 @@ export const getProcessPagesForRegionFn = (conn: Queryable, processPagesChunkHoo
         regionName: string,
         regionPageCount: number,
         regionNameIds: {[name: string]: string}
-    ): Promise<string[]> => {
+    ): Promise<RopewikiPage[]> => {
         const logger = new ProgressLogger(`Processing "${regionName}"`, regionPageCount);
-        const parsedPageUuids: string[] = [];
+        const parsedPages: RopewikiPage[] = [];
     
         for (let offset = 0; offset < regionPageCount; offset += CHUNK_SIZE) {
             console.log(`Getting pages ${offset + 1} to ${Math.min(offset + CHUNK_SIZE, regionPageCount)} in "${regionName}" (${regionPageCount} total pages)...`)
@@ -43,8 +45,8 @@ export const getProcessPagesForRegionFn = (conn: Queryable, processPagesChunkHoo
             const client = await pool.connect();
             
             try {
-                // Begin transaction
-                await client.query('BEGIN');
+                // Begin transaction 
+                if (!isLambda) await client.query('BEGIN');
     
                 const upsertedPages = await upsertPages(client, validPages);
     
@@ -69,15 +71,15 @@ export const getProcessPagesForRegionFn = (conn: Queryable, processPagesChunkHoo
                     // Parse pages (beta sections and images) - uses savepoints internally
                     await processPagesChunkHookFn(client, validPagesToParse, logger);
                     
-                    // Track the UUIDs of pages that were parsed
-                    parsedPageUuids.push(...validPagesToParse.map(page => page.id).filter((id): id is string => id !== undefined));
+                    // Track the full page objects that were parsed
+                    parsedPages.push(...validPagesToParse);
                 }
     
                 // Commit transaction
-                await client.query('COMMIT');
+                if (!isLambda) await client.query('COMMIT');
             } catch (error) {
                 // Rollback transaction on error
-                await client.query('ROLLBACK');
+                if (!isLambda) await client.query('ROLLBACK');
                 console.error(`Error processing chunk at offset ${offset} for region "${regionName}", transaction rolled back:`, error);
                 throw error;
             } finally {
@@ -85,6 +87,6 @@ export const getProcessPagesForRegionFn = (conn: Queryable, processPagesChunkHoo
             }
         }
     
-        return parsedPageUuids;
+        return parsedPages;
     }
 }

@@ -1,26 +1,38 @@
-import getPagesWithCoordinates from "../database/getPagesWithCoordinates";
 import { Queryable } from "zapatos/db";
-import getPagesWithRoutes from "../database/getPagesWithRoutes";
-import updatePageRoute from "../database/updatePageRoute";
-import getPagesWithoutRoutes from "../database/getPagesWithoutRoutes";
-import insertRoutesForPages from "../database/insertRoutesForPages";
+import updateRouteForPage from "../database/updateRouteForPage";
+import filterUpsertedPages from "../util/filterUpsertedPages";
+import RopewikiPage from "../types/page";
+import { Route } from "../../types/route";
+import getRoutesForPages from "../database/getRoutesForPages";
+import correlateExistingRoutes from "../util/correlateExistingRoutes";
+import insertMissingRoutes from "../database/insertMissingRoutes";
+import type { ProcessRopewikiRoutesHookFn } from "../hook-functions/processRopewikiRoutes";
 
-const processRoutes = async (conn: Queryable, upsertedPageUuids: string[]) => {
+const processRoutes = async (
+    conn: Queryable,
+    upsertedPages: RopewikiPage[],
+    processRopewikiRoutesHookFn: ProcessRopewikiRoutesHookFn,
+) => {
     // Routes need coordinates, not all upserted pages have coordinates
-    const pagesWithCoords = await getPagesWithCoordinates(conn, upsertedPageUuids);
+    const pagesWithCoords = filterUpsertedPages(upsertedPages);
 
-    // All of the pages with routes need to update their Routes' name, coords, and updatedAt time
-    const pagesWithRoutes = await getPagesWithRoutes(conn, pagesWithCoords);
-    await Promise.all(pagesWithRoutes.map(page => updatePageRoute(conn, page)));
+    // Some pages might not have routes for them
+    let routesAndPages: Array<[Route | null, RopewikiPage]> = await getRoutesForPages(conn, pagesWithCoords);
 
-    // All of the pages without routes need to create a Route
-    const pagesWithoutRoutes = await getPagesWithoutRoutes(conn, pagesWithCoords);
-    const insertedRoutes = await insertRoutesForPages(conn, pagesWithoutRoutes);
+    // Find routes which were created by other scrapers that match the ropewiki pages
+    routesAndPages = await correlateExistingRoutes(conn, routesAndPages);
 
-    // Link the routes to the pages and create a vector tile if applicable
-    for (const [routeId, pageId] of insertedRoutes) {
+    // Update all existing routes to have the same info as the ropewiki page
+    await Promise.all(
+        routesAndPages.filter(([route,]) => route !== null)
+            .map(([,page]) => updateRouteForPage(conn, page))
+    );
 
-    }
+    // Insert routes for pages that don't have routes
+    const allRoutesAndPages: Array<[Route, RopewikiPage]> = await insertMissingRoutes(conn, routesAndPages);
+
+    // Process routes using the hook function (Node.js processes directly, Lambda sends to SQS)
+    await processRopewikiRoutesHookFn(allRoutesAndPages);
 }
 
 export default processRoutes;
