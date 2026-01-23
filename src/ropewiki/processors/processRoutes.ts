@@ -9,6 +9,7 @@ import insertMissingRoutes from "../database/insertMissingRoutes";
 import type { ProcessRopewikiRoutesHookFn } from "../hook-functions/processRopewikiRoutes";
 import RopewikiRoute from "../../types/pageRoute";
 import upsertRopewikiRoutes from "../database/upsertRopewikiRoutes";
+import filterRopewikiRoutesWithMapData from "../util/filterRopewikiRoutesWithMapData";
 
 const processRoutes = async (
     conn: Queryable,
@@ -36,8 +37,11 @@ const processRoutes = async (
     // Upsert the ropewiki routes before processing the map data so we don't have any race conditions down the road
     const ropewikiRoutes: RopewikiRoute[] = await upsertRopewikiRoutes(conn, allRoutesAndPages);
 
+    // We only want to process ropewiki routes with map data in their pages
+    const ropewikiRoutesWithMapData = await filterRopewikiRoutesWithMapData(conn, ropewikiRoutes);
+
     // Process routes using the hook function (Node.js processes directly, Lambda sends to SQS)
-    await processRopewikiRoutesHookFn(ropewikiRoutes);
+    await processRopewikiRoutesHookFn(ropewikiRoutesWithMapData);
 }
 
 export default processRoutes;

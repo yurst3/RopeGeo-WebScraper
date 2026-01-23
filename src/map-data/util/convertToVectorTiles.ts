@@ -1,5 +1,6 @@
 import { exec } from 'child_process';
 import { promisify } from 'util';
+import { readFile } from 'fs/promises';
 import { join } from 'path';
 
 const execAsync = promisify(exec);
@@ -19,6 +20,20 @@ export async function convertToVectorTiles(
 ): Promise<{ filePath: string | undefined; error: string | undefined }> {
     try {
         console.log('Converting GeoJSON to vector tiles...');
+        
+        // Read and check GeoJSON for features before calling tippecanoe
+        const geoJsonContent = await readFile(geoJsonFilePath, 'utf-8');
+        const geoJson = JSON.parse(geoJsonContent);
+        
+        // Check if GeoJSON has features
+        if (geoJson.type === 'FeatureCollection' && (!geoJson.features || geoJson.features.length === 0)) {
+            console.error('GeoJSON has no features, skipping vector tile conversion');
+            return {
+                filePath: undefined,
+                error: 'Failed to convert to vector tiles: GeoJSON has no features',
+            };
+        }
+        
         const vectorTileFileName = `${mapDataId}.mbtiles`;
         const vectorTileFilePath = join(tempDir, vectorTileFileName);
         

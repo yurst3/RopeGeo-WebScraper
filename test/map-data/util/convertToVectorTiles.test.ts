@@ -1,14 +1,17 @@
 import { describe, it, expect, beforeEach, afterEach, jest } from '@jest/globals';
 import { convertToVectorTiles } from '../../../src/map-data/util/convertToVectorTiles';
 import { exec } from 'child_process';
-import { promisify } from 'util';
+import { readFile } from 'fs/promises';
 import { join } from 'path';
-
-const execAsync = promisify(exec);
 
 // Mock child_process.exec
 jest.mock('child_process', () => ({
     exec: jest.fn(),
+}));
+
+// Mock fs/promises
+jest.mock('fs/promises', () => ({
+    readFile: jest.fn(),
 }));
 
 describe('convertToVectorTiles', () => {
@@ -23,6 +26,18 @@ describe('convertToVectorTiles', () => {
         jest.clearAllMocks();
         originalEnv = process.env;
         process.env = { ...originalEnv };
+
+        // Default mock: GeoJSON with features
+        const geoJsonWithFeatures = JSON.stringify({
+            type: 'FeatureCollection',
+            features: [
+                {
+                    type: 'Feature',
+                    geometry: { type: 'Point', coordinates: [0, 0] },
+                },
+            ],
+        });
+        (readFile as jest.MockedFunction<typeof readFile>).mockResolvedValue(geoJsonWithFeatures);
 
         // Mock exec (tippecanoe) - mock it properly for promisify
         (exec as jest.MockedFunction<typeof exec>).mockImplementation(
@@ -48,6 +63,7 @@ describe('convertToVectorTiles', () => {
             filePath: mockVectorTileFilePath,
             error: undefined,
         });
+        expect(readFile).toHaveBeenCalledWith(mockGeoJsonFilePath, 'utf-8');
         expect(exec).toHaveBeenCalledTimes(1);
         expect(exec).toHaveBeenCalledWith(
             `tippecanoe -o "${mockVectorTileFilePath}" "${mockGeoJsonFilePath}"`,
@@ -145,5 +161,92 @@ describe('convertToVectorTiles', () => {
             `tippecanoe -o "${expectedVectorTilePath}" "${mockGeoJsonFilePath}"`,
             expect.any(Function),
         );
+    });
+
+    it('returns error when GeoJSON has no features', async () => {
+        delete process.env.LAMBDA_TASK_ROOT;
+        const geoJsonWithoutFeatures = JSON.stringify({
+            type: 'FeatureCollection',
+            features: [],
+        });
+        (readFile as jest.MockedFunction<typeof readFile>).mockResolvedValue(geoJsonWithoutFeatures);
+
+        const result = await convertToVectorTiles(mockGeoJsonFilePath, mockTempDir, mockMapDataId);
+
+        expect(result).toEqual({
+            filePath: undefined,
+            error: 'Failed to convert to vector tiles: GeoJSON has no features',
+        });
+        expect(readFile).toHaveBeenCalledWith(mockGeoJsonFilePath, 'utf-8');
+        expect(exec).not.toHaveBeenCalled();
+    });
+
+    it('returns error when GeoJSON has undefined features array', async () => {
+        delete process.env.LAMBDA_TASK_ROOT;
+        const geoJsonWithoutFeatures = JSON.stringify({
+            type: 'FeatureCollection',
+        });
+        (readFile as jest.MockedFunction<typeof readFile>).mockResolvedValue(geoJsonWithoutFeatures);
+
+        const result = await convertToVectorTiles(mockGeoJsonFilePath, mockTempDir, mockMapDataId);
+
+        expect(result).toEqual({
+            filePath: undefined,
+            error: 'Failed to convert to vector tiles: GeoJSON has no features',
+        });
+        expect(readFile).toHaveBeenCalledWith(mockGeoJsonFilePath, 'utf-8');
+        expect(exec).not.toHaveBeenCalled();
+    });
+
+    it('proceeds with tippecanoe when GeoJSON has features', async () => {
+        delete process.env.LAMBDA_TASK_ROOT;
+        const geoJsonWithFeatures = JSON.stringify({
+            type: 'FeatureCollection',
+            features: [
+                {
+                    type: 'Feature',
+                    geometry: { type: 'Point', coordinates: [0, 0] },
+                },
+            ],
+        });
+        (readFile as jest.MockedFunction<typeof readFile>).mockResolvedValue(geoJsonWithFeatures);
+
+        const result = await convertToVectorTiles(mockGeoJsonFilePath, mockTempDir, mockMapDataId);
+
+        expect(result).toEqual({
+            filePath: mockVectorTileFilePath,
+            error: undefined,
+        });
+        expect(readFile).toHaveBeenCalledWith(mockGeoJsonFilePath, 'utf-8');
+        expect(exec).toHaveBeenCalledTimes(1);
+    });
+
+    it('returns error when readFile throws an error', async () => {
+        delete process.env.LAMBDA_TASK_ROOT;
+        const readError = new Error('Failed to read file');
+        (readFile as jest.MockedFunction<typeof readFile>).mockRejectedValue(readError);
+
+        const result = await convertToVectorTiles(mockGeoJsonFilePath, mockTempDir, mockMapDataId);
+
+        expect(result).toEqual({
+            filePath: undefined,
+            error: 'Failed to convert to vector tiles: Failed to read file',
+        });
+        expect(readFile).toHaveBeenCalledWith(mockGeoJsonFilePath, 'utf-8');
+        expect(exec).not.toHaveBeenCalled();
+    });
+
+    it('returns error when GeoJSON is invalid JSON', async () => {
+        delete process.env.LAMBDA_TASK_ROOT;
+        (readFile as jest.MockedFunction<typeof readFile>).mockResolvedValue('invalid json');
+
+        const result = await convertToVectorTiles(mockGeoJsonFilePath, mockTempDir, mockMapDataId);
+
+        expect(result).toEqual({
+            filePath: undefined,
+            error: expect.stringContaining('Failed to convert to vector tiles'),
+        });
+        expect(readFile).toHaveBeenCalledWith(mockGeoJsonFilePath, 'utf-8');
+        expect(exec).not.toHaveBeenCalled();
     });
 });

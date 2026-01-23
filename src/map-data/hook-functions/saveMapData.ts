@@ -18,6 +18,16 @@ const SAVED_MAP_DATA_DIR = '.savedMapData';
 async function moveFile(sourcePath: string, destPath: string): Promise<void> {
     await mkdir(dirname(destPath), { recursive: true });
 
+    // Remove destination file if it exists to ensure overwrite
+    try {
+        await unlink(destPath);
+    } catch (err: any) {
+        // Ignore error if file doesn't exist (ENOENT)
+        if (err?.code !== 'ENOENT') {
+            throw err;
+        }
+    }
+
     try {
         await rename(sourcePath, destPath);
     } catch (err: any) {
@@ -60,6 +70,7 @@ export const lambdaSaveMapData: SaveMapDataHookFn = async (
     const uploadErrors: string[] = [];
 
     // Upload source file if provided
+    // Note: PutObjectCommand overwrites existing objects with the same key by default
     if (sourceFilePath) {
         try {
             const sourceS3Key = `source/${sourceFileName}`;
@@ -80,6 +91,7 @@ export const lambdaSaveMapData: SaveMapDataHookFn = async (
     }
 
     // Upload GeoJSON file if provided
+    // Note: PutObjectCommand overwrites existing objects with the same key by default
     if (geoJsonFilePath) {
         try {
             const geoJsonS3Key = `geojson/${geoJsonFileName}`;
@@ -100,6 +112,7 @@ export const lambdaSaveMapData: SaveMapDataHookFn = async (
     }
 
     // Upload vector tile file if provided
+    // Note: PutObjectCommand overwrites existing objects with the same key by default
     if (vectorTileFilePath) {
         try {
             const vectorTileS3Key = `vector-tiles/${vectorTileFileName}`;

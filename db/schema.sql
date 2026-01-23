@@ -1,4 +1,4 @@
-\restrict 74JaRC37MlVIuD9XyDPiDnTkMzmZAB5PlvOg5jmCTa7MPR9GmEr2kuymMlLZw9w
+\restrict 55z2m48ESpYu750BCWJfdPTCOnjzoVRcav0ckWPBO1nhhVKVQ4uclEMedLWEujY
 
 -- Dumped from database version 18.1 (Debian 18.1-1.pgdg13+2)
 -- Dumped by pg_dump version 18.1 (Homebrew)
@@ -358,7 +358,7 @@ ALTER TABLE ONLY public."RopewikiRoute"
 -- PostgreSQL database dump complete
 --
 
-\unrestrict 74JaRC37MlVIuD9XyDPiDnTkMzmZAB5PlvOg5jmCTa7MPR9GmEr2kuymMlLZw9w
+\unrestrict 55z2m48ESpYu750BCWJfdPTCOnjzoVRcav0ckWPBO1nhhVKVQ4uclEMedLWEujY
 
 
 --
@@ -378,7 +378,6 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20260112234228'),
     ('20260117175122'),
     ('20260117184634'),
-    ('20260118000000'),
     ('20260120163351'),
     ('20260120174146'),
     ('20260121110901'),
