@@ -42,6 +42,12 @@ declare module 'zapatos/schema' {
       */
       deletedAt: Date | null;
       /**
+      * **MapData.errorMessage**
+      * - `text` in database
+      * - Nullable, no default
+      */
+      errorMessage: string | null;
+      /**
       * **MapData.geoJson**
       * - `text` in database
       * - Nullable, no default
@@ -65,6 +71,12 @@ declare module 'zapatos/schema' {
       * - Nullable, no default
       */
       kml: string | null;
+      /**
+      * **MapData.sourceFileUrl**
+      * - `text` in database
+      * - `NOT NULL`, default: `''::text`
+      */
+      sourceFileUrl: string;
       /**
       * **MapData.updatedAt**
       * - `timestamp` in database
@@ -92,6 +104,12 @@ declare module 'zapatos/schema' {
       */
       deletedAt: db.TimestampString | null;
       /**
+      * **MapData.errorMessage**
+      * - `text` in database
+      * - Nullable, no default
+      */
+      errorMessage: string | null;
+      /**
       * **MapData.geoJson**
       * - `text` in database
       * - Nullable, no default
@@ -115,6 +133,12 @@ declare module 'zapatos/schema' {
       * - Nullable, no default
       */
       kml: string | null;
+      /**
+      * **MapData.sourceFileUrl**
+      * - `text` in database
+      * - `NOT NULL`, default: `''::text`
+      */
+      sourceFileUrl: string;
       /**
       * **MapData.updatedAt**
       * - `timestamp` in database
@@ -142,6 +166,12 @@ declare module 'zapatos/schema' {
       */
       deletedAt?: (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.SQLFragment | db.ParentColumn>;
       /**
+      * **MapData.errorMessage**
+      * - `text` in database
+      * - Nullable, no default
+      */
+      errorMessage?: string | db.Parameter<string> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, string | db.Parameter<string> | db.SQLFragment | db.ParentColumn>;
+      /**
       * **MapData.geoJson**
       * - `text` in database
       * - Nullable, no default
@@ -165,6 +195,12 @@ declare module 'zapatos/schema' {
       * - Nullable, no default
       */
       kml?: string | db.Parameter<string> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, string | db.Parameter<string> | db.SQLFragment | db.ParentColumn>;
+      /**
+      * **MapData.sourceFileUrl**
+      * - `text` in database
+      * - `NOT NULL`, default: `''::text`
+      */
+      sourceFileUrl?: string | db.Parameter<string> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, string | db.Parameter<string> | db.SQLFragment | db.ParentColumn>;
       /**
       * **MapData.updatedAt**
       * - `timestamp` in database
@@ -192,6 +228,12 @@ declare module 'zapatos/schema' {
       */
       deletedAt?: (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | null | db.DefaultType | db.SQLFragment;
       /**
+      * **MapData.errorMessage**
+      * - `text` in database
+      * - Nullable, no default
+      */
+      errorMessage?: string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment;
+      /**
       * **MapData.geoJson**
       * - `text` in database
       * - Nullable, no default
@@ -215,6 +257,12 @@ declare module 'zapatos/schema' {
       * - Nullable, no default
       */
       kml?: string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment;
+      /**
+      * **MapData.sourceFileUrl**
+      * - `text` in database
+      * - `NOT NULL`, default: `''::text`
+      */
+      sourceFileUrl?: string | db.Parameter<string> | db.DefaultType | db.SQLFragment;
       /**
       * **MapData.updatedAt**
       * - `timestamp` in database
@@ -242,6 +290,12 @@ declare module 'zapatos/schema' {
       */
       deletedAt?: (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | null | db.DefaultType | db.SQLFragment | db.SQLFragment<any, (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | null | db.DefaultType | db.SQLFragment>;
       /**
+      * **MapData.errorMessage**
+      * - `text` in database
+      * - Nullable, no default
+      */
+      errorMessage?: string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment | db.SQLFragment<any, string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment>;
+      /**
       * **MapData.geoJson**
       * - `text` in database
       * - Nullable, no default
@@ -265,6 +319,12 @@ declare module 'zapatos/schema' {
       * - Nullable, no default
       */
       kml?: string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment | db.SQLFragment<any, string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment>;
+      /**
+      * **MapData.sourceFileUrl**
+      * - `text` in database
+      * - `NOT NULL`, default: `''::text`
+      */
+      sourceFileUrl?: string | db.Parameter<string> | db.DefaultType | db.SQLFragment | db.SQLFragment<any, string | db.Parameter<string> | db.DefaultType | db.SQLFragment>;
       /**
       * **MapData.updatedAt**
       * - `timestamp` in database

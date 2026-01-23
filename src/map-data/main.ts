@@ -1,54 +1,48 @@
 import getDatabaseConnection from '../helpers/getDatabaseConnection';
-import { PageDataSource } from './types/mapData';
+import { PageDataSource } from '../types/pageRoute';
 import getSourceFileUrl from './util/getSourceFileUrl';
-import getPageRoute from './util/getPageRoute';
 import { processMapData } from './processors/processMapData';
 import upsertMapData from './database/upsertMapData';
 import upsertPageRoute from './util/upsertPageRoute';
 import { PageRoute } from '../types/pageRoute';
 import type { SaveMapDataHookFn } from './hook-functions/saveMapData';
 import { nodeSaveMapData } from './hook-functions/saveMapData';
+import { MapDataEvent } from './types/lambdaEvent';
 
 /**
  * Processes map data by reading source file URL from the database, downloading it,
  * converting to GeoJSON, then to MBTiles, and saving via the provided hook function.
  * 
  * @param saveMapDataHookFn - Hook function to persist produced files and return URLs
- * @param pageDataSource - Source of the page data (e.g., PageDataSource.Ropewiki)
- * @param pageId - ID of the page
- * @param routeId - ID of the route
+ * @param mapDataEvent - The map data event containing source, routeId, pageId, and optional mapDataId
  * @returns Promise that resolves when processing is complete
  */
 export const main = async (
     saveMapDataHookFn: SaveMapDataHookFn,
-    pageDataSource: PageDataSource,
-    pageId: string,
-    routeId: string,
+    mapDataEvent: MapDataEvent,
 ): Promise<void> => {
     const pool = await getDatabaseConnection();
     const client = await pool.connect();
 
     try {
-        // Get existing pageRoute if there is one or make a new one
-        const pageRoute: PageRoute = await getPageRoute(client, pageDataSource, pageId, routeId) ?? new PageRoute(routeId, pageId);
+        // Create pageRoute from the event
+        const pageRoute: PageRoute = PageRoute.fromMapDataEvent(mapDataEvent);
 
         // Get the source file URL
-        const sourceFileUrl = await getSourceFileUrl(client, pageDataSource, pageId);
+        const sourceFileUrl = await getSourceFileUrl(client, mapDataEvent.source, mapDataEvent.pageId);
 
-        // If source file exists, process it
+        // If source file exists, process it and update the page route it belongs to
         if (sourceFileUrl) {
-            const mapDataId: string | undefined = pageRoute.mapData;
-
             // Process the source file (download, convert, save via hook)
-            const mapData = await processMapData(sourceFileUrl, saveMapDataHookFn, mapDataId);
+            const mapData = await processMapData(sourceFileUrl, saveMapDataHookFn, pageRoute.mapData);
 
             // Upsert the MapData object to the database
             const upsertedMapData = await upsertMapData(client, mapData);
-            pageRoute.mapData = upsertedMapData.id;
-        }
 
-        // Upsert the page-route link (regardless of whether map data was created)
-        await upsertPageRoute(client, pageDataSource, pageRoute);
+            // Upsert the page-route with the new map data id
+            pageRoute.mapData = upsertedMapData.id;
+            await upsertPageRoute(client, mapDataEvent.source, pageRoute);
+        }
     } finally {
         client.release();
         await pool.end();
@@ -63,9 +57,10 @@ if (require.main === module) {
     const pageDataSourceArg = process.argv[2];
     const pageId = process.argv[3];
     const routeId = process.argv[4];
+    const mapDataId = process.argv[5];
 
     if (!pageDataSourceArg || !pageId || !routeId) {
-        console.error('Usage: node src/map-data/main.ts <pageDataSource> <pageId> <routeId>');
+        console.error('Usage: node src/map-data/main.ts <pageDataSource> <pageId> <routeId> [mapDataId]');
         process.exit(1);
     }
 
@@ -76,7 +71,9 @@ if (require.main === module) {
         process.exit(1);
     }
 
-    main(saveMapDataHookFn, pageDataSource, pageId, routeId)
+    const mapDataEvent = new MapDataEvent(pageDataSource, routeId, pageId, mapDataId);
+
+    main(saveMapDataHookFn, mapDataEvent)
         .then(() => {
             console.log('Map data processing complete.');
             process.exit(0);

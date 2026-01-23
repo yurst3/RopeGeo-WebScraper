@@ -7,7 +7,7 @@ import getDatabaseConnection from '../helpers/getDatabaseConnection';
 import processRoutes from "./processors/processRoutes";
 import { nodeProcessPagesChunk } from "./hook-functions/processPagesChunk";
 import { nodeProcessRopewikiRoutes } from "./hook-functions/processRopewikiRoutes";
-import type RopewikiPage from "./types/page";
+import RopewikiPage from "./types/page";
 
 /*
 From testing, if the query for getting ropewiki pages ever has an offset above 5000 it treats it as an offset of 0.

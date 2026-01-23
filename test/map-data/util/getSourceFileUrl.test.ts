@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, jest } from '@jest/globals';
 import getSourceFileUrl from '../../../src/map-data/util/getSourceFileUrl';
-import { PageDataSource } from '../../../src/map-data/types/mapData';
+import { PageDataSource } from '../../../src/types/pageRoute';
 import * as db from 'zapatos/db';
 
 // Mock the ropewiki database function

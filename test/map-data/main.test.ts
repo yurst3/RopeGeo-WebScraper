@@ -1,9 +1,10 @@
 import { describe, it, expect, beforeEach, jest } from '@jest/globals';
 import { main } from '../../src/map-data/main';
-import { PageDataSource } from '../../src/map-data/types/mapData';
-import { PageRoute } from '../../src/types/pageRoute';
+import { PageDataSource } from '../../src/types/pageRoute';
+import { PageRoute, RopewikiRoute } from '../../src/types/pageRoute';
 import MapData from '../../src/map-data/types/mapData';
 import type { SaveMapDataHookFn } from '../../src/map-data/hook-functions/saveMapData';
+import { MapDataEvent } from '../../src/map-data/types/lambdaEvent';
 import * as db from 'zapatos/db';
 
 // Mock database connection
@@ -22,16 +23,10 @@ jest.mock('../../src/helpers/getDatabaseConnection', () => ({
 }));
 
 // Mock utility functions
-let mockGetPageRoute: jest.MockedFunction<typeof import('../../src/map-data/util/getPageRoute').default>;
 let mockGetSourceFileUrl: jest.MockedFunction<typeof import('../../src/map-data/util/getSourceFileUrl').default>;
 let mockProcessMapData: jest.MockedFunction<typeof import('../../src/map-data/processors/processMapData').processMapData>;
 let mockUpsertMapData: jest.MockedFunction<typeof import('../../src/map-data/database/upsertMapData').default>;
 let mockUpsertPageRoute: jest.MockedFunction<typeof import('../../src/map-data/util/upsertPageRoute').default>;
-
-jest.mock('../../src/map-data/util/getPageRoute', () => ({
-    __esModule: true,
-    default: jest.fn(),
-}));
 
 jest.mock('../../src/map-data/util/getSourceFileUrl', () => ({
     __esModule: true,
@@ -57,14 +52,15 @@ describe('main', () => {
     const pageDataSource = PageDataSource.Ropewiki;
     const pageId = 'd1d9139d-38db-433c-b7cd-a28f79331667';
     const routeId = '11111111-1111-1111-1111-111111111111';
+    
+    const createMapDataEvent = (mapDataId?: string): MapDataEvent => {
+        return new MapDataEvent(pageDataSource, routeId, pageId, mapDataId);
+    };
 
     beforeEach(() => {
         jest.clearAllMocks();
         
         // Setup mocks
-        const getPageRouteModule = require('../../src/map-data/util/getPageRoute');
-        mockGetPageRoute = getPageRouteModule.default;
-        
         const getSourceFileUrlModule = require('../../src/map-data/util/getSourceFileUrl');
         mockGetSourceFileUrl = getSourceFileUrlModule.default;
         
@@ -78,7 +74,6 @@ describe('main', () => {
         mockUpsertPageRoute = upsertPageRouteModule.default;
 
         // Setup default mock implementations
-        mockGetPageRoute.mockResolvedValue(undefined);
         mockGetSourceFileUrl.mockResolvedValue(undefined);
         mockProcessMapData.mockResolvedValue(new MapData());
         mockUpsertMapData.mockResolvedValue(new MapData('', '', '', '', 'test-id'));
@@ -91,39 +86,48 @@ describe('main', () => {
         });
     });
 
-    it('creates new PageRoute when none exists', async () => {
-        mockGetPageRoute.mockResolvedValue(undefined);
+    it('creates new PageRoute from MapDataEvent', async () => {
+        const mapDataEvent = createMapDataEvent();
 
-        await main(mockSaveMapDataHookFn, pageDataSource, pageId, routeId);
+        await main(mockSaveMapDataHookFn, mapDataEvent);
 
-        expect(mockGetPageRoute).toHaveBeenCalledWith(mockClient, pageDataSource, pageId, routeId);
+        // When sourceFileUrl doesn't exist, upsertPageRoute should not be called
+        expect(mockUpsertPageRoute).not.toHaveBeenCalled();
+    });
+
+    it('uses mapDataId from MapDataEvent when provided', async () => {
+        const mapDataId = 'existing-map-data-id';
+        const mapDataEvent = createMapDataEvent(mapDataId);
+        const sourceFileUrl = 'https://example.com/file.kml';
+        const upsertedMapData = new MapData(
+            undefined,
+            'https://s3.amazonaws.com/bucket/source/file.kml',
+            'https://s3.amazonaws.com/bucket/geojson/file.geojson',
+            'https://s3.amazonaws.com/bucket/vector-tiles/file.mbtiles',
+            'new-map-data-id',
+        );
+
+        mockGetSourceFileUrl.mockResolvedValue(sourceFileUrl);
+        mockUpsertMapData.mockResolvedValue(upsertedMapData);
+
+        await main(mockSaveMapDataHookFn, mapDataEvent);
+
+        // When sourceFileUrl exists, upsertPageRoute should be called with updated mapData
         expect(mockUpsertPageRoute).toHaveBeenCalledWith(
             mockClient,
             pageDataSource,
             expect.objectContaining({
                 route: routeId,
                 page: pageId,
+                mapData: 'new-map-data-id',
             }),
-        );
-    });
-
-    it('uses existing PageRoute when it exists', async () => {
-        const existingPageRoute = new PageRoute(routeId, pageId, 'existing-map-data-id');
-        mockGetPageRoute.mockResolvedValue(existingPageRoute);
-
-        await main(mockSaveMapDataHookFn, pageDataSource, pageId, routeId);
-
-        expect(mockUpsertPageRoute).toHaveBeenCalledWith(
-            mockClient,
-            pageDataSource,
-            existingPageRoute,
         );
     });
 
     it('processes map data when source file URL exists', async () => {
         const sourceFileUrl = 'https://example.com/file.kml';
         const mapDataId = '22222222-2222-2222-2222-222222222222';
-        const existingPageRoute = new PageRoute(routeId, pageId, mapDataId);
+        const mapDataEvent = createMapDataEvent(mapDataId);
         const processedMapData = new MapData(
             undefined,
             'https://s3.amazonaws.com/bucket/source/file.kml',
@@ -138,12 +142,11 @@ describe('main', () => {
             'new-map-data-id',
         );
 
-        mockGetPageRoute.mockResolvedValue(existingPageRoute);
         mockGetSourceFileUrl.mockResolvedValue(sourceFileUrl);
         mockProcessMapData.mockResolvedValue(processedMapData);
         mockUpsertMapData.mockResolvedValue(upsertedMapData);
 
-        await main(mockSaveMapDataHookFn, pageDataSource, pageId, routeId);
+        await main(mockSaveMapDataHookFn, mapDataEvent);
 
         expect(mockGetSourceFileUrl).toHaveBeenCalledWith(mockClient, pageDataSource, pageId);
         expect(mockProcessMapData).toHaveBeenCalledWith(
@@ -164,25 +167,26 @@ describe('main', () => {
     });
 
     it('skips map data processing when source file URL does not exist', async () => {
+        const mapDataEvent = createMapDataEvent();
         mockGetSourceFileUrl.mockResolvedValue(undefined);
 
-        await main(mockSaveMapDataHookFn, pageDataSource, pageId, routeId);
+        await main(mockSaveMapDataHookFn, mapDataEvent);
 
         expect(mockGetSourceFileUrl).toHaveBeenCalledWith(mockClient, pageDataSource, pageId);
         expect(mockProcessMapData).not.toHaveBeenCalled();
         expect(mockUpsertMapData).not.toHaveBeenCalled();
-        expect(mockUpsertPageRoute).toHaveBeenCalled();
+        // When sourceFileUrl doesn't exist, upsertPageRoute should not be called
+        expect(mockUpsertPageRoute).not.toHaveBeenCalled();
     });
 
     it('uses existing mapDataId when processing new source file', async () => {
         const sourceFileUrl = 'https://example.com/file.kml';
         const mapDataId = '33333333-3333-3333-3333-333333333333';
-        const existingPageRoute = new PageRoute(routeId, pageId, mapDataId);
+        const mapDataEvent = createMapDataEvent(mapDataId);
 
-        mockGetPageRoute.mockResolvedValue(existingPageRoute);
         mockGetSourceFileUrl.mockResolvedValue(sourceFileUrl);
 
-        await main(mockSaveMapDataHookFn, pageDataSource, pageId, routeId);
+        await main(mockSaveMapDataHookFn, mapDataEvent);
 
         expect(mockProcessMapData).toHaveBeenCalledWith(
             sourceFileUrl,
@@ -191,13 +195,13 @@ describe('main', () => {
         );
     });
 
-    it('generates new mapDataId when processing without existing PageRoute', async () => {
+    it('generates new mapDataId when processing without existing mapDataId', async () => {
         const sourceFileUrl = 'https://example.com/file.kml';
+        const mapDataEvent = createMapDataEvent(); // No mapDataId
 
-        mockGetPageRoute.mockResolvedValue(undefined);
         mockGetSourceFileUrl.mockResolvedValue(sourceFileUrl);
 
-        await main(mockSaveMapDataHookFn, pageDataSource, pageId, routeId);
+        await main(mockSaveMapDataHookFn, mapDataEvent);
 
         expect(mockProcessMapData).toHaveBeenCalledWith(
             sourceFileUrl,
@@ -208,7 +212,7 @@ describe('main', () => {
 
     it('updates PageRoute with new mapDataId after processing', async () => {
         const sourceFileUrl = 'https://example.com/file.kml';
-        const existingPageRoute = new PageRoute(routeId, pageId);
+        const mapDataEvent = createMapDataEvent();
         const upsertedMapData = new MapData(
             undefined,
             'https://s3.amazonaws.com/bucket/source/file.kml',
@@ -217,11 +221,10 @@ describe('main', () => {
             'new-map-data-id',
         );
 
-        mockGetPageRoute.mockResolvedValue(existingPageRoute);
         mockGetSourceFileUrl.mockResolvedValue(sourceFileUrl);
         mockUpsertMapData.mockResolvedValue(upsertedMapData);
 
-        await main(mockSaveMapDataHookFn, pageDataSource, pageId, routeId);
+        await main(mockSaveMapDataHookFn, mapDataEvent);
 
         expect(mockUpsertPageRoute).toHaveBeenCalledWith(
             mockClient,
@@ -234,68 +237,55 @@ describe('main', () => {
         );
     });
 
-    it('always upserts PageRoute even when no map data is processed', async () => {
+    it('does not upsert PageRoute when source file URL does not exist', async () => {
+        const mapDataEvent = createMapDataEvent();
         mockGetSourceFileUrl.mockResolvedValue(undefined);
 
-        await main(mockSaveMapDataHookFn, pageDataSource, pageId, routeId);
+        await main(mockSaveMapDataHookFn, mapDataEvent);
 
-        expect(mockUpsertPageRoute).toHaveBeenCalledTimes(1);
-        expect(mockUpsertPageRoute).toHaveBeenCalledWith(
-            mockClient,
-            pageDataSource,
-            expect.objectContaining({
-                route: routeId,
-                page: pageId,
-            }),
-        );
+        // When sourceFileUrl doesn't exist, upsertPageRoute should not be called
+        expect(mockUpsertPageRoute).not.toHaveBeenCalled();
     });
 
     it('releases database client after processing', async () => {
-        await main(mockSaveMapDataHookFn, pageDataSource, pageId, routeId);
+        const mapDataEvent = createMapDataEvent();
+        await main(mockSaveMapDataHookFn, mapDataEvent);
 
         expect(mockClient.release).toHaveBeenCalledTimes(1);
     });
 
     it('closes database pool after processing', async () => {
-        await main(mockSaveMapDataHookFn, pageDataSource, pageId, routeId);
+        const mapDataEvent = createMapDataEvent();
+        await main(mockSaveMapDataHookFn, mapDataEvent);
 
         expect(mockPool.end).toHaveBeenCalledTimes(1);
     });
 
     it('releases client and closes pool even when an error occurs', async () => {
+        const mapDataEvent = createMapDataEvent();
         const error = new Error('Processing failed');
         mockGetSourceFileUrl.mockRejectedValue(error);
 
         await expect(
-            main(mockSaveMapDataHookFn, pageDataSource, pageId, routeId),
+            main(mockSaveMapDataHookFn, mapDataEvent),
         ).rejects.toThrow('Processing failed');
 
         expect(mockClient.release).toHaveBeenCalledTimes(1);
         expect(mockPool.end).toHaveBeenCalledTimes(1);
     });
 
-    it('propagates errors from getPageRoute', async () => {
-        const error = new Error('Database error');
-        mockGetPageRoute.mockRejectedValue(error);
-
-        await expect(
-            main(mockSaveMapDataHookFn, pageDataSource, pageId, routeId),
-        ).rejects.toThrow('Database error');
-
-        expect(mockClient.release).toHaveBeenCalled();
-        expect(mockPool.end).toHaveBeenCalled();
-    });
-
     it('propagates errors from getSourceFileUrl', async () => {
+        const mapDataEvent = createMapDataEvent();
         const error = new Error('Failed to get source file URL');
         mockGetSourceFileUrl.mockRejectedValue(error);
 
         await expect(
-            main(mockSaveMapDataHookFn, pageDataSource, pageId, routeId),
+            main(mockSaveMapDataHookFn, mapDataEvent),
         ).rejects.toThrow('Failed to get source file URL');
     });
 
     it('propagates errors from processMapData', async () => {
+        const mapDataEvent = createMapDataEvent();
         const sourceFileUrl = 'https://example.com/file.kml';
         const error = new Error('Failed to process map data');
         
@@ -303,11 +293,12 @@ describe('main', () => {
         mockProcessMapData.mockRejectedValue(error);
 
         await expect(
-            main(mockSaveMapDataHookFn, pageDataSource, pageId, routeId),
+            main(mockSaveMapDataHookFn, mapDataEvent),
         ).rejects.toThrow('Failed to process map data');
     });
 
     it('propagates errors from upsertMapData', async () => {
+        const mapDataEvent = createMapDataEvent();
         const sourceFileUrl = 'https://example.com/file.kml';
         const error = new Error('Failed to upsert map data');
         
@@ -315,22 +306,26 @@ describe('main', () => {
         mockUpsertMapData.mockRejectedValue(error);
 
         await expect(
-            main(mockSaveMapDataHookFn, pageDataSource, pageId, routeId),
+            main(mockSaveMapDataHookFn, mapDataEvent),
         ).rejects.toThrow('Failed to upsert map data');
     });
 
     it('propagates errors from upsertPageRoute', async () => {
+        const mapDataEvent = createMapDataEvent();
+        const sourceFileUrl = 'https://example.com/file.kml';
         const error = new Error('Failed to upsert page route');
+        
+        mockGetSourceFileUrl.mockResolvedValue(sourceFileUrl);
         mockUpsertPageRoute.mockRejectedValue(error);
 
         await expect(
-            main(mockSaveMapDataHookFn, pageDataSource, pageId, routeId),
+            main(mockSaveMapDataHookFn, mapDataEvent),
         ).rejects.toThrow('Failed to upsert page route');
     });
 
-    it('handles case where PageRoute exists but has no mapData', async () => {
+    it('handles case where MapDataEvent has no mapDataId', async () => {
+        const mapDataEvent = createMapDataEvent(); // No mapDataId
         const sourceFileUrl = 'https://example.com/file.kml';
-        const existingPageRoute = new PageRoute(routeId, pageId); // No mapData
         const upsertedMapData = new MapData(
             undefined,
             'https://s3.amazonaws.com/bucket/source/file.kml',
@@ -339,11 +334,10 @@ describe('main', () => {
             'new-map-data-id',
         );
 
-        mockGetPageRoute.mockResolvedValue(existingPageRoute);
         mockGetSourceFileUrl.mockResolvedValue(sourceFileUrl);
         mockUpsertMapData.mockResolvedValue(upsertedMapData);
 
-        await main(mockSaveMapDataHookFn, pageDataSource, pageId, routeId);
+        await main(mockSaveMapDataHookFn, mapDataEvent);
 
         expect(mockProcessMapData).toHaveBeenCalledWith(
             sourceFileUrl,

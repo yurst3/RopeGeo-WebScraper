@@ -1,20 +1,17 @@
 import { copyFile, mkdir, rename, unlink, readFile } from 'fs/promises';
 import { dirname, join } from 'path';
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
-
-export type SaveMapDataResult = {
-    sourceFile: string;
-    geoJsonFile: string;
-    vectorTileFile: string;
-};
+import MapData from '../types/mapData';
 
 export type SaveMapDataHookFn = (
-    sourceFilePath: string,
-    geoJsonFilePath: string,
-    vectorTileFilePath: string,
+    sourceFilePath: string | undefined,
+    geoJsonFilePath: string | undefined,
+    vectorTileFilePath: string | undefined,
     mapDataId: string,
     isKml: boolean,
-) => Promise<SaveMapDataResult>;
+    sourceFileUrl: string,
+    errorMessage: string | undefined,
+) => Promise<MapData>;
 
 const SAVED_MAP_DATA_DIR = '.savedMapData';
 
@@ -35,12 +32,14 @@ async function moveFile(sourcePath: string, destPath: string): Promise<void> {
 }
 
 export const lambdaSaveMapData: SaveMapDataHookFn = async (
-    sourceFilePath: string,
-    geoJsonFilePath: string,
-    vectorTileFilePath: string,
+    sourceFilePath: string | undefined,
+    geoJsonFilePath: string | undefined,
+    vectorTileFilePath: string | undefined,
     mapDataId: string,
     isKml: boolean,
-): Promise<SaveMapDataResult> => {
+    sourceFileUrl: string,
+    errorMessage: string | undefined,
+): Promise<MapData> => {
     const bucketName = process.env.MAP_DATA_BUCKET_NAME;
     if (!bucketName) {
         throw new Error('MAP_DATA_BUCKET_NAME environment variable is not set');
@@ -54,59 +53,96 @@ export const lambdaSaveMapData: SaveMapDataHookFn = async (
     const geoJsonFileName = `${mapDataId}.geojson`;
     const vectorTileFileName = `${mapDataId}.mbtiles`;
 
-    // Upload source file
-    const sourceS3Key = `source/${sourceFileName}`;
-    const sourceFileBuffer = await readFile(sourceFilePath);
-    await s3Client.send(
-        new PutObjectCommand({
-            Bucket: bucketName,
-            Key: sourceS3Key,
-            Body: sourceFileBuffer,
-            ContentType: isKml ? 'application/vnd.google-earth.kml+xml' : 'application/gpx+xml',
-        }),
-    );
-    const sourceFile = `https://${bucketName}.s3.amazonaws.com/${sourceS3Key}`;
+    let sourceFile: string | undefined;
+    let geoJsonFile: string | undefined;
+    let vectorTileFile: string | undefined;
 
-    // Upload GeoJSON file
-    const geoJsonS3Key = `geojson/${geoJsonFileName}`;
-    const geoJsonFileBuffer = await readFile(geoJsonFilePath);
-    await s3Client.send(
-        new PutObjectCommand({
-            Bucket: bucketName,
-            Key: geoJsonS3Key,
-            Body: geoJsonFileBuffer,
-            ContentType: 'application/geo+json',
-        }),
-    );
-    const geoJsonFile = `https://${bucketName}.s3.amazonaws.com/${geoJsonS3Key}`;
+    const uploadErrors: string[] = [];
 
-    // Upload vector tile file
-    const vectorTileS3Key = `vector-tiles/${vectorTileFileName}`;
-    const vectorTileFileBuffer = await readFile(vectorTileFilePath);
-    await s3Client.send(
-        new PutObjectCommand({
-            Bucket: bucketName,
-            Key: vectorTileS3Key,
-            Body: vectorTileFileBuffer,
-            ContentType: 'application/x-protobuf',
-        }),
-    );
-    const vectorTileFile = `https://${bucketName}.s3.amazonaws.com/${vectorTileS3Key}`;
+    // Upload source file if provided
+    if (sourceFilePath) {
+        try {
+            const sourceS3Key = `source/${sourceFileName}`;
+            const sourceFileBuffer = await readFile(sourceFilePath);
+            await s3Client.send(
+                new PutObjectCommand({
+                    Bucket: bucketName,
+                    Key: sourceS3Key,
+                    Body: sourceFileBuffer,
+                    ContentType: isKml ? 'application/vnd.google-earth.kml+xml' : 'application/gpx+xml',
+                }),
+            );
+            sourceFile = `https://${bucketName}.s3.amazonaws.com/${sourceS3Key}`;
+        } catch (error) {
+            const errorMsg = error instanceof Error ? error.message : String(error);
+            uploadErrors.push(`Failed to upload source file: ${errorMsg}`);
+        }
+    }
 
-    return {
-        sourceFile,
+    // Upload GeoJSON file if provided
+    if (geoJsonFilePath) {
+        try {
+            const geoJsonS3Key = `geojson/${geoJsonFileName}`;
+            const geoJsonFileBuffer = await readFile(geoJsonFilePath);
+            await s3Client.send(
+                new PutObjectCommand({
+                    Bucket: bucketName,
+                    Key: geoJsonS3Key,
+                    Body: geoJsonFileBuffer,
+                    ContentType: 'application/geo+json',
+                }),
+            );
+            geoJsonFile = `https://${bucketName}.s3.amazonaws.com/${geoJsonS3Key}`;
+        } catch (error) {
+            const errorMsg = error instanceof Error ? error.message : String(error);
+            uploadErrors.push(`Failed to upload GeoJSON file: ${errorMsg}`);
+        }
+    }
+
+    // Upload vector tile file if provided
+    if (vectorTileFilePath) {
+        try {
+            const vectorTileS3Key = `vector-tiles/${vectorTileFileName}`;
+            const vectorTileFileBuffer = await readFile(vectorTileFilePath);
+            await s3Client.send(
+                new PutObjectCommand({
+                    Bucket: bucketName,
+                    Key: vectorTileS3Key,
+                    Body: vectorTileFileBuffer,
+                    ContentType: 'application/x-protobuf',
+                }),
+            );
+            vectorTileFile = `https://${bucketName}.s3.amazonaws.com/${vectorTileS3Key}`;
+        } catch (error) {
+            const errorMsg = error instanceof Error ? error.message : String(error);
+            uploadErrors.push(`Failed to upload vector tile file: ${errorMsg}`);
+        }
+    }
+
+    if (uploadErrors.length) {
+        errorMessage = uploadErrors.join('\n');
+    }
+
+    return new MapData(
+        isKml ? undefined : sourceFile,
+        isKml ? sourceFile : undefined,
         geoJsonFile,
         vectorTileFile,
-    };
+        mapDataId,
+        sourceFileUrl,
+        errorMessage,
+    );
 };
 
 export const nodeSaveMapData: SaveMapDataHookFn = async (
-    sourceFilePath: string,
-    geoJsonFilePath: string,
-    vectorTileFilePath: string,
+    sourceFilePath: string | undefined,
+    geoJsonFilePath: string | undefined,
+    vectorTileFilePath: string | undefined,
     mapDataId: string,
     isKml: boolean,
-): Promise<SaveMapDataResult> => {
+    sourceFileUrl: string,
+    errorMessage: string | undefined,
+): Promise<MapData> => {
     const projectRoot = process.cwd();
 
     const fileExtension = isKml ? 'kml' : 'gpx';
@@ -114,13 +150,56 @@ export const nodeSaveMapData: SaveMapDataHookFn = async (
     const geoJsonDestPath = join(projectRoot, SAVED_MAP_DATA_DIR, 'geojson', `${mapDataId}.geojson`);
     const vectorTileDestPath = join(projectRoot, SAVED_MAP_DATA_DIR, 'vector-tiles', `${mapDataId}.mbtiles`);
 
-    await moveFile(sourceFilePath, sourceDestPath);
-    await moveFile(geoJsonFilePath, geoJsonDestPath);
-    await moveFile(vectorTileFilePath, vectorTileDestPath);
+    let sourceFile: string | undefined;
+    let geoJsonFile: string | undefined;
+    let vectorTileFile: string | undefined;
 
-    return {
-        sourceFile: sourceDestPath,
-        geoJsonFile: geoJsonDestPath,
-        vectorTileFile: vectorTileDestPath,
-    };
+    const moveErrors: string[] = [];
+
+    // Move source file if provided
+    if (sourceFilePath) {
+        try {
+            await moveFile(sourceFilePath, sourceDestPath);
+            sourceFile = sourceDestPath;
+        } catch (error) {
+            const errorMsg = error instanceof Error ? error.message : String(error);
+            moveErrors.push(`Failed to move source file: ${errorMsg}`);
+        }
+    }
+
+    // Move GeoJSON file if provided
+    if (geoJsonFilePath) {
+        try {
+            await moveFile(geoJsonFilePath, geoJsonDestPath);
+            geoJsonFile = geoJsonDestPath;
+        } catch (error) {
+            const errorMsg = error instanceof Error ? error.message : String(error);
+            moveErrors.push(`Failed to move GeoJSON file: ${errorMsg}`);
+        }
+    }
+
+    // Move vector tile file if provided
+    if (vectorTileFilePath) {
+        try {
+            await moveFile(vectorTileFilePath, vectorTileDestPath);
+            vectorTileFile = vectorTileDestPath;
+        } catch (error) {
+            const errorMsg = error instanceof Error ? error.message : String(error);
+            moveErrors.push(`Failed to move vector tile file: ${errorMsg}`);
+        }
+    }
+
+    if (moveErrors.length) {
+        errorMessage = moveErrors.join('\n');
+    }
+
+    return new MapData(
+        isKml ? undefined : sourceFile,
+        isKml ? sourceFile : undefined,
+        geoJsonFile,
+        vectorTileFile,
+        mapDataId,
+        sourceFileUrl,
+        errorMessage,
+    );
 };

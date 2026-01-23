@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, jest } from '@jest/globals';
 import { mainHandler } from '../../../src/map-data/lambda-handlers/mainHandler';
-import { PageDataSource } from '../../../src/map-data/types/mapData';
+import { PageDataSource } from '../../../src/types/pageRoute';
 import { MapDataEvent } from '../../../src/map-data/types/lambdaEvent';
 import type { SqsEvent, SqsRecord } from '@aws-lambda-powertools/parser/types';
 
@@ -13,13 +13,30 @@ jest.mock('../../../src/map-data/main', () => ({
 // Mock MapDataEvent
 let mockFromSQSEventRecord: jest.MockedFunction<typeof MapDataEvent.fromSQSEventRecord>;
 jest.mock('../../../src/map-data/types/lambdaEvent', () => {
-    const actual = jest.requireActual('../../../src/map-data/types/lambdaEvent');
-    const ActualMapDataEvent = (actual as { MapDataEvent: typeof MapDataEvent }).MapDataEvent;
-    const MockedMapDataEvent = ActualMapDataEvent;
-    (MockedMapDataEvent as any).fromSQSEventRecord = jest.fn();
+    // Create a mock function for the static method
+    const mockFromSQSEventRecordFn = jest.fn();
+    // Create a mock class that matches the MapDataEvent interface
+    // We can't extend the actual class due to circular dependency with pageRoute.ts
+    class MockedMapDataEvent {
+        source: any;
+        routeId: string;
+        pageId: string;
+        mapDataId: string | undefined;
+        
+        constructor(source: any, routeId: string, pageId: string, mapDataId?: string) {
+            this.source = source;
+            this.routeId = routeId;
+            this.pageId = pageId;
+            this.mapDataId = mapDataId;
+        }
+        
+        static fromSQSEventRecord = mockFromSQSEventRecordFn;
+    }
+    // Return both the class and expose the mock function
     return {
         MapDataEvent: MockedMapDataEvent,
-        default: (actual as { default: typeof MapDataEvent }).default,
+        __mockFromSQSEventRecord: mockFromSQSEventRecordFn,
+        default: MockedMapDataEvent,
     };
 });
 
@@ -37,7 +54,8 @@ describe('mainHandler', () => {
         mockMain = mainModule.main;
         
         const lambdaEventModule = require('../../../src/map-data/types/lambdaEvent');
-        mockFromSQSEventRecord = lambdaEventModule.MapDataEvent.fromSQSEventRecord;
+        // Access the mock function either from the exposed property or from the static method
+        mockFromSQSEventRecord = (lambdaEventModule.__mockFromSQSEventRecord || lambdaEventModule.MapDataEvent.fromSQSEventRecord) as jest.MockedFunction<typeof MapDataEvent.fromSQSEventRecord>;
 
         // Default mock implementations
         mockMain.mockResolvedValue(undefined);
@@ -64,9 +82,7 @@ describe('mainHandler', () => {
         expect(mockFromSQSEventRecord).toHaveBeenCalledWith(sqsEvent.Records[0]);
         expect(mockMain).toHaveBeenCalledWith(
             expect.any(Function), // lambdaSaveMapData
-            source,
-            pageId,
-            routeId,
+            mapDataEvent,
         );
         expect(result).toEqual({
             statusCode: 200,
@@ -146,32 +162,6 @@ describe('mainHandler', () => {
         expect(body.error).toBe('SQS record missing body');
     });
 
-    it('returns error when source is not Ropewiki', async () => {
-        const unsupportedSource = 'UnsupportedSource' as PageDataSource;
-        const mapDataEvent = new MapDataEvent(unsupportedSource, routeId, pageId);
-        const sqsEvent: SqsEvent = {
-            Records: [
-                {
-                    body: JSON.stringify({
-                        source: unsupportedSource,
-                        routeId,
-                        pageId,
-                    }),
-                } as SqsRecord,
-            ],
-        };
-
-        mockFromSQSEventRecord.mockReturnValue(mapDataEvent);
-
-        const result = await mainHandler(sqsEvent, mockContext);
-
-        expect(mockFromSQSEventRecord).toHaveBeenCalledWith(sqsEvent.Records[0]);
-        expect(mockMain).not.toHaveBeenCalled();
-        expect(result.statusCode).toBe(500);
-        const body = JSON.parse(result.body);
-        expect(body.message).toBe('Failed to process map data');
-        expect(body.error).toBe(`Unsupported source: ${unsupportedSource}`);
-    });
 
     it('returns error when main function throws', async () => {
         const error = new Error('Database connection failed');
@@ -195,10 +185,8 @@ describe('mainHandler', () => {
 
         expect(mockFromSQSEventRecord).toHaveBeenCalledWith(sqsEvent.Records[0]);
         expect(mockMain).toHaveBeenCalledWith(
-            expect.any(Function),
-            source,
-            pageId,
-            routeId,
+            expect.any(Function), // lambdaSaveMapData
+            mapDataEvent,
         );
         expect(result.statusCode).toBe(500);
         const body = JSON.parse(result.body);
@@ -282,10 +270,8 @@ describe('mainHandler', () => {
         await mainHandler(sqsEvent, mockContext);
 
         expect(mockMain).toHaveBeenCalledWith(
-            expect.any(Function),
-            source,
-            pageId,
-            routeId,
+            expect.any(Function), // lambdaSaveMapData
+            mapDataEvent,
         );
         
         // Verify the first argument is a function (lambdaSaveMapData)

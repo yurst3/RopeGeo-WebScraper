@@ -2,27 +2,15 @@ import { describe, it, expect, beforeEach, afterEach, jest } from '@jest/globals
 import { processMapData } from '../../../src/map-data/processors/processMapData';
 import MapData from '../../../src/map-data/types/mapData';
 import type { SaveMapDataHookFn } from '../../../src/map-data/hook-functions/saveMapData';
-import { mkdtemp, writeFile, rm } from 'fs/promises';
-import { exec } from 'child_process';
-import { promisify } from 'util';
+import { mkdtemp, rm } from 'fs/promises';
 import { join } from 'path';
 import { tmpdir } from 'os';
 import { randomUUID } from 'crypto';
-import { kml, gpx } from '@tmcw/togeojson';
-import { DOMParser } from '@xmldom/xmldom';
-
-const execAsync = promisify(exec);
 
 // Mock fs/promises
 jest.mock('fs/promises', () => ({
     mkdtemp: jest.fn(),
-    writeFile: jest.fn(),
     rm: jest.fn(),
-}));
-
-// Mock child_process.exec
-jest.mock('child_process', () => ({
-    exec: jest.fn(),
 }));
 
 // Mock crypto.randomUUID
@@ -31,25 +19,18 @@ jest.mock('crypto', () => ({
     randomUUID: () => mockRandomUUID(),
 }));
 
-// Mock @tmcw/togeojson
-const mockKml = jest.fn();
-const mockGpx = jest.fn();
-jest.mock('@tmcw/togeojson', () => ({
-    kml: (dom: any) => mockKml(dom),
-    gpx: (dom: any) => mockGpx(dom),
+// Mock utility functions
+jest.mock('../../../src/map-data/util/downloadSourceFile', () => ({
+    downloadSourceFile: jest.fn(),
 }));
 
-// Mock @xmldom/xmldom
-const mockParseFromString = jest.fn<(text: string, mimeType: string) => any>();
-jest.mock('@xmldom/xmldom', () => ({
-    DOMParser: jest.fn(() => ({
-        parseFromString: mockParseFromString,
-    })),
+jest.mock('../../../src/map-data/util/convertToGeoJson', () => ({
+    convertToGeoJson: jest.fn(),
 }));
 
-// Mock global fetch
-const mockFetch = jest.fn<typeof fetch>();
-global.fetch = mockFetch as typeof fetch;
+jest.mock('../../../src/map-data/util/convertToVectorTiles', () => ({
+    convertToVectorTiles: jest.fn(),
+}));
 
 describe('processMapData', () => {
     const mockMapDataId = '11111111-1111-1111-1111-111111111111';
@@ -59,11 +40,13 @@ describe('processMapData', () => {
     const mockVectorTileFilePath = join(mockTempDir, `${mockMapDataId}.mbtiles`);
     
     const mockSourceFileContent = '<?xml version="1.0"?><kml></kml>';
-    const mockGeoJson = { type: 'FeatureCollection', features: [] };
-    const mockDom = { mock: 'dom' };
     
     let mockSaveMapDataHookFn: jest.MockedFunction<SaveMapDataHookFn>;
     let originalEnv: NodeJS.ProcessEnv;
+
+    let mockDownloadSourceFile: jest.MockedFunction<any>;
+    let mockConvertToGeoJson: jest.MockedFunction<any>;
+    let mockConvertToVectorTiles: jest.MockedFunction<any>;
 
     beforeEach(() => {
         jest.clearAllMocks();
@@ -71,40 +54,90 @@ describe('processMapData', () => {
 
         // Setup default mocks
         (mkdtemp as jest.MockedFunction<typeof mkdtemp>).mockResolvedValue(mockTempDir);
-        (writeFile as jest.MockedFunction<typeof writeFile>).mockResolvedValue(undefined);
         (rm as jest.MockedFunction<typeof rm>).mockResolvedValue(undefined);
         mockRandomUUID.mockReturnValue(mockMapDataId);
         
-        // Mock fetch
-        const mockText = jest.fn<() => Promise<string>>().mockResolvedValue(mockSourceFileContent);
-        mockFetch.mockResolvedValue({
-            ok: true,
-            text: mockText,
-        } as unknown as Response);
-
-        // Mock XML parsing
-        mockParseFromString.mockReturnValue(mockDom as any);
-
-        // Mock GeoJSON conversion
-        mockKml.mockReturnValue(mockGeoJson);
-        mockGpx.mockReturnValue(mockGeoJson);
-
-        // Mock exec (tippecanoe) - mock it properly for promisify
-        (exec as jest.MockedFunction<typeof exec>).mockImplementation(
-            ((command: string, callback?: (error: Error | null, stdout: string, stderr: string) => void) => {
-                if (callback) {
-                    callback(null, '', '');
-                }
-                return {} as any;
-            }) as typeof exec
+        // Get mocked utility functions
+        const downloadSourceFileModule = require('../../../src/map-data/util/downloadSourceFile');
+        const convertToGeoJsonModule = require('../../../src/map-data/util/convertToGeoJson');
+        const convertToVectorTilesModule = require('../../../src/map-data/util/convertToVectorTiles');
+        
+        mockDownloadSourceFile = downloadSourceFileModule.downloadSourceFile;
+        mockConvertToGeoJson = convertToGeoJsonModule.convertToGeoJson;
+        mockConvertToVectorTiles = convertToVectorTilesModule.convertToVectorTiles;
+        
+        // Reset and setup mocks with implementations that use the mapDataId parameter
+        mockDownloadSourceFile.mockReset();
+        mockConvertToGeoJson.mockReset();
+        mockConvertToVectorTiles.mockReset();
+        
+        // Mock utility functions with successful responses
+        // Use mockImplementation to construct file path based on isKml parameter
+        mockDownloadSourceFile.mockImplementation(
+            async (sourceFileUrl: string, tempDir: string, mapDataId: string, isKml: boolean) => {
+                const fileExtension = isKml ? 'kml' : 'gpx';
+                const filePath = join(tempDir, `${mapDataId}.${fileExtension}`);
+                return {
+                    filePath,
+                    content: mockSourceFileContent,
+                    error: undefined,
+                };
+            }
         );
 
-        // Mock save hook function
-        mockSaveMapDataHookFn = jest.fn<SaveMapDataHookFn>().mockResolvedValue({
-            sourceFile: 'https://s3.amazonaws.com/bucket/source/file.kml',
-            geoJsonFile: 'https://s3.amazonaws.com/bucket/geojson/file.geojson',
-            vectorTileFile: 'https://s3.amazonaws.com/bucket/vector-tiles/file.mbtiles',
-        });
+        // Use mockImplementation to construct file paths based on mapDataId parameter
+        mockConvertToGeoJson.mockImplementation(
+            async (sourceFileContent: string, tempDir: string, mapDataId: string, isKml: boolean) => {
+                const filePath = join(tempDir, `${mapDataId}.geojson`);
+                return {
+                    filePath,
+                    error: undefined,
+                };
+            }
+        );
+
+        mockConvertToVectorTiles.mockImplementation(
+            async (geoJsonFilePath: string, tempDir: string, mapDataId: string) => {
+                const filePath = join(tempDir, `${mapDataId}.mbtiles`);
+                return {
+                    filePath,
+                    error: undefined,
+                };
+            }
+        );
+
+        // Mock save hook function - use parameters passed to it
+        mockSaveMapDataHookFn = jest.fn<SaveMapDataHookFn>().mockImplementation(
+            async (
+                sourceFilePath,
+                geoJsonFilePath,
+                vectorTileFilePath,
+                mapDataId,
+                isKml,
+                sourceFileUrl,
+                errorMessage,
+            ) => {
+                const sourceFile = sourceFilePath
+                    ? `https://s3.amazonaws.com/bucket/source/${mapDataId}.${isKml ? 'kml' : 'gpx'}`
+                    : undefined;
+                const geoJsonFile = geoJsonFilePath
+                    ? `https://s3.amazonaws.com/bucket/geojson/${mapDataId}.geojson`
+                    : undefined;
+                const vectorTileFile = vectorTileFilePath
+                    ? `https://s3.amazonaws.com/bucket/vector-tiles/${mapDataId}.mbtiles`
+                    : undefined;
+
+                return new MapData(
+                    isKml ? undefined : sourceFile, // gpx
+                    isKml ? sourceFile : undefined, // kml
+                    geoJsonFile, // geoJson
+                    vectorTileFile, // vectorTile
+                    mapDataId,
+                    sourceFileUrl,
+                    errorMessage, // errorMessage - use the parameter passed in
+                );
+            }
+        );
     });
 
     afterEach(() => {
@@ -120,11 +153,15 @@ describe('processMapData', () => {
 
             const _goodArgs: Args = [
                 'https://example.com/file.kml',
-                async () => ({
-                    sourceFile: 'local://source',
-                    geoJsonFile: 'local://geojson',
-                    vectorTileFile: 'local://mbtiles',
-                }),
+                async () => new MapData(
+                    undefined, // gpx
+                    'local://source', // kml
+                    'local://geojson', // geoJson
+                    'local://mbtiles', // vectorTile
+                    'test-id', // id
+                    'https://example.com/file.kml', // sourceFileUrl
+                    undefined, // errorMessage
+                ),
             ];
 
             expect(Array.isArray(_goodArgs)).toBe(true);
@@ -139,10 +176,12 @@ describe('processMapData', () => {
 
             expect(result).toBeInstanceOf(MapData);
             expect(result.id).toBe(mockMapDataId);
-            expect(result.kml).toBe('https://s3.amazonaws.com/bucket/source/file.kml');
+            expect(result.kml).toBe(`https://s3.amazonaws.com/bucket/source/${mockMapDataId}.kml`);
             expect(result.gpx).toBeUndefined();
-            expect(result.geoJson).toBe('https://s3.amazonaws.com/bucket/geojson/file.geojson');
-            expect(result.vectorTile).toBe('https://s3.amazonaws.com/bucket/vector-tiles/file.mbtiles');
+            expect(result.geoJson).toBe(`https://s3.amazonaws.com/bucket/geojson/${mockMapDataId}.geojson`);
+            expect(result.vectorTile).toBe(`https://s3.amazonaws.com/bucket/vector-tiles/${mockMapDataId}.mbtiles`);
+            expect(result.sourceFileUrl).toBe(sourceFileUrl);
+            expect(result.errorMessage).toBeUndefined();
         });
 
         it('calls saveMapDataHookFn with correct parameters for KML', async () => {
@@ -157,30 +196,49 @@ describe('processMapData', () => {
                 mockVectorTileFilePath,
                 mockMapDataId,
                 true, // isKml
+                sourceFileUrl,
+                undefined, // errorMessage
             );
         });
 
-        it('downloads KML file and writes it to temp directory', async () => {
+        it('calls downloadSourceFile with correct parameters', async () => {
             const sourceFileUrl = 'https://example.com/test.kml';
 
             await processMapData(sourceFileUrl, mockSaveMapDataHookFn);
 
-            expect(mockFetch).toHaveBeenCalledWith(sourceFileUrl);
-            expect(writeFile).toHaveBeenCalledWith(mockSourceFilePath, mockSourceFileContent, 'utf-8');
+            expect(mockDownloadSourceFile).toHaveBeenCalledTimes(1);
+            expect(mockDownloadSourceFile).toHaveBeenCalledWith(
+                sourceFileUrl,
+                mockTempDir,
+                mockMapDataId,
+                true, // isKml
+            );
         });
 
-        it('converts KML to GeoJSON using kml parser', async () => {
+        it('calls convertToGeoJson with correct parameters', async () => {
             const sourceFileUrl = 'https://example.com/test.kml';
 
             await processMapData(sourceFileUrl, mockSaveMapDataHookFn);
 
-            expect(mockParseFromString).toHaveBeenCalledWith(mockSourceFileContent, 'text/xml');
-            expect(mockKml).toHaveBeenCalledWith(mockDom);
-            expect(mockGpx).not.toHaveBeenCalled();
-            expect(writeFile).toHaveBeenCalledWith(
+            expect(mockConvertToGeoJson).toHaveBeenCalledTimes(1);
+            expect(mockConvertToGeoJson).toHaveBeenCalledWith(
+                mockSourceFileContent,
+                mockTempDir,
+                mockMapDataId,
+                true, // isKml
+            );
+        });
+
+        it('calls convertToVectorTiles with correct parameters', async () => {
+            const sourceFileUrl = 'https://example.com/test.kml';
+
+            await processMapData(sourceFileUrl, mockSaveMapDataHookFn);
+
+            expect(mockConvertToVectorTiles).toHaveBeenCalledTimes(1);
+            expect(mockConvertToVectorTiles).toHaveBeenCalledWith(
                 mockGeoJsonFilePath,
-                JSON.stringify(mockGeoJson),
-                'utf-8',
+                mockTempDir,
+                mockMapDataId,
             );
         });
     });
@@ -193,10 +251,10 @@ describe('processMapData', () => {
 
             expect(result).toBeInstanceOf(MapData);
             expect(result.id).toBe(mockMapDataId);
-            expect(result.gpx).toBe('https://s3.amazonaws.com/bucket/source/file.kml');
+            expect(result.gpx).toBe(`https://s3.amazonaws.com/bucket/source/${mockMapDataId}.gpx`);
             expect(result.kml).toBeUndefined();
-            expect(result.geoJson).toBe('https://s3.amazonaws.com/bucket/geojson/file.geojson');
-            expect(result.vectorTile).toBe('https://s3.amazonaws.com/bucket/vector-tiles/file.mbtiles');
+            expect(result.geoJson).toBe(`https://s3.amazonaws.com/bucket/geojson/${mockMapDataId}.geojson`);
+            expect(result.vectorTile).toBe(`https://s3.amazonaws.com/bucket/vector-tiles/${mockMapDataId}.mbtiles`);
         });
 
         it('calls saveMapDataHookFn with correct parameters for GPX', async () => {
@@ -212,17 +270,34 @@ describe('processMapData', () => {
                 mockVectorTileFilePath,
                 mockMapDataId,
                 false, // isKml
+                sourceFileUrl,
+                undefined, // errorMessage
             );
         });
 
-        it('converts GPX to GeoJSON using gpx parser', async () => {
+        it('calls downloadSourceFile with isKml=false for GPX', async () => {
             const sourceFileUrl = 'https://example.com/test.gpx';
+            const expectedSourceFilePath = join(mockTempDir, `${mockMapDataId}.gpx`);
+            mockDownloadSourceFile.mockResolvedValueOnce({
+                filePath: expectedSourceFilePath,
+                content: mockSourceFileContent,
+                error: undefined,
+            });
 
             await processMapData(sourceFileUrl, mockSaveMapDataHookFn);
 
-            expect(mockParseFromString).toHaveBeenCalledWith(mockSourceFileContent, 'text/xml');
-            expect(mockGpx).toHaveBeenCalledWith(mockDom);
-            expect(mockKml).not.toHaveBeenCalled();
+            expect(mockDownloadSourceFile).toHaveBeenCalledWith(
+                sourceFileUrl,
+                mockTempDir,
+                mockMapDataId,
+                false, // isKml
+            );
+            expect(mockConvertToGeoJson).toHaveBeenCalledWith(
+                mockSourceFileContent,
+                mockTempDir,
+                mockMapDataId,
+                false, // isKml
+            );
         });
     });
 
@@ -242,6 +317,8 @@ describe('processMapData', () => {
                 expect.stringContaining(generatedId),
                 generatedId,
                 true,
+                sourceFileUrl,
+                undefined,
             );
         });
 
@@ -259,6 +336,8 @@ describe('processMapData', () => {
                 expect.stringContaining(providedId),
                 providedId,
                 true,
+                sourceFileUrl,
+                undefined,
             );
         });
 
@@ -274,84 +353,170 @@ describe('processMapData', () => {
         });
     });
 
-    describe('tippecanoe integration', () => {
-        it('runs tippecanoe command to convert GeoJSON to vector tiles', async () => {
+    describe('error handling', () => {
+        it('returns MapData with error message for unsupported file types', async () => {
+            const sourceFileUrl = 'https://example.com/test.xml';
+
+            const result = await processMapData(sourceFileUrl, mockSaveMapDataHookFn);
+
+            expect(result).toBeInstanceOf(MapData);
+            expect(result.id).toBe(mockMapDataId);
+            expect(result.errorMessage).toBe('Unsupported file type. Expected .kml or .gpx, got: https://example.com/test.xml');
+            expect(result.sourceFileUrl).toBe(sourceFileUrl);
+            expect(mockDownloadSourceFile).not.toHaveBeenCalled();
+            expect(mockSaveMapDataHookFn).not.toHaveBeenCalled();
+        });
+
+        it('returns MapData with error when download fails', async () => {
             const sourceFileUrl = 'https://example.com/test.kml';
-            const expectedCommand = `tippecanoe -o "${mockVectorTileFilePath}" "${mockGeoJsonFilePath}"`;
+            const downloadError = 'Failed to download source file: Network error';
+            mockDownloadSourceFile.mockResolvedValueOnce({
+                filePath: undefined,
+                content: undefined,
+                error: downloadError,
+            });
 
-            await processMapData(sourceFileUrl, mockSaveMapDataHookFn);
+            const result = await processMapData(sourceFileUrl, mockSaveMapDataHookFn);
 
-            expect(exec).toHaveBeenCalledWith(
-                expectedCommand,
-                expect.any(Function),
+            expect(result).toBeInstanceOf(MapData);
+            expect(result.errorMessage).toBe(downloadError);
+            expect(mockConvertToGeoJson).not.toHaveBeenCalled();
+            expect(mockConvertToVectorTiles).not.toHaveBeenCalled();
+            expect(mockSaveMapDataHookFn).toHaveBeenCalledWith(
+                undefined,
+                undefined,
+                undefined,
+                mockMapDataId,
+                true,
+                sourceFileUrl,
+                downloadError,
             );
         });
 
-        it('uses Lambda path for tippecanoe when LAMBDA_TASK_ROOT is set', async () => {
+        it('returns MapData with error when GeoJSON conversion fails', async () => {
             const sourceFileUrl = 'https://example.com/test.kml';
-            process.env.LAMBDA_TASK_ROOT = '/var/task';
-            const { join: pathJoin } = await import('path');
-            const expectedCommand = `${pathJoin('/var/task', 'tippecanoe')} -o "${mockVectorTileFilePath}" "${mockGeoJsonFilePath}"`;
+            const conversionError = 'Failed to convert to GeoJSON: Invalid XML';
+            mockConvertToGeoJson.mockResolvedValueOnce({
+                filePath: undefined,
+                error: conversionError,
+            });
 
-            await processMapData(sourceFileUrl, mockSaveMapDataHookFn);
+            const result = await processMapData(sourceFileUrl, mockSaveMapDataHookFn);
 
-            expect(exec).toHaveBeenCalledWith(
-                expectedCommand,
-                expect.any(Function),
+            expect(result).toBeInstanceOf(MapData);
+            expect(result.errorMessage).toBe(conversionError);
+            expect(mockConvertToVectorTiles).not.toHaveBeenCalled();
+            expect(mockSaveMapDataHookFn).toHaveBeenCalledWith(
+                mockSourceFilePath,
+                undefined,
+                undefined,
+                mockMapDataId,
+                true,
+                sourceFileUrl,
+                conversionError,
             );
         });
 
-        it('handles tippecanoe errors', async () => {
+        it('returns MapData with error when vector tile conversion fails', async () => {
             const sourceFileUrl = 'https://example.com/test.kml';
-            const tippecanoeError = new Error('Tippecanoe failed');
-            (exec as jest.MockedFunction<typeof exec>).mockImplementation(
-                ((command: string, callback?: (error: Error | null, stdout: string, stderr: string) => void) => {
-                    if (callback) {
-                        callback(tippecanoeError, '', 'error');
-                    }
-                    return {} as any;
-                }) as typeof exec
-            );
+            const vectorTileError = 'Failed to convert to vector tiles: Tippecanoe failed';
+            mockConvertToVectorTiles.mockResolvedValueOnce({
+                filePath: undefined,
+                error: vectorTileError,
+            });
 
-            await expect(
-                processMapData(sourceFileUrl, mockSaveMapDataHookFn),
-            ).rejects.toThrow('Tippecanoe failed');
+            const result = await processMapData(sourceFileUrl, mockSaveMapDataHookFn);
+
+            expect(result).toBeInstanceOf(MapData);
+            expect(result.errorMessage).toBe(vectorTileError);
+            expect(mockSaveMapDataHookFn).toHaveBeenCalledWith(
+                mockSourceFilePath,
+                mockGeoJsonFilePath,
+                undefined,
+                mockMapDataId,
+                true,
+                sourceFileUrl,
+                vectorTileError,
+            );
+        });
+
+        it('only records the first error encountered', async () => {
+            const sourceFileUrl = 'https://example.com/test.kml';
+            const downloadError = 'Failed to download source file: Network error';
+            const conversionError = 'Failed to convert to GeoJSON: Invalid XML';
+            const vectorTileError = 'Failed to convert to vector tiles: Tippecanoe failed';
+
+            mockDownloadSourceFile.mockResolvedValueOnce({
+                filePath: undefined,
+                content: undefined,
+                error: downloadError,
+            });
+            mockConvertToGeoJson.mockResolvedValueOnce({
+                filePath: undefined,
+                error: conversionError,
+            });
+            mockConvertToVectorTiles.mockResolvedValueOnce({
+                filePath: undefined,
+                error: vectorTileError,
+            });
+
+            const result = await processMapData(sourceFileUrl, mockSaveMapDataHookFn);
+
+            // Only the first error (download) should be recorded
+            expect(result.errorMessage).toBe(downloadError);
+            // Subsequent steps should be skipped
+            expect(mockConvertToGeoJson).not.toHaveBeenCalled();
+            expect(mockConvertToVectorTiles).not.toHaveBeenCalled();
+        });
+
+        it('skips GeoJSON conversion if download failed', async () => {
+            const sourceFileUrl = 'https://example.com/test.kml';
+            const downloadError = 'Failed to download source file: Network error';
+            mockDownloadSourceFile.mockResolvedValueOnce({
+                filePath: undefined,
+                content: undefined,
+                error: downloadError,
+            });
+
+            await processMapData(sourceFileUrl, mockSaveMapDataHookFn);
+
+            expect(mockConvertToGeoJson).not.toHaveBeenCalled();
+            expect(mockConvertToVectorTiles).not.toHaveBeenCalled();
+        });
+
+        it('skips vector tile conversion if GeoJSON conversion failed', async () => {
+            const sourceFileUrl = 'https://example.com/test.kml';
+            const conversionError = 'Failed to convert to GeoJSON: Invalid XML';
+            mockConvertToGeoJson.mockResolvedValueOnce({
+                filePath: undefined,
+                error: conversionError,
+            });
+
+            await processMapData(sourceFileUrl, mockSaveMapDataHookFn);
+
+            expect(mockConvertToVectorTiles).not.toHaveBeenCalled();
+        });
+
+        it('skips vector tile conversion if GeoJSON conversion succeeded but errorMessage exists', async () => {
+            const sourceFileUrl = 'https://example.com/test.kml';
+            const downloadError = 'Failed to download source file: Network error';
+            // Even if download fails, we might still have content (edge case)
+            mockDownloadSourceFile.mockResolvedValueOnce({
+                filePath: undefined,
+                content: mockSourceFileContent, // Content exists but error is set
+                error: downloadError,
+            });
+
+            await processMapData(sourceFileUrl, mockSaveMapDataHookFn);
+
+            // GeoJSON conversion should be skipped because errorMessage exists
+            expect(mockConvertToGeoJson).not.toHaveBeenCalled();
+            expect(mockConvertToVectorTiles).not.toHaveBeenCalled();
         });
     });
 
-    describe('error handling', () => {
-        it('throws error for unsupported file types', async () => {
-            const sourceFileUrl = 'https://example.com/test.xml';
-
-            await expect(
-                processMapData(sourceFileUrl, mockSaveMapDataHookFn),
-            ).rejects.toThrow('Unsupported file type. Expected .kml or .gpx, got: https://example.com/test.xml');
-        });
-
-        it('throws error when fetch fails', async () => {
-            const sourceFileUrl = 'https://example.com/test.kml';
-            mockFetch.mockResolvedValue({
-                ok: false,
-                status: 404,
-                statusText: 'Not Found',
-            } as Response);
-
-            await expect(
-                processMapData(sourceFileUrl, mockSaveMapDataHookFn),
-            ).rejects.toThrow('Failed to download source file: 404 Not Found');
-        });
-
-        it('throws error when fetch throws', async () => {
-            const sourceFileUrl = 'https://example.com/test.kml';
-            const fetchError = new Error('Network error');
-            mockFetch.mockRejectedValue(fetchError);
-
-            await expect(
-                processMapData(sourceFileUrl, mockSaveMapDataHookFn),
-            ).rejects.toThrow('Network error');
-        });
-
-        it('throws error when saveMapDataHookFn fails', async () => {
+    describe('hook function error handling', () => {
+        it('propagates error when saveMapDataHookFn fails', async () => {
             const sourceFileUrl = 'https://example.com/test.kml';
             const hookError = new Error('Failed to save files');
             mockSaveMapDataHookFn.mockRejectedValue(hookError);
@@ -414,6 +579,8 @@ describe('processMapData', () => {
                 expect.any(String),
                 expect.any(String),
                 true, // isKml
+                sourceFileUrl,
+                undefined,
             );
         });
 
@@ -430,6 +597,8 @@ describe('processMapData', () => {
                 expect.any(String),
                 expect.any(String),
                 false, // isKml
+                sourceFileUrl,
+                undefined,
             );
         });
     });

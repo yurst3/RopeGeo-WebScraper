@@ -1,15 +1,13 @@
 import type * as s from 'zapatos/schema';
 
-export enum PageDataSource {
-    Ropewiki = 'ropewiki',
-}
-
 export class MapData {
     id: string | undefined;
     gpx: string | undefined;
     kml: string | undefined;
     geoJson: string | undefined;
     vectorTile: string | undefined;
+    sourceFileUrl: string;
+    errorMessage: string | undefined;
 
     constructor(
         gpx?: string,
@@ -17,12 +15,16 @@ export class MapData {
         geoJson?: string,
         vectorTile?: string,
         id?: string,
+        sourceFileUrl?: string,
+        errorMessage?: string,
     ) {
         this.gpx = gpx;
         this.kml = kml;
         this.geoJson = geoJson;
         this.vectorTile = vectorTile;
         this.id = id;
+        this.sourceFileUrl = sourceFileUrl ?? '';
+        this.errorMessage = errorMessage;
     }
 
     toDbRow(): s.MapData.Insertable {
@@ -32,6 +34,8 @@ export class MapData {
             kml: this.kml ?? null,
             geoJson: this.geoJson ?? null,
             vectorTile: this.vectorTile ?? null,
+            sourceFileUrl: this.sourceFileUrl,
+            errorMessage: this.errorMessage ?? null,
             updatedAt: now,
             deletedAt: null,
         };
@@ -51,6 +55,8 @@ export class MapData {
             row.geoJson ?? undefined,
             row.vectorTile ?? undefined,
             row.id,
+            row.sourceFileUrl,
+            row.errorMessage ?? undefined,
         );
     }
 }

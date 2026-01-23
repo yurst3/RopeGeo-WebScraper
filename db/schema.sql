@@ -1,4 +1,4 @@
-\restrict gfn6If6gtoxH4pCNUmspLxdk7HFa7ij30IeKbuyQ1MxvkR5HWOSb0C0eKTxfHHs
+\restrict 74JaRC37MlVIuD9XyDPiDnTkMzmZAB5PlvOg5jmCTa7MPR9GmEr2kuymMlLZw9w
 
 -- Dumped from database version 18.1 (Debian 18.1-1.pgdg13+2)
 -- Dumped by pg_dump version 18.1 (Homebrew)
@@ -31,7 +31,9 @@ CREATE TABLE public."MapData" (
     "vectorTile" text,
     "createdAt" timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
     "updatedAt" timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    "deletedAt" timestamp without time zone
+    "deletedAt" timestamp without time zone,
+    "sourceFileUrl" text DEFAULT ''::text NOT NULL,
+    "errorMessage" text
 );
 
 
@@ -356,7 +358,7 @@ ALTER TABLE ONLY public."RopewikiRoute"
 -- PostgreSQL database dump complete
 --
 
-\unrestrict gfn6If6gtoxH4pCNUmspLxdk7HFa7ij30IeKbuyQ1MxvkR5HWOSb0C0eKTxfHHs
+\unrestrict 74JaRC37MlVIuD9XyDPiDnTkMzmZAB5PlvOg5jmCTa7MPR9GmEr2kuymMlLZw9w
 
 
 --
@@ -376,6 +378,8 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20260112234228'),
     ('20260117175122'),
     ('20260117184634'),
+    ('20260118000000'),
     ('20260120163351'),
     ('20260120174146'),
-    ('20260121110901');
+    ('20260121110901'),
+    ('20260121120000');

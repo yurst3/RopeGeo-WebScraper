@@ -1,8 +1,10 @@
 import { describe, it, expect, beforeEach, afterEach, jest } from '@jest/globals';
 import { nodeProcessRopewikiRoutes, lambdaProcessRopewikiRoutes } from '../../../src/ropewiki/hook-functions/processRopewikiRoutes';
+import { RopewikiRoute } from '../../../src/types/pageRoute';
+import { PageDataSource } from '../../../src/types/pageRoute';
+import { MapDataEvent } from '../../../src/map-data/types/lambdaEvent';
 import { Route, RouteType } from '../../../src/types/route';
 import RopewikiPage from '../../../src/ropewiki/types/page';
-import { PageDataSource } from '../../../src/map-data/types/mapData';
 
 // Mock map-data/main
 jest.mock('../../../src/map-data/main', () => {
@@ -126,6 +128,10 @@ describe('processRopewikiRoutes hook functions', () => {
             );
         };
 
+        const createTestRopewikiRoute = (routeId: string, pageId: string, mapDataId?: string): RopewikiRoute => {
+            return new RopewikiRoute(routeId, pageId, mapDataId);
+        };
+
         it('returns early when routesAndPages is empty', async () => {
             // Clear mock calls from beforeEach
             MockProgressLogger.mockClear();
@@ -137,49 +143,41 @@ describe('processRopewikiRoutes hook functions', () => {
         });
 
         it('processes a single route/page pair successfully', async () => {
-            const route = createTestRoute('route-1', 'Test Route');
-            const page = createTestPage('page-1', 'Test Route');
-            const routesAndPages: Array<[Route, RopewikiPage]> = [[route, page]];
+            const ropewikiRoute = createTestRopewikiRoute('route-1', 'page-1');
 
-            await nodeProcessRopewikiRoutes(routesAndPages);
+            await nodeProcessRopewikiRoutes([ropewikiRoute]);
 
             expect(MockProgressLogger).toHaveBeenCalledWith('Processing map data for routes', 1);
             expect(mockSetChunk).toHaveBeenCalledWith(0, 1);
             expect(mockProcessPageRouteAndMapData).toHaveBeenCalledTimes(1);
+            const mapDataEvent = ropewikiRoute.toMapDataEvent();
             expect(mockProcessPageRouteAndMapData).toHaveBeenCalledWith(
                 expect.anything(), // nodeSaveMapData
-                PageDataSource.Ropewiki,
-                'page-1',
-                'route-1',
+                mapDataEvent,
             );
             expect(mockLogProgress).toHaveBeenCalledWith(
-                'Processed "Test Route" (route route-1 / page page-1)',
+                'Processed route route-1 / page page-1',
             );
         });
 
         it('processes multiple route/page pairs successfully', async () => {
-            const route1 = createTestRoute('route-1', 'Route 1');
-            const page1 = createTestPage('page-1', 'Route 1');
-            const route2 = createTestRoute('route-2', 'Route 2');
-            const page2 = createTestPage('page-2', 'Route 2');
-            const routesAndPages: Array<[Route, RopewikiPage]> = [[route1, page1], [route2, page2]];
+            const ropewikiRoute1 = createTestRopewikiRoute('route-1', 'page-1');
+            const ropewikiRoute2 = createTestRopewikiRoute('route-2', 'page-2');
 
-            await nodeProcessRopewikiRoutes(routesAndPages);
+            await nodeProcessRopewikiRoutes([ropewikiRoute1, ropewikiRoute2]);
 
             expect(MockProgressLogger).toHaveBeenCalledWith('Processing map data for routes', 2);
             expect(mockSetChunk).toHaveBeenCalledWith(0, 2);
             expect(mockProcessPageRouteAndMapData).toHaveBeenCalledTimes(2);
             expect(mockLogProgress).toHaveBeenCalledTimes(2);
-            expect(mockLogProgress).toHaveBeenNthCalledWith(1, 'Processed "Route 1" (route route-1 / page page-1)');
-            expect(mockLogProgress).toHaveBeenNthCalledWith(2, 'Processed "Route 2" (route route-2 / page page-2)');
+            expect(mockLogProgress).toHaveBeenNthCalledWith(1, 'Processed route route-1 / page page-1');
+            expect(mockLogProgress).toHaveBeenNthCalledWith(2, 'Processed route route-2 / page page-2');
         });
 
         it('skips processing when route.id is missing', async () => {
-            const route = createTestRoute('', 'Test Route');
-            const page = createTestPage('page-1', 'Test Route');
-            const routesAndPages: Array<[Route, RopewikiPage]> = [[route, page]];
+            const ropewikiRoute = createTestRopewikiRoute('', 'page-1');
 
-            await nodeProcessRopewikiRoutes(routesAndPages);
+            await nodeProcessRopewikiRoutes([ropewikiRoute]);
 
             expect(mockProcessPageRouteAndMapData).not.toHaveBeenCalled();
             expect(mockConsoleError).toHaveBeenCalledWith(
@@ -187,16 +185,14 @@ describe('processRopewikiRoutes hook functions', () => {
                 expect.any(Error),
             );
             expect(mockLogProgress).toHaveBeenCalledWith(
-                'Skipped "Test Route" (route unknown / page page-1) due to error',
+                'Skipped route unknown / page page-1 due to error',
             );
         });
 
         it('skips processing when page.id is missing', async () => {
-            const route = createTestRoute('route-1', 'Test Route');
-            const page = createTestPage('', 'Test Route');
-            const routesAndPages: Array<[Route, RopewikiPage]> = [[route, page]];
+            const ropewikiRoute = createTestRopewikiRoute('route-1', '');
 
-            await nodeProcessRopewikiRoutes(routesAndPages);
+            await nodeProcessRopewikiRoutes([ropewikiRoute]);
 
             expect(mockProcessPageRouteAndMapData).not.toHaveBeenCalled();
             expect(mockConsoleError).toHaveBeenCalledWith(
@@ -204,34 +200,32 @@ describe('processRopewikiRoutes hook functions', () => {
                 expect.any(Error),
             );
             expect(mockLogProgress).toHaveBeenCalledWith(
-                'Skipped "Test Route" (route route-1 / page unknown) due to error',
+                'Skipped route route-1 / page unknown due to error',
             );
         });
 
         it('continues processing after an error', async () => {
-            const route1 = createTestRoute('route-1', 'Route 1');
-            const page1 = createTestPage('page-1', 'Route 1');
-            const route2 = createTestRoute('route-2', 'Route 2');
-            const page2 = createTestPage('page-2', 'Route 2');
-            const routesAndPages: Array<[Route, RopewikiPage]> = [[route1, page1], [route2, page2]];
+            const ropewikiRoute1 = createTestRopewikiRoute('route-1', 'page-1');
+            const ropewikiRoute2 = createTestRopewikiRoute('route-2', 'page-2');
 
             mockProcessPageRouteAndMapData
                 .mockRejectedValueOnce(new Error('Processing failed'))
                 .mockResolvedValueOnce(undefined);
 
-            await nodeProcessRopewikiRoutes(routesAndPages);
+            await nodeProcessRopewikiRoutes([ropewikiRoute1, ropewikiRoute2]);
 
             expect(mockProcessPageRouteAndMapData).toHaveBeenCalledTimes(2);
             expect(mockConsoleError).toHaveBeenCalledTimes(1);
             expect(mockLogProgress).toHaveBeenCalledTimes(2);
             // First call might be the error, second is the success
-            expect(mockLogProgress).toHaveBeenCalledWith('Skipped "Route 1" (route route-1 / page page-1) due to error');
-            expect(mockLogProgress).toHaveBeenCalledWith('Processed "Route 2" (route route-2 / page page-2)');
+            expect(mockLogProgress).toHaveBeenCalledWith('Skipped route route-1 / page page-1 due to error');
+            expect(mockLogProgress).toHaveBeenCalledWith('Processed route route-2 / page page-2');
         });
 
         it('handles page name being undefined in error case', async () => {
-            const route = createTestRoute('', 'Test Route');
-            const page = new RopewikiPage(
+            const ropewikiRoute = createTestRopewikiRoute('', '');
+            // Removed unused page variable
+            const _unused_page = new RopewikiPage(
                 'test-pageid',
                 '', // empty name
                 'test-region-id',
@@ -260,22 +254,22 @@ describe('processRopewikiRoutes hook functions', () => {
                 undefined, // userVotes
                 '', // no id
             );
-            const routesAndPages: Array<[Route, RopewikiPage]> = [[route, page]];
 
-            await nodeProcessRopewikiRoutes(routesAndPages);
+            await nodeProcessRopewikiRoutes([ropewikiRoute]);
 
             expect(mockLogProgress).toHaveBeenCalledWith(
-                'Skipped "unknown" (route unknown / page unknown) due to error',
+                'Skipped route unknown / page unknown due to error',
             );
         });
     });
 
     describe('lambdaProcessRopewikiRoutes', () => {
-        const createTestRoute = (id: string, name: string): Route => {
-            return new Route(id, name, RouteType.Canyon, { lat: 40, lon: -110 });
+        const createTestRopewikiRoute = (routeId: string, pageId: string, mapDataId?: string): RopewikiRoute => {
+            return new RopewikiRoute(routeId, pageId, mapDataId);
         };
 
-        const createTestPage = (id: string, name: string): RopewikiPage => {
+        // Removed createTestPage - no longer needed
+        const _unused_createTestPage = (id: string, name: string): RopewikiPage => {
             return new RopewikiPage(
                 'test-pageid',
                 name,
@@ -309,11 +303,9 @@ describe('processRopewikiRoutes hook functions', () => {
 
         it('skips sending messages when DEV_ENVIRONMENT is "local"', async () => {
             process.env.DEV_ENVIRONMENT = 'local';
-            const route = createTestRoute('route-1', 'Test Route');
-            const page = createTestPage('page-1', 'Test Route');
-            const routesAndPages: Array<[Route, RopewikiPage]> = [[route, page]];
+            const ropewikiRoute = createTestRopewikiRoute('route-1', 'page-1');
 
-            await lambdaProcessRopewikiRoutes(routesAndPages);
+            await lambdaProcessRopewikiRoutes([ropewikiRoute]);
 
             expect(mockConsoleLog).toHaveBeenCalledWith(
                 'Skipping SQS message sending for 1 route(s) - no queue configured locally',
@@ -326,11 +318,9 @@ describe('processRopewikiRoutes hook functions', () => {
         it('throws error when MAP_DATA_PROCESSING_QUEUE_URL is not set', async () => {
             delete process.env.DEV_ENVIRONMENT;
             delete process.env.MAP_DATA_PROCESSING_QUEUE_URL;
-            const route = createTestRoute('route-1', 'Test Route');
-            const page = createTestPage('page-1', 'Test Route');
-            const routesAndPages: Array<[Route, RopewikiPage]> = [[route, page]];
+            const ropewikiRoute = createTestRopewikiRoute('route-1', 'page-1');
 
-            await expect(lambdaProcessRopewikiRoutes(routesAndPages)).rejects.toThrow(
+            await expect(lambdaProcessRopewikiRoutes([ropewikiRoute])).rejects.toThrow(
                 'MAP_DATA_PROCESSING_QUEUE_URL environment variable is not set',
             );
         });
@@ -338,11 +328,9 @@ describe('processRopewikiRoutes hook functions', () => {
         it('sends SQS message for a single route/page pair', async () => {
             delete process.env.DEV_ENVIRONMENT;
             process.env.MAP_DATA_PROCESSING_QUEUE_URL = 'https://sqs.us-east-1.amazonaws.com/123456789/test-queue';
-            const route = createTestRoute('route-1', 'Test Route');
-            const page = createTestPage('page-1', 'Test Route');
-            const routesAndPages: Array<[Route, RopewikiPage]> = [[route, page]];
+            const ropewikiRoute = createTestRopewikiRoute('route-1', 'page-1');
 
-            await lambdaProcessRopewikiRoutes(routesAndPages);
+            await lambdaProcessRopewikiRoutes([ropewikiRoute]);
 
             expect(MockSQSClient).toHaveBeenCalledWith({});
             expect(MockSendMessageCommand).toHaveBeenCalled();
@@ -362,13 +350,10 @@ describe('processRopewikiRoutes hook functions', () => {
         it('sends SQS messages for multiple route/page pairs', async () => {
             delete process.env.DEV_ENVIRONMENT;
             process.env.MAP_DATA_PROCESSING_QUEUE_URL = 'https://sqs.us-east-1.amazonaws.com/123456789/test-queue';
-            const route1 = createTestRoute('route-1', 'Route 1');
-            const page1 = createTestPage('page-1', 'Route 1');
-            const route2 = createTestRoute('route-2', 'Route 2');
-            const page2 = createTestPage('page-2', 'Route 2');
-            const routesAndPages: Array<[Route, RopewikiPage]> = [[route1, page1], [route2, page2]];
+            const ropewikiRoute1 = createTestRopewikiRoute('route-1', 'page-1');
+            const ropewikiRoute2 = createTestRopewikiRoute('route-2', 'page-2');
 
-            await lambdaProcessRopewikiRoutes(routesAndPages);
+            await lambdaProcessRopewikiRoutes([ropewikiRoute1, ropewikiRoute2]);
 
             expect(MockSendMessageCommand).toHaveBeenCalledTimes(2);
             expect(mockSend).toHaveBeenCalledTimes(2);
@@ -380,11 +365,9 @@ describe('processRopewikiRoutes hook functions', () => {
         it('skips sending when route.id is missing', async () => {
             delete process.env.DEV_ENVIRONMENT;
             process.env.MAP_DATA_PROCESSING_QUEUE_URL = 'https://sqs.us-east-1.amazonaws.com/123456789/test-queue';
-            const route = createTestRoute('', 'Test Route');
-            const page = createTestPage('page-1', 'Test Route');
-            const routesAndPages: Array<[Route, RopewikiPage]> = [[route, page]];
+            const ropewikiRoute = createTestRopewikiRoute('', 'page-1');
 
-            await lambdaProcessRopewikiRoutes(routesAndPages);
+            await lambdaProcessRopewikiRoutes([ropewikiRoute]);
 
             expect(mockSend).not.toHaveBeenCalled();
             expect(mockConsoleError).toHaveBeenCalledWith(
@@ -394,17 +377,15 @@ describe('processRopewikiRoutes hook functions', () => {
             const errorCall = mockConsoleError.mock.calls.find(call => 
                 call[0] === 'Error sending route unknown / page page-1 to queue:'
             );
-            expect(errorCall?.[1]).toHaveProperty('message', 'Route must have an id to send to queue');
+            expect(errorCall?.[1]).toHaveProperty('message', 'RopewikiRoute must have a route id to send to queue');
         });
 
         it('skips sending when page.id is missing', async () => {
             delete process.env.DEV_ENVIRONMENT;
             process.env.MAP_DATA_PROCESSING_QUEUE_URL = 'https://sqs.us-east-1.amazonaws.com/123456789/test-queue';
-            const route = createTestRoute('route-1', 'Test Route');
-            const page = createTestPage('', 'Test Route');
-            const routesAndPages: Array<[Route, RopewikiPage]> = [[route, page]];
+            const ropewikiRoute = createTestRopewikiRoute('route-1', '');
 
-            await lambdaProcessRopewikiRoutes(routesAndPages);
+            await lambdaProcessRopewikiRoutes([ropewikiRoute]);
 
             expect(mockSend).not.toHaveBeenCalled();
             expect(mockConsoleError).toHaveBeenCalledWith(
@@ -416,17 +397,14 @@ describe('processRopewikiRoutes hook functions', () => {
         it('continues sending after an error', async () => {
             delete process.env.DEV_ENVIRONMENT;
             process.env.MAP_DATA_PROCESSING_QUEUE_URL = 'https://sqs.us-east-1.amazonaws.com/123456789/test-queue';
-            const route1 = createTestRoute('route-1', 'Route 1');
-            const page1 = createTestPage('page-1', 'Route 1');
-            const route2 = createTestRoute('route-2', 'Route 2');
-            const page2 = createTestPage('page-2', 'Route 2');
-            const routesAndPages: Array<[Route, RopewikiPage]> = [[route1, page1], [route2, page2]];
+            const ropewikiRoute1 = createTestRopewikiRoute('route-1', 'page-1');
+            const ropewikiRoute2 = createTestRopewikiRoute('route-2', 'page-2');
 
             mockSend
                 .mockRejectedValueOnce(new Error('SQS send failed'))
                 .mockResolvedValueOnce({});
 
-            await lambdaProcessRopewikiRoutes(routesAndPages);
+            await lambdaProcessRopewikiRoutes([ropewikiRoute1, ropewikiRoute2]);
 
             expect(mockSend).toHaveBeenCalledTimes(2);
             expect(mockConsoleError).toHaveBeenCalledTimes(1);

@@ -1,4 +1,11 @@
 import type * as s from 'zapatos/schema';
+import { Route } from './route';
+import RopewikiPage from '../ropewiki/types/page';
+import { MapDataEvent } from '../map-data/types/lambdaEvent';
+
+export enum PageDataSource {
+    Ropewiki = 'ropewiki',
+}
 
 export class PageRoute {
     route: string;
@@ -13,6 +20,13 @@ export class PageRoute {
         this.route = route;
         this.page = page;
         this.mapData = mapData;
+    }
+
+    static fromMapDataEvent(event: MapDataEvent): PageRoute {
+        switch (event.source) {
+            case PageDataSource.Ropewiki:
+                return new RopewikiRoute(event.routeId, event.pageId, event.mapDataId);
+        }
     }
 };
 
@@ -33,6 +47,25 @@ export class RopewikiRoute extends PageRoute {
             row.route,
             row.ropewikiPage,
             row.mapData ?? undefined,
+        );
+    }
+
+    static fromTuple([route, page]: [Route, RopewikiPage]): RopewikiRoute {
+        if (!route.id) {
+            throw new Error('Route must have an id to create RopewikiRoute');
+        }
+        if (!page.id) {
+            throw new Error('RopewikiPage must have an id to create RopewikiRoute');
+        }
+        return new RopewikiRoute(route.id, page.id);
+    }
+
+    toMapDataEvent(): MapDataEvent {
+        return new MapDataEvent(
+            PageDataSource.Ropewiki,
+            this.route,
+            this.page,
+            this.mapData,
         );
     }
 }

@@ -1,6 +1,5 @@
 import { main } from '../main';
 import type { SqsEvent, SqsRecord } from '@aws-lambda-powertools/parser/types';
-import { PageDataSource } from '../types/mapData';
 import { lambdaSaveMapData } from '../hook-functions/saveMapData';
 import { MapDataEvent } from '../types/lambdaEvent';
 
@@ -20,13 +19,8 @@ export const mainHandler = async (event: SqsEvent, context: any) => {
         const record: SqsRecord = event.Records[0]!;
         const mapDataEvent = MapDataEvent.fromSQSEventRecord(record);
 
-        // Validate source
-        if (mapDataEvent.source !== PageDataSource.Ropewiki) {
-            throw new Error(`Unsupported source: ${mapDataEvent.source}`);
-        }
-
         // Process the map data using the main function
-        await main(lambdaSaveMapData, mapDataEvent.source, mapDataEvent.pageId, mapDataEvent.routeId);
+        await main(lambdaSaveMapData, mapDataEvent);
 
         return {
             statusCode: 200,

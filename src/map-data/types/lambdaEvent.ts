@@ -1,19 +1,22 @@
 import type { SqsRecord } from '@aws-lambda-powertools/parser/types';
-import { PageDataSource } from './mapData';
+import { PageDataSource } from '../../types/pageRoute';
 
 export class MapDataEvent {
     source: PageDataSource;
     routeId: string;
     pageId: string;
+    mapDataId: string | undefined;
 
     constructor(
         source: PageDataSource,
         routeId: string,
         pageId: string,
+        mapDataId?: string,
     ) {
         this.source = source;
         this.routeId = routeId;
         this.pageId = pageId;
+        this.mapDataId = mapDataId;
     }
 
     /**
@@ -25,7 +28,7 @@ export class MapDataEvent {
         }
 
         try {
-            const parsed = JSON.parse(record.body) as { source?: PageDataSource; routeId?: string; pageId?: string };
+            const parsed = JSON.parse(record.body) as { source?: PageDataSource; routeId?: string; pageId?: string; mapDataId?: string };
             
             if (!parsed.source || !parsed.routeId || !parsed.pageId) {
                 throw new Error('Invalid MapDataEvent: missing required fields (source, routeId, pageId)');
@@ -36,7 +39,7 @@ export class MapDataEvent {
                 throw new Error(`Invalid MapDataEvent: source must be one of ${Object.values(PageDataSource).join(', ')}, got: ${parsed.source}`);
             }
 
-            return new MapDataEvent(parsed.source, parsed.routeId, parsed.pageId);
+            return new MapDataEvent(parsed.source, parsed.routeId, parsed.pageId, parsed.mapDataId);
         } catch (error) {
             if (error instanceof SyntaxError) {
                 throw new Error(`Failed to parse SQS record body as JSON: ${error.message}`);

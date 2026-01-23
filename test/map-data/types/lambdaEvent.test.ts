@@ -1,6 +1,6 @@
 import { describe, it, expect } from '@jest/globals';
 import { MapDataEvent } from '../../../src/map-data/types/lambdaEvent';
-import { PageDataSource } from '../../../src/map-data/types/mapData';
+import { PageDataSource } from '../../../src/types/pageRoute';
 import type { SqsRecord } from '@aws-lambda-powertools/parser/types';
 
 describe('MapDataEvent', () => {

@@ -1,61 +1,60 @@
 import { SQSClient, SendMessageCommand } from '@aws-sdk/client-sqs';
 import { main as processPageRouteAndMapData } from '../../map-data/main';
 import { nodeSaveMapData } from '../../map-data/hook-functions/saveMapData';
-import { PageDataSource } from '../../map-data/types/mapData';
-import { Route } from '../../types/route';
-import RopewikiPage from '../types/page';
+import { RopewikiRoute } from '../../types/pageRoute';
 import ProgressLogger from '../../helpers/progressLogger';
 
-export type ProcessRopewikiRoutesHookFn = (routesAndPages: Array<[Route, RopewikiPage]>) => Promise<void>;
+export type ProcessRopewikiRoutesHookFn = (ropewikiRoutes: RopewikiRoute[]) => Promise<void>;
 
 /**
  * Hook function for Node.js that processes routes directly by calling map-data processPageRouteAndMapData()
- * for each [Route, RopewikiPage] pair in a for-loop.
+ * for each RopewikiRoute in a for-loop.
  * 
- * @param routesAndPages - Array of [Route, RopewikiPage] tuples to process
+ * @param ropewikiRoutes - Array of RopewikiRoute objects to process
  */
 export const nodeProcessRopewikiRoutes: ProcessRopewikiRoutesHookFn = async (
-    routesAndPages: Array<[Route, RopewikiPage]>,
+    ropewikiRoutes: RopewikiRoute[],
 ): Promise<void> => {
-    if (routesAndPages.length === 0) {
+    if (ropewikiRoutes.length === 0) {
         return;
     }
 
-    const logger = new ProgressLogger('Processing map data for routes', routesAndPages.length);
-    logger.setChunk(0, routesAndPages.length);
+    const logger = new ProgressLogger('Processing map data for routes', ropewikiRoutes.length);
+    logger.setChunk(0, ropewikiRoutes.length);
 
-    for (const [route, page] of routesAndPages) {
+    for (const ropewikiRoute of ropewikiRoutes) {
         try {
-            if (!route.id) {
-                throw new Error('Route must have an id to process');
+            if (!ropewikiRoute.route) {
+                throw new Error('RopewikiRoute must have a route id to process');
             }
-            if (!page.id) {
-                throw new Error('Page must have an id to process route');
+            if (!ropewikiRoute.page) {
+                throw new Error('RopewikiRoute must have a page id to process');
             }
             
-            await processPageRouteAndMapData(nodeSaveMapData, PageDataSource.Ropewiki, page.id, route.id);
-            logger.logProgress(`Processed "${page.name}" (route ${route.id} / page ${page.id})`);
+            const mapDataEvent = ropewikiRoute.toMapDataEvent();
+            await processPageRouteAndMapData(nodeSaveMapData, mapDataEvent);
+            logger.logProgress(`Processed route ${ropewikiRoute.route} / page ${ropewikiRoute.page}`);
         } catch (error) {
-            console.error(`Error processing route ${route.id || 'unknown'} / page ${page.id || 'unknown'}:`, error);
-            // Skip this route/page pair and continue to the next one
-            logger.logProgress(`Skipped "${page.name || 'unknown'}" (route ${route.id || 'unknown'} / page ${page.id || 'unknown'}) due to error`);
+            console.error(`Error processing route ${ropewikiRoute.route || 'unknown'} / page ${ropewikiRoute.page || 'unknown'}:`, error);
+            // Skip this route and continue to the next one
+            logger.logProgress(`Skipped route ${ropewikiRoute.route || 'unknown'} / page ${ropewikiRoute.page || 'unknown'} due to error`);
         }
     }
 };
 
 /**
- * Hook function for Lambda that sends SQS messages to MapDataProcessingQueue for each route/page.
+ * Hook function for Lambda that sends SQS messages to MapDataProcessingQueue for each route.
  * If DEV_ENVIRONMENT is "local", skips sending messages and logs instead.
  * 
- * @param routesAndPages - Array of [Route, RopewikiPage] tuples to process
+ * @param ropewikiRoutes - Array of RopewikiRoute objects to process
  */
 export const lambdaProcessRopewikiRoutes: ProcessRopewikiRoutesHookFn = async (
-    routesAndPages: Array<[Route, RopewikiPage]>,
+    ropewikiRoutes: RopewikiRoute[],
 ): Promise<void> => {
     const devEnvironment = process.env.DEV_ENVIRONMENT;
     
     if (devEnvironment === 'local') {
-        console.log(`Skipping SQS message sending for ${routesAndPages.length} route(s) - no queue configured locally`);
+        console.log(`Skipping SQS message sending for ${ropewikiRoutes.length} route(s) - no queue configured locally`);
         return;
     }
 
@@ -66,20 +65,22 @@ export const lambdaProcessRopewikiRoutes: ProcessRopewikiRoutesHookFn = async (
 
     const sqsClient = new SQSClient({});
     
-    // Send a message for each route/page pair
-    for (const [route, page] of routesAndPages) {
+    // Send a message for each route
+    for (const ropewikiRoute of ropewikiRoutes) {
         try {
-            if (!route.id) {
-                throw new Error('Route must have an id to send to queue');
+            if (!ropewikiRoute.route) {
+                throw new Error('RopewikiRoute must have a route id to send to queue');
             }
-            if (!page.id) {
-                throw new Error('Page must have an id to send to queue');
+            if (!ropewikiRoute.page) {
+                throw new Error('RopewikiRoute must have a page id to send to queue');
             }
             
+            const mapDataEvent = ropewikiRoute.toMapDataEvent();
             const messageBody = JSON.stringify({
-                source: PageDataSource.Ropewiki,
-                routeId: route.id,
-                pageId: page.id,
+                source: mapDataEvent.source,
+                routeId: mapDataEvent.routeId,
+                pageId: mapDataEvent.pageId,
+                mapDataId: mapDataEvent.mapDataId,
             });
             
             const command = new SendMessageCommand({
@@ -89,10 +90,10 @@ export const lambdaProcessRopewikiRoutes: ProcessRopewikiRoutesHookFn = async (
             
             await sqsClient.send(command);
             
-            console.log(`Sent route ${route.id} / page ${page.id} to MapDataProcessingQueue`);
+            console.log(`Sent route ${ropewikiRoute.route} / page ${ropewikiRoute.page} to MapDataProcessingQueue`);
         } catch (error) {
-            console.error(`Error sending route ${route.id || 'unknown'} / page ${page.id || 'unknown'} to queue:`, error);
-            // Skip this route/page pair and continue to the next one
+            console.error(`Error sending route ${ropewikiRoute.route || 'unknown'} / page ${ropewikiRoute.page || 'unknown'} to queue:`, error);
+            // Skip this route and continue to the next one
         }
     }
 };
