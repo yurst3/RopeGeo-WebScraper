@@ -32,6 +32,7 @@ describe('processPage', () => {
     };
     let mockLogger: {
         logProgress: jest.MockedFunction<(message: string) => void>;
+        logError: jest.MockedFunction<(message: string) => void>;
     };
     const regionNameIds = { 'Test Region': 'region-id-123' };
 
@@ -79,6 +80,7 @@ describe('processPage', () => {
         // Create mock logger
         mockLogger = {
             logProgress: jest.fn(),
+            logError: jest.fn(),
         };
     });
 
@@ -135,57 +137,6 @@ describe('processPage', () => {
         expect(mockSetImagesDeletedAt).toHaveBeenCalledTimes(2);
     });
 
-    it('processes pages successfully without logger', async () => {
-        const page1RevisionDate = new Date('2024-01-01T00:00:00Z');
-        const page2RevisionDate = new Date('2024-01-02T00:00:00Z');
-        
-        const pages = [
-            createPage('728', 'Bear Creek Canyon', 'page-uuid-1', page1RevisionDate),
-            createPage('5597', 'Regions', 'page-uuid-2', page2RevisionDate),
-        ];
-
-        mockGetRopewikiPageHtml
-            .mockResolvedValueOnce('<html>Page 1</html>')
-            .mockResolvedValueOnce('<html>Page 2</html>');
-        mockParseRopewikiPage
-            .mockResolvedValueOnce({
-                beta: [{ title: 'Introduction', text: 'Text 1', order: 1 }],
-                images: [{ fileUrl: 'image1.jpg', linkUrl: 'link1', betaSectionTitle: undefined, caption: undefined, order: 1 }],
-            })
-            .mockResolvedValueOnce({
-                beta: [{ title: 'Approach', text: 'Text 2', order: 1 }],
-                images: [],
-            });
-        mockUpsertBetaSections
-            .mockResolvedValueOnce({ 'Introduction': 'beta-id-1' })
-            .mockResolvedValueOnce({ 'Approach': 'beta-id-2' });
-        mockUpsertImages
-            .mockResolvedValueOnce(['image-id-1'])
-            .mockResolvedValueOnce([]);
-
-        await processPagesChunk(mockClient as unknown as db.Queryable, pages);
-
-        // Should not call logger.logProgress when logger is not provided
-        expect(mockLogger.logProgress).not.toHaveBeenCalled();
-
-        // Should use savepoints instead of BEGIN/COMMIT
-        expect(mockClient.query).toHaveBeenCalledTimes(4); // SAVEPOINT + RELEASE for each of 2 pages
-        expect(mockClient.query).toHaveBeenNthCalledWith(1, 'SAVEPOINT sp_page_0');
-        expect(mockClient.query).toHaveBeenNthCalledWith(2, 'RELEASE SAVEPOINT sp_page_0');
-        expect(mockClient.query).toHaveBeenNthCalledWith(3, 'SAVEPOINT sp_page_1');
-        expect(mockClient.query).toHaveBeenNthCalledWith(4, 'RELEASE SAVEPOINT sp_page_1');
-
-        expect(mockGetRopewikiPageHtml).toHaveBeenCalledTimes(2);
-        expect(mockGetRopewikiPageHtml).toHaveBeenNthCalledWith(1, '728');
-        expect(mockGetRopewikiPageHtml).toHaveBeenNthCalledWith(2, '5597');
-
-        expect(mockUpsertBetaSections).toHaveBeenCalledTimes(2);
-        expect(mockUpsertBetaSections).toHaveBeenNthCalledWith(1, mockClient as unknown as db.Queryable, 'page-uuid-1', [{ title: 'Introduction', text: 'Text 1', order: 1 }], page1RevisionDate);
-        expect(mockUpsertBetaSections).toHaveBeenNthCalledWith(2, mockClient as unknown as db.Queryable, 'page-uuid-2', [{ title: 'Approach', text: 'Text 2', order: 1 }], page2RevisionDate);
-        expect(mockUpsertImages).toHaveBeenCalledTimes(2);
-        expect(mockSetBetaSectionsDeletedAt).toHaveBeenCalledTimes(2);
-        expect(mockSetImagesDeletedAt).toHaveBeenCalledTimes(2);
-    });
 
 
     it('sets deletedAt for beta sections and images not in updated lists', async () => {
@@ -228,7 +179,7 @@ describe('processPage', () => {
         expect(mockClient.query).not.toHaveBeenCalled();
     });
 
-    it('propagates errors from parseRopewikiPage()', async () => {
+    it('catches and logs parser errors from parseRopewikiPage()', async () => {
         const revisionDate = new Date('2024-01-01T00:00:00Z');
         const pages = [
             createPage('728', 'Test Page', 'page-uuid-1', revisionDate),
@@ -238,11 +189,13 @@ describe('processPage', () => {
         const parseError = new Error('Parse error');
         mockParseRopewikiPage.mockRejectedValue(parseError);
 
-        // Parsing errors are thrown all the way up the stack (not caught)
-        await expect(processPagesChunk(mockClient as unknown as db.Queryable, pages, mockLogger as unknown as ProgressLogger)).rejects.toThrow('Parse error');
+        // Parser errors are caught, logged, and savepoint is rolled back (not propagated)
+        await processPagesChunk(mockClient as unknown as db.Queryable, pages, mockLogger as unknown as ProgressLogger);
         
+        expect(mockClient.query).toHaveBeenCalledWith('SAVEPOINT sp_page_0');
+        expect(mockClient.query).toHaveBeenCalledWith('ROLLBACK TO SAVEPOINT sp_page_0');
+        expect(mockLogger.logError).toHaveBeenCalledWith('Error processing page 728 Test Page, rolled back to savepoint: Parse error');
         expect(mockLogger.logProgress).not.toHaveBeenCalled();
-        expect(mockClient.query).not.toHaveBeenCalled();
     });
 
     it('propagates errors from upsertBetaSections()', async () => {
@@ -259,11 +212,12 @@ describe('processPage', () => {
         const betaError = new Error('Beta sections error');
         mockUpsertBetaSections.mockRejectedValue(betaError);
 
-        // Database errors are rolled back to savepoint and then propagated up
-        await expect(processPagesChunk(mockClient as unknown as db.Queryable, pages, mockLogger as unknown as ProgressLogger)).rejects.toThrow('Beta sections error');
+        // Database errors are caught, logged, and savepoint is rolled back (not propagated)
+        await processPagesChunk(mockClient as unknown as db.Queryable, pages, mockLogger as unknown as ProgressLogger);
         
         expect(mockClient.query).toHaveBeenCalledWith('SAVEPOINT sp_page_0');
         expect(mockClient.query).toHaveBeenCalledWith('ROLLBACK TO SAVEPOINT sp_page_0');
+        expect(mockLogger.logError).toHaveBeenCalledWith('Error processing page 728 Test Page, rolled back to savepoint: Beta sections error');
         expect(mockLogger.logProgress).not.toHaveBeenCalled();
     });
 
@@ -282,11 +236,12 @@ describe('processPage', () => {
         const imagesError = new Error('Images error');
         mockUpsertImages.mockRejectedValue(imagesError);
 
-        // Database errors are rolled back to savepoint and then propagated up
-        await expect(processPagesChunk(mockClient as unknown as db.Queryable, pages, mockLogger as unknown as ProgressLogger)).rejects.toThrow('Images error');
+        // Database errors are caught, logged, and savepoint is rolled back (not propagated)
+        await processPagesChunk(mockClient as unknown as db.Queryable, pages, mockLogger as unknown as ProgressLogger);
         
         expect(mockClient.query).toHaveBeenCalledWith('SAVEPOINT sp_page_0');
         expect(mockClient.query).toHaveBeenCalledWith('ROLLBACK TO SAVEPOINT sp_page_0');
+        expect(mockLogger.logError).toHaveBeenCalledWith('Error processing page 728 Test Page, rolled back to savepoint: Images error');
         expect(mockLogger.logProgress).not.toHaveBeenCalled();
     });
 
@@ -306,11 +261,12 @@ describe('processPage', () => {
         const deleteError = new Error('Delete beta sections error');
         mockSetBetaSectionsDeletedAt.mockRejectedValue(deleteError);
 
-        // Database errors are rolled back to savepoint and then propagated up
-        await expect(processPagesChunk(mockClient as unknown as db.Queryable, pages, mockLogger as unknown as ProgressLogger)).rejects.toThrow('Delete beta sections error');
+        // Database errors are caught, logged, and savepoint is rolled back (not propagated)
+        await processPagesChunk(mockClient as unknown as db.Queryable, pages, mockLogger as unknown as ProgressLogger);
         
         expect(mockClient.query).toHaveBeenCalledWith('SAVEPOINT sp_page_0');
         expect(mockClient.query).toHaveBeenCalledWith('ROLLBACK TO SAVEPOINT sp_page_0');
+        expect(mockLogger.logError).toHaveBeenCalledWith('Error processing page 728 Test Page, rolled back to savepoint: Delete beta sections error');
         expect(mockLogger.logProgress).not.toHaveBeenCalled();
     });
 
@@ -331,17 +287,16 @@ describe('processPage', () => {
         const deleteError = new Error('Delete images error');
         mockSetImagesDeletedAt.mockRejectedValue(deleteError);
 
-        // Database errors are rolled back to savepoint and then propagated up
-        await expect(processPagesChunk(mockClient as unknown as db.Queryable, pages, mockLogger as unknown as ProgressLogger)).rejects.toThrow('Delete images error');
+        // Database errors are caught, logged, and savepoint is rolled back (not propagated)
+        await processPagesChunk(mockClient as unknown as db.Queryable, pages, mockLogger as unknown as ProgressLogger);
         
         expect(mockClient.query).toHaveBeenCalledWith('SAVEPOINT sp_page_0');
         expect(mockClient.query).toHaveBeenCalledWith('ROLLBACK TO SAVEPOINT sp_page_0');
+        expect(mockLogger.logError).toHaveBeenCalledWith('Error processing page 728 Test Page, rolled back to savepoint: Delete images error');
         expect(mockLogger.logProgress).not.toHaveBeenCalled();
     });
 
     it('logs error and rolls back transaction on database error', async () => {
-        const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
-
         const revisionDate = new Date('2024-01-01T00:00:00Z');
         const pages = [
             createPage('728', 'Test Page', 'page-uuid-1', revisionDate),
@@ -357,15 +312,13 @@ describe('processPage', () => {
         const dbError = new Error('Database error');
         mockSetBetaSectionsDeletedAt.mockRejectedValue(dbError);
 
-        // Database errors are rolled back to savepoint and then propagated up
-        await expect(processPagesChunk(mockClient as unknown as db.Queryable, pages, mockLogger as unknown as ProgressLogger)).rejects.toThrow('Database error');
+        // Database errors are caught, logged, and savepoint is rolled back (not propagated)
+        await processPagesChunk(mockClient as unknown as db.Queryable, pages, mockLogger as unknown as ProgressLogger);
 
-        expect(consoleErrorSpy).toHaveBeenCalledWith('Error processing page 728 Test Page, rolled back to savepoint:', dbError);
+        expect(mockLogger.logError).toHaveBeenCalledWith('Error processing page 728 Test Page, rolled back to savepoint: Database error');
         expect(mockClient.query).toHaveBeenCalledWith('SAVEPOINT sp_page_0');
         expect(mockClient.query).toHaveBeenCalledWith('ROLLBACK TO SAVEPOINT sp_page_0');
         expect(mockLogger.logProgress).not.toHaveBeenCalled();
-
-        consoleErrorSpy.mockRestore();
     });
 });
 

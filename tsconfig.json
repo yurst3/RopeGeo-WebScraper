@@ -37,6 +37,6 @@
     "skipLibCheck": true,
     "resolveJsonModule": true,
   },
-  "include": ["src/**/*", "test/ropewiki/database", "test/ropewiki/http", "test/ropewiki/parsers", "test/ropewiki/processors", "test/ropewiki/types", "test/ropewiki/util", "test/ropewiki/types/RopewikiPage.test.ts", "test/setupTests.ts"],
+  "include": ["src/**/*", "test/**/*", "scripts/**/*"],
   "exclude": ["node_modules"]
 }

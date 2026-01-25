@@ -1,0 +1,324 @@
+{
+  "Records": [
+    {
+      "messageId": "d96a8ef6-d77f-4eb4-99be-0b950df31e0d",
+      "receiptHandle": "AQEB8d20783475ce43cca5d3c0365d510476...",
+      "body": "{\"id\":\"682214eb-2f94-47c9-8e48-49179c214f28\",\"pageid\":\"14868\",\"name\":\"Imberguet (Upper)\",\"coordinates\":{\"lat\":43.9014,\"lon\":7.2656},\"region\":\"883b3f26-ef36-4b24-9b8a-edb1a8d10a96\",\"quality\":\"3.7\",\"rating\":\"<i>4B&nbsp;II</i>  (v4a2 II)\",\"timeRating\":\"II\",\"kmlUrl\":\"https://ropewiki.com/luca/rwr?gpx%3Doff&filename%3DImberguet_%28Upper%29&kmlnfx&kmlx%3Dhttp://descente-canyon.com/canyoning/canyon-description/21255&ext%3D.kml\",\"technicalRating\":\"4\",\"waterRating\":\"B\",\"permits\":\"Yes\",\"rappelLongest\":{\"unit\":\"ft\",\"value\":131.2336},\"months\":[\"Mar\",\"Apr\",\"May\",\"Jun\",\"Jul\",\"Aug\"],\"shuttle\":{\"unit\":\"minutes\",\"value\":0},\"minTime\":{\"unit\":\"h\",\"value\":3},\"maxTime\":{\"unit\":\"h\",\"value\":3.25},\"url\":\"https://ropewiki.com/Imberguet_(Upper)\",\"aka\":[\"Vallon de l'Imberguet\",\"L'Imberguet amont\"],\"betaSites\":[\"http://descente-canyon.com/canyoning/canyon-description/21255\",\"http://altisud.com/canyoning/france/alpes-maritimes/vallee-de-la-vesubie/l-imberguet-amont-canyoning__i_4mxvn7scmo17__al_descente-canyon-fiche.html\",\"http://canyoning.wroclaw.pl/kanion.php?id=38\",\"http://icopro.org/canyon/view/id/186\",\"http://teamespeleocanyons.blogspot.com.es/2012/04/vallon-de-limberguet.html\"],\"userVotes\":85,\"latestRevisionDate\":\"2017-02-05T01:51:19.000Z\",\"isValid\":true}",
+      "attributes": {
+        "ApproximateReceiveCount": "1",
+        "SentTimestamp": "1523232000000",
+        "SenderId": "AIDAIENQZJOLO23YVJ4VO",
+        "ApproximateFirstReceiveTimestamp": "1523232000001"
+      },
+      "messageAttributes": {},
+      "md5OfBody": "098f6bcd4621d373cade4e832627b4f6",
+      "eventSource": "aws:sqs",
+      "eventSourceARN": "arn:aws:sqs:us-west-2:123456789012:RopewikiPageProcessorQueue",
+      "awsRegion": "us-west-2"
+    },
+    {
+      "messageId": "17abc871-a555-4374-b04b-4fc9b92eedc6",
+      "receiptHandle": "AQEB840b44d27b2d48ba8be96305d4d1b582...",
+      "body": "{\"id\":\"5eaf6653-9908-4347-98fa-51833be069eb\",\"pageid\":\"43508\",\"name\":\"Moustique (Lower)\",\"coordinates\":{\"lat\":16.1419,\"lon\":-61.6523},\"region\":\"4db2f772-ee59-4491-8599-5f7a01573a68\",\"quality\":\"0\",\"kmlUrl\":\"https://ropewiki.com/luca/rwr?gpx%3Doff&filename%3DMoustique_%28Lower%29&kmlnfx&kmlx%3Dhttp://ankanionla-madinina.com/Files/Other/Guadeloupe/Liste%20rivieres%20et%20ravines%20de%20guadeloupe1%20.pdf?id%3DAG-128&kmlidx%3D16.1419:-61.6523:16.1643:-61.6232&ext%3D.kml\",\"permits\":\"No\",\"rappelInfo\":\"0r\",\"rappelCount\":0,\"rappelLongest\":{\"unit\":\"ft\",\"value\":32.8084},\"months\":[],\"shuttle\":{\"unit\":\"minutes\",\"value\":10},\"minTime\":{\"unit\":\"h\",\"value\":3.3333},\"url\":\"https://ropewiki.com/Moustique_(Lower)\",\"aka\":[\"Rivière Moustique\",\"Riviere Moustique\"],\"betaSites\":[\"http://ankanionla-madinina.com/Files/Other/Guadeloupe/Liste%20rivieres%20et%20ravines%20de%20guadeloupe1%20.pdf?id=AG-128&kmlidx=16.1419:-61.6523:16.1643:-61.6232\"],\"userVotes\":0,\"latestRevisionDate\":\"2017-04-07T08:19:53.000Z\",\"isValid\":true}",
+      "attributes": {
+        "ApproximateReceiveCount": "1",
+        "SentTimestamp": "1523232000000",
+        "SenderId": "AIDAIENQZJOLO23YVJ4VO",
+        "ApproximateFirstReceiveTimestamp": "1523232000001"
+      },
+      "messageAttributes": {},
+      "md5OfBody": "098f6bcd4621d373cade4e832627b4f6",
+      "eventSource": "aws:sqs",
+      "eventSourceARN": "arn:aws:sqs:us-west-2:123456789012:RopewikiPageProcessorQueue",
+      "awsRegion": "us-west-2"
+    },
+    {
+      "messageId": "1e01ea9a-bc1d-48ab-aab1-523015be131a",
+      "receiptHandle": "AQEB6651c98d71dd45cb8eb9b6120d0e1a2e...",
+      "body": "{\"id\":\"7536ed58-7237-4c51-826c-856fa71bd754\",\"pageid\":\"18253\",\"name\":\"Anjoma\",\"coordinates\":{\"lat\":-23.581944444444,\"lon\":47.2925},\"region\":\"202e2801-63b7-4e85-9cd2-55b5e9f52a57\",\"quality\":\"0\",\"permits\":\"No\",\"months\":[],\"url\":\"https://ropewiki.com/Anjoma\",\"aka\":[],\"betaSites\":[\"http://descente-canyon.com/canyoning/canyon-description/21909?kmlidxna\"],\"userVotes\":0,\"latestRevisionDate\":\"2025-08-05T21:54:46.000Z\",\"isValid\":true}",
+      "attributes": {
+        "ApproximateReceiveCount": "1",
+        "SentTimestamp": "1523232000000",
+        "SenderId": "AIDAIENQZJOLO23YVJ4VO",
+        "ApproximateFirstReceiveTimestamp": "1523232000001"
+      },
+      "messageAttributes": {},
+      "md5OfBody": "098f6bcd4621d373cade4e832627b4f6",
+      "eventSource": "aws:sqs",
+      "eventSourceARN": "arn:aws:sqs:us-west-2:123456789012:RopewikiPageProcessorQueue",
+      "awsRegion": "us-west-2"
+    },
+    {
+      "messageId": "02058911-1b16-402e-a05d-10707a9af32d",
+      "receiptHandle": "AQEBf9d9715855644bc7b93095dac9100bf4...",
+      "body": "{\"id\":\"fb4350d0-b4f0-4981-b158-2c78bbb28266\",\"pageid\":\"13062\",\"name\":\"Caramell\",\"coordinates\":{\"lat\":42.2304,\"lon\":0.8534},\"region\":\"3a439451-ccfb-4253-8eef-d906c0b10159\",\"quality\":\"3.7\",\"rating\":\"<i>3B&nbsp;II</i>  (v3a2 II)\",\"timeRating\":\"II\",\"kmlUrl\":\"https://ropewiki.com/images/7/71/Caramell.kml\",\"technicalRating\":\"3\",\"waterRating\":\"B\",\"permits\":\"No\",\"rappelLongest\":{\"unit\":\"ft\",\"value\":82.021},\"months\":[\"Jun\",\"Jul\",\"Aug\",\"Mar\",\"Apr\",\"May\"],\"shuttle\":{\"unit\":\"minutes\",\"value\":0},\"minTime\":{\"unit\":\"h\",\"value\":2.75},\"maxTime\":{\"unit\":\"h\",\"value\":3.5},\"hike\":{\"unit\":\"mi\",\"value\":1.473892012},\"url\":\"https://ropewiki.com/Caramell\",\"aka\":[\"Barranc Caramell\",\"Barranc de Gurp / Gurb\",\"Barranc de la Mata\",\"Gorgas de Gurp\",\"Barranc Mata\",\"Barranc de Gurb\",\"Gorgues de Gurp\"],\"betaSites\":[\"https://www.rocjumper.com/barranco/gurp/\",\"http://descente-canyon.com/canyoning/canyon-description/21421\",\"http://canyon.carto.net/cwiki/bin/view/Canyons/CaramellCanyon\",\"http://barranquismo.net/paginas/barrancos/gorges_de_gurp.htm\",\"http://barrancos.org/Gurb.htm\",\"http://descensodebarrancos.com/barrancos/gurp/gurp.html\",\"http://caimanejo.blogspot.com.es/2012/08/barranco-de-gurp.html\",\"http://www.docuwiki.infobarrancos.es/doku.php?id=barrancos:lleida:gurb\"],\"userVotes\":19,\"latestRevisionDate\":\"2024-10-10T23:19:12.000Z\",\"isValid\":true}",
+      "attributes": {
+        "ApproximateReceiveCount": "1",
+        "SentTimestamp": "1523232000000",
+        "SenderId": "AIDAIENQZJOLO23YVJ4VO",
+        "ApproximateFirstReceiveTimestamp": "1523232000001"
+      },
+      "messageAttributes": {},
+      "md5OfBody": "098f6bcd4621d373cade4e832627b4f6",
+      "eventSource": "aws:sqs",
+      "eventSourceARN": "arn:aws:sqs:us-west-2:123456789012:RopewikiPageProcessorQueue",
+      "awsRegion": "us-west-2"
+    },
+    {
+      "messageId": "5f8e15ff-f2d9-40c8-9a23-5ad974cd12b8",
+      "receiptHandle": "AQEB0e78d7901aa14991952db94d4f707255...",
+      "body": "{\"id\":\"5494c430-ca4e-4fe8-9a77-f1a09a897861\",\"pageid\":\"34314\",\"name\":\"Dongia (Upper)\",\"coordinates\":{\"lat\":46.442,\"lon\":8.9759},\"region\":\"28712467-74bf-4aca-872f-b4d9a855e967\",\"quality\":\"2\",\"permits\":\"No\",\"months\":[],\"url\":\"https://ropewiki.com/Dongia_(Upper)\",\"aka\":[\"Dongia superiore\"],\"betaSites\":[\"http://schlucht.ch/schluchten-der-schweiz-navbar.html?cid=189\"],\"userVotes\":1,\"latestRevisionDate\":\"2023-03-12T23:20:14.000Z\",\"isValid\":true}",
+      "attributes": {
+        "ApproximateReceiveCount": "1",
+        "SentTimestamp": "1523232000000",
+        "SenderId": "AIDAIENQZJOLO23YVJ4VO",
+        "ApproximateFirstReceiveTimestamp": "1523232000001"
+      },
+      "messageAttributes": {},
+      "md5OfBody": "098f6bcd4621d373cade4e832627b4f6",
+      "eventSource": "aws:sqs",
+      "eventSourceARN": "arn:aws:sqs:us-west-2:123456789012:RopewikiPageProcessorQueue",
+      "awsRegion": "us-west-2"
+    },
+    {
+      "messageId": "c5bfdd3a-0e53-451f-a50a-122483c59d43",
+      "receiptHandle": "AQEB0ae4eef19ee3420c95b6391a4370de11...",
+      "body": "{\"id\":\"2b1d2267-99ed-495f-92bd-0d13b398dc41\",\"pageid\":\"18173\",\"name\":\"Stuarts Rivers\",\"coordinates\":{\"lat\":15.3358,\"lon\":-61.3028},\"region\":\"950e929f-29af-4c66-92f0-3da28981dad8\",\"quality\":\"0\",\"kmlUrl\":\"https://ropewiki.com/luca/rwr?gpx%3Doff&filename%3DStuarts_Rivers&kmlnfx&kmlx%3Dhttp://descente-canyon.com/canyoning/canyon-description/23342&ext%3D.kml\",\"permits\":\"No\",\"rappelInfo\":\"9r\",\"rappelCount\":9,\"rappelLongest\":{\"unit\":\"ft\",\"value\":180.4462},\"months\":[],\"shuttle\":{\"unit\":\"minutes\",\"value\":0},\"minTime\":{\"unit\":\"h\",\"value\":6},\"maxTime\":{\"unit\":\"h\",\"value\":7},\"url\":\"https://ropewiki.com/Stuarts_Rivers\",\"aka\":[],\"betaSites\":[\"http://descente-canyon.com/canyoning/canyon-description/23342\",\"http://ankanionla-madinina.com/Dominique/Laudat-trafalgar/Stuarts%20River.htm?kmlidxna\",\"http://ankanionla-madinina.com/Files/Other/Dominique/Liste%20rivieres%20et%20ravines%20de%20Dominique%2006-04-2013.pdf?id=D-22&kmlidx=15.3357:-61.3028:15.347:-61.2923\"],\"userVotes\":0,\"latestRevisionDate\":\"2017-07-28T03:57:08.000Z\",\"isValid\":true}",
+      "attributes": {
+        "ApproximateReceiveCount": "1",
+        "SentTimestamp": "1523232000000",
+        "SenderId": "AIDAIENQZJOLO23YVJ4VO",
+        "ApproximateFirstReceiveTimestamp": "1523232000001"
+      },
+      "messageAttributes": {},
+      "md5OfBody": "098f6bcd4621d373cade4e832627b4f6",
+      "eventSource": "aws:sqs",
+      "eventSourceARN": "arn:aws:sqs:us-west-2:123456789012:RopewikiPageProcessorQueue",
+      "awsRegion": "us-west-2"
+    },
+    {
+      "messageId": "bc501af8-13eb-47c8-9fc1-07aa8e78d942",
+      "receiptHandle": "AQEB7e6b5b249c954c09a904cbc23b76b2b3...",
+      "body": "{\"id\":\"bcb91fe0-6feb-4019-93eb-4bc69ea2a0b7\",\"pageid\":\"12681\",\"name\":\"Morge\",\"coordinates\":{\"lat\":46.274,\"lon\":7.3245},\"region\":\"d62bfb4b-b764-4cb3-9858-b6dd78f6f1e3\",\"quality\":\"4.3\",\"rating\":\"<i>3C&nbsp;II</i>  (v3a3 II)\",\"timeRating\":\"II\",\"kmlUrl\":\"https://ropewiki.com/luca/rwr?gpx%3Doff&filename%3DMorge&kmlnfx&kmlx%3Dhttp://descente-canyon.com/canyoning/canyon-description/23209&ext%3D.kml\",\"technicalRating\":\"3\",\"waterRating\":\"C\",\"permits\":\"No\",\"rappelLongest\":{\"unit\":\"ft\",\"value\":65.6168},\"months\":[\"Jun\",\"Jul\",\"Aug\",\"Sep\",\"Oct\",\"Mar\",\"Apr\",\"May\"],\"shuttle\":{\"unit\":\"minutes\",\"value\":10},\"minTime\":{\"unit\":\"h\",\"value\":3},\"maxTime\":{\"unit\":\"h\",\"value\":3.3333},\"url\":\"https://ropewiki.com/Morge\",\"aka\":[\"Canyon de la Morge\",\"Morges\"],\"betaSites\":[\"http://descente-canyon.com/canyoning/canyon-description/23209\",\"http://swisscanyon.ch/canyons/lista-ch-west.htm?Morges\",\"http://swestcanyon.ch/Canyons/Morge/Morge.htm\",\"http://canyon.carto.net/cwiki/bin/view/Canyons/MorgeCanyon\",\"http://gulliver.it/itinerario/67617/\"],\"userVotes\":8,\"latestRevisionDate\":\"2023-03-14T13:05:52.000Z\",\"isValid\":true}",
+      "attributes": {
+        "ApproximateReceiveCount": "1",
+        "SentTimestamp": "1523232000000",
+        "SenderId": "AIDAIENQZJOLO23YVJ4VO",
+        "ApproximateFirstReceiveTimestamp": "1523232000001"
+      },
+      "messageAttributes": {},
+      "md5OfBody": "098f6bcd4621d373cade4e832627b4f6",
+      "eventSource": "aws:sqs",
+      "eventSourceARN": "arn:aws:sqs:us-west-2:123456789012:RopewikiPageProcessorQueue",
+      "awsRegion": "us-west-2"
+    },
+    {
+      "messageId": "6390e174-87be-4228-b34e-431bf7f69941",
+      "receiptHandle": "AQEBe05c3ad817c0433c80b8c02dc4e10d51...",
+      "body": "{\"id\":\"ec15aec7-7efb-4993-a46f-b38f6135a89c\",\"pageid\":\"69428\",\"name\":\"La Rejoya Canyon\",\"coordinates\":{\"lat\":19.6782,\"lon\":-70.6451},\"region\":\"683fc102-6e29-436e-a12d-a2709c9c309e\",\"quality\":\"3.3\",\"rating\":\"3C1 III R (v4a3 I)\",\"timeRating\":\"III\",\"kmlUrl\":\"https://ropewiki.com/images/d/de/La_Rejoya_Canyon.kml\",\"technicalRating\":\"3\",\"waterRating\":\"C1\",\"riskRating\":\"R\",\"permits\":\"No\",\"rappelInfo\":\"0-5r\",\"rappelCount\":0,\"rappelLongest\":{\"unit\":\"ft\",\"value\":131.2336},\"months\":[\"Dec\",\"Jan\",\"Feb\",\"Mar\",\"Apr\",\"May\",\"Jun\",\"Jul\",\"Aug\",\"Sep\",\"Oct\",\"Nov\"],\"shuttle\":{\"unit\":\"minutes\",\"value\":0},\"vehicle\":\"High Clearance\",\"hike\":{\"unit\":\"mi\",\"value\":2.8583066},\"url\":\"https://ropewiki.com/La_Rejoya_Canyon\",\"aka\":[\"Cascada La Rejoya, Barranco de La Rejoya, Cañon de La Rejoya\"],\"betaSites\":[],\"userVotes\":4,\"latestRevisionDate\":\"2022-05-27T00:42:34.000Z\",\"isValid\":true}",
+      "attributes": {
+        "ApproximateReceiveCount": "1",
+        "SentTimestamp": "1523232000000",
+        "SenderId": "AIDAIENQZJOLO23YVJ4VO",
+        "ApproximateFirstReceiveTimestamp": "1523232000001"
+      },
+      "messageAttributes": {},
+      "md5OfBody": "098f6bcd4621d373cade4e832627b4f6",
+      "eventSource": "aws:sqs",
+      "eventSourceARN": "arn:aws:sqs:us-west-2:123456789012:RopewikiPageProcessorQueue",
+      "awsRegion": "us-west-2"
+    },
+    {
+      "messageId": "fcc85237-9ec2-4851-be74-ae7f543a0339",
+      "receiptHandle": "AQEB98cd3b171f504709b4242f3cfbd90849...",
+      "body": "{\"id\":\"89aee2f5-e200-47da-a97d-78b351b88c09\",\"pageid\":\"45523\",\"name\":\"Cua de Cavall\",\"coordinates\":{\"lat\":42.001,\"lon\":2.437},\"region\":\"0390619c-2c60-4faa-85ac-b51d46c370a5\",\"quality\":\"0\",\"rating\":\"<i>4A</i>  <i>R</i> (v5a1 II)\",\"kmlUrl\":\"https://ropewiki.com/luca/rwr?gpx%3Doff&filename%3DCua_de_Cavall&kmlnfx&kmlx%3Dhttp://wikiloc.com/wikiloc/view.do?id%3D7097673&ext%3D.kml\",\"technicalRating\":\"4\",\"waterRating\":\"A\",\"riskRating\":\"R\",\"permits\":\"No\",\"months\":[],\"url\":\"https://ropewiki.com/Cua_de_Cavall\",\"aka\":[\"Sallent Cua de Cavall\",\"Cola de Caballo\"],\"betaSites\":[\"https://www.docuwiki.infobarrancos.es/doku.php?id=barrancos:barcelona:abeurador\"],\"userVotes\":0,\"latestRevisionDate\":\"2020-06-24T22:27:55.000Z\",\"isValid\":true}",
+      "attributes": {
+        "ApproximateReceiveCount": "1",
+        "SentTimestamp": "1523232000000",
+        "SenderId": "AIDAIENQZJOLO23YVJ4VO",
+        "ApproximateFirstReceiveTimestamp": "1523232000001"
+      },
+      "messageAttributes": {},
+      "md5OfBody": "098f6bcd4621d373cade4e832627b4f6",
+      "eventSource": "aws:sqs",
+      "eventSourceARN": "arn:aws:sqs:us-west-2:123456789012:RopewikiPageProcessorQueue",
+      "awsRegion": "us-west-2"
+    },
+    {
+      "messageId": "2021a749-1726-411b-9625-b12924155c07",
+      "receiptHandle": "AQEB2c14dd4de66b4df3a5445d1a2de0f075...",
+      "body": "{\"id\":\"8459bee3-c7ac-4278-8ee2-c45622ef2a18\",\"pageid\":\"92724\",\"name\":\"Son of Zorro\",\"region\":\"34fde0d7-f3be-427b-b44e-d57fb4200552\",\"quality\":\"2\",\"rating\":\"3A   (<i>v3a1</i>)\",\"technicalRating\":\"3\",\"waterRating\":\"A\",\"permits\":\"No\",\"rappelInfo\":\"1r\",\"rappelCount\":1,\"months\":[\"Oct\",\"Nov\",\"Dec\",\"Jan\",\"Feb\",\"Mar\",\"Apr\"],\"url\":\"https://ropewiki.com/Son_of_Zorro\",\"aka\":[\"SoZ\"],\"betaSites\":[\"https://david-noble.net/canyoning/2002/2002_Canyons.html\"],\"userVotes\":1,\"latestRevisionDate\":\"2025-02-11T13:26:57.000Z\",\"isValid\":true}",
+      "attributes": {
+        "ApproximateReceiveCount": "1",
+        "SentTimestamp": "1523232000000",
+        "SenderId": "AIDAIENQZJOLO23YVJ4VO",
+        "ApproximateFirstReceiveTimestamp": "1523232000001"
+      },
+      "messageAttributes": {},
+      "md5OfBody": "098f6bcd4621d373cade4e832627b4f6",
+      "eventSource": "aws:sqs",
+      "eventSourceARN": "arn:aws:sqs:us-west-2:123456789012:RopewikiPageProcessorQueue",
+      "awsRegion": "us-west-2"
+    },
+    {
+      "messageId": "93771319-e0e8-4228-84f4-f84065eb30f9",
+      "receiptHandle": "AQEB32951e409e58459bb9242e2ee988c732...",
+      "body": "{\"id\":\"fb702bb7-cc19-44f9-89d5-b5027a0c7c13\",\"pageid\":\"25045\",\"name\":\"Ulltobel\",\"coordinates\":{\"lat\":46.9936,\"lon\":9.577},\"region\":\"5693ac2a-af2c-4425-ab6d-333e3bb74b43\",\"quality\":\"2.6\",\"rating\":\"<i>4C&nbsp;III&nbsp;R</i> (v5a3 IV)\",\"timeRating\":\"III\",\"kmlUrl\":\"https://ropewiki.com/luca/rwr?gpx%3Doff&filename%3DUlltobel&kmlnfx&kmlx%3Dhttp://descente-canyon.com/canyoning/canyon-description/23589&ext%3D.kml\",\"technicalRating\":\"4\",\"waterRating\":\"C\",\"riskRating\":\"R\",\"permits\":\"No\",\"months\":[\"Jun\",\"Jul\",\"Aug\",\"Sep\",\"Oct\",\"Nov\"],\"shuttle\":{\"unit\":\"minutes\",\"value\":0},\"minTime\":{\"unit\":\"h\",\"value\":4.75},\"maxTime\":{\"unit\":\"h\",\"value\":6},\"url\":\"https://ropewiki.com/Ulltobel\",\"aka\":[\"Tüfelskuchi\",\"Ülltobel\"],\"betaSites\":[\"http://descente-canyon.com/canyoning/canyon-description/23589\"],\"userVotes\":1,\"latestRevisionDate\":\"2023-03-13T12:59:06.000Z\",\"isValid\":true}",
+      "attributes": {
+        "ApproximateReceiveCount": "1",
+        "SentTimestamp": "1523232000000",
+        "SenderId": "AIDAIENQZJOLO23YVJ4VO",
+        "ApproximateFirstReceiveTimestamp": "1523232000001"
+      },
+      "messageAttributes": {},
+      "md5OfBody": "098f6bcd4621d373cade4e832627b4f6",
+      "eventSource": "aws:sqs",
+      "eventSourceARN": "arn:aws:sqs:us-west-2:123456789012:RopewikiPageProcessorQueue",
+      "awsRegion": "us-west-2"
+    },
+    {
+      "messageId": "06d2368b-28f2-4a31-b5c3-dc133af3a5cd",
+      "receiptHandle": "AQEBd7dee309e6914a268375e5bcb5edb308...",
+      "body": "{\"id\":\"930b113a-43dc-491b-b799-4492a0b849fc\",\"pageid\":\"18780\",\"name\":\"Hot Springs Canyon\",\"coordinates\":{\"lat\":32.34,\"lon\":-110.24},\"region\":\"560be4d8-bc4b-42c4-9ff6-dd04007729a5\",\"quality\":\"5\",\"rating\":\"1B III  (<i>v1a2&nbsp;III</i>)\",\"timeRating\":\"III\",\"kmlUrl\":\"https://ropewiki.com/luca/rwr?gpx%3Doff&filename%3DHot_Springs_Canyon&kmlnfx&kmlx%3Dhttp://hikearizona.com/decoder.php?ZTN%3D672&ext%3D.kml\",\"technicalRating\":\"1\",\"waterRating\":\"B\",\"permits\":\"No\",\"rappelCount\":0,\"rappelLongest\":{\"unit\":\"ft\",\"value\":0},\"months\":[\"Mar\",\"Apr\",\"May\",\"Jun\",\"Jul\",\"Aug\",\"Sep\",\"Oct\",\"Nov\"],\"minTime\":{\"unit\":\"h\",\"value\":9},\"hike\":{\"unit\":\"mi\",\"value\":12},\"url\":\"https://ropewiki.com/Hot_Springs_Canyon\",\"aka\":[],\"betaSites\":[\"http://hikearizona.com/decoder.php?ZTN=672\"],\"userVotes\":2,\"latestRevisionDate\":\"2017-02-10T05:20:17.000Z\",\"isValid\":true}",
+      "attributes": {
+        "ApproximateReceiveCount": "1",
+        "SentTimestamp": "1523232000000",
+        "SenderId": "AIDAIENQZJOLO23YVJ4VO",
+        "ApproximateFirstReceiveTimestamp": "1523232000001"
+      },
+      "messageAttributes": {},
+      "md5OfBody": "098f6bcd4621d373cade4e832627b4f6",
+      "eventSource": "aws:sqs",
+      "eventSourceARN": "arn:aws:sqs:us-west-2:123456789012:RopewikiPageProcessorQueue",
+      "awsRegion": "us-west-2"
+    },
+    {
+      "messageId": "0e2c1d41-fe41-4f30-9997-a0c36a3a59a9",
+      "receiptHandle": "AQEBcc21b2f4bcd2494fadc61af76bf2b329...",
+      "body": "{\"id\":\"44b38c1d-6a58-4495-957d-2dd881850246\",\"pageid\":\"43227\",\"name\":\"Faaana\",\"coordinates\":{\"lat\":-17.783,\"lon\":-149.2794},\"region\":\"a71641eb-d4cf-4c2f-be15-1cf085022c0f\",\"quality\":\"0\",\"kmlUrl\":\"https://ropewiki.com/luca/rwr?gpx%3Doff&filename%3DFaaana&kmlnfx&kmlx%3Dhttp://canyon-a-tahiti.shost.ca/Files/Other/10-05-17.pdf?id%3DT-41&kmlidx%3D-17.783:-149.2794:-17.7879:-149.2964&ext%3D.kml\",\"permits\":\"No\",\"rappelInfo\":\"8r\",\"rappelCount\":8,\"rappelLongest\":{\"unit\":\"ft\",\"value\":328.084},\"months\":[],\"shuttle\":{\"unit\":\"minutes\",\"value\":5},\"minTime\":{\"unit\":\"h\",\"value\":3.3333},\"url\":\"https://ropewiki.com/Faaana\",\"aka\":[\"Riviere Faaana\",\"Rivière Faaana\",\"Riviére Faaana\"],\"betaSites\":[\"http://canyon-a-tahiti.shost.ca/Topo/Toahotu/Riviere%20Faaana.htm?kmlidxna\",\"http://canyon-a-tahiti.shost.ca/Files/Other/10-05-17.pdf?id=T-41&kmlidx=-17.783:-149.2794:-17.7879:-149.2964\"],\"userVotes\":0,\"latestRevisionDate\":\"2017-05-24T22:47:50.000Z\",\"isValid\":true}",
+      "attributes": {
+        "ApproximateReceiveCount": "1",
+        "SentTimestamp": "1523232000000",
+        "SenderId": "AIDAIENQZJOLO23YVJ4VO",
+        "ApproximateFirstReceiveTimestamp": "1523232000001"
+      },
+      "messageAttributes": {},
+      "md5OfBody": "098f6bcd4621d373cade4e832627b4f6",
+      "eventSource": "aws:sqs",
+      "eventSourceARN": "arn:aws:sqs:us-west-2:123456789012:RopewikiPageProcessorQueue",
+      "awsRegion": "us-west-2"
+    },
+    {
+      "messageId": "3a26d642-3742-44a2-a78a-e46a918081fe",
+      "receiptHandle": "AQEBbd3e13ef3fb249a8be8475d87eb7e03c...",
+      "body": "{\"id\":\"af6d8c63-ca3a-4da5-933a-03d5c13a4ca5\",\"pageid\":\"100793\",\"name\":\"Henderson Canyon\",\"coordinates\":{\"lat\":34.2089,\"lon\":-118.2655},\"region\":\"f9e3ad7a-b427-4275-b825-479f3e4351b7\",\"quality\":\"2\",\"rating\":\"3A II  (<i>v3a1&nbsp;II</i>)\",\"timeRating\":\"II\",\"technicalRating\":\"3\",\"waterRating\":\"A\",\"permits\":\"No\",\"months\":[\"Dec\",\"Jan\",\"Feb\",\"Mar\",\"Apr\",\"May\",\"Sep\",\"Oct\",\"Nov\"],\"shuttle\":{\"unit\":\"minutes\",\"value\":0},\"url\":\"https://ropewiki.com/Henderson_Canyon\",\"aka\":[],\"betaSites\":[],\"userVotes\":1,\"latestRevisionDate\":\"2025-12-03T02:07:23.000Z\",\"isValid\":true}",
+      "attributes": {
+        "ApproximateReceiveCount": "1",
+        "SentTimestamp": "1523232000000",
+        "SenderId": "AIDAIENQZJOLO23YVJ4VO",
+        "ApproximateFirstReceiveTimestamp": "1523232000001"
+      },
+      "messageAttributes": {},
+      "md5OfBody": "098f6bcd4621d373cade4e832627b4f6",
+      "eventSource": "aws:sqs",
+      "eventSourceARN": "arn:aws:sqs:us-west-2:123456789012:RopewikiPageProcessorQueue",
+      "awsRegion": "us-west-2"
+    },
+    {
+      "messageId": "fe4c7206-a900-4ae7-9427-9dd4ad871efe",
+      "receiptHandle": "AQEB4096145b924f4a76a321fc53dff9f26d...",
+      "body": "{\"id\":\"84e86659-4711-4a24-857c-a477a2c9bc95\",\"pageid\":\"77665\",\"name\":\"Hailstorm Retreat\",\"coordinates\":{\"lat\":-33.4012,\"lon\":150.3231},\"region\":\"34fde0d7-f3be-427b-b44e-d57fb4200552\",\"quality\":\"2\",\"rating\":\"2A   (v1a1)\",\"technicalRating\":\"2\",\"waterRating\":\"A\",\"permits\":\"No\",\"rappelInfo\":\"0r\",\"rappelCount\":0,\"rappelLongest\":{\"unit\":\"ft\",\"value\":0},\"months\":[\"Oct\",\"Nov\",\"Dec\",\"Jan\",\"Feb\",\"Mar\",\"Apr\"],\"url\":\"https://ropewiki.com/Hailstorm_Retreat\",\"aka\":[],\"betaSites\":[],\"userVotes\":1,\"latestRevisionDate\":\"2024-11-17T11:07:41.000Z\",\"isValid\":true}",
+      "attributes": {
+        "ApproximateReceiveCount": "1",
+        "SentTimestamp": "1523232000000",
+        "SenderId": "AIDAIENQZJOLO23YVJ4VO",
+        "ApproximateFirstReceiveTimestamp": "1523232000001"
+      },
+      "messageAttributes": {},
+      "md5OfBody": "098f6bcd4621d373cade4e832627b4f6",
+      "eventSource": "aws:sqs",
+      "eventSourceARN": "arn:aws:sqs:us-west-2:123456789012:RopewikiPageProcessorQueue",
+      "awsRegion": "us-west-2"
+    },
+    {
+      "messageId": "c8f34c73-8966-4fbb-8ee5-876aeabc052b",
+      "receiptHandle": "AQEB1f2f7fa65b674988b350281494c98991...",
+      "body": "{\"id\":\"f51ceff9-1327-44a2-9af7-ea5f69fc7f42\",\"pageid\":\"15422\",\"name\":\"Rouselet\",\"coordinates\":{\"lat\":45.5068,\"lon\":5.9333},\"region\":\"57d095a8-4594-4828-a5c0-d36f30aa65ec\",\"quality\":\"2.7\",\"kmlUrl\":\"https://ropewiki.com/luca/rwr?gpx%3Doff&filename%3DRouselet&kmlnfx&kmlx%3Dhttp://descente-canyon.com/canyoning/canyon-description/2597&ext%3D.kml\",\"permits\":\"No\",\"rappelLongest\":{\"unit\":\"ft\",\"value\":147.6378},\"months\":[],\"shuttle\":{\"unit\":\"minutes\",\"value\":0},\"minTime\":{\"unit\":\"h\",\"value\":2},\"maxTime\":{\"unit\":\"h\",\"value\":2.25},\"url\":\"https://ropewiki.com/Rouselet\",\"aka\":[\"Torrent du Rouselet\",\"Cascades des Gorges\",\"Saut de l'âne\",\"Saut âne\"],\"betaSites\":[\"http://descente-canyon.com/canyoning/canyon-description/2597\"],\"userVotes\":3,\"latestRevisionDate\":\"2017-02-05T10:59:19.000Z\",\"isValid\":true}",
+      "attributes": {
+        "ApproximateReceiveCount": "1",
+        "SentTimestamp": "1523232000000",
+        "SenderId": "AIDAIENQZJOLO23YVJ4VO",
+        "ApproximateFirstReceiveTimestamp": "1523232000001"
+      },
+      "messageAttributes": {},
+      "md5OfBody": "098f6bcd4621d373cade4e832627b4f6",
+      "eventSource": "aws:sqs",
+      "eventSourceARN": "arn:aws:sqs:us-west-2:123456789012:RopewikiPageProcessorQueue",
+      "awsRegion": "us-west-2"
+    },
+    {
+      "messageId": "e38871d1-d492-4700-838d-834179adb5bf",
+      "receiptHandle": "AQEB41559cfe03d44c5ea373ff615b840f2b...",
+      "body": "{\"id\":\"6d779cbf-6523-4a2e-8ee4-37d2c1731c3f\",\"pageid\":\"63253\",\"name\":\"Rock Creek (Alternate, South Cascades)\",\"coordinates\":{\"lat\":45.7866,\"lon\":-122.0532},\"region\":\"6f811c4b-2793-441b-880f-4ef61f3d2b74\",\"quality\":\"3\",\"rating\":\"3C III  (<i>v3a4&nbsp;III</i>)\",\"timeRating\":\"III\",\"kmlUrl\":\"https://ropewiki.com/images/7/77/Rock_Creek_%28Alternate%2C_South_Cascades%29.kml\",\"technicalRating\":\"3\",\"waterRating\":\"C\",\"permits\":\"No\",\"rappelInfo\":\"9-10r\",\"rappelCount\":9,\"rappelLongest\":{\"unit\":\"ft\",\"value\":200},\"months\":[\"Mar\",\"Apr\",\"May\"],\"shuttle\":{\"unit\":\"minutes\",\"value\":0.5},\"vehicle\":\"Passenger\",\"hike\":{\"unit\":\"mi\",\"value\":5.65},\"url\":\"https://ropewiki.com/Rock_Creek_(Alternate,_South_Cascades)\",\"aka\":[\"Alt-Rock\"],\"betaSites\":[],\"userVotes\":6,\"latestRevisionDate\":\"2025-06-17T04:53:19.000Z\",\"isValid\":true}",
+      "attributes": {
+        "ApproximateReceiveCount": "1",
+        "SentTimestamp": "1523232000000",
+        "SenderId": "AIDAIENQZJOLO23YVJ4VO",
+        "ApproximateFirstReceiveTimestamp": "1523232000001"
+      },
+      "messageAttributes": {},
+      "md5OfBody": "098f6bcd4621d373cade4e832627b4f6",
+      "eventSource": "aws:sqs",
+      "eventSourceARN": "arn:aws:sqs:us-west-2:123456789012:RopewikiPageProcessorQueue",
+      "awsRegion": "us-west-2"
+    },
+    {
+      "messageId": "c7c41440-668e-4b24-ae10-121f9b437757",
+      "receiptHandle": "AQEB39b4799b4f3c4d30b58d2b3243628b8e...",
+      "body": "{\"id\":\"0295f64c-781f-4e92-8d75-a94308c41575\",\"pageid\":\"1007\",\"name\":\"Moonshine Wash\",\"coordinates\":{\"lat\":38.6818,\"lon\":-110.1796},\"region\":\"bff3ca20-266b-4503-8f34-a64fe3648f3d\",\"quality\":\"3.7\",\"rating\":\"2A III  (<i>v1a1&nbsp;III</i>)\",\"timeRating\":\"III\",\"kmlUrl\":\"https://ropewiki.com/luca/rwr?gpx%3Doff&filename%3DMoonshine_Wash&kmlnfx&kmlx%3Dhttp://roadtripryan.com/go/t/utah/robbers-roost/moonshine&ext%3D.kml\",\"technicalRating\":\"2\",\"waterRating\":\"A\",\"rappelCount\":0,\"rappelLongest\":{\"unit\":\"ft\",\"value\":0},\"months\":[\"Apr\",\"May\",\"Sep\",\"Oct\",\"Mar\",\"Jun\",\"Jul\",\"Aug\",\"Nov\"],\"vehicle\":\"4WD - High Clearance\",\"minTime\":{\"unit\":\"h\",\"value\":2},\"maxTime\":{\"unit\":\"h\",\"value\":6},\"hike\":{\"unit\":\"mi\",\"value\":6.5},\"url\":\"https://ropewiki.com/Moonshine_Wash\",\"aka\":[],\"betaSites\":[\"http://climb-utah.com/Roost/moonshine.htm\",\"http://roadtripryan.com/go/t/utah/robbers-roost/moonshine\",\"http://hikearizona.com/decoder.php?ZTN=16423&kmlidxna\",\"http://web.archive.org/web/20240229153613/http://canyoncollective.com/betabase/moonshine-wash.47\",\"http://web.archive.org/web/20240229153613/http://canyoncollective.com/betabase/moonshine-wash.653?kmlidxna\",\"http://ropewiki.com/User:Super_Amazing_Map?id=Moonshine_Wash_-_Robbers_Roost\",\"http://americansouthwest.net/slot_canyons/moonshine_wash/canyon.html\"],\"userVotes\":17,\"latestRevisionDate\":\"2025-07-24T05:05:55.000Z\",\"isValid\":true}",
+      "attributes": {
+        "ApproximateReceiveCount": "1",
+        "SentTimestamp": "1523232000000",
+        "SenderId": "AIDAIENQZJOLO23YVJ4VO",
+        "ApproximateFirstReceiveTimestamp": "1523232000001"
+      },
+      "messageAttributes": {},
+      "md5OfBody": "098f6bcd4621d373cade4e832627b4f6",
+      "eventSource": "aws:sqs",
+      "eventSourceARN": "arn:aws:sqs:us-west-2:123456789012:RopewikiPageProcessorQueue",
+      "awsRegion": "us-west-2"
+    },
+    {
+      "messageId": "c17ba257-e89b-41f0-bebd-7fc022baa9eb",
+      "receiptHandle": "AQEB441ceba8a1904d2d9603193373762f9c...",
+      "body": "{\"id\":\"e477894a-0162-4cbc-9e49-5c26a228fd4d\",\"pageid\":\"52272\",\"name\":\"Wildcat Canyon (West Fork)\",\"coordinates\":{\"lat\":39.1844,\"lon\":-120.4582},\"region\":\"c78cb0e8-089e-4cc9-b63f-cd674ddb7bcc\",\"quality\":\"3\",\"rating\":\"3C IV  (<i>v3a4&nbsp;IV</i>)\",\"timeRating\":\"IV\",\"kmlUrl\":\"https://ropewiki.com/images/3/36/Wildcat_Canyon_%28West_Fork%29.kml\",\"technicalRating\":\"3\",\"waterRating\":\"C\",\"permits\":\"No\",\"rappelInfo\":\"5-7r\",\"rappelCount\":5,\"rappelLongest\":{\"unit\":\"ft\",\"value\":160},\"months\":[\"Jun\"],\"shuttle\":{\"unit\":\"minutes\",\"value\":0.5},\"vehicle\":\"Passenger\",\"hike\":{\"unit\":\"mi\",\"value\":8},\"url\":\"https://ropewiki.com/Wildcat_Canyon_(West_Fork)\",\"aka\":[],\"betaSites\":[],\"userVotes\":2,\"latestRevisionDate\":\"2021-06-21T22:20:27.000Z\",\"isValid\":true}",
+      "attributes": {
+        "ApproximateReceiveCount": "1",
+        "SentTimestamp": "1523232000000",
+        "SenderId": "AIDAIENQZJOLO23YVJ4VO",
+        "ApproximateFirstReceiveTimestamp": "1523232000001"
+      },
+      "messageAttributes": {},
+      "md5OfBody": "098f6bcd4621d373cade4e832627b4f6",
+      "eventSource": "aws:sqs",
+      "eventSourceARN": "arn:aws:sqs:us-west-2:123456789012:RopewikiPageProcessorQueue",
+      "awsRegion": "us-west-2"
+    },
+    {
+      "messageId": "096ba611-68e2-4699-9858-59591d81c9cd",
+      "receiptHandle": "AQEB14c7bab39c8c48408ec2818b49fc3a82...",
+      "body": "{\"id\":\"a535cdb4-beb2-4afe-8a5a-8ba03e4edc12\",\"pageid\":\"28349\",\"name\":\"Taranes\",\"coordinates\":{\"lat\":43.1968,\"lon\":-5.2256},\"region\":\"1ee07cef-0c75-4cbb-ac8b-51c284aaf2c7\",\"quality\":\"0\",\"permits\":\"No\",\"rappelLongest\":{\"unit\":\"ft\",\"value\":32.8084},\"months\":[\"Mar\",\"Apr\",\"May\",\"Sep\",\"Oct\",\"Nov\",\"Jun\",\"Jul\",\"Aug\"],\"shuttle\":{\"unit\":\"minutes\",\"value\":0},\"minTime\":{\"unit\":\"h\",\"value\":2.75},\"maxTime\":{\"unit\":\"h\",\"value\":3},\"url\":\"https://ropewiki.com/Taranes\",\"aka\":[\"Foz de la Escalada\",\"Barranco de Taranes\",\"Foz Escalada\"],\"betaSites\":[\"http://barranquismo.net/paginas/barrancos/foz_de_la_escalada.htm\"],\"userVotes\":0,\"latestRevisionDate\":\"2017-02-05T23:12:43.000Z\",\"isValid\":true}",
+      "attributes": {
+        "ApproximateReceiveCount": "1",
+        "SentTimestamp": "1523232000000",
+        "SenderId": "AIDAIENQZJOLO23YVJ4VO",
+        "ApproximateFirstReceiveTimestamp": "1523232000001"
+      },
+      "messageAttributes": {},
+      "md5OfBody": "098f6bcd4621d373cade4e832627b4f6",
+      "eventSource": "aws:sqs",
+      "eventSourceARN": "arn:aws:sqs:us-west-2:123456789012:RopewikiPageProcessorQueue",
+      "awsRegion": "us-west-2"
+    }
+  ]
+}

@@ -1,59 +1,51 @@
 import getDatabaseConnection from '../../helpers/getDatabaseConnection';
-import { processPage } from '../processors/processPage';
-import RopewikiPage from '../types/page';
 import type { SqsEvent } from '@aws-lambda-powertools/parser/types';
+import handleProcessPageSQSMessages from '../sqs/handleProcessPageSQSMessages';
+import type { Pool, PoolClient } from 'pg';
 
 /**
- * Lambda handler for processing a single Ropewiki page.
- * Expects an SQS event with Records array containing the RopewikiPage in the body.
+ * Lambda handler for processing multiple Ropewiki pages from an SQS event.
+ * Expects an SQS event with Records array containing RopewikiPage data in each record's body.
+ * Uses savepoints for each page processing. If there is an HTTP error from processPage(), the entire transaction is rolled back.
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const processPageHandler = async (event: SqsEvent, context: any) => {
-    const pool = await getDatabaseConnection();
-    const client = await pool.connect();
+    let pool: Pool | undefined; 
+    let client: PoolClient | undefined;
 
     try {
+        pool = await getDatabaseConnection();
+        client = await pool.connect();
+
         // Validate SQS event format
         if (!event.Records || !Array.isArray(event.Records) || event.Records.length === 0) {
             throw new Error('Invalid SQS event: missing Records array or empty Records');
         }
 
-        // Process the first record (BatchSize is 1, so there should only be one)
-        const record = event.Records[0]!;
-        const page = RopewikiPage.fromSQSEventRecord(record);
+        console.log(`Processing ${event.Records.length} messages...`)
 
-        // Begin transaction
-        await client.query('BEGIN');
-        
-        // Process the single page
-        await processPage(client, page);
-
-        // Commit transaction
-        await client.query('COMMIT');
+        const results = await handleProcessPageSQSMessages(event.Records, client);
+        const totalRecords = event.Records.length;
 
         return {
             statusCode: 200,
             body: JSON.stringify({
-                message: 'Page processed successfully',
-                pageId: page.pageid,
+                message: `Processed ${totalRecords} pages`,
+                results,
             }),
         };
     } catch (error) {
-        // Rollback transaction on error
-        await client.query('ROLLBACK').catch(() => {
-            // Ignore rollback errors if transaction was already rolled back
-        });
+        console.error('Error in processPageHandler:', error);
         
-        console.error('Error processing page:', error);
         return {
             statusCode: 500,
             body: JSON.stringify({
-                message: 'Failed to process page',
+                message: 'Failed to process pages',
                 error: error instanceof Error ? error.message : String(error),
             }),
         };
     } finally {
-        client.release();
-        await pool.end();
+        if (client) client.release();
+        if (pool) await pool.end();
     }
 };

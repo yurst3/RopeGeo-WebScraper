@@ -282,5 +282,236 @@ describe('ProgressLogger', () => {
             const logCall = consoleLogSpy.mock.calls[0]?.[0] as string;
             expect(logCall).toContain('Remaining in chunk: 1');
         });
+
+        it('increments successes counter on each logProgress call', () => {
+            const logger = new ProgressLogger('Test Progress', 100);
+            logger.setChunk(0, 10);
+            
+            logger.logProgress('Item 1');
+            logger.logProgress('Item 2');
+            logger.logProgress('Item 3');
+            
+            const results = logger.getResults();
+            expect(results.successes).toBe(3);
+        });
+    });
+
+    describe('logError', () => {
+        it('logs error with correct format', () => {
+            const logger = new ProgressLogger('Test Progress', 100);
+            logger.setChunk(0, 10);
+            
+            logger.logError('Error processing item 1');
+            
+            expect(consoleLogSpy).toHaveBeenCalledTimes(1);
+            const logCall = consoleLogSpy.mock.calls[0]?.[0] as string;
+            expect(logCall).toContain('Test Progress: Error processing item 1');
+            expect(logCall).toContain('Progress: 1/100');
+            expect(logCall).toContain('Remaining in chunk: 10');
+        });
+
+        it('increments errors counter on each call', () => {
+            const logger = new ProgressLogger('Test Progress', 100);
+            logger.setChunk(0, 10);
+            
+            logger.logError('Error 1');
+            logger.logError('Error 2');
+            logger.logError('Error 3');
+            
+            const results = logger.getResults();
+            expect(results.errors).toBe(3);
+        });
+
+        it('increments current counter on each call', () => {
+            const logger = new ProgressLogger('Test Progress', 100);
+            logger.setChunk(0, 10);
+            
+            logger.logError('Error 1');
+            logger.logError('Error 2');
+            logger.logError('Error 3');
+            
+            expect(consoleLogSpy).toHaveBeenCalledTimes(3);
+            const firstCall = consoleLogSpy.mock.calls[0]?.[0] as string;
+            const secondCall = consoleLogSpy.mock.calls[1]?.[0] as string;
+            const thirdCall = consoleLogSpy.mock.calls[2]?.[0] as string;
+            
+            expect(firstCall).toContain('Progress: 1/100');
+            expect(secondCall).toContain('Progress: 2/100');
+            expect(thirdCall).toContain('Progress: 3/100');
+        });
+
+        it('calculates ETA correctly for errors', () => {
+            const logger = new ProgressLogger('Test Progress', 10);
+            
+            jest.setSystemTime(0);
+            logger.setChunk(0, 10);
+            
+            jest.setSystemTime(0);
+            logger.logError('Error 1');
+            
+            jest.setSystemTime(1000);
+            logger.logError('Error 2');
+            
+            jest.setSystemTime(2000);
+            logger.logError('Error 3');
+            
+            const thirdCall = consoleLogSpy.mock.calls[2]?.[0] as string;
+            expect(thirdCall).toContain('ETA:');
+        });
+
+        it('can be mixed with logProgress calls', () => {
+            const logger = new ProgressLogger('Test Progress', 100);
+            logger.setChunk(0, 10);
+            
+            logger.logProgress('Success 1');
+            logger.logError('Error 1');
+            logger.logProgress('Success 2');
+            logger.logError('Error 2');
+            
+            const results = logger.getResults();
+            expect(results.successes).toBe(2);
+            expect(results.errors).toBe(2);
+            expect(consoleLogSpy).toHaveBeenCalledTimes(4);
+        });
+
+        it('handles chunk boundaries correctly', () => {
+            const logger = new ProgressLogger('Test Progress', 100);
+            logger.setChunk(10, 20);
+            
+            logger.logError('Error 1');
+            
+            const logCall = consoleLogSpy.mock.calls[0]?.[0] as string;
+            expect(logCall).toContain('Progress: 11/100');
+            expect(logCall).toContain('Remaining in chunk: 10');
+        });
+    });
+
+    describe('getResults', () => {
+        it('returns correct counts when no progress has been made', () => {
+            const logger = new ProgressLogger('Test Progress', 100);
+            logger.setChunk(0, 100);
+            
+            const results = logger.getResults();
+            
+            expect(results).toEqual({
+                errors: 0,
+                successes: 0,
+                remaining: 100,
+            });
+        });
+
+        it('returns correct counts after logProgress calls', () => {
+            const logger = new ProgressLogger('Test Progress', 100);
+            logger.setChunk(0, 100);
+            
+            logger.logProgress('Item 1');
+            logger.logProgress('Item 2');
+            logger.logProgress('Item 3');
+            
+            const results = logger.getResults();
+            
+            expect(results).toEqual({
+                errors: 0,
+                successes: 3,
+                remaining: 97, // 100 - 3
+            });
+        });
+
+        it('returns correct counts after logError calls', () => {
+            const logger = new ProgressLogger('Test Progress', 100);
+            logger.setChunk(0, 100);
+            
+            logger.logError('Error 1');
+            logger.logError('Error 2');
+            
+            const results = logger.getResults();
+            
+            expect(results).toEqual({
+                errors: 2,
+                successes: 0,
+                remaining: 98, // 100 - 2
+            });
+        });
+
+        it('returns correct counts after mixed logProgress and logError calls', () => {
+            const logger = new ProgressLogger('Test Progress', 100);
+            logger.setChunk(0, 100);
+            
+            logger.logProgress('Success 1');
+            logger.logError('Error 1');
+            logger.logProgress('Success 2');
+            logger.logError('Error 2');
+            logger.logProgress('Success 3');
+            
+            const results = logger.getResults();
+            
+            expect(results).toEqual({
+                errors: 2,
+                successes: 3,
+                remaining: 95, // 100 - 5
+            });
+        });
+
+        it('returns correct remaining count when chunk is set', () => {
+            const logger = new ProgressLogger('Test Progress', 100);
+            logger.setChunk(10, 50);
+            
+            logger.logProgress('Item 1');
+            logger.logProgress('Item 2');
+            
+            const results = logger.getResults();
+            
+            // remaining = total - current = 100 - 12 = 88
+            expect(results.remaining).toBe(88);
+        });
+
+        it('returns correct counts when all items are processed', () => {
+            const logger = new ProgressLogger('Test Progress', 5);
+            logger.setChunk(0, 5);
+            
+            for (let i = 0; i < 5; i++) {
+                logger.logProgress(`Item ${i + 1}`);
+            }
+            
+            const results = logger.getResults();
+            
+            expect(results).toEqual({
+                errors: 0,
+                successes: 5,
+                remaining: 0, // 5 - 5
+            });
+        });
+
+        it('returns correct counts with errors when all items are processed', () => {
+            const logger = new ProgressLogger('Test Progress', 5);
+            logger.setChunk(0, 5);
+            
+            logger.logProgress('Item 1');
+            logger.logError('Error 1');
+            logger.logProgress('Item 2');
+            logger.logError('Error 2');
+            logger.logProgress('Item 3');
+            
+            const results = logger.getResults();
+            
+            expect(results).toEqual({
+                errors: 2,
+                successes: 3,
+                remaining: 0, // 5 - 5
+            });
+        });
+
+        it('returns correct remaining count when chunk start is not zero', () => {
+            const logger = new ProgressLogger('Test Progress', 100);
+            logger.setChunk(20, 30);
+            
+            logger.logProgress('Item 1');
+            logger.logError('Error 1');
+            
+            const results = logger.getResults();
+            
+            // current = 22 (20 + 2), remaining = 100 - 22 = 78
+            expect(results.remaining).toBe(78);
+        });
     });
 });

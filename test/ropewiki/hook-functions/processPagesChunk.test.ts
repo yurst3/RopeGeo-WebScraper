@@ -14,9 +14,11 @@ jest.mock('../../../src/ropewiki/processors/processPage', () => {
 jest.mock('../../../src/helpers/progressLogger', () => {
     const mockSetChunk = jest.fn();
     const mockLogProgress = jest.fn();
+    const mockLogError = jest.fn();
     const MockProgressLogger = jest.fn().mockImplementation(() => ({
         setChunk: mockSetChunk,
         logProgress: mockLogProgress,
+        logError: mockLogError,
     }));
     return {
         __esModule: true,
@@ -48,6 +50,7 @@ describe('processPagesChunk hook functions', () => {
     let mockProcessPage: jest.MockedFunction<any>;
     let mockSetChunk: jest.MockedFunction<(start: number, end: number) => void>;
     let mockLogProgress: jest.MockedFunction<(message: string) => void>;
+    let mockLogError: jest.MockedFunction<(message: string) => void>;
     let mockSend: jest.MockedFunction<() => Promise<any>>;
     let MockProgressLogger: any;
     let MockSQSClient: any;
@@ -67,6 +70,7 @@ describe('processPagesChunk hook functions', () => {
         const loggerInstance = new MockProgressLogger('test', 1);
         mockSetChunk = loggerInstance.setChunk as jest.MockedFunction<(start: number, end: number) => void>;
         mockLogProgress = loggerInstance.logProgress as jest.MockedFunction<(message: string) => void>;
+        mockLogError = loggerInstance.logError as jest.MockedFunction<(message: string) => void>;
         
         const sqs = jest.requireMock('@aws-sdk/client-sqs') as { SQSClient: any; SendMessageCommand: any };
         MockSQSClient = sqs.SQSClient;
@@ -121,7 +125,8 @@ describe('processPagesChunk hook functions', () => {
         };
 
         it('processes an empty array of pages', async () => {
-            await nodeProcessPagesChunk(mockClient, []);
+            const logger = new MockProgressLogger('test', 0);
+            await nodeProcessPagesChunk(mockClient, [], logger);
 
             expect(mockProcessPage).not.toHaveBeenCalled();
         });
@@ -129,11 +134,12 @@ describe('processPagesChunk hook functions', () => {
         it('processes a single page', async () => {
             const page = createTestPage('page-1', 'Test Page');
             const pages = [page];
+            const logger = new MockProgressLogger('test', 1);
 
-            await nodeProcessPagesChunk(mockClient, pages);
+            await nodeProcessPagesChunk(mockClient, pages, logger);
 
             expect(mockProcessPage).toHaveBeenCalledTimes(1);
-            expect(mockProcessPage).toHaveBeenCalledWith(mockClient, page, undefined, 'sp_page_0');
+            expect(mockProcessPage).toHaveBeenCalledWith(mockClient, page, logger, 'sp_page_0');
         });
 
         it('processes multiple pages with correct savepoint names', async () => {
@@ -141,13 +147,14 @@ describe('processPagesChunk hook functions', () => {
             const page2 = createTestPage('page-2', 'Page 2');
             const page3 = createTestPage('page-3', 'Page 3');
             const pages = [page1, page2, page3];
+            const logger = new MockProgressLogger('test', 3);
 
-            await nodeProcessPagesChunk(mockClient, pages);
+            await nodeProcessPagesChunk(mockClient, pages, logger);
 
             expect(mockProcessPage).toHaveBeenCalledTimes(3);
-            expect(mockProcessPage).toHaveBeenNthCalledWith(1, mockClient, page1, undefined, 'sp_page_0');
-            expect(mockProcessPage).toHaveBeenNthCalledWith(2, mockClient, page2, undefined, 'sp_page_1');
-            expect(mockProcessPage).toHaveBeenNthCalledWith(3, mockClient, page3, undefined, 'sp_page_2');
+            expect(mockProcessPage).toHaveBeenNthCalledWith(1, mockClient, page1, logger, 'sp_page_0');
+            expect(mockProcessPage).toHaveBeenNthCalledWith(2, mockClient, page2, logger, 'sp_page_1');
+            expect(mockProcessPage).toHaveBeenNthCalledWith(3, mockClient, page3, logger, 'sp_page_2');
         });
 
         it('passes logger to processPage when provided', async () => {
@@ -160,28 +167,19 @@ describe('processPagesChunk hook functions', () => {
             expect(mockProcessPage).toHaveBeenCalledWith(mockClient, page, logger, 'sp_page_0');
         });
 
-        it('propagates errors from processPage', async () => {
-            const page = createTestPage('page-1', 'Test Page');
-            const pages = [page];
-            const error = new Error('Processing failed');
-            mockProcessPage.mockRejectedValue(error);
-
-            await expect(nodeProcessPagesChunk(mockClient, pages)).rejects.toThrow('Processing failed');
-            expect(mockProcessPage).toHaveBeenCalledTimes(1);
-        });
-
-        it('stops processing on first error', async () => {
+        it('processes all pages even when processPage logs errors', async () => {
             const page1 = createTestPage('page-1', 'Page 1');
             const page2 = createTestPage('page-2', 'Page 2');
             const pages = [page1, page2];
-            const error = new Error('Processing failed');
-            mockProcessPage
-                .mockRejectedValueOnce(error)
-                .mockResolvedValueOnce(undefined);
+            const logger = new MockProgressLogger('test', 2);
+            // processPage catches errors internally and logs them, doesn't throw
+            mockProcessPage.mockResolvedValue(undefined);
 
-            await expect(nodeProcessPagesChunk(mockClient, pages)).rejects.toThrow('Processing failed');
-            expect(mockProcessPage).toHaveBeenCalledTimes(1);
-            expect(mockProcessPage).toHaveBeenCalledWith(mockClient, page1, undefined, 'sp_page_0');
+            await nodeProcessPagesChunk(mockClient, pages, logger);
+
+            expect(mockProcessPage).toHaveBeenCalledTimes(2);
+            expect(mockProcessPage).toHaveBeenCalledWith(mockClient, page1, logger, 'sp_page_0');
+            expect(mockProcessPage).toHaveBeenCalledWith(mockClient, page2, logger, 'sp_page_1');
         });
     });
 
@@ -294,7 +292,7 @@ describe('processPagesChunk hook functions', () => {
             expect(mockLogProgress).toHaveBeenCalledWith('Sent page page-1 Test Page to queue');
         });
 
-        it('propagates errors from SQS send', async () => {
+        it('logs errors from SQS send and continues processing', async () => {
             delete process.env.DEV_ENVIRONMENT;
             process.env.ROPEWIKI_PAGE_PROCESSING_QUEUE_URL = 'https://sqs.us-east-1.amazonaws.com/123456789/test-queue';
             const page = createTestPage('page-1', 'Test Page');
@@ -303,14 +301,13 @@ describe('processPagesChunk hook functions', () => {
             const error = new Error('SQS send failed');
             mockSend.mockRejectedValue(error);
 
-            await expect(lambdaProcessPagesChunk(mockClient, pages, logger)).rejects.toThrow('SQS send failed');
-            expect(mockConsoleError).toHaveBeenCalledWith(
-                'Error sending page page-1 Test Page to queue:',
-                error,
-            );
+            await lambdaProcessPagesChunk(mockClient, pages, logger);
+            
+            expect(mockLogError).toHaveBeenCalledWith('Error sending page page-1 Test Page to queue: SQS send failed');
+            expect(mockConsoleError).not.toHaveBeenCalled();
         });
 
-        it('stops sending on first error', async () => {
+        it('continues processing all pages even when some SQS sends fail', async () => {
             delete process.env.DEV_ENVIRONMENT;
             process.env.ROPEWIKI_PAGE_PROCESSING_QUEUE_URL = 'https://sqs.us-east-1.amazonaws.com/123456789/test-queue';
             const page1 = createTestPage('page-1', 'Page 1');
@@ -322,12 +319,12 @@ describe('processPagesChunk hook functions', () => {
                 .mockRejectedValueOnce(error)
                 .mockResolvedValueOnce({});
 
-            await expect(lambdaProcessPagesChunk(mockClient, pages, logger)).rejects.toThrow('SQS send failed');
-            expect(mockSend).toHaveBeenCalledTimes(1);
-            expect(mockConsoleError).toHaveBeenCalledWith(
-                'Error sending page page-1 Page 1 to queue:',
-                error,
-            );
+            await lambdaProcessPagesChunk(mockClient, pages, logger);
+            
+            expect(mockSend).toHaveBeenCalledTimes(2);
+            expect(mockLogError).toHaveBeenCalledWith('Error sending page page-1 Page 1 to queue: SQS send failed');
+            expect(mockLogProgress).toHaveBeenCalledWith('Sent page page-2 Page 2 to queue');
+            expect(mockConsoleError).not.toHaveBeenCalled();
         });
 
         it('handles empty pages array', async () => {

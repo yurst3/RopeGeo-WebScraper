@@ -247,9 +247,7 @@ Resources:
       Runtime: nodejs22.x
       Architectures:
         - *chromiumArch
-      Layers:
-        - !Ref ChromiumLayer
-      Handler: src/ropewiki/lambda-handlers/ropewikiScraperHandler.mainHandler
+      Handler: src/ropewiki/lambda-handlers/mainHandler.mainHandler
       # This property associates this Lambda function with a scheduled CloudWatch Event. For all available properties, see
       # https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#schedule
       # This runs once a week on Sunday at midnight UTC.
@@ -288,7 +286,7 @@ Resources:
         Target: "esnext"
         Sourcemap: true
         EntryPoints: 
-        - src/ropewiki/main.ts
+        - src/ropewiki/lambda-handlers/mainHandler.ts
         External:
         - "@sparticuz/chromium"
 
@@ -332,7 +330,7 @@ Resources:
         Target: "esnext"
         Sourcemap: true
         EntryPoints: 
-        - src/ropewiki/main.ts
+        - src/ropewiki/lambda-handlers/processPageHandler.ts
         External:
         - "@sparticuz/chromium"
 
@@ -371,8 +369,6 @@ Resources:
             BucketName: !Ref MapDataBucket
     Metadata:
       BuildMethod: makefile
-      BuildProperties:
-        Makefile: src/map-data/Makefile
 
 # # More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
 Globals:

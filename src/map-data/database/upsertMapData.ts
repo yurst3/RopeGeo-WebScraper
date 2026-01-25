@@ -12,7 +12,7 @@ const upsertMapData = async (
 
     const results = await db
         .upsert('MapData', [row], ['id'], {
-            updateColumns: ['gpx', 'kml', 'geoJson', 'vectorTile', 'updatedAt'],
+            updateColumns: ['gpx', 'kml', 'geoJson', 'vectorTile', 'updatedAt', 'sourceFileUrl', 'errorMessage'],
         })
         .run(conn);
 

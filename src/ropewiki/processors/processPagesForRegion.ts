@@ -53,9 +53,9 @@ export const getProcessPagesForRegionFn = (conn: Queryable, processPagesChunkHoo
                 const validPagesToParse = upsertedPages.filter(upsertPage => {
                     const updatedDate = pageUpdateDates[upsertPage.pageid];
 
-                if (!updatedDate) return true; // Always parse and save when we don't have an updated date
+                    if (!updatedDate) return true; // Always parse and save when we don't have an updated date
                     return updatedDate < upsertPage.latestRevisionDate; // Otherwise only parse if there has been a revision since the last update
-            });
+                });
     
                 const skippedPagesCount = validPages.length - validPagesToParse.length;
                 if (skippedPagesCount > 0) console.log(`Skipping parsing for ${skippedPagesCount} pages...`); 
@@ -63,7 +63,7 @@ export const getProcessPagesForRegionFn = (conn: Queryable, processPagesChunkHoo
                 // Calculate chunk boundaries: start at offset + number of skipped pages in this chunk
                 const skippedInChunk = invalidPagesCount + skippedPagesCount;
     
-            if (validPagesToParse.length) {
+                if (validPagesToParse.length) {
                     const chunkStart = offset + skippedInChunk;
                     const chunkEnd = chunkStart + validPagesToParse.length - 1;
                     logger.setChunk(chunkStart, chunkEnd);
