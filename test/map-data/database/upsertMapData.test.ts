@@ -1,5 +1,5 @@
 import { Pool } from 'pg';
-import { describe, it, expect, beforeAll, afterAll, afterEach } from '@jest/globals';
+import { describe, it, expect, beforeAll, afterAll, afterEach, jest } from '@jest/globals';
 import * as db from 'zapatos/db';
 import upsertMapData from '../../../src/map-data/database/upsertMapData';
 import MapData from '../../../src/map-data/types/mapData';
@@ -47,7 +47,11 @@ describe('upsertMapData (integration)', () => {
         expect(result.vectorTile).toBe('https://example.com/file.mbtiles');
 
         // Verify it was actually inserted in the database
-        const dbRow = await db.selectOne('MapData', { id: result.id }).run(conn);
+        const resultId = result.id;
+        if (!resultId) {
+            throw new Error('Result id is undefined');
+        }
+        const dbRow = await db.selectOne('MapData', { id: resultId }).run(conn);
         expect(dbRow).toBeDefined();
         expect(dbRow!.gpx).toBe('https://example.com/file.gpx');
         expect(dbRow!.kml).toBe('https://example.com/file.kml');
@@ -134,7 +138,11 @@ describe('upsertMapData (integration)', () => {
         expect(result.vectorTile).toBeUndefined();
 
         // Verify null values in database
-        const dbRow = await db.selectOne('MapData', { id: result.id }).run(conn);
+        const resultId = result.id;
+        if (!resultId) {
+            throw new Error('Result id is undefined');
+        }
+        const dbRow = await db.selectOne('MapData', { id: resultId }).run(conn);
         expect(dbRow!.gpx).toBeNull();
         expect(dbRow!.kml).toBeNull();
         expect(dbRow!.geoJson).toBeNull();
@@ -206,6 +214,190 @@ describe('upsertMapData (integration)', () => {
         // kml and vectorTile should be null/undefined after update
         expect(result.kml).toBeUndefined();
         expect(result.vectorTile).toBeUndefined();
+    });
+
+    it('skips upserting when existing data has no error and incoming data has an error', async () => {
+        const mapDataId = '11111111-1111-1111-1111-111111111111';
+        const consoleLogSpy = jest.spyOn(console, 'log').mockImplementation(() => {});
+        
+        // Insert initial successful record (no errorMessage)
+        const initialMapData = new MapData(
+            'https://example.com/file.gpx',
+            'https://example.com/file.kml',
+            'https://example.com/file.geojson',
+            'https://example.com/file.mbtiles',
+            mapDataId,
+            'https://example.com/source.kml',
+        );
+        const initialResult = await upsertMapData(conn, initialMapData);
+        expect(initialResult.errorMessage).toBeUndefined();
+
+        // Wait a bit to ensure updatedAt would change if we updated
+        await new Promise(resolve => setTimeout(resolve, 10));
+
+        // Try to upsert with an error (should be skipped)
+        const errorMapData = new MapData(
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            mapDataId,
+            'https://example.com/source.kml',
+            'Processing failed',
+        );
+        const result = await upsertMapData(conn, errorMapData);
+
+        // Should return the existing successful data, not the error data
+        expect(result.id).toBe(mapDataId);
+        expect(result.gpx).toBe('https://example.com/file.gpx');
+        expect(result.kml).toBe('https://example.com/file.kml');
+        expect(result.geoJson).toBe('https://example.com/file.geojson');
+        expect(result.vectorTile).toBe('https://example.com/file.mbtiles');
+        expect(result.errorMessage).toBeUndefined();
+
+        // Verify the database still has the original successful data
+        const dbRow = await db.selectOne('MapData', { id: mapDataId }).run(conn);
+        expect(dbRow!.gpx).toBe('https://example.com/file.gpx');
+        expect(dbRow!.errorMessage).toBeNull();
+
+        // Verify the log message was called
+        expect(consoleLogSpy).toHaveBeenCalledWith(
+            `Skipping upsert for map data ${mapDataId} to avoid overwriting existing successful data with an error`
+        );
+
+        consoleLogSpy.mockRestore();
+    });
+
+    it('upserts when existing data has an error and incoming data has no error', async () => {
+        const mapDataId = '11111111-1111-1111-1111-111111111111';
+        
+        // Insert initial record with error
+        const initialMapData = new MapData(
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            mapDataId,
+            'https://example.com/source.kml',
+            'Initial error',
+        );
+        await upsertMapData(conn, initialMapData);
+
+        // Upsert with successful data (should update)
+        const successMapData = new MapData(
+            'https://example.com/file.gpx',
+            'https://example.com/file.kml',
+            'https://example.com/file.geojson',
+            'https://example.com/file.mbtiles',
+            mapDataId,
+            'https://example.com/source.kml',
+        );
+        const result = await upsertMapData(conn, successMapData);
+
+        // Should have the new successful data
+        expect(result.id).toBe(mapDataId);
+        expect(result.gpx).toBe('https://example.com/file.gpx');
+        expect(result.kml).toBe('https://example.com/file.kml');
+        expect(result.geoJson).toBe('https://example.com/file.geojson');
+        expect(result.vectorTile).toBe('https://example.com/file.mbtiles');
+        expect(result.errorMessage).toBeUndefined();
+
+        // Verify the database has the updated successful data
+        const dbRow = await db.selectOne('MapData', { id: mapDataId }).run(conn);
+        expect(dbRow!.gpx).toBe('https://example.com/file.gpx');
+        expect(dbRow!.errorMessage).toBeNull();
+    });
+
+    it('upserts when both existing and incoming data have no error', async () => {
+        const mapDataId = '11111111-1111-1111-1111-111111111111';
+        
+        // Insert initial successful record
+        const initialMapData = new MapData(
+            'https://example.com/old.gpx',
+            'https://example.com/old.kml',
+            'https://example.com/old.geojson',
+            'https://example.com/old.mbtiles',
+            mapDataId,
+            'https://example.com/source.kml',
+        );
+        await upsertMapData(conn, initialMapData);
+
+        // Upsert with new successful data (should update)
+        const updatedMapData = new MapData(
+            'https://example.com/new.gpx',
+            'https://example.com/new.kml',
+            'https://example.com/new.geojson',
+            'https://example.com/new.mbtiles',
+            mapDataId,
+            'https://example.com/source.kml',
+        );
+        const result = await upsertMapData(conn, updatedMapData);
+
+        // Should have the updated data
+        expect(result.gpx).toBe('https://example.com/new.gpx');
+        expect(result.kml).toBe('https://example.com/new.kml');
+        expect(result.errorMessage).toBeUndefined();
+    });
+
+    it('upserts when both existing and incoming data have errors', async () => {
+        const mapDataId = '11111111-1111-1111-1111-111111111111';
+        
+        // Insert initial record with error
+        const initialMapData = new MapData(
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            mapDataId,
+            'https://example.com/source.kml',
+            'Initial error',
+        );
+        await upsertMapData(conn, initialMapData);
+
+        // Upsert with new error (should update)
+        const updatedMapData = new MapData(
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            mapDataId,
+            'https://example.com/source.kml',
+            'New error',
+        );
+        const result = await upsertMapData(conn, updatedMapData);
+
+        // Should have the new error
+        expect(result.id).toBe(mapDataId);
+        expect(result.errorMessage).toBe('New error');
+
+        // Verify the database has the updated error
+        const dbRow = await db.selectOne('MapData', { id: mapDataId }).run(conn);
+        expect(dbRow!.errorMessage).toBe('New error');
+    });
+
+    it('upserts when there is no existing data (normal insert)', async () => {
+        const mapDataId = '11111111-1111-1111-1111-111111111111';
+        
+        // Upsert with error when no existing data (should insert)
+        const errorMapData = new MapData(
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            mapDataId,
+            'https://example.com/source.kml',
+            'Processing failed',
+        );
+        const result = await upsertMapData(conn, errorMapData);
+
+        // Should insert the data with error
+        expect(result.id).toBe(mapDataId);
+        expect(result.errorMessage).toBe('Processing failed');
+
+        // Verify it was inserted
+        const dbRow = await db.selectOne('MapData', { id: mapDataId }).run(conn);
+        expect(dbRow).toBeDefined();
+        expect(dbRow!.errorMessage).toBe('Processing failed');
     });
 
     it('propagates errors from the database layer', async () => {

@@ -5,22 +5,21 @@ import { PageRoute, RopewikiRoute } from '../../src/types/pageRoute';
 import MapData from '../../src/map-data/types/mapData';
 import type { SaveMapDataHookFn } from '../../src/map-data/hook-functions/saveMapData';
 import { MapDataEvent } from '../../src/map-data/types/lambdaEvent';
+import ProgressLogger from '../../src/helpers/progressLogger';
 import * as db from 'zapatos/db';
 
+// Mock ProgressLogger
+jest.mock('../../src/helpers/progressLogger', () => {
+    return jest.fn().mockImplementation(() => ({
+        setChunk: jest.fn(),
+        logProgress: jest.fn(),
+        logError: jest.fn(),
+        getResults: jest.fn(),
+    }));
+});
+
 // Mock database connection
-const mockClient = {
-    release: jest.fn(),
-} as any;
-
-const mockPool = {
-    connect: jest.fn(() => Promise.resolve(mockClient)),
-    end: jest.fn(() => Promise.resolve()),
-} as any;
-
-jest.mock('../../src/helpers/getDatabaseConnection', () => ({
-    __esModule: true,
-    default: jest.fn(() => Promise.resolve(mockPool)),
-}));
+const mockClient = {} as any;
 
 // Mock utility functions
 let mockGetSourceFileUrl: jest.MockedFunction<typeof import('../../src/map-data/util/getSourceFileUrl').default>;
@@ -49,6 +48,7 @@ jest.mock('../../src/map-data/util/upsertPageRoute', () => ({
 
 describe('main', () => {
     let mockSaveMapDataHookFn: jest.MockedFunction<SaveMapDataHookFn>;
+    let mockLogger: any;
     const pageDataSource = PageDataSource.Ropewiki;
     const pageId = 'd1d9139d-38db-433c-b7cd-a28f79331667';
     const routeId = '11111111-1111-1111-1111-111111111111';
@@ -84,12 +84,15 @@ describe('main', () => {
             geoJsonFile: 'https://s3.amazonaws.com/bucket/geojson/file.geojson',
             vectorTileFile: 'https://s3.amazonaws.com/bucket/vector-tiles/file.mbtiles',
         });
+
+        // Create mock logger
+        mockLogger = new ProgressLogger('Test', 1);
     });
 
     it('creates new PageRoute from MapDataEvent', async () => {
         const mapDataEvent = createMapDataEvent();
 
-        await main(mockSaveMapDataHookFn, mapDataEvent);
+        await main(mapDataEvent, mockSaveMapDataHookFn, mockLogger, mockClient);
 
         // When sourceFileUrl doesn't exist, upsertPageRoute should not be called
         expect(mockUpsertPageRoute).not.toHaveBeenCalled();
@@ -110,7 +113,7 @@ describe('main', () => {
         mockGetSourceFileUrl.mockResolvedValue(sourceFileUrl);
         mockUpsertMapData.mockResolvedValue(upsertedMapData);
 
-        await main(mockSaveMapDataHookFn, mapDataEvent);
+        await main(mapDataEvent, mockSaveMapDataHookFn, mockLogger, mockClient);
 
         // When sourceFileUrl exists, upsertPageRoute should be called with updated mapData
         expect(mockUpsertPageRoute).toHaveBeenCalledWith(
@@ -146,7 +149,7 @@ describe('main', () => {
         mockProcessMapData.mockResolvedValue(processedMapData);
         mockUpsertMapData.mockResolvedValue(upsertedMapData);
 
-        await main(mockSaveMapDataHookFn, mapDataEvent);
+        await main(mapDataEvent, mockSaveMapDataHookFn, mockLogger, mockClient);
 
         expect(mockGetSourceFileUrl).toHaveBeenCalledWith(mockClient, pageDataSource, pageId);
         expect(mockProcessMapData).toHaveBeenCalledWith(
@@ -170,7 +173,7 @@ describe('main', () => {
         const mapDataEvent = createMapDataEvent();
         mockGetSourceFileUrl.mockResolvedValue(undefined);
 
-        await main(mockSaveMapDataHookFn, mapDataEvent);
+        await main(mapDataEvent, mockSaveMapDataHookFn, mockLogger, mockClient);
 
         expect(mockGetSourceFileUrl).toHaveBeenCalledWith(mockClient, pageDataSource, pageId);
         expect(mockProcessMapData).not.toHaveBeenCalled();
@@ -186,7 +189,7 @@ describe('main', () => {
 
         mockGetSourceFileUrl.mockResolvedValue(sourceFileUrl);
 
-        await main(mockSaveMapDataHookFn, mapDataEvent);
+        await main(mapDataEvent, mockSaveMapDataHookFn, mockLogger, mockClient);
 
         expect(mockProcessMapData).toHaveBeenCalledWith(
             sourceFileUrl,
@@ -201,7 +204,7 @@ describe('main', () => {
 
         mockGetSourceFileUrl.mockResolvedValue(sourceFileUrl);
 
-        await main(mockSaveMapDataHookFn, mapDataEvent);
+        await main(mapDataEvent, mockSaveMapDataHookFn, mockLogger, mockClient);
 
         expect(mockProcessMapData).toHaveBeenCalledWith(
             sourceFileUrl,
@@ -224,7 +227,7 @@ describe('main', () => {
         mockGetSourceFileUrl.mockResolvedValue(sourceFileUrl);
         mockUpsertMapData.mockResolvedValue(upsertedMapData);
 
-        await main(mockSaveMapDataHookFn, mapDataEvent);
+        await main(mapDataEvent, mockSaveMapDataHookFn, mockLogger, mockClient);
 
         expect(mockUpsertPageRoute).toHaveBeenCalledWith(
             mockClient,
@@ -241,37 +244,10 @@ describe('main', () => {
         const mapDataEvent = createMapDataEvent();
         mockGetSourceFileUrl.mockResolvedValue(undefined);
 
-        await main(mockSaveMapDataHookFn, mapDataEvent);
+        await main(mapDataEvent, mockSaveMapDataHookFn, mockLogger, mockClient);
 
         // When sourceFileUrl doesn't exist, upsertPageRoute should not be called
         expect(mockUpsertPageRoute).not.toHaveBeenCalled();
-    });
-
-    it('releases database client after processing', async () => {
-        const mapDataEvent = createMapDataEvent();
-        await main(mockSaveMapDataHookFn, mapDataEvent);
-
-        expect(mockClient.release).toHaveBeenCalledTimes(1);
-    });
-
-    it('closes database pool after processing', async () => {
-        const mapDataEvent = createMapDataEvent();
-        await main(mockSaveMapDataHookFn, mapDataEvent);
-
-        expect(mockPool.end).toHaveBeenCalledTimes(1);
-    });
-
-    it('releases client and closes pool even when an error occurs', async () => {
-        const mapDataEvent = createMapDataEvent();
-        const error = new Error('Processing failed');
-        mockGetSourceFileUrl.mockRejectedValue(error);
-
-        await expect(
-            main(mockSaveMapDataHookFn, mapDataEvent),
-        ).rejects.toThrow('Processing failed');
-
-        expect(mockClient.release).toHaveBeenCalledTimes(1);
-        expect(mockPool.end).toHaveBeenCalledTimes(1);
     });
 
     it('propagates errors from getSourceFileUrl', async () => {
@@ -280,7 +256,7 @@ describe('main', () => {
         mockGetSourceFileUrl.mockRejectedValue(error);
 
         await expect(
-            main(mockSaveMapDataHookFn, mapDataEvent),
+            main(mapDataEvent, mockSaveMapDataHookFn, mockLogger, mockClient),
         ).rejects.toThrow('Failed to get source file URL');
     });
 
@@ -293,7 +269,7 @@ describe('main', () => {
         mockProcessMapData.mockRejectedValue(error);
 
         await expect(
-            main(mockSaveMapDataHookFn, mapDataEvent),
+            main(mapDataEvent, mockSaveMapDataHookFn, mockLogger, mockClient),
         ).rejects.toThrow('Failed to process map data');
     });
 
@@ -306,7 +282,7 @@ describe('main', () => {
         mockUpsertMapData.mockRejectedValue(error);
 
         await expect(
-            main(mockSaveMapDataHookFn, mapDataEvent),
+            main(mapDataEvent, mockSaveMapDataHookFn, mockLogger, mockClient),
         ).rejects.toThrow('Failed to upsert map data');
     });
 
@@ -319,7 +295,7 @@ describe('main', () => {
         mockUpsertPageRoute.mockRejectedValue(error);
 
         await expect(
-            main(mockSaveMapDataHookFn, mapDataEvent),
+            main(mapDataEvent, mockSaveMapDataHookFn, mockLogger, mockClient),
         ).rejects.toThrow('Failed to upsert page route');
     });
 
@@ -337,7 +313,7 @@ describe('main', () => {
         mockGetSourceFileUrl.mockResolvedValue(sourceFileUrl);
         mockUpsertMapData.mockResolvedValue(upsertedMapData);
 
-        await main(mockSaveMapDataHookFn, mapDataEvent);
+        await main(mapDataEvent, mockSaveMapDataHookFn, mockLogger, mockClient);
 
         expect(mockProcessMapData).toHaveBeenCalledWith(
             sourceFileUrl,

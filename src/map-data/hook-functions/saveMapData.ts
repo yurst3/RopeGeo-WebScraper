@@ -2,6 +2,7 @@ import { copyFile, mkdir, rename, unlink, readFile } from 'fs/promises';
 import { dirname, join } from 'path';
 import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
 import MapData from '../types/mapData';
+import ProgressLogger from '../../helpers/progressLogger';
 
 export type SaveMapDataHookFn = (
     sourceFilePath: string | undefined,
@@ -11,6 +12,7 @@ export type SaveMapDataHookFn = (
     isKml: boolean,
     sourceFileUrl: string,
     errorMessage: string | undefined,
+    logger: ProgressLogger,
 ) => Promise<MapData>;
 
 const SAVED_MAP_DATA_DIR = '.savedMapData';
@@ -49,6 +51,7 @@ export const lambdaSaveMapData: SaveMapDataHookFn = async (
     isKml: boolean,
     sourceFileUrl: string,
     errorMessage: string | undefined,
+    logger: ProgressLogger,
 ): Promise<MapData> => {
     const bucketName = process.env.MAP_DATA_BUCKET_NAME;
     if (!bucketName) {
@@ -136,7 +139,7 @@ export const lambdaSaveMapData: SaveMapDataHookFn = async (
         errorMessage = uploadErrors.join('\n');
     }
 
-    return new MapData(
+    const mapData = new MapData(
         isKml ? undefined : sourceFile,
         isKml ? sourceFile : undefined,
         geoJsonFile,
@@ -145,6 +148,14 @@ export const lambdaSaveMapData: SaveMapDataHookFn = async (
         sourceFileUrl,
         errorMessage,
     );
+
+    if (errorMessage) {
+        logger.logError(`Map data ${mapDataId} ${errorMessage}`);
+    } else {
+        logger.logProgress(`Map data ${mapDataId} processed successfully`);
+    }
+
+    return mapData;
 };
 
 export const nodeSaveMapData: SaveMapDataHookFn = async (
@@ -155,6 +166,7 @@ export const nodeSaveMapData: SaveMapDataHookFn = async (
     isKml: boolean,
     sourceFileUrl: string,
     errorMessage: string | undefined,
+    logger: ProgressLogger,
 ): Promise<MapData> => {
     const projectRoot = process.cwd();
 
@@ -206,7 +218,7 @@ export const nodeSaveMapData: SaveMapDataHookFn = async (
         errorMessage = moveErrors.join('\n');
     }
 
-    return new MapData(
+    const mapData = new MapData(
         isKml ? undefined : sourceFile,
         isKml ? sourceFile : undefined,
         geoJsonFile,
@@ -215,4 +227,12 @@ export const nodeSaveMapData: SaveMapDataHookFn = async (
         sourceFileUrl,
         errorMessage,
     );
+
+    if (errorMessage) {
+        logger.logError(`Map data ${mapDataId} ${errorMessage}`);
+    } else {
+        logger.logProgress(`Map data ${mapDataId} processed successfully`);
+    }
+
+    return mapData;
 };

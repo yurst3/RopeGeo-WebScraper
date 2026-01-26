@@ -19,7 +19,6 @@ export async function convertToGeoJson(
     isKml: boolean,
 ): Promise<{ filePath: string | undefined; error: string | undefined }> {
     try {
-        console.log('Converting to GeoJSON...');
         const geoJsonFileName = `${mapDataId}.geojson`;
         const geoJsonFilePath = join(tempDir, geoJsonFileName);
         
@@ -35,7 +34,6 @@ export async function convertToGeoJson(
         };
     } catch (error) {
         const errorMessage = error instanceof Error ? error.message : String(error);
-        console.error(`Error converting to GeoJSON: ${errorMessage}`);
         return { 
             filePath: undefined,
             error: `Failed to convert to GeoJSON: ${errorMessage}`

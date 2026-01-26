@@ -1,9 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach, jest } from '@jest/globals';
-import deleteProcessPageSQSMessage from '../../../src/ropewiki/sqs/deleteProcessPageSQSMessage';
+import deleteMapDataSQSMessage from '../../../src/map-data/sqs/deleteMapDataSQSMessage';
 
 // Mock the helper function
-const mockDeleteSQSMessage = jest.fn<() => Promise<void>>();
-
 jest.mock('../../../src/helpers/sqs/deleteSQSMessage', () => {
     return {
         __esModule: true,
@@ -13,7 +11,7 @@ jest.mock('../../../src/helpers/sqs/deleteSQSMessage', () => {
 
 const deleteSQSMessage = require('../../../src/helpers/sqs/deleteSQSMessage').default as jest.MockedFunction<typeof import('../../../src/helpers/sqs/deleteSQSMessage').default>;
 
-describe('deleteProcessPageSQSMessage', () => {
+describe('deleteMapDataSQSMessage', () => {
     const originalEnv = process.env;
 
     beforeEach(() => {
@@ -27,10 +25,10 @@ describe('deleteProcessPageSQSMessage', () => {
     });
 
     it('successfully deletes a message from the queue', async () => {
-        process.env.ROPEWIKI_PAGE_PROCESSING_QUEUE_URL = 'https://sqs.us-east-1.amazonaws.com/123456789/test-queue';
+        process.env.MAP_DATA_PROCESSING_QUEUE_URL = 'https://sqs.us-east-1.amazonaws.com/123456789/test-queue';
         const receiptHandle = 'test-receipt-handle';
 
-        await deleteProcessPageSQSMessage(receiptHandle);
+        await deleteMapDataSQSMessage(receiptHandle);
 
         expect(deleteSQSMessage).toHaveBeenCalledTimes(1);
         expect(deleteSQSMessage).toHaveBeenCalledWith(
@@ -39,24 +37,24 @@ describe('deleteProcessPageSQSMessage', () => {
         );
     });
 
-    it('throws error when ROPEWIKI_PAGE_PROCESSING_QUEUE_URL is not set', async () => {
-        delete process.env.ROPEWIKI_PAGE_PROCESSING_QUEUE_URL;
+    it('throws error when MAP_DATA_PROCESSING_QUEUE_URL is not set', async () => {
+        delete process.env.MAP_DATA_PROCESSING_QUEUE_URL;
         const receiptHandle = 'test-receipt-handle';
 
-        await expect(deleteProcessPageSQSMessage(receiptHandle)).rejects.toThrow(
-            'ROPEWIKI_PAGE_PROCESSING_QUEUE_URL environment variable is not set',
+        await expect(deleteMapDataSQSMessage(receiptHandle)).rejects.toThrow(
+            'MAP_DATA_PROCESSING_QUEUE_URL environment variable is not set',
         );
 
         expect(deleteSQSMessage).not.toHaveBeenCalled();
     });
 
     it('propagates errors from helper function', async () => {
-        process.env.ROPEWIKI_PAGE_PROCESSING_QUEUE_URL = 'https://sqs.us-east-1.amazonaws.com/123456789/test-queue';
+        process.env.MAP_DATA_PROCESSING_QUEUE_URL = 'https://sqs.us-east-1.amazonaws.com/123456789/test-queue';
         const receiptHandle = 'test-receipt-handle';
         const sqsError = new Error('SQS deletion failed');
         deleteSQSMessage.mockRejectedValue(sqsError);
 
-        await expect(deleteProcessPageSQSMessage(receiptHandle)).rejects.toThrow('SQS deletion failed');
+        await expect(deleteMapDataSQSMessage(receiptHandle)).rejects.toThrow('SQS deletion failed');
 
         expect(deleteSQSMessage).toHaveBeenCalledTimes(1);
     });

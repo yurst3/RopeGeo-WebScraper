@@ -10,6 +10,31 @@ jest.mock('../../../src/map-data/main', () => ({
     main: jest.fn(),
 }));
 
+// Mock database connection
+const mockClient = {
+    release: jest.fn(),
+} as any;
+
+const mockPool = {
+    connect: jest.fn(() => Promise.resolve(mockClient)),
+    end: jest.fn(() => Promise.resolve()),
+} as any;
+
+jest.mock('../../../src/helpers/getDatabaseConnection', () => ({
+    __esModule: true,
+    default: jest.fn(() => Promise.resolve(mockPool)),
+}));
+
+// Mock ProgressLogger
+jest.mock('../../../src/helpers/progressLogger', () => {
+    return jest.fn().mockImplementation(() => ({
+        setChunk: jest.fn(),
+        logProgress: jest.fn(),
+        logError: jest.fn(),
+        getResults: jest.fn(),
+    }));
+});
+
 // Mock MapDataEvent
 let mockFromSQSEventRecord: jest.MockedFunction<typeof MapDataEvent.fromSQSEventRecord>;
 jest.mock('../../../src/map-data/types/lambdaEvent', () => {
@@ -81,8 +106,10 @@ describe('mainHandler', () => {
 
         expect(mockFromSQSEventRecord).toHaveBeenCalledWith(sqsEvent.Records[0]);
         expect(mockMain).toHaveBeenCalledWith(
-            expect.any(Function), // lambdaSaveMapData
             mapDataEvent,
+            expect.any(Function), // lambdaSaveMapData
+            expect.any(Object), // logger
+            expect.any(Object), // client
         );
         expect(result).toEqual({
             statusCode: 200,
@@ -185,8 +212,10 @@ describe('mainHandler', () => {
 
         expect(mockFromSQSEventRecord).toHaveBeenCalledWith(sqsEvent.Records[0]);
         expect(mockMain).toHaveBeenCalledWith(
-            expect.any(Function), // lambdaSaveMapData
             mapDataEvent,
+            expect.any(Function), // lambdaSaveMapData
+            expect.any(Object), // logger
+            expect.any(Object), // client
         );
         expect(result.statusCode).toBe(500);
         const body = JSON.parse(result.body);
@@ -270,12 +299,14 @@ describe('mainHandler', () => {
         await mainHandler(sqsEvent, mockContext);
 
         expect(mockMain).toHaveBeenCalledWith(
-            expect.any(Function), // lambdaSaveMapData
             mapDataEvent,
+            expect.any(Function), // lambdaSaveMapData
+            expect.any(Object), // logger
+            expect.any(Object), // client
         );
         
-        // Verify the first argument is a function (lambdaSaveMapData)
-        const hookFn = mockMain.mock.calls[0]![0];
+        // Verify the second argument is a function (lambdaSaveMapData)
+        const hookFn = mockMain.mock.calls[0]![1];
         expect(typeof hookFn).toBe('function');
     });
 });

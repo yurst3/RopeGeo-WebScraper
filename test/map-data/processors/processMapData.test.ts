@@ -80,7 +80,6 @@ describe('processMapData', () => {
                 return {
                     filePath,
                     content: mockSourceFileContent,
-                    error: undefined,
                 };
             }
         );
@@ -281,7 +280,6 @@ describe('processMapData', () => {
             mockDownloadSourceFile.mockResolvedValueOnce({
                 filePath: expectedSourceFilePath,
                 content: mockSourceFileContent,
-                error: undefined,
             });
 
             await processMapData(sourceFileUrl, mockSaveMapDataHookFn);
@@ -367,30 +365,18 @@ describe('processMapData', () => {
             expect(mockSaveMapDataHookFn).not.toHaveBeenCalled();
         });
 
-        it('returns MapData with error when download fails', async () => {
+        it('throws error when download fails', async () => {
             const sourceFileUrl = 'https://example.com/test.kml';
-            const downloadError = 'Failed to download source file: Network error';
-            mockDownloadSourceFile.mockResolvedValueOnce({
-                filePath: undefined,
-                content: undefined,
-                error: downloadError,
-            });
+            const downloadError = new Error('Failed to download source file: Network error');
+            mockDownloadSourceFile.mockRejectedValueOnce(downloadError);
 
-            const result = await processMapData(sourceFileUrl, mockSaveMapDataHookFn);
+            await expect(
+                processMapData(sourceFileUrl, mockSaveMapDataHookFn),
+            ).rejects.toThrow('Failed to download source file: Network error');
 
-            expect(result).toBeInstanceOf(MapData);
-            expect(result.errorMessage).toBe(downloadError);
             expect(mockConvertToGeoJson).not.toHaveBeenCalled();
             expect(mockConvertToVectorTiles).not.toHaveBeenCalled();
-            expect(mockSaveMapDataHookFn).toHaveBeenCalledWith(
-                undefined,
-                undefined,
-                undefined,
-                mockMapDataId,
-                true,
-                sourceFileUrl,
-                downloadError,
-            );
+            expect(mockSaveMapDataHookFn).not.toHaveBeenCalled();
         });
 
         it('returns MapData with error when GeoJSON conversion fails', async () => {
@@ -440,17 +426,13 @@ describe('processMapData', () => {
             );
         });
 
-        it('only records the first error encountered', async () => {
+        it('throws error when download fails, preventing subsequent steps', async () => {
             const sourceFileUrl = 'https://example.com/test.kml';
-            const downloadError = 'Failed to download source file: Network error';
+            const downloadError = new Error('Failed to download source file: Network error');
             const conversionError = 'Failed to convert to GeoJSON: Invalid XML';
             const vectorTileError = 'Failed to convert to vector tiles: Tippecanoe failed';
 
-            mockDownloadSourceFile.mockResolvedValueOnce({
-                filePath: undefined,
-                content: undefined,
-                error: downloadError,
-            });
+            mockDownloadSourceFile.mockRejectedValueOnce(downloadError);
             mockConvertToGeoJson.mockResolvedValueOnce({
                 filePath: undefined,
                 error: conversionError,
@@ -460,25 +442,23 @@ describe('processMapData', () => {
                 error: vectorTileError,
             });
 
-            const result = await processMapData(sourceFileUrl, mockSaveMapDataHookFn);
+            await expect(
+                processMapData(sourceFileUrl, mockSaveMapDataHookFn),
+            ).rejects.toThrow('Failed to download source file: Network error');
 
-            // Only the first error (download) should be recorded
-            expect(result.errorMessage).toBe(downloadError);
             // Subsequent steps should be skipped
             expect(mockConvertToGeoJson).not.toHaveBeenCalled();
             expect(mockConvertToVectorTiles).not.toHaveBeenCalled();
         });
 
-        it('skips GeoJSON conversion if download failed', async () => {
+        it('throws error when download fails, skipping GeoJSON conversion', async () => {
             const sourceFileUrl = 'https://example.com/test.kml';
-            const downloadError = 'Failed to download source file: Network error';
-            mockDownloadSourceFile.mockResolvedValueOnce({
-                filePath: undefined,
-                content: undefined,
-                error: downloadError,
-            });
+            const downloadError = new Error('Failed to download source file: Network error');
+            mockDownloadSourceFile.mockRejectedValueOnce(downloadError);
 
-            await processMapData(sourceFileUrl, mockSaveMapDataHookFn);
+            await expect(
+                processMapData(sourceFileUrl, mockSaveMapDataHookFn),
+            ).rejects.toThrow('Failed to download source file: Network error');
 
             expect(mockConvertToGeoJson).not.toHaveBeenCalled();
             expect(mockConvertToVectorTiles).not.toHaveBeenCalled();
@@ -497,19 +477,16 @@ describe('processMapData', () => {
             expect(mockConvertToVectorTiles).not.toHaveBeenCalled();
         });
 
-        it('skips vector tile conversion if GeoJSON conversion succeeded but errorMessage exists', async () => {
+        it('throws error when download fails, skipping all subsequent conversions', async () => {
             const sourceFileUrl = 'https://example.com/test.kml';
-            const downloadError = 'Failed to download source file: Network error';
-            // Even if download fails, we might still have content (edge case)
-            mockDownloadSourceFile.mockResolvedValueOnce({
-                filePath: undefined,
-                content: mockSourceFileContent, // Content exists but error is set
-                error: downloadError,
-            });
+            const downloadError = new Error('Failed to download source file: Network error');
+            mockDownloadSourceFile.mockRejectedValueOnce(downloadError);
 
-            await processMapData(sourceFileUrl, mockSaveMapDataHookFn);
+            await expect(
+                processMapData(sourceFileUrl, mockSaveMapDataHookFn),
+            ).rejects.toThrow('Failed to download source file: Network error');
 
-            // GeoJSON conversion should be skipped because errorMessage exists
+            // All subsequent conversions should be skipped
             expect(mockConvertToGeoJson).not.toHaveBeenCalled();
             expect(mockConvertToVectorTiles).not.toHaveBeenCalled();
         });

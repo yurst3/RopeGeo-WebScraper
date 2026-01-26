@@ -19,8 +19,6 @@ export async function convertToVectorTiles(
     mapDataId: string,
 ): Promise<{ filePath: string | undefined; error: string | undefined }> {
     try {
-        console.log('Converting GeoJSON to vector tiles...');
-        
         // Read and check GeoJSON for features before calling tippecanoe
         const geoJsonContent = await readFile(geoJsonFilePath, 'utf-8');
         const geoJson = JSON.parse(geoJsonContent);
@@ -52,7 +50,6 @@ export async function convertToVectorTiles(
         };
     } catch (error) {
         const errorMessage = error instanceof Error ? error.message : String(error);
-        console.error(`Error converting to vector tiles: ${errorMessage}`);
         return {
             filePath: undefined,
             error: `Failed to convert to vector tiles: ${errorMessage}`,

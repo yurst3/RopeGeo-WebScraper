@@ -35,7 +35,6 @@ describe('downloadSourceFile', () => {
         expect(result).toEqual({
             filePath: join(mockTempDir, `${mockMapDataId}.kml`),
             content: mockSourceFileContent,
-            error: undefined,
         });
         expect(mockFetch).toHaveBeenCalledTimes(1);
         expect(mockFetch).toHaveBeenCalledWith(mockSourceFileUrl);
@@ -60,7 +59,6 @@ describe('downloadSourceFile', () => {
         expect(result).toEqual({
             filePath: join(mockTempDir, `${mockMapDataId}.gpx`),
             content: mockSourceFileContent,
-            error: undefined,
         });
         expect(mockFetch).toHaveBeenCalledTimes(1);
         expect(writeFile).toHaveBeenCalledWith(
@@ -70,40 +68,32 @@ describe('downloadSourceFile', () => {
         );
     });
 
-    it('returns error when fetch response is not ok', async () => {
+    it('throws error when fetch response is not ok', async () => {
         mockFetch.mockResolvedValue({
             ok: false,
             status: 404,
             statusText: 'Not Found',
         } as unknown as Response);
 
-        const result = await downloadSourceFile(mockSourceFileUrl, mockTempDir, mockMapDataId, true);
-
-        expect(result).toEqual({
-            filePath: undefined,
-            content: undefined,
-            error: 'Failed to download source file: Failed to download source file: 404 Not Found',
-        });
+        await expect(downloadSourceFile(mockSourceFileUrl, mockTempDir, mockMapDataId, true)).rejects.toThrow(
+            'Failed to download source file: 404 Not Found'
+        );
         expect(mockFetch).toHaveBeenCalledTimes(1);
         expect(writeFile).not.toHaveBeenCalled();
     });
 
-    it('returns error when fetch throws an error', async () => {
+    it('throws error when fetch throws an error', async () => {
         const fetchError = new Error('Network error');
         mockFetch.mockRejectedValue(fetchError);
 
-        const result = await downloadSourceFile(mockSourceFileUrl, mockTempDir, mockMapDataId, true);
-
-        expect(result).toEqual({
-            filePath: undefined,
-            content: undefined,
-            error: 'Failed to download source file: Network error',
-        });
+        await expect(downloadSourceFile(mockSourceFileUrl, mockTempDir, mockMapDataId, true)).rejects.toThrow(
+            'Network error'
+        );
         expect(mockFetch).toHaveBeenCalledTimes(1);
         expect(writeFile).not.toHaveBeenCalled();
     });
 
-    it('returns error when writeFile throws an error', async () => {
+    it('throws error when writeFile throws an error', async () => {
         const mockText = jest.fn<() => Promise<string>>().mockResolvedValue(mockSourceFileContent);
         mockFetch.mockResolvedValue({
             ok: true,
@@ -112,18 +102,14 @@ describe('downloadSourceFile', () => {
         const writeError = new Error('File system error');
         (writeFile as jest.MockedFunction<typeof writeFile>).mockRejectedValue(writeError);
 
-        const result = await downloadSourceFile(mockSourceFileUrl, mockTempDir, mockMapDataId, true);
-
-        expect(result).toEqual({
-            filePath: undefined,
-            content: undefined,
-            error: 'Failed to download source file: File system error',
-        });
+        await expect(downloadSourceFile(mockSourceFileUrl, mockTempDir, mockMapDataId, true)).rejects.toThrow(
+            'File system error'
+        );
         expect(mockFetch).toHaveBeenCalledTimes(1);
         expect(writeFile).toHaveBeenCalledTimes(1);
     });
 
-    it('returns error when text() throws an error', async () => {
+    it('throws error when text() throws an error', async () => {
         const textError = new Error('Text parsing error');
         const mockText = jest.fn<() => Promise<string>>().mockRejectedValue(textError);
         mockFetch.mockResolvedValue({
@@ -131,26 +117,16 @@ describe('downloadSourceFile', () => {
             text: mockText,
         } as unknown as Response);
 
-        const result = await downloadSourceFile(mockSourceFileUrl, mockTempDir, mockMapDataId, true);
-
-        expect(result).toEqual({
-            filePath: undefined,
-            content: undefined,
-            error: 'Failed to download source file: Text parsing error',
-        });
+        await expect(downloadSourceFile(mockSourceFileUrl, mockTempDir, mockMapDataId, true)).rejects.toThrow(
+            'Text parsing error'
+        );
         expect(mockFetch).toHaveBeenCalledTimes(1);
         expect(writeFile).not.toHaveBeenCalled();
     });
 
-    it('handles non-Error thrown values', async () => {
+    it('throws error for non-Error thrown values', async () => {
         mockFetch.mockRejectedValue('String error');
 
-        const result = await downloadSourceFile(mockSourceFileUrl, mockTempDir, mockMapDataId, true);
-
-        expect(result).toEqual({
-            filePath: undefined,
-            content: undefined,
-            error: 'Failed to download source file: String error',
-        });
+        await expect(downloadSourceFile(mockSourceFileUrl, mockTempDir, mockMapDataId, true)).rejects.toBe('String error');
     });
 });

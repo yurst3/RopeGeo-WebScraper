@@ -3,6 +3,7 @@ import { main as processPageRouteAndMapData } from '../../map-data/main';
 import { nodeSaveMapData } from '../../map-data/hook-functions/saveMapData';
 import { RopewikiRoute } from '../../types/pageRoute';
 import ProgressLogger from '../../helpers/progressLogger';
+import getDatabaseConnection from '../../helpers/getDatabaseConnection';
 
 export type ProcessRopewikiRoutesHookFn = (ropewikiRoutes: RopewikiRoute[]) => Promise<void>;
 
@@ -19,26 +20,34 @@ export const nodeProcessRopewikiRoutes: ProcessRopewikiRoutesHookFn = async (
         return;
     }
 
-    const logger = new ProgressLogger('Processing map data for routes', ropewikiRoutes.length);
-    logger.setChunk(0, ropewikiRoutes.length);
+    const pool = await getDatabaseConnection();
+    const client = await pool.connect();
 
-    for (const ropewikiRoute of ropewikiRoutes) {
-        try {
-            if (!ropewikiRoute.route) {
-                throw new Error('RopewikiRoute must have a route id to process');
+    try {
+        const logger = new ProgressLogger('Processing map data for routes', ropewikiRoutes.length);
+        logger.setChunk(0, ropewikiRoutes.length);
+
+        for (const ropewikiRoute of ropewikiRoutes) {
+            try {
+                if (!ropewikiRoute.route) {
+                    throw new Error('RopewikiRoute must have a route id to process');
+                }
+                if (!ropewikiRoute.page) {
+                    throw new Error('RopewikiRoute must have a page id to process');
+                }
+                
+                const mapDataEvent = ropewikiRoute.toMapDataEvent();
+                await processPageRouteAndMapData(mapDataEvent, nodeSaveMapData, logger, client);
+                // Note: The hook function (nodeSaveMapData) will log progress/errors for map data processing
+            } catch (error) {
+                const errorMessage = error instanceof Error ? error.message : String(error);
+                logger.logError(`Error processing route ${ropewikiRoute.route || 'unknown'} / page ${ropewikiRoute.page || 'unknown'}: ${errorMessage}`);
+                // Skip this route and continue to the next one
             }
-            if (!ropewikiRoute.page) {
-                throw new Error('RopewikiRoute must have a page id to process');
-            }
-            
-            const mapDataEvent = ropewikiRoute.toMapDataEvent();
-            await processPageRouteAndMapData(nodeSaveMapData, mapDataEvent);
-            logger.logProgress(`Processed route ${ropewikiRoute.route} / page ${ropewikiRoute.page}`);
-        } catch (error) {
-            console.error(`Error processing route ${ropewikiRoute.route || 'unknown'} / page ${ropewikiRoute.page || 'unknown'}:`, error);
-            // Skip this route and continue to the next one
-            logger.logProgress(`Skipped route ${ropewikiRoute.route || 'unknown'} / page ${ropewikiRoute.page || 'unknown'} due to error`);
         }
+    } finally {
+        client.release();
+        await pool.end();
     }
 };
 

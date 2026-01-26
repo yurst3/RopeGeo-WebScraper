@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach, jest } from '@jest/globals';
-import setProcessPageSQSMessageRetryTime from '../../../src/ropewiki/sqs/setProcessPageSQSMessageRetryTime';
+import setMapDataSQSMessageRetryTime from '../../../src/map-data/sqs/setMapDataSQSMessageRetryTime';
 
 // Mock the helper function
 jest.mock('../../../src/helpers/sqs/changeSQSMessageVisibilityTimeout', () => {
@@ -11,7 +11,7 @@ jest.mock('../../../src/helpers/sqs/changeSQSMessageVisibilityTimeout', () => {
 
 const changeSQSMessageVisibilityTimeout = require('../../../src/helpers/sqs/changeSQSMessageVisibilityTimeout').default as jest.MockedFunction<typeof import('../../../src/helpers/sqs/changeSQSMessageVisibilityTimeout').default>;
 
-describe('setProcessPageSQSMessageRetryTime', () => {
+describe('setMapDataSQSMessageRetryTime', () => {
     const originalEnv = process.env;
 
     beforeEach(() => {
@@ -25,11 +25,11 @@ describe('setProcessPageSQSMessageRetryTime', () => {
     });
 
     it('successfully sets visibility timeout for a message', async () => {
-        process.env.ROPEWIKI_PAGE_PROCESSING_QUEUE_URL = 'https://sqs.us-east-1.amazonaws.com/123456789/test-queue';
+        process.env.MAP_DATA_PROCESSING_QUEUE_URL = 'https://sqs.us-east-1.amazonaws.com/123456789/test-queue';
         const receiptHandle = 'test-receipt-handle';
         const retryInSeconds = 300;
 
-        await setProcessPageSQSMessageRetryTime(receiptHandle, retryInSeconds);
+        await setMapDataSQSMessageRetryTime(receiptHandle, retryInSeconds);
 
         expect(changeSQSMessageVisibilityTimeout).toHaveBeenCalledTimes(1);
         expect(changeSQSMessageVisibilityTimeout).toHaveBeenCalledWith(
@@ -40,10 +40,10 @@ describe('setProcessPageSQSMessageRetryTime', () => {
     });
 
     it('accepts minimum retry time of 0 seconds', async () => {
-        process.env.ROPEWIKI_PAGE_PROCESSING_QUEUE_URL = 'https://sqs.us-east-1.amazonaws.com/123456789/test-queue';
+        process.env.MAP_DATA_PROCESSING_QUEUE_URL = 'https://sqs.us-east-1.amazonaws.com/123456789/test-queue';
         const receiptHandle = 'test-receipt-handle';
 
-        await setProcessPageSQSMessageRetryTime(receiptHandle, 0);
+        await setMapDataSQSMessageRetryTime(receiptHandle, 0);
 
         expect(changeSQSMessageVisibilityTimeout).toHaveBeenCalledWith(
             'https://sqs.us-east-1.amazonaws.com/123456789/test-queue',
@@ -53,10 +53,10 @@ describe('setProcessPageSQSMessageRetryTime', () => {
     });
 
     it('accepts maximum retry time of 43200 seconds', async () => {
-        process.env.ROPEWIKI_PAGE_PROCESSING_QUEUE_URL = 'https://sqs.us-east-1.amazonaws.com/123456789/test-queue';
+        process.env.MAP_DATA_PROCESSING_QUEUE_URL = 'https://sqs.us-east-1.amazonaws.com/123456789/test-queue';
         const receiptHandle = 'test-receipt-handle';
 
-        await setProcessPageSQSMessageRetryTime(receiptHandle, 43200);
+        await setMapDataSQSMessageRetryTime(receiptHandle, 43200);
 
         expect(changeSQSMessageVisibilityTimeout).toHaveBeenCalledWith(
             'https://sqs.us-east-1.amazonaws.com/123456789/test-queue',
@@ -66,38 +66,38 @@ describe('setProcessPageSQSMessageRetryTime', () => {
     });
 
     it('propagates validation errors from helper function', async () => {
-        process.env.ROPEWIKI_PAGE_PROCESSING_QUEUE_URL = 'https://sqs.us-east-1.amazonaws.com/123456789/test-queue';
+        process.env.MAP_DATA_PROCESSING_QUEUE_URL = 'https://sqs.us-east-1.amazonaws.com/123456789/test-queue';
         const receiptHandle = 'test-receipt-handle';
         const validationError = new Error('retryInSeconds must be between 0 and 43200, got -1');
         changeSQSMessageVisibilityTimeout.mockRejectedValue(validationError);
 
-        await expect(setProcessPageSQSMessageRetryTime(receiptHandle, -1)).rejects.toThrow(
+        await expect(setMapDataSQSMessageRetryTime(receiptHandle, -1)).rejects.toThrow(
             'retryInSeconds must be between 0 and 43200, got -1',
         );
 
         expect(changeSQSMessageVisibilityTimeout).toHaveBeenCalledTimes(1);
     });
 
-    it('throws error when ROPEWIKI_PAGE_PROCESSING_QUEUE_URL is not set', async () => {
-        delete process.env.ROPEWIKI_PAGE_PROCESSING_QUEUE_URL;
+    it('throws error when MAP_DATA_PROCESSING_QUEUE_URL is not set', async () => {
+        delete process.env.MAP_DATA_PROCESSING_QUEUE_URL;
         const receiptHandle = 'test-receipt-handle';
         const retryInSeconds = 300;
 
-        await expect(setProcessPageSQSMessageRetryTime(receiptHandle, retryInSeconds)).rejects.toThrow(
-            'ROPEWIKI_PAGE_PROCESSING_QUEUE_URL environment variable is not set',
+        await expect(setMapDataSQSMessageRetryTime(receiptHandle, retryInSeconds)).rejects.toThrow(
+            'MAP_DATA_PROCESSING_QUEUE_URL environment variable is not set',
         );
 
         expect(changeSQSMessageVisibilityTimeout).not.toHaveBeenCalled();
     });
 
     it('propagates errors from helper function', async () => {
-        process.env.ROPEWIKI_PAGE_PROCESSING_QUEUE_URL = 'https://sqs.us-east-1.amazonaws.com/123456789/test-queue';
+        process.env.MAP_DATA_PROCESSING_QUEUE_URL = 'https://sqs.us-east-1.amazonaws.com/123456789/test-queue';
         const receiptHandle = 'test-receipt-handle';
         const retryInSeconds = 300;
         const sqsError = new Error('SQS visibility timeout change failed');
         changeSQSMessageVisibilityTimeout.mockRejectedValue(sqsError);
 
-        await expect(setProcessPageSQSMessageRetryTime(receiptHandle, retryInSeconds)).rejects.toThrow(
+        await expect(setMapDataSQSMessageRetryTime(receiptHandle, retryInSeconds)).rejects.toThrow(
             'SQS visibility timeout change failed',
         );
 
