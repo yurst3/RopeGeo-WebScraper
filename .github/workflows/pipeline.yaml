@@ -168,6 +168,7 @@ jobs:
       - name: Upload artifacts to testing artifact buckets
         run: |
           sam package \
+            --config-env ci \
             --s3-bucket ${TESTING_ARTIFACTS_BUCKET} \
             --region ${TESTING_REGION} \
             --output-template-file packaged-testing.yaml
@@ -191,6 +192,7 @@ jobs:
       - name: Upload artifacts to production artifact buckets
         run: |
           sam package \
+            --config-env ci \
             --s3-bucket ${PROD_ARTIFACTS_BUCKET} \
             --region ${PROD_REGION} \
             --output-template-file packaged-prod.yaml
