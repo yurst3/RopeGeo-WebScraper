@@ -328,12 +328,11 @@ Resources:
       ContentUri: layers/chromium
       CompatibleRuntimes:
         - &nodejsRuntime nodejs22.x
-      # Chromium doesn't currently have ARM support; see https://github.com/Sparticuz/chromium#can-i-use-arm-or-graviton-instances
       CompatibleArchitectures:
-        - &chromiumArch x86_64
+        - &chromiumArch arm64
       RetentionPolicy: Delete
     Metadata:
-      BuildMethod: *nodejsRuntime
+      BuildMethod: makefile
       BuildArchitecture: *chromiumArch
 
   # SQS Queue for Ropewiki page processing
@@ -372,7 +371,7 @@ Resources:
       Description: A Lambda function that scrapes Ropewiki pages and stores them in the database
       Runtime: nodejs22.x
       Architectures:
-        - *chromiumArch
+        - arm64
       Handler: src/ropewiki/lambda-handlers/mainHandler.mainHandler
       # This property associates this Lambda function with a scheduled CloudWatch Event. For all available properties, see
       # https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#schedule
@@ -461,11 +460,14 @@ Resources:
         - "@sparticuz/chromium"
 
   # Lambda function that processes map data (KML to MBTiles conversion)
+  # Uses arm64 (no Chromium dependency). RopewikiScraper/RopewikiPageProcessor use x86_64 for Chromium layer.
   MapDataProcessor:
     Type: AWS::Serverless::Function
     Properties:
       Description: A Lambda function that processes map data by converting KML files to MBTiles
       Runtime: nodejs22.x
+      Architectures:
+        - arm64
       Handler: src/map-data/lambda-handlers/mainHandler.mainHandler
       Events:
         SQSEvent:
