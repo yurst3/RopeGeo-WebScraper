@@ -24,6 +24,9 @@ resolve_s3 = true
 [ci.package.parameters]
 resolve_s3 = false
 
+[ci.deploy.parameters]
+resolve_s3 = false
+
 [default.sync.parameters]
 watch = true
 
