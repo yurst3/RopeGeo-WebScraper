@@ -20,7 +20,7 @@ build-MapDataProcessor:
 		fi \
 	fi
 	
-	# Build TypeScript code with esbuild
+	# Build TypeScript code with esbuild (externalize pg, zapatos, and geo/xml deps; copy them into artifacts)
 	@echo "Building TypeScript code with esbuild..."
 	@mkdir -p $(ARTIFACTS_DIR)/src/map-data/lambda-handlers
 	@npx esbuild src/map-data/lambda-handlers/mainHandler.ts \
@@ -31,7 +31,21 @@ build-MapDataProcessor:
 		--outfile=$(ARTIFACTS_DIR)/src/map-data/lambda-handlers/mainHandler.js \
 		--minify \
 		--sourcemap \
+		--external:pg \
+		--external:zapatos/db \
+		--external:zapatos/schema \
+		--external:@tmcw/togeojson \
+		--external:@xmldom/xmldom \
 		--external:@sparticuz/chromium
+	# Copy node_modules for externalized packages into artifacts (Lambda resolves them at runtime)
+	@echo "Copying node_modules for external dependencies..."
+	@mkdir -p $(ARTIFACTS_DIR)/node_modules $(ARTIFACTS_DIR)/node_modules/@tmcw $(ARTIFACTS_DIR)/node_modules/@xmldom
+	@for pkg in pg pg-connection-string pg-pool pg-protocol pg-types pgpass pg-int8 postgres-array postgres-bytea postgres-date postgres-interval xtend json-custom-numbers; do \
+		[ -d node_modules/$$pkg ] && cp -r node_modules/$$pkg $(ARTIFACTS_DIR)/node_modules/; \
+	done
+	@cp -r node_modules/zapatos $(ARTIFACTS_DIR)/node_modules/
+	@cp -r node_modules/@tmcw/togeojson $(ARTIFACTS_DIR)/node_modules/@tmcw/
+	@cp -r node_modules/@xmldom/xmldom $(ARTIFACTS_DIR)/node_modules/@xmldom/
 	
 	# Copy tippecanoe binary to artifacts directory
 	@echo "Copying tippecanoe binary..."
