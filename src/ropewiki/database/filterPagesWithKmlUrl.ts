@@ -19,13 +19,13 @@ const filterPagesWithKmlUrl = async (
         .select(
             'RopewikiPage',
             {
-                id: db.conditions.isIn(pageIds),
+                pageId: db.conditions.isIn(pageIds),
                 kmlUrl: db.conditions.isNotNull,
             },
         )
         .run(conn);
 
-    return rows.map(row => row.id as string);
+    return rows.map(row => row.pageId as string);
 };
 
 export default filterPagesWithKmlUrl;

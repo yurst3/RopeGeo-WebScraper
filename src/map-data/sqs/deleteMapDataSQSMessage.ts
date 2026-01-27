@@ -8,6 +8,13 @@ import deleteSQSMessage from '../../helpers/sqs/deleteSQSMessage';
  * @throws Error if MAP_DATA_PROCESSING_QUEUE_URL is not set
  */
 const deleteMapDataSQSMessage = async (receiptHandle: string): Promise<void> => {
+    const devEnvironment = process.env.DEV_ENVIRONMENT;
+    
+    if (devEnvironment === 'local') {
+        console.log('Skipping SQS message deletion - no queue configured locally');
+        return;
+    }
+
     const queueUrl = process.env.MAP_DATA_PROCESSING_QUEUE_URL;
     if (!queueUrl) {
         throw new Error('MAP_DATA_PROCESSING_QUEUE_URL environment variable is not set');

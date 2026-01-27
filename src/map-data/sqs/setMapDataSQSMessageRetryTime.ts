@@ -14,6 +14,13 @@ const setMapDataSQSMessageRetryTime = async (
     receiptHandle: string,
     retryInSeconds: number,
 ): Promise<void> => {
+    const devEnvironment = process.env.DEV_ENVIRONMENT;
+    
+    if (devEnvironment === 'local') {
+        console.log('Skipping SQS message visibility timeout change - no queue configured locally');
+        return;
+    }
+
     const queueUrl = process.env.MAP_DATA_PROCESSING_QUEUE_URL;
     if (!queueUrl) {
         throw new Error('MAP_DATA_PROCESSING_QUEUE_URL environment variable is not set');

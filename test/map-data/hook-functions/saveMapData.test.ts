@@ -3,6 +3,7 @@ import { lambdaSaveMapData, nodeSaveMapData } from '../../../src/map-data/hook-f
 import MapData from '../../../src/map-data/types/mapData';
 import { readFile, mkdir, rename, copyFile, unlink } from 'fs/promises';
 import { PutObjectCommand } from '@aws-sdk/client-s3';
+import ProgressLogger from '../../../src/helpers/progressLogger';
 
 // Mock fs/promises
 jest.mock('fs/promises', () => ({
@@ -30,14 +31,26 @@ jest.mock('path', () => ({
     dirname: jest.fn((path: string) => path.split('/').slice(0, -1).join('/')),
 }));
 
+// Mock ProgressLogger
+jest.mock('../../../src/helpers/progressLogger', () => {
+    return jest.fn().mockImplementation(() => ({
+        setChunk: jest.fn(),
+        logProgress: jest.fn(),
+        logError: jest.fn(),
+        getResults: jest.fn(),
+    }));
+});
+
 describe('saveMapData hook functions', () => {
     const originalEnv = process.env;
     const originalCwd = process.cwd;
+    let mockLogger: any;
 
     beforeEach(() => {
         jest.clearAllMocks();
         process.env = { ...originalEnv };
         process.cwd = jest.fn(() => '/project/root');
+        mockLogger = new ProgressLogger('Test', 1);
     });
 
     afterEach(() => {
@@ -68,6 +81,7 @@ describe('saveMapData hook functions', () => {
                 true, // isKml
                 sourceFileUrl,
                 undefined, // errorMessage
+                mockLogger,
             );
 
             expect(result).toBeInstanceOf(MapData);
@@ -89,6 +103,7 @@ describe('saveMapData hook functions', () => {
                 false, // isKml
                 sourceFileUrl,
                 undefined, // errorMessage
+                mockLogger,
             );
 
             expect(result).toBeInstanceOf(MapData);
@@ -109,6 +124,7 @@ describe('saveMapData hook functions', () => {
                 true,
                 'https://example.com/file.kml',
                 undefined,
+                mockLogger,
             );
 
             expect(readFile).toHaveBeenCalledTimes(3);
@@ -126,6 +142,7 @@ describe('saveMapData hook functions', () => {
                 true, // isKml
                 'https://example.com/file.kml',
                 undefined,
+                mockLogger,
             );
 
             expect(PutObjectCommand).toHaveBeenCalledWith(
@@ -147,6 +164,7 @@ describe('saveMapData hook functions', () => {
                 false, // isKml
                 'https://example.com/file.gpx',
                 undefined,
+                mockLogger,
             );
 
             expect(PutObjectCommand).toHaveBeenCalledWith(
@@ -168,6 +186,7 @@ describe('saveMapData hook functions', () => {
                 true,
                 'https://example.com/file.kml',
                 undefined,
+                mockLogger,
             );
 
             expect(PutObjectCommand).toHaveBeenCalledWith(
@@ -189,6 +208,7 @@ describe('saveMapData hook functions', () => {
                 true,
                 'https://example.com/file.kml',
                 undefined,
+                mockLogger,
             );
 
             expect(PutObjectCommand).toHaveBeenCalledWith(
@@ -210,6 +230,7 @@ describe('saveMapData hook functions', () => {
                 true,
                 'https://example.com/file.kml',
                 undefined,
+                mockLogger,
             );
 
             expect(mockSend).toHaveBeenCalledTimes(3);
@@ -228,6 +249,7 @@ describe('saveMapData hook functions', () => {
                     true,
                     'https://example.com/file.kml',
                     undefined,
+                    mockLogger,
                 ),
             ).rejects.toThrow('MAP_DATA_BUCKET_NAME environment variable is not set');
         });
@@ -244,6 +266,7 @@ describe('saveMapData hook functions', () => {
                     true,
                     'https://example.com/file.kml',
                     undefined,
+                    mockLogger,
                 ),
             ).rejects.toThrow('MAP_DATA_BUCKET_NAME environment variable is not set');
         });
@@ -270,6 +293,7 @@ describe('saveMapData hook functions', () => {
                 true,
                 sourceFileUrl,
                 undefined,
+                mockLogger,
             );
 
             expect(result).toBeInstanceOf(MapData);
@@ -296,6 +320,7 @@ describe('saveMapData hook functions', () => {
                 true,
                 sourceFileUrl,
                 undefined,
+                mockLogger,
             );
 
             expect(result.errorMessage).toBe('Failed to upload source file: S3 upload failed');
@@ -318,6 +343,7 @@ describe('saveMapData hook functions', () => {
                 true,
                 sourceFileUrl,
                 existingError,
+                mockLogger,
             );
 
             expect(result.errorMessage).toBe('Failed to upload source file: S3 upload failed');
@@ -336,6 +362,7 @@ describe('saveMapData hook functions', () => {
                 true,
                 sourceFileUrl,
                 existingError,
+                mockLogger,
             );
 
             expect(result.errorMessage).toBe(existingError);
@@ -357,6 +384,7 @@ describe('saveMapData hook functions', () => {
                 true,
                 sourceFileUrl,
                 undefined,
+                mockLogger,
             );
 
             expect(result).toBeInstanceOf(MapData);
@@ -387,6 +415,7 @@ describe('saveMapData hook functions', () => {
                 true, // isKml
                 sourceFileUrl,
                 undefined, // errorMessage
+                mockLogger,
             );
 
             const expectedSourcePath = `${projectRoot}/.savedMapData/source/${mapDataId}.kml`;
@@ -412,6 +441,7 @@ describe('saveMapData hook functions', () => {
                 false, // isKml
                 sourceFileUrl,
                 undefined, // errorMessage
+                mockLogger,
             );
 
             const expectedSourcePath = `${projectRoot}/.savedMapData/source/${mapDataId}.gpx`;
@@ -430,6 +460,7 @@ describe('saveMapData hook functions', () => {
                 true,
                 'https://example.com/file.kml',
                 undefined,
+                mockLogger,
             );
 
             expect(mkdir).toHaveBeenCalledTimes(3);
@@ -456,6 +487,7 @@ describe('saveMapData hook functions', () => {
                 true,
                 'https://example.com/file.kml',
                 undefined,
+                mockLogger,
             );
 
             expect(rename).toHaveBeenCalledTimes(3);
@@ -491,6 +523,7 @@ describe('saveMapData hook functions', () => {
                 true,
                 'https://example.com/file.kml',
                 undefined,
+                mockLogger,
             );
 
             expect(copyFile).toHaveBeenCalledWith(
@@ -519,6 +552,7 @@ describe('saveMapData hook functions', () => {
                 true,
                 sourceFileUrl,
                 undefined,
+                mockLogger,
             );
 
             expect(result).toBeInstanceOf(MapData);
@@ -548,6 +582,7 @@ describe('saveMapData hook functions', () => {
                 true,
                 sourceFileUrl,
                 undefined,
+                mockLogger,
             );
 
             expect(result.errorMessage).toBe('Failed to move source file: Permission denied');
@@ -573,6 +608,7 @@ describe('saveMapData hook functions', () => {
                 true,
                 sourceFileUrl,
                 existingError,
+                mockLogger,
             );
 
             expect(result.errorMessage).toBe('Failed to move source file: Permission denied');
@@ -591,6 +627,7 @@ describe('saveMapData hook functions', () => {
                 true,
                 sourceFileUrl,
                 existingError,
+                mockLogger,
             );
 
             expect(result.errorMessage).toBe(existingError);
@@ -612,6 +649,7 @@ describe('saveMapData hook functions', () => {
                 true,
                 sourceFileUrl,
                 undefined,
+                mockLogger,
             );
 
             expect(result).toBeInstanceOf(MapData);
@@ -630,6 +668,7 @@ describe('saveMapData hook functions', () => {
                 true,
                 'https://example.com/file.kml',
                 undefined,
+                mockLogger,
             );
 
             expect(process.cwd).toHaveBeenCalled();

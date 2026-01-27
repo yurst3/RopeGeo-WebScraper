@@ -24,6 +24,9 @@ Parameters:
     NoEcho: true
     MinLength: 8
 
+Conditions:
+  IsProduction: !Equals [!Ref devEnvironment, production]
+
 # Resources declares the AWS resources that you want to include in the stack
 # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/resources-section-structure.html
 Resources:
@@ -50,6 +53,19 @@ Resources:
       Tags:
         - Key: Name
           Value: WebScraperPrivateSubnet1
+
+  # Private Subnet 2 (for RDS Proxy - requires 2 subnets in different AZs)
+  PrivateSubnet2:
+    Type: AWS::EC2::Subnet
+    Properties:
+      VpcId: !Ref WebScraperVPC
+      CidrBlock: 10.0.2.0/24
+      AvailabilityZone: !Select 
+        - 1
+        - !GetAZs ''
+      Tags:
+        - Key: Name
+          Value: WebScraperPrivateSubnet2
 
   # NAT Gateway (for Lambda to access internet)
   NatGatewayEIP:
@@ -133,6 +149,12 @@ Resources:
       SubnetId: !Ref PrivateSubnet1
       RouteTableId: !Ref PrivateRouteTable
 
+  PrivateSubnet2RouteTableAssociation:
+    Type: AWS::EC2::SubnetRouteTableAssociation
+    Properties:
+      SubnetId: !Ref PrivateSubnet2
+      RouteTableId: !Ref PrivateRouteTable
+
   # Security Group for Lambda
   LambdaSecurityGroup:
     Type: AWS::EC2::SecurityGroup
@@ -181,7 +203,7 @@ Resources:
       DBInstanceIdentifier: !Sub '${devEnvironment}-db'
       Engine: postgres
       EngineVersion: '18.1'
-      DBInstanceClass: db.t4g.small
+      DBInstanceClass: !If [IsProduction, db.t4g.small, db.t4g.micro]
       AllocatedStorage: 20
       MasterUsername: !Ref DatabaseUsername
       MasterUserPassword: !Ref DatabasePassword
@@ -193,9 +215,111 @@ Resources:
       StorageType: gp3
       BackupRetentionPeriod: 7
       StorageEncrypted: true
+      EnablePerformanceInsights: false
       Tags:
         - Key: Name
           Value: !Sub '${devEnvironment}-db'
+
+  # Security Group for RDS Proxy (production only)
+  RDSProxySecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Condition: IsProduction
+    Properties:
+      GroupDescription: Security group for RDS Proxy
+      VpcId: !Ref WebScraperVPC
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 5432
+          ToPort: 5432
+          SourceSecurityGroupId: !Ref LambdaSecurityGroup
+          Description: Allow PostgreSQL access from Lambda
+      SecurityGroupEgress:
+        - IpProtocol: tcp
+          FromPort: 5432
+          ToPort: 5432
+          DestinationSecurityGroupId: !Ref RDSSecurityGroup
+          Description: Allow PostgreSQL access to RDS
+      Tags:
+        - Key: Name
+          Value: !Sub '${devEnvironment}-rds-proxy-sg'
+
+  # Secrets Manager secret for RDS Proxy authentication (production only)
+  DatabaseSecret:
+    Type: AWS::SecretsManager::Secret
+    Condition: IsProduction
+    Properties:
+      Name: !Sub '${devEnvironment}-db-credentials'
+      Description: Database credentials for RDS Proxy
+      SecretString: !Sub |
+        {
+          "username": "${DatabaseUsername}",
+          "password": "${DatabasePassword}"
+        }
+
+  # IAM Role for RDS Proxy (production only)
+  RDSProxyRole:
+    Type: AWS::IAM::Role
+    Condition: IsProduction
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: rds.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/SecretsManagerReadWrite
+      Tags:
+        - Key: Name
+          Value: !Sub '${devEnvironment}-rds-proxy-role'
+
+  # RDS Proxy (production only)
+  RDSProxy:
+    Type: AWS::RDS::DBProxy
+    Condition: IsProduction
+    DependsOn:
+      - Database
+      - DatabaseSecret
+      - RDSProxyRole
+      - RDSProxySecurityGroup
+    Properties:
+      DBProxyName: !Sub '${devEnvironment}-db-proxy'
+      EngineFamily: POSTGRESQL
+      Auth:
+        - AuthScheme: SECRETS
+          SecretArn: !Ref DatabaseSecret
+          IAMAuth: DISABLED
+      RoleArn: !GetAtt RDSProxyRole.Arn
+      VpcSubnetIds:
+        - !Ref PrivateSubnet1
+        - !Ref PrivateSubnet2
+      VpcSecurityGroupIds:
+        - !Ref RDSProxySecurityGroup
+      RequireTLS: true
+      Tags:
+        - Key: Name
+          Value: !Sub '${devEnvironment}-db-proxy'
+
+  # RDS Proxy Target Group (production only)
+  RDSProxyTargetGroup:
+    Type: AWS::RDS::DBProxyTargetGroup
+    Condition: IsProduction
+    DependsOn:
+      - RDSProxy
+      - Database
+    Properties:
+      DBProxyName: !Ref RDSProxy
+      TargetGroupName: default
+      DBClusterIdentifiers: []
+      DBInstanceIdentifiers:
+        - !Ref Database
+      ConnectionPoolConfiguration:
+        MaxConnectionsPercent: 100
+        MaxIdleConnectionsPercent: 50
+        ConnectionBorrowTimeout: 120
+        SessionPinningFilters: []
+        InitQuery: ''
 
   ChromiumLayer:
     Type: AWS::Serverless::LayerVersion
@@ -219,6 +343,7 @@ Resources:
       QueueName: !Sub '${devEnvironment}-ropewiki-page-processing-queue'
       VisibilityTimeout: 960
       MessageRetentionPeriod: 345600
+      ReceiveMessageWaitTimeSeconds: 5
 
   # SQS Queue for map data processing
   MapDataProcessingQueue:
@@ -227,6 +352,7 @@ Resources:
       QueueName: !Sub '${devEnvironment}-map-data-processing-queue'
       VisibilityTimeout: 960
       MessageRetentionPeriod: 345600
+      ReceiveMessageWaitTimeSeconds: 5
 
   # S3 Bucket for storing map data files
   MapDataBucket:
@@ -267,7 +393,7 @@ Resources:
         Variables:
           DEV_ENVIRONMENT: !Ref devEnvironment
           AWS_REGION: !Ref AWS::Region
-          DB_HOST: !GetAtt Database.Endpoint.Address
+          DB_HOST: !If [IsProduction, !GetAtt RDSProxy.Endpoint, !GetAtt Database.Endpoint.Address]
           DB_PORT: !GetAtt Database.Endpoint.Port
           DB_NAME: !Sub '${devEnvironment}-db'
           DB_USER: !Ref DatabaseUsername
@@ -306,7 +432,7 @@ Resources:
           Type: SQS
           Properties:
             Queue: !GetAtt RopewikiPageProcessingQueue.Arn
-            BatchSize: 1
+            BatchSize: 10
       MemorySize: 1024
       Timeout: 900
       VpcConfig:
@@ -318,7 +444,7 @@ Resources:
         Variables:
           DEV_ENVIRONMENT: !Ref devEnvironment
           AWS_REGION: !Ref AWS::Region
-          DB_HOST: !GetAtt Database.Endpoint.Address
+          DB_HOST: !If [IsProduction, !GetAtt RDSProxy.Endpoint, !GetAtt Database.Endpoint.Address]
           DB_PORT: !GetAtt Database.Endpoint.Port
           DB_NAME: !Sub '${devEnvironment}-db'
           DB_USER: !Ref DatabaseUsername
@@ -346,7 +472,7 @@ Resources:
           Type: SQS
           Properties:
             Queue: !GetAtt MapDataProcessingQueue.Arn
-            BatchSize: 1
+            BatchSize: 10
       MemorySize: 1024
       Timeout: 900
       VpcConfig:
@@ -358,7 +484,7 @@ Resources:
         Variables:
           DEV_ENVIRONMENT: !Ref devEnvironment
           AWS_REGION: !Ref AWS::Region
-          DB_HOST: !GetAtt Database.Endpoint.Address
+          DB_HOST: !If [IsProduction, !GetAtt RDSProxy.Endpoint, !GetAtt Database.Endpoint.Address]
           DB_PORT: !GetAtt Database.Endpoint.Port
           DB_NAME: !Sub '${devEnvironment}-db'
           DB_USER: !Ref DatabaseUsername

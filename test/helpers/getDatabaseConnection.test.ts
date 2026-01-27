@@ -129,37 +129,28 @@ describe('getDatabaseConnection', () => {
         });
     });
 
-    it('creates a pool with IAM authentication when DEV_ENVIRONMENT is "production"', async () => {
-        const mockToken = 'mock-iam-token-production';
-        mockGetAuthToken.mockResolvedValue(mockToken);
-
-        process.env.DB_HOST = 'production-db.xxxxx.us-east-1.rds.amazonaws.com';
+    it('creates a pool with password authentication when DEV_ENVIRONMENT is "production" (RDS Proxy)', async () => {
+        process.env.DB_HOST = 'production-db-proxy.xxxxx.us-east-1.rds.amazonaws.com';
         process.env.DB_PORT = '5432';
         process.env.DB_NAME = 'production-db';
         process.env.DB_USER = 'admin';
+        process.env.DB_PASSWORD = 'testpass';
         process.env.DEV_ENVIRONMENT = 'production';
-        process.env.AWS_REGION = 'us-east-1';
 
         await getDatabaseConnection();
 
-        expect(mockSignerConstructor).toHaveBeenCalledTimes(1);
-        expect(mockSignerConstructor).toHaveBeenCalledWith({
-            hostname: 'production-db.xxxxx.us-east-1.rds.amazonaws.com',
-            port: 5432,
-            username: 'admin',
-            region: 'us-east-1',
-        });
-        expect(mockGetAuthToken).toHaveBeenCalledTimes(1);
+        expect(mockSignerConstructor).not.toHaveBeenCalled();
+        expect(mockGetAuthToken).not.toHaveBeenCalled();
 
         expect(mockPool).toHaveBeenCalledTimes(1);
         const poolConfig = mockPool.mock.calls[0]?.[0];
         expect(poolConfig).toBeDefined();
         expect(poolConfig).toMatchObject({
-            host: 'production-db.xxxxx.us-east-1.rds.amazonaws.com',
+            host: 'production-db-proxy.xxxxx.us-east-1.rds.amazonaws.com',
             port: 5432,
             database: 'production-db',
             user: 'admin',
-            password: mockToken,
+            password: 'testpass',
             ssl: {
                 rejectUnauthorized: true,
             },
@@ -307,7 +298,7 @@ describe('getDatabaseConnection', () => {
         );
     });
 
-    it('does not require DB_PASSWORD when using IAM authentication', async () => {
+    it('does not require DB_PASSWORD when using IAM authentication (dev environment)', async () => {
         const mockToken = 'mock-iam-token';
         mockGetAuthToken.mockResolvedValue(mockToken);
 
@@ -321,6 +312,19 @@ describe('getDatabaseConnection', () => {
 
         await expect(getDatabaseConnection()).resolves.toBe(mockPoolInstance);
         expect(mockPool).toHaveBeenCalledTimes(1);
+    });
+
+    it('requires DB_PASSWORD when using password authentication (production environment with RDS Proxy)', async () => {
+        process.env.DB_HOST = 'production-db-proxy.xxxxx.us-east-1.rds.amazonaws.com';
+        process.env.DB_PORT = '5432';
+        process.env.DB_NAME = 'production-db';
+        process.env.DB_USER = 'admin';
+        process.env.DEV_ENVIRONMENT = 'production';
+        delete process.env.DB_PASSWORD;
+
+        await expect(getDatabaseConnection()).rejects.toThrow(
+            'Missing required database environment variable: DB_PASSWORD'
+        );
     });
 
     it('handles errors from RDS Signer', async () => {

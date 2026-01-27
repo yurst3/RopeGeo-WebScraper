@@ -24,7 +24,22 @@ describe('setMapDataSQSMessageRetryTime', () => {
         process.env = originalEnv;
     });
 
+    it('skips setting retry time when DEV_ENVIRONMENT is local', async () => {
+        process.env.DEV_ENVIRONMENT = 'local';
+        const receiptHandle = 'test-receipt-handle';
+        const retryInSeconds = 300;
+        const consoleSpy = jest.spyOn(console, 'log').mockImplementation(() => {});
+
+        await setMapDataSQSMessageRetryTime(receiptHandle, retryInSeconds);
+
+        expect(consoleSpy).toHaveBeenCalledWith('Skipping SQS message visibility timeout change - no queue configured locally');
+        expect(changeSQSMessageVisibilityTimeout).not.toHaveBeenCalled();
+
+        consoleSpy.mockRestore();
+    });
+
     it('successfully sets visibility timeout for a message', async () => {
+        delete process.env.DEV_ENVIRONMENT;
         process.env.MAP_DATA_PROCESSING_QUEUE_URL = 'https://sqs.us-east-1.amazonaws.com/123456789/test-queue';
         const receiptHandle = 'test-receipt-handle';
         const retryInSeconds = 300;
@@ -40,6 +55,7 @@ describe('setMapDataSQSMessageRetryTime', () => {
     });
 
     it('accepts minimum retry time of 0 seconds', async () => {
+        delete process.env.DEV_ENVIRONMENT;
         process.env.MAP_DATA_PROCESSING_QUEUE_URL = 'https://sqs.us-east-1.amazonaws.com/123456789/test-queue';
         const receiptHandle = 'test-receipt-handle';
 
@@ -53,6 +69,7 @@ describe('setMapDataSQSMessageRetryTime', () => {
     });
 
     it('accepts maximum retry time of 43200 seconds', async () => {
+        delete process.env.DEV_ENVIRONMENT;
         process.env.MAP_DATA_PROCESSING_QUEUE_URL = 'https://sqs.us-east-1.amazonaws.com/123456789/test-queue';
         const receiptHandle = 'test-receipt-handle';
 
@@ -66,6 +83,7 @@ describe('setMapDataSQSMessageRetryTime', () => {
     });
 
     it('propagates validation errors from helper function', async () => {
+        delete process.env.DEV_ENVIRONMENT;
         process.env.MAP_DATA_PROCESSING_QUEUE_URL = 'https://sqs.us-east-1.amazonaws.com/123456789/test-queue';
         const receiptHandle = 'test-receipt-handle';
         const validationError = new Error('retryInSeconds must be between 0 and 43200, got -1');
@@ -79,6 +97,7 @@ describe('setMapDataSQSMessageRetryTime', () => {
     });
 
     it('throws error when MAP_DATA_PROCESSING_QUEUE_URL is not set', async () => {
+        delete process.env.DEV_ENVIRONMENT;
         delete process.env.MAP_DATA_PROCESSING_QUEUE_URL;
         const receiptHandle = 'test-receipt-handle';
         const retryInSeconds = 300;
@@ -91,6 +110,7 @@ describe('setMapDataSQSMessageRetryTime', () => {
     });
 
     it('propagates errors from helper function', async () => {
+        delete process.env.DEV_ENVIRONMENT;
         process.env.MAP_DATA_PROCESSING_QUEUE_URL = 'https://sqs.us-east-1.amazonaws.com/123456789/test-queue';
         const receiptHandle = 'test-receipt-handle';
         const retryInSeconds = 300;

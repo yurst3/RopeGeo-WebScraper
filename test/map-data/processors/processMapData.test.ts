@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach, afterEach, jest } from '@jest/globals
 import { processMapData } from '../../../src/map-data/processors/processMapData';
 import MapData from '../../../src/map-data/types/mapData';
 import type { SaveMapDataHookFn } from '../../../src/map-data/hook-functions/saveMapData';
+import ProgressLogger from '../../../src/helpers/progressLogger';
 import { mkdtemp, rm } from 'fs/promises';
 import { join } from 'path';
 import { tmpdir } from 'os';
@@ -32,6 +33,16 @@ jest.mock('../../../src/map-data/util/convertToVectorTiles', () => ({
     convertToVectorTiles: jest.fn(),
 }));
 
+// Mock ProgressLogger
+jest.mock('../../../src/helpers/progressLogger', () => {
+    return jest.fn().mockImplementation(() => ({
+        setChunk: jest.fn(),
+        logProgress: jest.fn(),
+        logError: jest.fn(),
+        getResults: jest.fn(),
+    }));
+});
+
 describe('processMapData', () => {
     const mockMapDataId = '11111111-1111-1111-1111-111111111111';
     const mockTempDir = '/tmp/map-data-abc123';
@@ -42,6 +53,7 @@ describe('processMapData', () => {
     const mockSourceFileContent = '<?xml version="1.0"?><kml></kml>';
     
     let mockSaveMapDataHookFn: jest.MockedFunction<SaveMapDataHookFn>;
+    let mockLogger: any;
     let originalEnv: NodeJS.ProcessEnv;
 
     let mockDownloadSourceFile: jest.MockedFunction<any>;
@@ -51,6 +63,7 @@ describe('processMapData', () => {
     beforeEach(() => {
         jest.clearAllMocks();
         originalEnv = process.env;
+        mockLogger = new ProgressLogger('Test', 1);
 
         // Setup default mocks
         (mkdtemp as jest.MockedFunction<typeof mkdtemp>).mockResolvedValue(mockTempDir);
@@ -115,6 +128,7 @@ describe('processMapData', () => {
                 isKml,
                 sourceFileUrl,
                 errorMessage,
+                logger,
             ) => {
                 const sourceFile = sourceFilePath
                     ? `https://s3.amazonaws.com/bucket/source/${mapDataId}.${isKml ? 'kml' : 'gpx'}`
@@ -171,7 +185,7 @@ describe('processMapData', () => {
         it('successfully processes a KML file and returns MapData', async () => {
             const sourceFileUrl = 'https://example.com/test.kml';
 
-            const result = await processMapData(sourceFileUrl, mockSaveMapDataHookFn);
+            const result = await processMapData(sourceFileUrl, mockSaveMapDataHookFn, undefined, mockLogger);
 
             expect(result).toBeInstanceOf(MapData);
             expect(result.id).toBe(mockMapDataId);
@@ -186,7 +200,7 @@ describe('processMapData', () => {
         it('calls saveMapDataHookFn with correct parameters for KML', async () => {
             const sourceFileUrl = 'https://example.com/test.kml';
 
-            await processMapData(sourceFileUrl, mockSaveMapDataHookFn);
+            await processMapData(sourceFileUrl, mockSaveMapDataHookFn, undefined, mockLogger);
 
             expect(mockSaveMapDataHookFn).toHaveBeenCalledTimes(1);
             expect(mockSaveMapDataHookFn).toHaveBeenCalledWith(
@@ -197,13 +211,14 @@ describe('processMapData', () => {
                 true, // isKml
                 sourceFileUrl,
                 undefined, // errorMessage
+                mockLogger,
             );
         });
 
         it('calls downloadSourceFile with correct parameters', async () => {
             const sourceFileUrl = 'https://example.com/test.kml';
 
-            await processMapData(sourceFileUrl, mockSaveMapDataHookFn);
+            await processMapData(sourceFileUrl, mockSaveMapDataHookFn, undefined, mockLogger);
 
             expect(mockDownloadSourceFile).toHaveBeenCalledTimes(1);
             expect(mockDownloadSourceFile).toHaveBeenCalledWith(
@@ -217,7 +232,7 @@ describe('processMapData', () => {
         it('calls convertToGeoJson with correct parameters', async () => {
             const sourceFileUrl = 'https://example.com/test.kml';
 
-            await processMapData(sourceFileUrl, mockSaveMapDataHookFn);
+            await processMapData(sourceFileUrl, mockSaveMapDataHookFn, undefined, mockLogger);
 
             expect(mockConvertToGeoJson).toHaveBeenCalledTimes(1);
             expect(mockConvertToGeoJson).toHaveBeenCalledWith(
@@ -231,7 +246,7 @@ describe('processMapData', () => {
         it('calls convertToVectorTiles with correct parameters', async () => {
             const sourceFileUrl = 'https://example.com/test.kml';
 
-            await processMapData(sourceFileUrl, mockSaveMapDataHookFn);
+            await processMapData(sourceFileUrl, mockSaveMapDataHookFn, undefined, mockLogger);
 
             expect(mockConvertToVectorTiles).toHaveBeenCalledTimes(1);
             expect(mockConvertToVectorTiles).toHaveBeenCalledWith(
@@ -246,7 +261,7 @@ describe('processMapData', () => {
         it('successfully processes a GPX file and returns MapData', async () => {
             const sourceFileUrl = 'https://example.com/test.gpx';
 
-            const result = await processMapData(sourceFileUrl, mockSaveMapDataHookFn);
+            const result = await processMapData(sourceFileUrl, mockSaveMapDataHookFn, undefined, mockLogger);
 
             expect(result).toBeInstanceOf(MapData);
             expect(result.id).toBe(mockMapDataId);
@@ -260,7 +275,7 @@ describe('processMapData', () => {
             const sourceFileUrl = 'https://example.com/test.gpx';
             const expectedSourceFilePath = join(mockTempDir, `${mockMapDataId}.gpx`);
 
-            await processMapData(sourceFileUrl, mockSaveMapDataHookFn);
+            await processMapData(sourceFileUrl, mockSaveMapDataHookFn, undefined, mockLogger);
 
             expect(mockSaveMapDataHookFn).toHaveBeenCalledTimes(1);
             expect(mockSaveMapDataHookFn).toHaveBeenCalledWith(
@@ -271,6 +286,7 @@ describe('processMapData', () => {
                 false, // isKml
                 sourceFileUrl,
                 undefined, // errorMessage
+                mockLogger,
             );
         });
 
@@ -282,7 +298,7 @@ describe('processMapData', () => {
                 content: mockSourceFileContent,
             });
 
-            await processMapData(sourceFileUrl, mockSaveMapDataHookFn);
+            await processMapData(sourceFileUrl, mockSaveMapDataHookFn, undefined, mockLogger);
 
             expect(mockDownloadSourceFile).toHaveBeenCalledWith(
                 sourceFileUrl,
@@ -305,7 +321,7 @@ describe('processMapData', () => {
             const generatedId = '22222222-2222-2222-2222-222222222222';
             mockRandomUUID.mockReturnValueOnce(generatedId);
 
-            const result = await processMapData(sourceFileUrl, mockSaveMapDataHookFn);
+            const result = await processMapData(sourceFileUrl, mockSaveMapDataHookFn, undefined, mockLogger);
 
             expect(result.id).toBe(generatedId);
             expect(mockRandomUUID).toHaveBeenCalled();
@@ -317,6 +333,7 @@ describe('processMapData', () => {
                 true,
                 sourceFileUrl,
                 undefined,
+                mockLogger,
             );
         });
 
@@ -324,7 +341,7 @@ describe('processMapData', () => {
             const sourceFileUrl = 'https://example.com/test.kml';
             const providedId = '33333333-3333-3333-3333-333333333333';
 
-            const result = await processMapData(sourceFileUrl, mockSaveMapDataHookFn, providedId);
+            const result = await processMapData(sourceFileUrl, mockSaveMapDataHookFn, providedId, mockLogger);
 
             expect(result.id).toBe(providedId);
             expect(mockRandomUUID).not.toHaveBeenCalled();
@@ -336,6 +353,7 @@ describe('processMapData', () => {
                 true,
                 sourceFileUrl,
                 undefined,
+                mockLogger,
             );
         });
 
@@ -344,7 +362,7 @@ describe('processMapData', () => {
             const generatedId = '44444444-4444-4444-4444-444444444444';
             mockRandomUUID.mockReturnValueOnce(generatedId);
 
-            const result = await processMapData(sourceFileUrl, mockSaveMapDataHookFn, null);
+            const result = await processMapData(sourceFileUrl, mockSaveMapDataHookFn, null, mockLogger);
 
             expect(result.id).toBe(generatedId);
             expect(mockRandomUUID).toHaveBeenCalled();
@@ -355,7 +373,7 @@ describe('processMapData', () => {
         it('returns MapData with error message for unsupported file types', async () => {
             const sourceFileUrl = 'https://example.com/test.xml';
 
-            const result = await processMapData(sourceFileUrl, mockSaveMapDataHookFn);
+            const result = await processMapData(sourceFileUrl, mockSaveMapDataHookFn, undefined, mockLogger);
 
             expect(result).toBeInstanceOf(MapData);
             expect(result.id).toBe(mockMapDataId);
@@ -387,7 +405,7 @@ describe('processMapData', () => {
                 error: conversionError,
             });
 
-            const result = await processMapData(sourceFileUrl, mockSaveMapDataHookFn);
+            const result = await processMapData(sourceFileUrl, mockSaveMapDataHookFn, undefined, mockLogger);
 
             expect(result).toBeInstanceOf(MapData);
             expect(result.errorMessage).toBe(conversionError);
@@ -400,6 +418,7 @@ describe('processMapData', () => {
                 true,
                 sourceFileUrl,
                 conversionError,
+                mockLogger,
             );
         });
 
@@ -411,7 +430,7 @@ describe('processMapData', () => {
                 error: vectorTileError,
             });
 
-            const result = await processMapData(sourceFileUrl, mockSaveMapDataHookFn);
+            const result = await processMapData(sourceFileUrl, mockSaveMapDataHookFn, undefined, mockLogger);
 
             expect(result).toBeInstanceOf(MapData);
             expect(result.errorMessage).toBe(vectorTileError);
@@ -423,6 +442,7 @@ describe('processMapData', () => {
                 true,
                 sourceFileUrl,
                 vectorTileError,
+                mockLogger,
             );
         });
 
@@ -472,7 +492,7 @@ describe('processMapData', () => {
                 error: conversionError,
             });
 
-            await processMapData(sourceFileUrl, mockSaveMapDataHookFn);
+            await processMapData(sourceFileUrl, mockSaveMapDataHookFn, undefined, mockLogger);
 
             expect(mockConvertToVectorTiles).not.toHaveBeenCalled();
         });
@@ -508,7 +528,7 @@ describe('processMapData', () => {
         it('creates a temporary directory', async () => {
             const sourceFileUrl = 'https://example.com/test.kml';
 
-            await processMapData(sourceFileUrl, mockSaveMapDataHookFn);
+            await processMapData(sourceFileUrl, mockSaveMapDataHookFn, undefined, mockLogger);
 
             expect(mkdtemp).toHaveBeenCalledWith(
                 expect.stringContaining(join(tmpdir(), 'map-data-')),
@@ -518,7 +538,7 @@ describe('processMapData', () => {
         it('cleans up temp directory after successful processing', async () => {
             const sourceFileUrl = 'https://example.com/test.kml';
 
-            await processMapData(sourceFileUrl, mockSaveMapDataHookFn);
+            await processMapData(sourceFileUrl, mockSaveMapDataHookFn, undefined, mockLogger);
 
             expect(rm).toHaveBeenCalledWith(mockTempDir, {
                 recursive: true,
@@ -546,7 +566,7 @@ describe('processMapData', () => {
         it('handles uppercase KML extension', async () => {
             const sourceFileUrl = 'https://example.com/test.KML';
 
-            const result = await processMapData(sourceFileUrl, mockSaveMapDataHookFn);
+            const result = await processMapData(sourceFileUrl, mockSaveMapDataHookFn, undefined, mockLogger);
 
             expect(result.kml).toBeDefined();
             expect(result.gpx).toBeUndefined();
@@ -558,13 +578,14 @@ describe('processMapData', () => {
                 true, // isKml
                 sourceFileUrl,
                 undefined,
+                mockLogger,
             );
         });
 
         it('handles uppercase GPX extension', async () => {
             const sourceFileUrl = 'https://example.com/test.GPX';
 
-            const result = await processMapData(sourceFileUrl, mockSaveMapDataHookFn);
+            const result = await processMapData(sourceFileUrl, mockSaveMapDataHookFn, undefined, mockLogger);
 
             expect(result.gpx).toBeDefined();
             expect(result.kml).toBeUndefined();
@@ -576,6 +597,7 @@ describe('processMapData', () => {
                 false, // isKml
                 sourceFileUrl,
                 undefined,
+                mockLogger,
             );
         });
     });

@@ -25,9 +25,6 @@ build-MapDataProcessor:
 		--outfile=$(ARTIFACTS_DIR)/src/map-data/lambda-handlers/mainHandler.js \
 		--minify \
 		--sourcemap \
-		--external:@aws-sdk/* \
-		--external:pg \
-		--external:zapatos \
 		--external:@sparticuz/chromium
 	
 	# Copy tippecanoe binary to artifacts directory

@@ -14,13 +14,30 @@ jest.mock('../../../src/map-data/main', () => {
     };
 });
 
+// Mock database connection
+const mockClient = {
+    release: jest.fn(),
+} as any;
+
+const mockPool = {
+    connect: jest.fn(() => Promise.resolve(mockClient)),
+    end: jest.fn(() => Promise.resolve()),
+} as any;
+
+jest.mock('../../../src/helpers/getDatabaseConnection', () => ({
+    __esModule: true,
+    default: jest.fn(() => Promise.resolve(mockPool)),
+}));
+
 // Mock ProgressLogger
 jest.mock('../../../src/helpers/progressLogger', () => {
     const mockSetChunk = jest.fn();
     const mockLogProgress = jest.fn();
+    const mockLogError = jest.fn();
     const MockProgressLogger = jest.fn().mockImplementation(() => ({
         setChunk: mockSetChunk,
         logProgress: mockLogProgress,
+        logError: mockLogError,
     }));
     return {
         __esModule: true,
@@ -57,6 +74,7 @@ describe('processRopewikiRoutes hook functions', () => {
     let mockProcessPageRouteAndMapData: jest.MockedFunction<any>;
     let mockSetChunk: jest.MockedFunction<(start: number, end: number) => void>;
     let mockLogProgress: jest.MockedFunction<(message: string) => void>;
+    let mockLogError: jest.MockedFunction<(message: string) => void>;
     let mockSend: jest.MockedFunction<() => Promise<any>>;
     let MockProgressLogger: any;
     let MockSQSClient: any;
@@ -75,6 +93,7 @@ describe('processRopewikiRoutes hook functions', () => {
         const loggerInstance = new MockProgressLogger('test', 1);
         mockSetChunk = loggerInstance.setChunk as jest.MockedFunction<(start: number, end: number) => void>;
         mockLogProgress = loggerInstance.logProgress as jest.MockedFunction<(message: string) => void>;
+        mockLogError = loggerInstance.logError as jest.MockedFunction<(message: string) => void>;
         
         const sqs = jest.requireMock('@aws-sdk/client-sqs') as { SQSClient: any; SendMessageCommand: any };
         MockSQSClient = sqs.SQSClient;
@@ -152,11 +171,10 @@ describe('processRopewikiRoutes hook functions', () => {
             expect(mockProcessPageRouteAndMapData).toHaveBeenCalledTimes(1);
             const mapDataEvent = ropewikiRoute.toMapDataEvent();
             expect(mockProcessPageRouteAndMapData).toHaveBeenCalledWith(
-                expect.anything(), // nodeSaveMapData
                 mapDataEvent,
-            );
-            expect(mockLogProgress).toHaveBeenCalledWith(
-                'Processed route route-1 / page page-1',
+                expect.any(Function), // nodeSaveMapData
+                expect.any(Object), // logger
+                expect.any(Object), // client
             );
         });
 
@@ -169,9 +187,6 @@ describe('processRopewikiRoutes hook functions', () => {
             expect(MockProgressLogger).toHaveBeenCalledWith('Processing map data for routes', 2);
             expect(mockSetChunk).toHaveBeenCalledWith(0, 2);
             expect(mockProcessPageRouteAndMapData).toHaveBeenCalledTimes(2);
-            expect(mockLogProgress).toHaveBeenCalledTimes(2);
-            expect(mockLogProgress).toHaveBeenNthCalledWith(1, 'Processed route route-1 / page page-1');
-            expect(mockLogProgress).toHaveBeenNthCalledWith(2, 'Processed route route-2 / page page-2');
         });
 
         it('skips processing when route.id is missing', async () => {
@@ -180,12 +195,8 @@ describe('processRopewikiRoutes hook functions', () => {
             await nodeProcessRopewikiRoutes([ropewikiRoute]);
 
             expect(mockProcessPageRouteAndMapData).not.toHaveBeenCalled();
-            expect(mockConsoleError).toHaveBeenCalledWith(
-                'Error processing route unknown / page page-1:',
-                expect.any(Error),
-            );
-            expect(mockLogProgress).toHaveBeenCalledWith(
-                'Skipped route unknown / page page-1 due to error',
+            expect(mockLogError).toHaveBeenCalledWith(
+                expect.stringContaining('Error processing route unknown / page page-1:'),
             );
         });
 
@@ -195,12 +206,8 @@ describe('processRopewikiRoutes hook functions', () => {
             await nodeProcessRopewikiRoutes([ropewikiRoute]);
 
             expect(mockProcessPageRouteAndMapData).not.toHaveBeenCalled();
-            expect(mockConsoleError).toHaveBeenCalledWith(
-                'Error processing route route-1 / page unknown:',
-                expect.any(Error),
-            );
-            expect(mockLogProgress).toHaveBeenCalledWith(
-                'Skipped route route-1 / page unknown due to error',
+            expect(mockLogError).toHaveBeenCalledWith(
+                expect.stringContaining('Error processing route route-1 / page unknown:'),
             );
         });
 
@@ -215,11 +222,10 @@ describe('processRopewikiRoutes hook functions', () => {
             await nodeProcessRopewikiRoutes([ropewikiRoute1, ropewikiRoute2]);
 
             expect(mockProcessPageRouteAndMapData).toHaveBeenCalledTimes(2);
-            expect(mockConsoleError).toHaveBeenCalledTimes(1);
-            expect(mockLogProgress).toHaveBeenCalledTimes(2);
-            // First call might be the error, second is the success
-            expect(mockLogProgress).toHaveBeenCalledWith('Skipped route route-1 / page page-1 due to error');
-            expect(mockLogProgress).toHaveBeenCalledWith('Processed route route-2 / page page-2');
+            expect(mockLogError).toHaveBeenCalledTimes(1);
+            expect(mockLogError).toHaveBeenCalledWith(
+                expect.stringContaining('Error processing route route-1 / page page-1:'),
+            );
         });
 
         it('handles page name being undefined in error case', async () => {
@@ -257,8 +263,8 @@ describe('processRopewikiRoutes hook functions', () => {
 
             await nodeProcessRopewikiRoutes([ropewikiRoute]);
 
-            expect(mockLogProgress).toHaveBeenCalledWith(
-                'Skipped route unknown / page unknown due to error',
+            expect(mockLogError).toHaveBeenCalledWith(
+                expect.stringContaining('Error processing route unknown / page unknown:'),
             );
         });
     });

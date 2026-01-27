@@ -79,11 +79,14 @@ describe('main', () => {
         mockUpsertMapData.mockResolvedValue(new MapData('', '', '', '', 'test-id'));
         mockUpsertPageRoute.mockResolvedValue(undefined);
 
-        mockSaveMapDataHookFn = jest.fn<SaveMapDataHookFn>().mockResolvedValue({
-            sourceFile: 'https://s3.amazonaws.com/bucket/source/file.kml',
-            geoJsonFile: 'https://s3.amazonaws.com/bucket/geojson/file.geojson',
-            vectorTileFile: 'https://s3.amazonaws.com/bucket/vector-tiles/file.mbtiles',
-        });
+        mockSaveMapDataHookFn = jest.fn<SaveMapDataHookFn>().mockResolvedValue(
+            new MapData(
+                undefined, // gpx
+                'https://s3.amazonaws.com/bucket/source/file.kml', // kml
+                'https://s3.amazonaws.com/bucket/geojson/file.geojson', // geoJson
+                'https://s3.amazonaws.com/bucket/vector-tiles/file.mbtiles', // vectorTile
+            ),
+        );
 
         // Create mock logger
         mockLogger = new ProgressLogger('Test', 1);
@@ -156,6 +159,7 @@ describe('main', () => {
             sourceFileUrl,
             mockSaveMapDataHookFn,
             mapDataId,
+            mockLogger,
         );
         expect(mockUpsertMapData).toHaveBeenCalledWith(mockClient, processedMapData);
         expect(mockUpsertPageRoute).toHaveBeenCalledWith(
@@ -195,6 +199,7 @@ describe('main', () => {
             sourceFileUrl,
             mockSaveMapDataHookFn,
             mapDataId,
+            mockLogger,
         );
     });
 
@@ -210,6 +215,7 @@ describe('main', () => {
             sourceFileUrl,
             mockSaveMapDataHookFn,
             undefined,
+            mockLogger,
         );
     });
 
@@ -319,6 +325,7 @@ describe('main', () => {
             sourceFileUrl,
             mockSaveMapDataHookFn,
             undefined,
+            mockLogger,
         );
         expect(mockUpsertPageRoute).toHaveBeenCalledWith(
             mockClient,

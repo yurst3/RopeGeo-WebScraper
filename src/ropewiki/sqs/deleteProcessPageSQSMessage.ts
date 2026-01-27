@@ -8,6 +8,13 @@ import deleteSQSMessage from '../../helpers/sqs/deleteSQSMessage';
  * @throws Error if ROPEWIKI_PAGE_PROCESSING_QUEUE_URL is not set
  */
 const deleteProcessPageSQSMessage = async (receiptHandle: string): Promise<void> => {
+    const devEnvironment = process.env.DEV_ENVIRONMENT;
+    
+    if (devEnvironment === 'local') {
+        console.log('Skipping SQS message deletion - no queue configured locally');
+        return;
+    }
+
     const queueUrl = process.env.ROPEWIKI_PAGE_PROCESSING_QUEUE_URL;
     if (!queueUrl) {
         throw new Error('ROPEWIKI_PAGE_PROCESSING_QUEUE_URL environment variable is not set');

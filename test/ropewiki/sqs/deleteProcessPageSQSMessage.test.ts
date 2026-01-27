@@ -26,7 +26,21 @@ describe('deleteProcessPageSQSMessage', () => {
         process.env = originalEnv;
     });
 
+    it('skips deletion when DEV_ENVIRONMENT is local', async () => {
+        process.env.DEV_ENVIRONMENT = 'local';
+        const receiptHandle = 'test-receipt-handle';
+        const consoleSpy = jest.spyOn(console, 'log').mockImplementation(() => {});
+
+        await deleteProcessPageSQSMessage(receiptHandle);
+
+        expect(consoleSpy).toHaveBeenCalledWith('Skipping SQS message deletion - no queue configured locally');
+        expect(deleteSQSMessage).not.toHaveBeenCalled();
+
+        consoleSpy.mockRestore();
+    });
+
     it('successfully deletes a message from the queue', async () => {
+        delete process.env.DEV_ENVIRONMENT;
         process.env.ROPEWIKI_PAGE_PROCESSING_QUEUE_URL = 'https://sqs.us-east-1.amazonaws.com/123456789/test-queue';
         const receiptHandle = 'test-receipt-handle';
 
@@ -40,6 +54,7 @@ describe('deleteProcessPageSQSMessage', () => {
     });
 
     it('throws error when ROPEWIKI_PAGE_PROCESSING_QUEUE_URL is not set', async () => {
+        delete process.env.DEV_ENVIRONMENT;
         delete process.env.ROPEWIKI_PAGE_PROCESSING_QUEUE_URL;
         const receiptHandle = 'test-receipt-handle';
 
@@ -51,6 +66,7 @@ describe('deleteProcessPageSQSMessage', () => {
     });
 
     it('propagates errors from helper function', async () => {
+        delete process.env.DEV_ENVIRONMENT;
         process.env.ROPEWIKI_PAGE_PROCESSING_QUEUE_URL = 'https://sqs.us-east-1.amazonaws.com/123456789/test-queue';
         const receiptHandle = 'test-receipt-handle';
         const sqsError = new Error('SQS deletion failed');

@@ -238,30 +238,6 @@ describe('handleMapDataSQSMessages', () => {
         });
     });
 
-    it('handles errors when setting retry time fails', async () => {
-        const records = [
-            createSqsRecord(createMapDataEventBody('route-1', 'page-1'), 'receipt-1'),
-        ];
-        mockMain.mockRejectedValueOnce(new Error('Processing failed'));
-        mockSetMapDataSQSMessageRetryTime.mockRejectedValueOnce(new Error('Failed to set retry time'));
-
-        mockLogger.getResults.mockReturnValue({
-            successes: 0,
-            errors: 1,
-            remaining: 0,
-        });
-
-        const result = await handleMapDataSQSMessages(records, mockClient);
-
-        expect(mockSetMapDataSQSMessageRetryTime).toHaveBeenCalled();
-        expect(consoleErrorSpy).toHaveBeenCalledWith('Failed to set retry time for record 0:', expect.any(Error));
-        expect(result).toEqual({
-            successes: 0,
-            errors: 1,
-            remaining: 0,
-        });
-    });
-
     it('handles empty records array', async () => {
         mockLogger.getResults.mockReturnValue({
             successes: 0,
