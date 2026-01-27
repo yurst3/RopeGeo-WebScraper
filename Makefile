@@ -4,7 +4,13 @@ build-MapDataProcessor:
 	@if ! command -v tippecanoe > /dev/null 2>&1; then \
 		echo "tippecanoe not found, installing..."; \
 		if command -v apt-get > /dev/null 2>&1; then \
-			apt-get update && apt-get install -y tippecanoe; \
+			apt-get update && apt-get install -y tippecanoe || (apt-get install -y libsqlite3-dev build-essential git && git clone https://github.com/felt/tippecanoe.git /tmp/tippecanoe && cd /tmp/tippecanoe && make -j && make install); \
+		elif command -v dnf > /dev/null 2>&1; then \
+			echo "Installing tippecanoe from source (dnf)..."; \
+			dnf install -y sqlite-devel gcc-c++ make git && git clone https://github.com/felt/tippecanoe.git /tmp/tippecanoe && cd /tmp/tippecanoe && make -j && make install; \
+		elif command -v yum > /dev/null 2>&1; then \
+			echo "Installing tippecanoe from source (yum)..."; \
+			yum install -y sqlite-devel gcc-c++ make git && git clone https://github.com/felt/tippecanoe.git /tmp/tippecanoe && cd /tmp/tippecanoe && make -j && make install; \
 		elif command -v brew > /dev/null 2>&1; then \
 			brew install tippecanoe; \
 		else \
