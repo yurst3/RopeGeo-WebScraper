@@ -1,10 +1,11 @@
-import main from '../main';
+import { main } from '../main';
 import { lambdaProcessPagesChunk } from '../hook-functions/processPagesChunk';
+import { lambdaProcessRopewikiRoutes } from '../hook-functions/processRopewikiRoutes';
 
 export const mainHandler = async () => {
     try {
         // Use the lambda hook functions which will send SQS messages instead of invoking the processors directly
-        const elapsedTimeSeconds = await main(lambdaProcessPagesChunk);
+        const elapsedTimeSeconds = await main(lambdaProcessPagesChunk, lambdaProcessRopewikiRoutes);
         
         // Format elapsed time
         const totalTimeHours = Math.floor(elapsedTimeSeconds / 3600);

@@ -1,37 +1,45 @@
-import fs from 'fs';
-import { exec } from 'child_process';
-import { promisify } from 'util';
-import { kml } from "@tmcw/togeojson";
-import { DOMParser } from '@xmldom/xmldom';
+import { PoolClient } from 'pg';
+import getSourceFileUrl from './util/getSourceFileUrl';
+import { processMapData } from './processors/processMapData';
+import upsertMapData from './database/upsertMapData';
+import upsertPageRoute from './util/upsertPageRoute';
+import { PageRoute } from '../types/pageRoute';
+import type { SaveMapDataHookFn } from './hook-functions/saveMapData';
+import { MapDataEvent } from './types/lambdaEvent';
+import ProgressLogger from '../helpers/progressLogger';
 
-const execAsync = promisify(exec);
+/**
+ * Processes map data by reading source file URL from the database, downloading it,
+ * converting to GeoJSON, then to MBTiles, and saving via the provided hook function.
+ * 
+ * @param mapDataEvent - The map data event containing source, routeId, pageId, and optional mapDataId
+ * @param saveMapDataHookFn - Hook function to persist produced files and return URLs
+ * @param logger - Progress logger for tracking processing progress
+ * @param client - Database client to use (must be provided)
+ * @returns Promise that resolves when processing is complete
+ */
+export const main = async (
+    mapDataEvent: MapDataEvent,
+    saveMapDataHookFn: SaveMapDataHookFn,
+    logger: ProgressLogger,
+    client: PoolClient,
+): Promise<void> => {
+    // Create pageRoute from the event
+    const pageRoute: PageRoute = PageRoute.fromMapDataEvent(mapDataEvent);
 
-const EXAMPLE_KML_URL = 'https://ropewiki.com/images/a/a4/Chandelier_Canyon.kml';
-const FOLDER = 'src/mapData'
+    // Get the source file URL
+    const sourceFileUrl = await getSourceFileUrl(client, mapDataEvent.source, mapDataEvent.pageId);
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-export const mapDataHandler = async (event: unknown, context: any) => {
-    console.log('Getting kml file from url...');
-    const response = await fetch(EXAMPLE_KML_URL);
-    fs.writeFileSync(`${FOLDER}/example.kml`, await response.text());
+    // If source file exists, process it and update the page route it belongs to
+    if (sourceFileUrl) {
+        // Process the source file (download, convert, save via hook)
+        const mapData = await processMapData(sourceFileUrl, saveMapDataHookFn, pageRoute.mapData, logger);
 
-    console.log('Parsing kml file to geojson...');
-    const x = new DOMParser().parseFromString(fs.readFileSync(`${FOLDER}/example.kml`, "utf8"));
-    const geojson = kml(x);
-    fs.writeFileSync(`${FOLDER}/example.geojson`, JSON.stringify(geojson, null, 4));
+        // Upsert the MapData object to the database
+        const upsertedMapData = await upsertMapData(client, mapData);
 
-    console.log('Converting geojson to mbtiles with tippecanoe...');
-    await execAsync(`tippecanoe -zg -o ${FOLDER}/example.mbtiles --drop-densest-as-needed ${FOLDER}/example.geojson`);
-    console.log('Successfully created example.mbtiles');
-
+        // Upsert the page-route with the new map data id
+        pageRoute.mapData = upsertedMapData.id;
+        await upsertPageRoute(client, mapDataEvent.source, pageRoute);
+    }
 };
-
-// Allow running as a Node.js script (not just Lambda handler)
-if (require.main === module) {
-    mapDataHandler({}, {}).then(() => {
-        process.exit(0);
-    }).catch((error) => {
-        console.error('Error:', error);
-        process.exit(1);
-    });
-}

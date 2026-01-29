@@ -9,9 +9,14 @@
   "scripts": {
     "scrape:road-trip-ryan": "ts-node src/roadtripryan/main.ts",
     "parse:map-data": "ts-node --files src/mapData/main.ts",
-    "scrape-lambda:ropewiki": "sam build; sam local invoke RopewikiScraper --event events/RopewikiScraperCronEvent.json --env-vars samEnvVars.json --docker-network my-net",
+    "scrape-lambda:ropewiki": "sam build RopewikiScraper --use-container --build-image public.ecr.aws/sam/build-nodejs22.x; sam local invoke RopewikiScraper --event events/RopewikiScraperCronEvent.json --env-vars samEnvVars.json --docker-network my-net",
+    "process-lambda:ropewiki-page": "npm run update-event:ropewiki-page-processor 10; sam build RopewikiPageProcessor --use-container --build-image public.ecr.aws/sam/build-nodejs22.x; sam local invoke RopewikiPageProcessor --event events/RopewikiPageProcessorSQSEvent.json --env-vars samEnvVars.json --docker-network my-net",
+    "process-lambda:map-data": "npm run update-event:map-data-processor ropewiki 10; sam build MapDataProcessor --use-container --build-image public.ecr.aws/sam/build-nodejs22.x; sam local invoke MapDataProcessor --event events/MapDataProcessorSQSEvent.json --env-vars samEnvVars.json --docker-network my-net",
     "scrape:ropewiki": "DB_HOST=127.0.0.1 DB_PORT=8081 DB_NAME=local DB_USER=localUser DB_PASSWORD=localPass DEV_ENVIRONMENT=local ts-node --files src/ropewiki/main.ts",
-    "parse-test:ropewiki": "ts-node --files src/ropewiki/parseTest.ts",
+    "process:map-data": "DB_HOST=127.0.0.1 DB_PORT=8081 DB_NAME=local DB_USER=localUser DB_PASSWORD=localPass ts-node --files scripts/processMapData.ts ropewiki",
+    "process:ropewiki-page": "DB_HOST=127.0.0.1 DB_PORT=8081 DB_NAME=local DB_USER=localUser DB_PASSWORD=localPass ts-node --files scripts/processRopewikiPage.ts",
+    "update-event:ropewiki-page-processor": "DB_HOST=127.0.0.1 DB_PORT=8081 DB_NAME=local DB_USER=localUser DB_PASSWORD=localPass ts-node --files scripts/updateRopewikiPageProcessorSQSEvent.ts",
+    "update-event:map-data-processor": "DB_HOST=127.0.0.1 DB_PORT=8081 DB_NAME=local DB_USER=localUser DB_PASSWORD=localPass ts-node --files scripts/updateMapDataProcessorSQSEvent.ts",
     "lint:dev": "npx eslint --fix ./src",
     "migrate:up": "npx dbmate --url postgres://localUser:localPass@127.0.0.1:8081/local?sslmode=disable up; npx zapatos",
     "migrate-test:up": "npx dbmate --url postgres://testUser:testPass@127.0.0.1:8080/test?sslmode=disable up",
@@ -19,13 +24,14 @@
     "local-db:stop": "docker stop local-db",
     "test-db:start": "docker run --publish 127.0.0.1:8080:5432/tcp --name test-db -e POSTGRES_PASSWORD=testPass -e POSTGRES_USER=testUser -e POSTGRES_DB=test -d postgres; sleep 0.5; npm run migrate-test:up",
     "test-db:delete": "docker stop test-db; docker rm test-db",
-    "test:unit": "jest -i --testPathIgnorePatterns=/src/ropewiki/test/database/*",
-    "test:database": "TEST_USER=testUser TEST_PASS=testPass TEST_HOST=127.0.0.1 TEST_PORT=8080 TEST_DB=test jest -i --testPathPatterns=/src/ropewiki/test/database/*",
+    "test:unit": "NODE_OPTIONS=\"$NODE_OPTIONS --experimental-vm-modules\" jest -i --testPathIgnorePatterns=/test/ropewiki/database/* --testPathIgnorePatterns=/test/map-data/database/*",
+    "test:database": "TEST_USER=testUser TEST_PASS=testPass TEST_HOST=127.0.0.1 TEST_PORT=8080 TEST_DB=test jest -i --testPathPatterns=/test/ropewiki/database/* --testPathPatterns=/test/map-data/database/*",
     "test:local": "npm run test:unit; npm run test-db:start; npm run test:database; npm run test-db:delete",
-    "test:deploy": "jest -i"
+    "test:deploy": "NODE_OPTIONS=\"$NODE_OPTIONS --experimental-vm-modules\" jest -i"
   },
   "dependencies": {
     "@aws-lambda-powertools/parser": "^2.30.2",
+    "@aws-sdk/client-s3": "^3.971.0",
     "@aws-sdk/client-sqs": "^3.971.0",
     "@aws-sdk/rds-signer": "^3.962.0",
     "@tmcw/togeojson": "^7.1.2",
@@ -45,7 +51,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.39.2",
-    "@sparticuz/chromium": "^131.0.1",
+    "@sparticuz/chromium": "^137.0.0",
     "@types/cli-progress": "^3.11.6",
     "@types/geojson": "^7946.0.16",
     "@types/jest": "^29.5.14",

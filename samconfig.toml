@@ -20,6 +20,13 @@ resolve_s3 = true
 [default.package.parameters]
 resolve_s3 = true
 
+# CI uses explicit --s3-bucket; resolve_s3 must be false to avoid "Cannot use both" error
+[ci.package.parameters]
+resolve_s3 = false
+
+[ci.deploy.parameters]
+resolve_s3 = false
+
 [default.sync.parameters]
 watch = true
 

@@ -4,6 +4,8 @@ class ProgressLogger {
     private chunkStart: number = 0;
     private chunkEnd: number = 0;
     private current: number = 0;
+    private errors: number = 0;
+    private successes: number = 0;
     private progressIntervals: number[] = [];
     private lastProgressTime: number | null = null;
     private readonly maxIntervalsForAverage: number = 10; // Keep last 10 intervals for running average
@@ -21,7 +23,25 @@ class ProgressLogger {
         this.lastProgressTime = Date.now();
     }
 
+    getResults(): { errors: number; successes: number; remaining: number } {
+        return {
+            errors: this.errors,
+            successes: this.successes,
+            remaining: this.total - this.current,
+        };
+    }
+
+    logError(message: string): void {
+        this.errors++;
+        this.writeLog(message);
+    }
+
     logProgress(message: string): void {
+        this.successes++;
+        this.writeLog(message);
+    }
+
+    private writeLog(message: string): void {
         const now = Date.now();
         
         // Calculate time interval since last progress

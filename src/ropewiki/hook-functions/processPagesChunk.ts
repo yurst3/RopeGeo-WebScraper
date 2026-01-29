@@ -13,12 +13,12 @@ export type ProcessPagesChunkHookFn = (client: PoolClient, upsertedPages: Ropewi
  * 
  * @param client - Database client (should be a PoolClient in a transaction)
  * @param pages - Array of page data to process
- * @param logger - Optional progress logger for tracking progress
+ * @param logger - Progress logger for tracking progress
  */
 export const nodeProcessPagesChunk = async (
     client: Queryable,
     pages: RopewikiPage[],
-    logger?: ProgressLogger,
+    logger: ProgressLogger,
 ): Promise<void> => {
     for (let i = 0; i < pages.length; i++) {
         const page = pages[i]!;
@@ -63,12 +63,10 @@ export const lambdaProcessPagesChunk: ProcessPagesChunkHookFn = async (
             
             await sqsClient.send(command);
             
-            if (logger) {
-                logger.logProgress(`Sent page ${page.pageid} ${page.name} to queue`);
-            }
+            logger.logProgress(`Sent page ${page.pageid} ${page.name} to queue`);
         } catch (error) {
-            console.error(`Error sending page ${page.pageid} ${page.name} to queue:`, error);
-            throw error;
+            const errorMessage = error instanceof Error ? error.message : String(error);
+            logger.logError(`Error sending page ${page.pageid} ${page.name} to queue: ${errorMessage}`);
         }
     }
 };

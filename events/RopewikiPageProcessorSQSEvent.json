@@ -1,0 +1,164 @@
+{
+  "Records": [
+    {
+      "messageId": "525b87f7-6dae-4bbd-ba53-0c6b0d028e7a",
+      "receiptHandle": "AQEB010cc41a2ad24294948d5043714a2123...",
+      "body": "{\"id\":\"b8333e39-b520-4b13-9ef4-c17fd1157883\",\"pageid\":\"18215\",\"name\":\"Rabenwinkelgraben\",\"coordinates\":{\"lat\":47.5678,\"lon\":11.4885},\"region\":\"f790fdbf-8247-4beb-abfe-6e64c5ba1f54\",\"quality\":\"2.8\",\"rating\":\"<i>4B&nbsp;II</i>  (v4a2 II)\",\"timeRating\":\"II\",\"kmlUrl\":\"https://ropewiki.com/luca/rwr?gpx%3Doff&filename%3DRabenwinkelgraben&kmlnfx&kmlx%3Dhttp://descente-canyon.com/canyoning/canyon-description/22387&ext%3D.kml\",\"technicalRating\":\"4\",\"waterRating\":\"B\",\"permits\":\"No\",\"rappelLongest\":{\"unit\":\"ft\",\"value\":98.4252},\"months\":[],\"shuttle\":{\"unit\":\"minutes\",\"value\":0},\"minTime\":{\"unit\":\"h\",\"value\":3},\"maxTime\":{\"unit\":\"h\",\"value\":3.5833},\"url\":\"https://ropewiki.com/Rabenwinkelgraben\",\"aka\":[],\"betaSites\":[\"http://descente-canyon.com/canyoning/canyon-description/22387\",\"http://canyon.carto.net/cwiki/bin/view/Canyons/RabenwinkelgrabenCanyon\"],\"userVotes\":2,\"latestRevisionDate\":\"2017-02-05T09:37:24.000Z\",\"isValid\":true}",
+      "attributes": {
+        "ApproximateReceiveCount": "1",
+        "SentTimestamp": "1523232000000",
+        "SenderId": "AIDAIENQZJOLO23YVJ4VO",
+        "ApproximateFirstReceiveTimestamp": "1523232000001"
+      },
+      "messageAttributes": {},
+      "md5OfBody": "098f6bcd4621d373cade4e832627b4f6",
+      "eventSource": "aws:sqs",
+      "eventSourceARN": "arn:aws:sqs:us-west-2:123456789012:RopewikiPageProcessorQueue",
+      "awsRegion": "us-west-2"
+    },
+    {
+      "messageId": "16204b70-4126-4661-9e67-6f3c80aa8b86",
+      "receiptHandle": "AQEB0faf4a6633ca494cac335867724c7b5e...",
+      "body": "{\"id\":\"22fbf6a4-237b-40d9-99f2-0ce729484823\",\"pageid\":\"65846\",\"name\":\"Kings Cave\",\"coordinates\":{\"lat\":34.9228,\"lon\":-111.8507},\"region\":\"2a6a3092-0abc-45ac-ab93-66451d120dfa\",\"quality\":\"3.6\",\"rating\":\"3A III PG (<i>v4a1&nbsp;III</i>)\",\"timeRating\":\"III\",\"kmlUrl\":\"https://ropewiki.com/images/e/ec/Kings_Cave.kml\",\"technicalRating\":\"3\",\"waterRating\":\"A\",\"riskRating\":\"PG\",\"permits\":\"No\",\"rappelInfo\":\"4r\",\"rappelCount\":4,\"rappelLongest\":{\"unit\":\"ft\",\"value\":220},\"months\":[\"Oct\",\"Nov\",\"Dec\",\"Jan\",\"Feb\",\"Mar\",\"Apr\",\"May\",\"Sep\"],\"shuttle\":{\"unit\":\"minutes\",\"value\":0},\"vehicle\":\"Passenger\",\"hike\":{\"unit\":\"mi\",\"value\":3.7},\"url\":\"https://ropewiki.com/Kings_Cave\",\"aka\":[],\"betaSites\":[\"https://sedonacanyoneering.com/kings-cave/\"],\"userVotes\":48,\"latestRevisionDate\":\"2025-04-09T22:08:48.000Z\",\"isValid\":true}",
+      "attributes": {
+        "ApproximateReceiveCount": "1",
+        "SentTimestamp": "1523232000000",
+        "SenderId": "AIDAIENQZJOLO23YVJ4VO",
+        "ApproximateFirstReceiveTimestamp": "1523232000001"
+      },
+      "messageAttributes": {},
+      "md5OfBody": "098f6bcd4621d373cade4e832627b4f6",
+      "eventSource": "aws:sqs",
+      "eventSourceARN": "arn:aws:sqs:us-west-2:123456789012:RopewikiPageProcessorQueue",
+      "awsRegion": "us-west-2"
+    },
+    {
+      "messageId": "445e05a5-a435-42f4-90e4-cafcc7ad9adf",
+      "receiptHandle": "AQEBdc87a91810e7489e94cefe6153fc48cd...",
+      "body": "{\"id\":\"b6695c7c-4fd6-4e21-8e93-9b36a8665fa6\",\"pageid\":\"83312\",\"name\":\"Furnas (Brazil)\",\"coordinates\":{\"lat\":-20.6759,\"lon\":-46.3223},\"region\":\"77a20ace-bb4e-4c50-bdf7-85258f15e726\",\"quality\":\"2\",\"kmlUrl\":\"https://ropewiki.com/luca/rwr?gpx%3Doff&filename%3DFurnas_%28Brazil%29&kmlnfx&kmlx%3Dhttp://unodeaventuras.com/descenso-del-canon-de-furnas?kmlidx%3D/wp-content/uploads/2018/11/Canion-de-Furnas.kml&ext%3D.kml\",\"permits\":\"No\",\"rappelInfo\":\"5r\",\"rappelCount\":5,\"rappelLongest\":{\"unit\":\"ft\",\"value\":98.4252},\"months\":[\"Dec\",\"Jan\",\"Feb\",\"Mar\",\"Apr\",\"May\",\"Jun\",\"Jul\",\"Aug\",\"Sep\",\"Oct\",\"Nov\"],\"url\":\"https://ropewiki.com/Furnas_(Brazil)\",\"aka\":[],\"betaSites\":[\"http://unodeaventuras.com/descenso-del-canon-de-furnas?kmlidx=/wp-content/uploads/2018/11/Canion-de-Furnas.kml\"],\"userVotes\":1,\"latestRevisionDate\":\"2024-08-02T04:36:33.000Z\",\"isValid\":true}",
+      "attributes": {
+        "ApproximateReceiveCount": "1",
+        "SentTimestamp": "1523232000000",
+        "SenderId": "AIDAIENQZJOLO23YVJ4VO",
+        "ApproximateFirstReceiveTimestamp": "1523232000001"
+      },
+      "messageAttributes": {},
+      "md5OfBody": "098f6bcd4621d373cade4e832627b4f6",
+      "eventSource": "aws:sqs",
+      "eventSourceARN": "arn:aws:sqs:us-west-2:123456789012:RopewikiPageProcessorQueue",
+      "awsRegion": "us-west-2"
+    },
+    {
+      "messageId": "9bf5b5cb-e28f-48ed-8dfc-9f00f15b7eb0",
+      "receiptHandle": "AQEB123d6b8f751b4285af5bed8fe6061786...",
+      "body": "{\"id\":\"08341276-aa2d-4f38-bec7-f9b8144ae28e\",\"pageid\":\"40627\",\"name\":\"Cueva del Rey Marcos\",\"coordinates\":{\"lat\":15.427,\"lon\":-90.283},\"region\":\"50dd7f61-b3dd-49ff-bd9f-22b1f70d9f8b\",\"quality\":\"0\",\"rating\":\"Caving\",\"permits\":\"No\",\"months\":[],\"url\":\"https://ropewiki.com/Cueva_del_Rey_Marcos\",\"aka\":[\"Grutas del Rey Marcos\",\"Cueva del Rey Marcos\"],\"betaSites\":[\"http://speleosphere.org/index.php?content=showcave&id=9162070\"],\"userVotes\":0,\"latestRevisionDate\":\"2017-02-04T19:56:31.000Z\",\"isValid\":true}",
+      "attributes": {
+        "ApproximateReceiveCount": "1",
+        "SentTimestamp": "1523232000000",
+        "SenderId": "AIDAIENQZJOLO23YVJ4VO",
+        "ApproximateFirstReceiveTimestamp": "1523232000001"
+      },
+      "messageAttributes": {},
+      "md5OfBody": "098f6bcd4621d373cade4e832627b4f6",
+      "eventSource": "aws:sqs",
+      "eventSourceARN": "arn:aws:sqs:us-west-2:123456789012:RopewikiPageProcessorQueue",
+      "awsRegion": "us-west-2"
+    },
+    {
+      "messageId": "197810a8-6fc6-4cb8-bbf1-956046ed4686",
+      "receiptHandle": "AQEBba2b9fdc5410484291ad869894a3d851...",
+      "body": "{\"id\":\"cfddfa1d-e409-4ec6-8453-d9783a4abf3b\",\"pageid\":\"15088\",\"name\":\"Monts\",\"coordinates\":{\"lat\":45.2056,\"lon\":5.4908},\"region\":\"a46987c5-392f-4292-8635-a8b040dad61d\",\"quality\":\"1.3\",\"kmlUrl\":\"https://ropewiki.com/luca/rwr?gpx%3Doff&filename%3DMonts&kmlnfx&kmlx%3Dhttp://descente-canyon.com/canyoning/canyon-description/2595&ext%3D.kml\",\"permits\":\"No\",\"rappelLongest\":{\"unit\":\"ft\",\"value\":131.2336},\"months\":[],\"shuttle\":{\"unit\":\"minutes\",\"value\":2},\"minTime\":{\"unit\":\"h\",\"value\":0.8333},\"maxTime\":{\"unit\":\"h\",\"value\":1},\"url\":\"https://ropewiki.com/Monts\",\"aka\":[\"Les Monts\"],\"betaSites\":[\"http://descente-canyon.com/canyoning/canyon-description/2595\"],\"userVotes\":7,\"latestRevisionDate\":\"2017-02-05T05:57:27.000Z\",\"isValid\":true}",
+      "attributes": {
+        "ApproximateReceiveCount": "1",
+        "SentTimestamp": "1523232000000",
+        "SenderId": "AIDAIENQZJOLO23YVJ4VO",
+        "ApproximateFirstReceiveTimestamp": "1523232000001"
+      },
+      "messageAttributes": {},
+      "md5OfBody": "098f6bcd4621d373cade4e832627b4f6",
+      "eventSource": "aws:sqs",
+      "eventSourceARN": "arn:aws:sqs:us-west-2:123456789012:RopewikiPageProcessorQueue",
+      "awsRegion": "us-west-2"
+    },
+    {
+      "messageId": "be6fe103-4795-401a-8980-7c118b66e4b7",
+      "receiptHandle": "AQEBc2026555480144168cfc0b600c2565f6...",
+      "body": "{\"id\":\"aad3c8d9-284a-42d4-bac6-2edc96cde3a4\",\"pageid\":\"41647\",\"name\":\"Bau de Lispedda\",\"coordinates\":{\"lat\":39.841111111111,\"lon\":9.4561111111111},\"region\":\"c98efc59-b27a-4a8c-be8e-f1fde0f4df25\",\"quality\":\"0\",\"permits\":\"No\",\"rappelLongest\":{\"unit\":\"ft\",\"value\":85.30184},\"months\":[],\"shuttle\":{\"unit\":\"minutes\",\"value\":1},\"url\":\"https://ropewiki.com/Bau_de_Lispedda\",\"aka\":[],\"betaSites\":[\"http://micheleangileri.com/cgi-bin/schedap.cgi?lispedda\"],\"userVotes\":0,\"latestRevisionDate\":\"2017-02-04T14:46:27.000Z\",\"isValid\":true}",
+      "attributes": {
+        "ApproximateReceiveCount": "1",
+        "SentTimestamp": "1523232000000",
+        "SenderId": "AIDAIENQZJOLO23YVJ4VO",
+        "ApproximateFirstReceiveTimestamp": "1523232000001"
+      },
+      "messageAttributes": {},
+      "md5OfBody": "098f6bcd4621d373cade4e832627b4f6",
+      "eventSource": "aws:sqs",
+      "eventSourceARN": "arn:aws:sqs:us-west-2:123456789012:RopewikiPageProcessorQueue",
+      "awsRegion": "us-west-2"
+    },
+    {
+      "messageId": "f86f852c-4327-46dd-8d1c-03389143dbd8",
+      "receiptHandle": "AQEBa46688d0afd54ae5877df67f7ce72e8a...",
+      "body": "{\"id\":\"a7ac4f65-cb2c-4bbc-897a-335afa39d146\",\"pageid\":\"12380\",\"name\":\"Laghetto\",\"coordinates\":{\"lat\":45.7952,\"lon\":8.0234},\"region\":\"98953fb6-02a4-4665-b465-8b1f28aa2930\",\"quality\":\"4.5\",\"rating\":\"<i>4B&nbsp;II</i>  (v4a2 II)\",\"timeRating\":\"II\",\"kmlUrl\":\"https://ropewiki.com/luca/rwr?gpx%3Doff&filename%3DLaghetto&kmlnfx&kmlx%3Dhttp://descente-canyon.com/canyoning/canyon-description/22975&ext%3D.kml\",\"technicalRating\":\"4\",\"waterRating\":\"B\",\"permits\":\"No\",\"rappelInfo\":\"5r\",\"rappelCount\":5,\"rappelLongest\":{\"unit\":\"ft\",\"value\":229.6588},\"months\":[\"Jun\",\"Jul\",\"Aug\",\"Sep\",\"Oct\"],\"shuttle\":{\"unit\":\"minutes\",\"value\":0},\"minTime\":{\"unit\":\"h\",\"value\":3.75},\"maxTime\":{\"unit\":\"h\",\"value\":4.9167},\"url\":\"https://ropewiki.com/Laghetto\",\"aka\":[\"Rio Laghetto\",\"Rio del Laghetto\",\"Gola di Campertogno\"],\"betaSites\":[\"http://descente-canyon.com/canyoning/canyon-description/22975\",\"http://cicarudeclan.com/ita/a5_campe.htm\",\"http://catastoforre.aic-canyoning.it/index/forra/cod/VC010\",\"http://gulliver.it/itinerario/2628/\",\"http://gulliver.it/itinerario/8856/\",\"http://openspeleo.org/openspeleo/canyons-view-38.html?page=5\",\"http://canyon.carto.net/cwiki/bin/view/Canyons/LaghettoCanyon\",\"http://verticalwatercanyoning.com/profili/italia/rio-laghetto\"],\"userVotes\":3,\"latestRevisionDate\":\"2017-07-28T08:03:29.000Z\",\"isValid\":true}",
+      "attributes": {
+        "ApproximateReceiveCount": "1",
+        "SentTimestamp": "1523232000000",
+        "SenderId": "AIDAIENQZJOLO23YVJ4VO",
+        "ApproximateFirstReceiveTimestamp": "1523232000001"
+      },
+      "messageAttributes": {},
+      "md5OfBody": "098f6bcd4621d373cade4e832627b4f6",
+      "eventSource": "aws:sqs",
+      "eventSourceARN": "arn:aws:sqs:us-west-2:123456789012:RopewikiPageProcessorQueue",
+      "awsRegion": "us-west-2"
+    },
+    {
+      "messageId": "edfe3a02-4052-4703-88f0-65a783239d2d",
+      "receiptHandle": "AQEB36aaa3b3c70947a7acb3ec73e685ddaa...",
+      "body": "{\"id\":\"3ae79a4a-4328-4039-96fd-19585a2e8af1\",\"pageid\":\"25326\",\"name\":\"Lion Camp Canyon\",\"coordinates\":{\"lat\":32.987,\"lon\":-110.6001},\"region\":\"1c43e91b-cdda-4956-bc70-5ad50cb77b50\",\"quality\":\"3\",\"rating\":\"3A III  (<i>v3a1&nbsp;III</i>)\",\"timeRating\":\"III\",\"kmlUrl\":\"https://ropewiki.com/images/e/e5/Lion_Camp_Canyon.kml\",\"technicalRating\":\"3\",\"waterRating\":\"A\",\"permits\":\"Yes\",\"rappelInfo\":\"1r\",\"rappelCount\":1,\"rappelLongest\":{\"unit\":\"ft\",\"value\":60},\"months\":[\"Dec\",\"Jan\",\"Feb\",\"Mar\",\"Apr\",\"May\",\"Sep\",\"Oct\",\"Nov\"],\"shuttle\":{\"unit\":\"minutes\",\"value\":0},\"vehicle\":\"High Clearance\",\"minTime\":{\"unit\":\"h\",\"value\":6},\"maxTime\":{\"unit\":\"h\",\"value\":8},\"hike\":{\"unit\":\"mi\",\"value\":6.4},\"url\":\"https://ropewiki.com/Lion_Camp_Canyon\",\"aka\":[],\"betaSites\":[],\"userVotes\":1,\"latestRevisionDate\":\"2019-07-20T09:01:41.000Z\",\"isValid\":true}",
+      "attributes": {
+        "ApproximateReceiveCount": "1",
+        "SentTimestamp": "1523232000000",
+        "SenderId": "AIDAIENQZJOLO23YVJ4VO",
+        "ApproximateFirstReceiveTimestamp": "1523232000001"
+      },
+      "messageAttributes": {},
+      "md5OfBody": "098f6bcd4621d373cade4e832627b4f6",
+      "eventSource": "aws:sqs",
+      "eventSourceARN": "arn:aws:sqs:us-west-2:123456789012:RopewikiPageProcessorQueue",
+      "awsRegion": "us-west-2"
+    },
+    {
+      "messageId": "a4e7089d-4f0c-4adf-9974-2f51ca718d7d",
+      "receiptHandle": "AQEB79bc644d714e47dbbf61810d51180415...",
+      "body": "{\"id\":\"a7c9058e-3791-4ccf-be71-e6fd5d30872c\",\"pageid\":\"41394\",\"name\":\"Hail\",\"coordinates\":{\"lat\":22.9966,\"lon\":58.9631},\"region\":\"4dac631c-3a32-4b57-ae89-400d95962dcc\",\"quality\":\"3\",\"rating\":\"<i>2B</i>   (v1a2 II)\",\"technicalRating\":\"2\",\"waterRating\":\"B\",\"permits\":\"No\",\"months\":[],\"url\":\"https://ropewiki.com/Hail\",\"aka\":[\"Wadi Al Hail\"],\"betaSites\":[\"https://climbing7.com/2025/01/02/wadi-al-hail-suwayh/\",\"http://descente-canyon.com/canyoning/canyon-description/23857?kmlidxna\"],\"userVotes\":3,\"latestRevisionDate\":\"2025-12-19T09:54:00.000Z\",\"isValid\":true}",
+      "attributes": {
+        "ApproximateReceiveCount": "1",
+        "SentTimestamp": "1523232000000",
+        "SenderId": "AIDAIENQZJOLO23YVJ4VO",
+        "ApproximateFirstReceiveTimestamp": "1523232000001"
+      },
+      "messageAttributes": {},
+      "md5OfBody": "098f6bcd4621d373cade4e832627b4f6",
+      "eventSource": "aws:sqs",
+      "eventSourceARN": "arn:aws:sqs:us-west-2:123456789012:RopewikiPageProcessorQueue",
+      "awsRegion": "us-west-2"
+    },
+    {
+      "messageId": "53811ad4-3546-4c2e-8b68-01ca028937f6",
+      "receiptHandle": "AQEB31b36da80bef4ee09b9a3c947f46acc3...",
+      "body": "{\"id\":\"b383222d-4ae0-4131-a2d5-8cdd854d9477\",\"pageid\":\"88026\",\"name\":\"Steels Creek\",\"coordinates\":{\"lat\":35.9255,\"lon\":-81.8471},\"region\":\"62b66314-d03c-49fa-a680-35881a34d0d1\",\"quality\":\"5\",\"rating\":\"3C3 III PG (v3a4 II)\",\"timeRating\":\"III\",\"kmlUrl\":\"https://ropewiki.com/images/9/9e/Steels_Creek.kml\",\"technicalRating\":\"3\",\"waterRating\":\"C3\",\"riskRating\":\"PG\",\"permits\":\"No\",\"rappelInfo\":\"5r\",\"rappelCount\":5,\"rappelLongest\":{\"unit\":\"ft\",\"value\":80},\"months\":[\"Dec\",\"Jan\",\"Feb\",\"Mar\",\"Apr\",\"May\",\"Jun\",\"Jul\",\"Aug\",\"Sep\",\"Oct\",\"Nov\"],\"shuttle\":{\"unit\":\"minutes\",\"value\":0},\"vehicle\":\"Passenger\",\"hike\":{\"unit\":\"mi\",\"value\":3.2},\"url\":\"https://ropewiki.com/Steels_Creek\",\"aka\":[\"Steeles Creek\"],\"betaSites\":[\"https://www.instagram.com/reel/DP1TECFEREZ/?utm_source=ig_web_copy_link\",\"https://www.gaiagps.com/map/?loc=17.8/-81.8481/35.9230&pubLink=Gcq1RyPr2Ux4m6CmyllB5JWs&trackId=805e3e96-1bf2-4099-bc1f-9a97d7f91820\"],\"userVotes\":2,\"latestRevisionDate\":\"2025-10-20T03:21:46.000Z\",\"isValid\":true}",
+      "attributes": {
+        "ApproximateReceiveCount": "1",
+        "SentTimestamp": "1523232000000",
+        "SenderId": "AIDAIENQZJOLO23YVJ4VO",
+        "ApproximateFirstReceiveTimestamp": "1523232000001"
+      },
+      "messageAttributes": {},
+      "md5OfBody": "098f6bcd4621d373cade4e832627b4f6",
+      "eventSource": "aws:sqs",
+      "eventSourceARN": "arn:aws:sqs:us-west-2:123456789012:RopewikiPageProcessorQueue",
+      "awsRegion": "us-west-2"
+    }
+  ]
+}
