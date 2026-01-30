@@ -321,7 +321,7 @@ Resources:
       AllocatedStorage: 20
       MasterUsername: !Ref DatabaseUsername
       MasterUserPassword: !Ref DatabasePassword
-      DBName: !Sub '${devEnvironment}-db'
+      DBName: !Sub '${devEnvironment}db'
       VPCSecurityGroups:
         - !Ref RDSSecurityGroup
       DBSubnetGroupName: !Ref DBSubnetGroup
@@ -508,7 +508,7 @@ Resources:
           AWS_REGION: !Ref AWS::Region
           DB_HOST: !If [IsProduction, !GetAtt RDSProxy.Endpoint, !GetAtt Database.Endpoint.Address]
           DB_PORT: !GetAtt Database.Endpoint.Port
-          DB_NAME: !Sub '${devEnvironment}-db'
+          DB_NAME: !Sub '${devEnvironment}db'
           DB_USER: !Ref DatabaseUsername
           DB_PASSWORD: !Ref DatabasePassword
           ROPEWIKI_PAGE_PROCESSING_QUEUE_URL: !Ref RopewikiPageProcessingQueue
@@ -559,7 +559,7 @@ Resources:
           AWS_REGION: !Ref AWS::Region
           DB_HOST: !If [IsProduction, !GetAtt RDSProxy.Endpoint, !GetAtt Database.Endpoint.Address]
           DB_PORT: !GetAtt Database.Endpoint.Port
-          DB_NAME: !Sub '${devEnvironment}-db'
+          DB_NAME: !Sub '${devEnvironment}db'
           DB_USER: !Ref DatabaseUsername
           DB_PASSWORD: !Ref DatabasePassword
     Metadata: # Manage esbuild properties
@@ -602,7 +602,7 @@ Resources:
           AWS_REGION: !Ref AWS::Region
           DB_HOST: !If [IsProduction, !GetAtt RDSProxy.Endpoint, !GetAtt Database.Endpoint.Address]
           DB_PORT: !GetAtt Database.Endpoint.Port
-          DB_NAME: !Sub '${devEnvironment}-db'
+          DB_NAME: !Sub '${devEnvironment}db'
           DB_USER: !Ref DatabaseUsername
           DB_PASSWORD: !Ref DatabasePassword
           MAP_DATA_BUCKET_NAME: !Ref MapDataBucket
