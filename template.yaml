@@ -32,6 +32,7 @@ Parameters:
 
 Conditions:
   IsProduction: !Equals [!Ref devEnvironment, production]
+  IsDev: !Not [IsProduction]
 
 # Resources declares the AWS resources that you want to include in the stack
 # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/resources-section-structure.html
@@ -615,6 +616,16 @@ Resources:
             BucketName: !Ref MapDataBucket
     Metadata:
       BuildMethod: makefile
+
+Outputs:
+  DevDatabaseEndpoint:
+    Condition: IsDev
+    Description: RDS instance endpoint for dev/testing migrations (used by pipeline run-migrations)
+    Value: !GetAtt Database.Endpoint.Address
+  ProductionDatabaseEndpoint:
+    Condition: IsProduction
+    Description: RDS instance endpoint for production migrations (used by pipeline run-migrations)
+    Value: !GetAtt Database.Endpoint.Address
 
 # # More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
 Globals:

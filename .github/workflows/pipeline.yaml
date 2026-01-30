@@ -425,10 +425,10 @@ jobs:
           else
             STACK_NAME=${TESTING_STACK_NAME}
           fi
-          DB_ENDPOINT=$(aws rds describe-db-instances \
-            --db-instance-identifier dev-db \
+          DB_ENDPOINT=$(aws cloudformation describe-stacks \
+            --stack-name ${STACK_NAME} \
             --region ${TESTING_REGION} \
-            --query 'DBInstances[0].Endpoint.Address' \
+            --query "Stacks[0].Outputs[?OutputKey=='DevDatabaseEndpoint'].OutputValue" \
             --output text)
           echo "DB_ENDPOINT=${DB_ENDPOINT}" >> $GITHUB_OUTPUT
           echo "STACK_NAME=${STACK_NAME}" >> $GITHUB_OUTPUT
@@ -455,10 +455,10 @@ jobs:
         if: needs.deploy-prod.result == 'success'
         id: get-prod-endpoint
         run: |
-          DB_ENDPOINT=$(aws rds describe-db-instances \
-            --db-instance-identifier production-db \
+          DB_ENDPOINT=$(aws cloudformation describe-stacks \
+            --stack-name ${PROD_STACK_NAME} \
             --region ${PROD_REGION} \
-            --query 'DBInstances[0].Endpoint.Address' \
+            --query "Stacks[0].Outputs[?OutputKey=='ProductionDatabaseEndpoint'].OutputValue" \
             --output text)
           echo "DB_ENDPOINT=${DB_ENDPOINT}" >> $GITHUB_OUTPUT
 
