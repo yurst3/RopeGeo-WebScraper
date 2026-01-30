@@ -140,6 +140,10 @@ jobs:
             echo "Error: DEV_DATABASE_USERNAME and DEV_DATABASE_PASSWORD must be set as repository secrets."
             exit 1
           fi
+          FCK_NAT_AMI=$(aws ec2 describe-images --owners 568608671756 \
+            --filters "Name=name,Values=fck-nat-al2023-*" "Name=architecture,Values=arm64" \
+            --query "sort_by(Images,&CreationDate)[-1].ImageId" --output text \
+            --region ${TESTING_REGION})
           sam deploy --config-env ci \
             --stack-name $(echo ${GITHUB_REF##*/} | tr -cd '[a-zA-Z0-9-]') \
             --capabilities CAPABILITY_IAM \
@@ -147,7 +151,7 @@ jobs:
             --s3-bucket ${TESTING_ARTIFACTS_BUCKET} \
             --no-fail-on-empty-changeset \
             --role-arn ${TESTING_CLOUDFORMATION_EXECUTION_ROLE} \
-            --parameter-overrides "devEnvironment=dev DatabaseUsername=$DEV_DATABASE_USERNAME DatabasePassword=$DEV_DATABASE_PASSWORD"
+            --parameter-overrides "devEnvironment=dev DatabaseUsername=$DEV_DATABASE_USERNAME DatabasePassword=$DEV_DATABASE_PASSWORD FckNatAMIId=$FCK_NAT_AMI"
 
   build-and-package:
     if: github.ref == 'refs/heads/master'
@@ -211,7 +215,8 @@ jobs:
           path: packaged-prod.yaml
 
   deploy-testing:
-    if: github.ref == 'refs/heads/master'
+    # Disabled for now; set to "github.ref == 'refs/heads/master'" to re-enable
+    if: false
     needs: [build-and-package]
     runs-on: ubuntu-latest
     steps:
@@ -243,6 +248,10 @@ jobs:
             echo "Error: DEV_DATABASE_USERNAME and DEV_DATABASE_PASSWORD must be set as repository secrets."
             exit 1
           fi
+          FCK_NAT_AMI=$(aws ec2 describe-images --owners 568608671756 \
+            --filters "Name=name,Values=fck-nat-al2023-*" "Name=architecture,Values=arm64" \
+            --query "sort_by(Images,&CreationDate)[-1].ImageId" --output text \
+            --region ${TESTING_REGION})
           sam deploy --config-env ci \
             --stack-name ${TESTING_STACK_NAME} \
             --template packaged-testing.yaml \
@@ -251,11 +260,11 @@ jobs:
             --s3-bucket ${TESTING_ARTIFACTS_BUCKET} \
             --no-fail-on-empty-changeset \
             --role-arn ${TESTING_CLOUDFORMATION_EXECUTION_ROLE} \
-            --parameter-overrides "devEnvironment=dev DatabaseUsername=$DEV_DATABASE_USERNAME DatabasePassword=$DEV_DATABASE_PASSWORD"
+            --parameter-overrides "devEnvironment=dev DatabaseUsername=$DEV_DATABASE_USERNAME DatabasePassword=$DEV_DATABASE_PASSWORD FckNatAMIId=$FCK_NAT_AMI"
 
   deploy-prod:
     if: github.ref == 'refs/heads/master'
-    needs: [deploy-testing]
+    needs: [build-and-package]
     runs-on: ubuntu-latest
     # Configure GitHub Action Environment to have a manual approval step before deployment to production
     # https://docs.github.com/en/actions/reference/environments
@@ -289,6 +298,10 @@ jobs:
             echo "Error: PROD_DATABASE_USERNAME and PROD_DATABASE_PASSWORD must be set as repository secrets."
             exit 1
           fi
+          FCK_NAT_AMI=$(aws ec2 describe-images --owners 568608671756 \
+            --filters "Name=name,Values=fck-nat-al2023-*" "Name=architecture,Values=arm64" \
+            --query "sort_by(Images,&CreationDate)[-1].ImageId" --output text \
+            --region ${PROD_REGION})
           sam deploy --config-env ci \
             --stack-name ${PROD_STACK_NAME} \
             --template packaged-prod.yaml \
@@ -297,7 +310,7 @@ jobs:
             --s3-bucket ${PROD_ARTIFACTS_BUCKET} \
             --no-fail-on-empty-changeset \
             --role-arn ${PROD_CLOUDFORMATION_EXECUTION_ROLE} \
-            --parameter-overrides "devEnvironment=production DatabaseUsername=$PROD_DATABASE_USERNAME DatabasePassword=$PROD_DATABASE_PASSWORD"
+            --parameter-overrides "devEnvironment=production DatabaseUsername=$PROD_DATABASE_USERNAME DatabasePassword=$PROD_DATABASE_PASSWORD FckNatAMIId=$FCK_NAT_AMI"
 
   run-migrations:
     runs-on: ubuntu-latest

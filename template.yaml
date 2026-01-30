@@ -24,6 +24,12 @@ Parameters:
     NoEcho: true
     MinLength: 8
 
+  FckNatAMIId:
+    Type: AWS::EC2::Image::Id
+    Description: >
+      fck-nat AMI ID for this region (arm64).
+      Look up with: aws ec2 describe-images --owners 568608671756 --filters "Name=name,Values=fck-nat-al2023-*" "Name=architecture,Values=arm64" --query "sort_by(Images,&CreationDate)[-1].ImageId" --output text
+
 Conditions:
   IsProduction: !Equals [!Ref devEnvironment, production]
 
@@ -66,13 +72,6 @@ Resources:
       Tags:
         - Key: Name
           Value: WebScraperPrivateSubnet2
-
-  # NAT Gateway (for Lambda to access internet)
-  NatGatewayEIP:
-    Type: AWS::EC2::EIP
-    DependsOn: InternetGatewayAttachment
-    Properties:
-      Domain: vpc
 
   InternetGateway:
     Type: AWS::EC2::InternetGateway
@@ -122,11 +121,124 @@ Resources:
       SubnetId: !Ref PublicSubnet1
       RouteTableId: !Ref PublicRouteTable
 
-  NatGateway:
-    Type: AWS::EC2::NatGateway
+  # fck-nat (NAT instance) for Lambda egress - https://fck-nat.dev/stable/deploying/
+  FckNatSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
     Properties:
-      AllocationId: !GetAtt NatGatewayEIP.AllocationId
+      GroupDescription: Security group for fck-nat NAT instance
+      VpcId: !Ref WebScraperVPC
+      SecurityGroupIngress:
+        - CidrIp: 10.0.0.0/16
+          IpProtocol: '-1'
+          Description: Allow all traffic from VPC
+      SecurityGroupEgress:
+        - CidrIp: 0.0.0.0/0
+          IpProtocol: '-1'
+          Description: Allow all outbound traffic
+      Tags:
+        - Key: Name
+          Value: !Sub '${AWS::StackName}-fck-nat-sg'
+
+  FckNatRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: ec2.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: AttachNatEniPolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - ec2:AttachNetworkInterface
+                  - ec2:ModifyNetworkInterfaceAttribute
+                Resource: '*'
+        - PolicyName: AssociateNatAddressPolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - ec2:AssociateAddress
+                  - ec2:DisassociateAddress
+                Resource: '*'
+      Tags:
+        - Key: Name
+          Value: !Sub '${AWS::StackName}-fck-nat-role'
+
+  FckNatInterface:
+    Type: AWS::EC2::NetworkInterface
+    DependsOn: FckNatSecurityGroup
+    Properties:
+      Description: fck-nat gateway interface
       SubnetId: !Ref PublicSubnet1
+      GroupSet:
+        - !GetAtt FckNatSecurityGroup.GroupId
+      SourceDestCheck: false
+      Tags:
+        - Key: Name
+          Value: !Sub '${AWS::StackName}-fck-nat-eni'
+
+  FckNatAsgInstanceProfile:
+    Type: AWS::IAM::InstanceProfile
+    Properties:
+      Roles:
+        - !Ref FckNatRole
+      InstanceProfileName: !Sub '${AWS::StackName}-fck-nat-profile'
+
+  FckNatLaunchTemplate:
+    Type: AWS::EC2::LaunchTemplate
+    DependsOn:
+      - FckNatRole
+      - FckNatAsgInstanceProfile
+    Properties:
+      LaunchTemplateData:
+        ImageId: !Ref FckNatAMIId
+        InstanceType: t4g.nano
+        IamInstanceProfile:
+          Name: !Ref FckNatAsgInstanceProfile
+        NetworkInterfaces:
+          - DeviceIndex: 0
+            AssociatePublicIpAddress: true
+            Groups:
+              - !GetAtt FckNatSecurityGroup.GroupId
+            SubnetId: !Ref PublicSubnet1
+        UserData:
+          Fn::Base64: !Sub |
+            #!/bin/bash
+            echo "eni_id=${FckNatInterface}" >> /etc/fck-nat.conf
+            service fck-nat restart
+      TagSpecifications:
+        - ResourceType: instance
+          Tags:
+            - Key: Name
+              Value: !Sub '${AWS::StackName}-fck-nat'
+
+  FckNatAsg:
+    Type: AWS::AutoScaling::AutoScalingGroup
+    DependsOn: FckNatLaunchTemplate
+    Properties:
+      MaxSize: '1'
+      MinSize: '1'
+      DesiredCapacity: '1'
+      LaunchTemplate:
+        LaunchTemplateId: !Ref FckNatLaunchTemplate
+        Version: !GetAtt FckNatLaunchTemplate.LatestVersionNumber
+      VPCZoneIdentifier:
+        - !Ref PublicSubnet1
+      Tags:
+        - Key: Name
+          Value: !Sub '${AWS::StackName}-fck-nat'
+          PropagateAtLaunch: true
+    UpdatePolicy:
+      AutoScalingScheduledAction:
+        IgnoreUnmodifiedGroupSizeProperties: true
 
   PrivateRouteTable:
     Type: AWS::EC2::RouteTable
@@ -138,10 +250,11 @@ Resources:
 
   PrivateRoute:
     Type: AWS::EC2::Route
+    DependsOn: FckNatInterface
     Properties:
       RouteTableId: !Ref PrivateRouteTable
       DestinationCidrBlock: 0.0.0.0/0
-      NatGatewayId: !Ref NatGateway
+      NetworkInterfaceId: !Ref FckNatInterface
 
   PrivateSubnet1RouteTableAssociation:
     Type: AWS::EC2::SubnetRouteTableAssociation
@@ -185,13 +298,14 @@ Resources:
         - Key: Name
           Value: WebScraperRDSSecurityGroup
 
-  # DB Subnet Group
+  # DB Subnet Group (RDS requires subnets in at least 2 AZs)
   DBSubnetGroup:
     Type: AWS::RDS::DBSubnetGroup
     Properties:
       DBSubnetGroupDescription: Subnet group for RDS PostgreSQL instance
       SubnetIds:
         - !Ref PrivateSubnet1
+        - !Ref PrivateSubnet2
       Tags:
         - Key: Name
           Value: WebScraperDBSubnetGroup
