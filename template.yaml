@@ -423,7 +423,7 @@ Resources:
       DBClusterIdentifiers: []
       DBInstanceIdentifiers:
         - !Ref Database
-      ConnectionPoolConfiguration:
+      ConnectionPoolConfigurationInfo:
         MaxConnectionsPercent: 100
         MaxIdleConnectionsPercent: 50
         ConnectionBorrowTimeout: 120
