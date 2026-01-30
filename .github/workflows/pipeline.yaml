@@ -450,8 +450,13 @@ jobs:
 
       - name: Run migrations on dev database
         if: needs.deploy-testing.result == 'success' || needs.build-and-deploy-feature.result == 'success'
+        env:
+          DEV_DATABASE_USERNAME: ${{ secrets.DEV_DATABASE_USERNAME }}
+          DEV_DATABASE_PASSWORD: ${{ secrets.DEV_DATABASE_PASSWORD }}
         run: |
-          DB_URL="postgres://${DEV_DATABASE_USERNAME}:${DEV_DATABASE_PASSWORD}@${{ steps.get-dev-endpoint.outputs.DB_ENDPOINT }}:5432/dev-db?sslmode=require"
+          ENCODED_USER=$(python3 -c "import urllib.parse, os; print(urllib.parse.quote(os.environ.get('DEV_DATABASE_USERNAME', ''), safe=''))")
+          ENCODED_PASS=$(python3 -c "import urllib.parse, os; print(urllib.parse.quote(os.environ.get('DEV_DATABASE_PASSWORD', ''), safe=''))")
+          DB_URL="postgres://${ENCODED_USER}:${ENCODED_PASS}@${{ steps.get-dev-endpoint.outputs.DB_ENDPOINT }}:5432/dev-db?sslmode=require"
           dbmate --url "${DB_URL}" up
 
       - name: Assume the prod pipeline user role
@@ -479,6 +484,11 @@ jobs:
 
       - name: Run migrations on prod database
         if: needs.deploy-prod.result == 'success'
+        env:
+          PROD_DATABASE_USERNAME: ${{ secrets.PROD_DATABASE_USERNAME }}
+          PROD_DATABASE_PASSWORD: ${{ secrets.PROD_DATABASE_PASSWORD }}
         run: |
-          DB_URL="postgres://${PROD_DATABASE_USERNAME}:${PROD_DATABASE_PASSWORD}@${{ steps.get-prod-endpoint.outputs.DB_ENDPOINT }}:5432/production-db?sslmode=require"
+          ENCODED_USER=$(python3 -c "import urllib.parse, os; print(urllib.parse.quote(os.environ.get('PROD_DATABASE_USERNAME', ''), safe=''))")
+          ENCODED_PASS=$(python3 -c "import urllib.parse, os; print(urllib.parse.quote(os.environ.get('PROD_DATABASE_PASSWORD', ''), safe=''))")
+          DB_URL="postgres://${ENCODED_USER}:${ENCODED_PASS}@${{ steps.get-prod-endpoint.outputs.DB_ENDPOINT }}:5432/production-db?sslmode=require"
           dbmate --url "${DB_URL}" up
