@@ -500,7 +500,6 @@ Resources:
       Environment:
         Variables:
           DEV_ENVIRONMENT: !Ref devEnvironment
-          AWS_REGION: !Ref AWS::Region
           DB_HOST: !If [IsProduction, !GetAtt RDSProxy.Endpoint, !GetAtt Database.Endpoint.Address]
           DB_PORT: !GetAtt Database.Endpoint.Port
           DB_NAME: !Sub '${devEnvironment}db'
@@ -551,7 +550,6 @@ Resources:
       Environment:
         Variables:
           DEV_ENVIRONMENT: !Ref devEnvironment
-          AWS_REGION: !Ref AWS::Region
           DB_HOST: !If [IsProduction, !GetAtt RDSProxy.Endpoint, !GetAtt Database.Endpoint.Address]
           DB_PORT: !GetAtt Database.Endpoint.Port
           DB_NAME: !Sub '${devEnvironment}db'
@@ -594,7 +592,6 @@ Resources:
       Environment:
         Variables:
           DEV_ENVIRONMENT: !Ref devEnvironment
-          AWS_REGION: !Ref AWS::Region
           DB_HOST: !If [IsProduction, !GetAtt RDSProxy.Endpoint, !GetAtt Database.Endpoint.Address]
           DB_PORT: !GetAtt Database.Endpoint.Port
           DB_NAME: !Sub '${devEnvironment}db'
