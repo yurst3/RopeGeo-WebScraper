@@ -153,6 +153,30 @@ jobs:
             --role-arn ${TESTING_CLOUDFORMATION_EXECUTION_ROLE} \
             --parameter-overrides "devEnvironment=dev DatabaseUsername=$DEV_DATABASE_USERNAME DatabasePassword=$DEV_DATABASE_PASSWORD FckNatAMIId=$FCK_NAT_AMI"
 
+  delete-feature-stack-on-failure:
+    if: always() && startsWith(github.ref, 'refs/heads/feature') && needs.build-and-deploy-feature.result == 'failure'
+    needs: [build-and-deploy-feature]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Assume the testing pipeline user role
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ env.PIPELINE_USER_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ env.PIPELINE_USER_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.TESTING_REGION }}
+          role-to-assume: ${{ env.TESTING_PIPELINE_EXECUTION_ROLE }}
+          role-session-name: feature-cleanup
+          role-duration-seconds: 3600
+          role-skip-session-tagging: true
+
+      - name: Delete failed feature stack
+        env:
+          FEATURE_STACK_NAME: $(echo ${GITHUB_REF##*/} | tr -cd '[a-zA-Z0-9-]')
+        run: |
+          echo "Deploy failed for feature branch; deleting stack ${FEATURE_STACK_NAME} so the next run can create a fresh stack."
+          aws cloudformation delete-stack --stack-name ${FEATURE_STACK_NAME} --region ${TESTING_REGION} || true
+          echo "Stack delete initiated. Re-run the pipeline to deploy again."
+
   build-and-package:
     if: github.ref == 'refs/heads/master'
     needs: [test]
@@ -262,6 +286,28 @@ jobs:
             --role-arn ${TESTING_CLOUDFORMATION_EXECUTION_ROLE} \
             --parameter-overrides "devEnvironment=dev DatabaseUsername=$DEV_DATABASE_USERNAME DatabasePassword=$DEV_DATABASE_PASSWORD FckNatAMIId=$FCK_NAT_AMI"
 
+  delete-testing-stack-on-failure:
+    if: always() && github.ref == 'refs/heads/master' && needs.deploy-testing.result == 'failure'
+    needs: [deploy-testing]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Assume the testing pipeline user role
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ env.PIPELINE_USER_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ env.PIPELINE_USER_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.TESTING_REGION }}
+          role-to-assume: ${{ env.TESTING_PIPELINE_EXECUTION_ROLE }}
+          role-session-name: testing-cleanup
+          role-duration-seconds: 3600
+          role-skip-session-tagging: true
+
+      - name: Delete failed testing (dev) stack
+        run: |
+          echo "Deploy failed for testing stack; deleting stack ${TESTING_STACK_NAME} so the next run can create a fresh stack."
+          aws cloudformation delete-stack --stack-name ${TESTING_STACK_NAME} --region ${TESTING_REGION} || true
+          echo "Stack delete initiated. Re-run the pipeline to deploy again."
+
   deploy-prod:
     if: github.ref == 'refs/heads/master'
     needs: [build-and-package]
@@ -311,6 +357,28 @@ jobs:
             --no-fail-on-empty-changeset \
             --role-arn ${PROD_CLOUDFORMATION_EXECUTION_ROLE} \
             --parameter-overrides "devEnvironment=production DatabaseUsername=$PROD_DATABASE_USERNAME DatabasePassword=$PROD_DATABASE_PASSWORD FckNatAMIId=$FCK_NAT_AMI"
+
+  delete-prod-stack-on-failure:
+    if: always() && github.ref == 'refs/heads/master' && needs.deploy-prod.result == 'failure'
+    needs: [deploy-prod]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Assume the prod pipeline user role
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ env.PIPELINE_USER_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ env.PIPELINE_USER_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.PROD_REGION }}
+          role-to-assume: ${{ env.PROD_PIPELINE_EXECUTION_ROLE }}
+          role-session-name: prod-cleanup
+          role-duration-seconds: 3600
+          role-skip-session-tagging: true
+
+      - name: Delete failed production stack
+        run: |
+          echo "Deploy failed; deleting stack ${PROD_STACK_NAME} so the next run can create a fresh stack."
+          aws cloudformation delete-stack --stack-name ${PROD_STACK_NAME} --region ${PROD_REGION} || true
+          echo "Stack delete initiated. Re-run the pipeline to deploy again."
 
   run-migrations:
     runs-on: ubuntu-latest
