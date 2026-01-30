@@ -173,9 +173,14 @@ jobs:
         env:
           FEATURE_STACK_NAME: $(echo ${GITHUB_REF##*/} | tr -cd '[a-zA-Z0-9-]')
         run: |
-          echo "Deploy failed for feature branch; deleting stack ${FEATURE_STACK_NAME} so the next run can create a fresh stack."
-          aws cloudformation delete-stack --stack-name ${FEATURE_STACK_NAME} --region ${TESTING_REGION} || true
-          echo "Stack delete initiated. Re-run the pipeline to deploy again."
+          STATUS=$(aws cloudformation describe-stacks --stack-name ${FEATURE_STACK_NAME} --region ${TESTING_REGION} --query 'Stacks[0].StackStatus' --output text 2>/dev/null) || true
+          if [ "$STATUS" = "ROLLBACK_COMPLETE" ]; then
+            echo "Stack ${FEATURE_STACK_NAME} is ROLLBACK_COMPLETE; deleting so the next run can create a fresh stack."
+            aws cloudformation delete-stack --stack-name ${FEATURE_STACK_NAME} --region ${TESTING_REGION}
+            echo "Stack delete initiated. Re-run the pipeline to deploy again."
+          else
+            echo "Stack status is '${STATUS:-stack may not exist}'; not deleting (only ROLLBACK_COMPLETE stacks are deleted)."
+          fi
 
   build-and-package:
     if: github.ref == 'refs/heads/master'
@@ -304,9 +309,14 @@ jobs:
 
       - name: Delete failed testing (dev) stack
         run: |
-          echo "Deploy failed for testing stack; deleting stack ${TESTING_STACK_NAME} so the next run can create a fresh stack."
-          aws cloudformation delete-stack --stack-name ${TESTING_STACK_NAME} --region ${TESTING_REGION} || true
-          echo "Stack delete initiated. Re-run the pipeline to deploy again."
+          STATUS=$(aws cloudformation describe-stacks --stack-name ${TESTING_STACK_NAME} --region ${TESTING_REGION} --query 'Stacks[0].StackStatus' --output text 2>/dev/null) || true
+          if [ "$STATUS" = "ROLLBACK_COMPLETE" ]; then
+            echo "Stack ${TESTING_STACK_NAME} is ROLLBACK_COMPLETE; deleting so the next run can create a fresh stack."
+            aws cloudformation delete-stack --stack-name ${TESTING_STACK_NAME} --region ${TESTING_REGION}
+            echo "Stack delete initiated. Re-run the pipeline to deploy again."
+          else
+            echo "Stack status is '${STATUS:-stack may not exist}'; not deleting (only ROLLBACK_COMPLETE stacks are deleted)."
+          fi
 
   deploy-prod:
     if: github.ref == 'refs/heads/master'
@@ -376,9 +386,14 @@ jobs:
 
       - name: Delete failed production stack
         run: |
-          echo "Deploy failed; deleting stack ${PROD_STACK_NAME} so the next run can create a fresh stack."
-          aws cloudformation delete-stack --stack-name ${PROD_STACK_NAME} --region ${PROD_REGION} || true
-          echo "Stack delete initiated. Re-run the pipeline to deploy again."
+          STATUS=$(aws cloudformation describe-stacks --stack-name ${PROD_STACK_NAME} --region ${PROD_REGION} --query 'Stacks[0].StackStatus' --output text 2>/dev/null) || true
+          if [ "$STATUS" = "ROLLBACK_COMPLETE" ]; then
+            echo "Stack ${PROD_STACK_NAME} is ROLLBACK_COMPLETE; deleting so the next run can create a fresh stack."
+            aws cloudformation delete-stack --stack-name ${PROD_STACK_NAME} --region ${PROD_REGION}
+            echo "Stack delete initiated. Re-run the pipeline to deploy again."
+          else
+            echo "Stack status is '${STATUS:-stack may not exist}'; not deleting (only ROLLBACK_COMPLETE stacks are deleted)."
+          fi
 
   run-migrations:
     runs-on: ubuntu-latest
