@@ -214,11 +214,6 @@ Resources:
             #!/bin/bash
             echo "eni_id=${FckNatInterface}" >> /etc/fck-nat.conf
             service fck-nat restart
-      TagSpecifications:
-        - ResourceType: instance
-          Tags:
-            - Key: Name
-              Value: !Sub '${AWS::StackName}-fck-nat'
 
   FckNatAsg:
     Type: AWS::AutoScaling::AutoScalingGroup
