@@ -702,7 +702,7 @@ Outputs:
   BastionKeyPairId:
     Condition: IsProduction
     Description: Key pair ID; private key is in SSM at /ec2/keypair/{KeyPairId}
-    Value: !Ref BastionKeyPair
+    Value: !GetAtt BastionKeyPair.KeyPairId
 
 # # More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
 Globals:
