@@ -443,6 +443,75 @@ Resources:
         SessionPinningFilters: []
         InitQuery: ''
 
+  # Key pair for bastion (production only; private key stored in SSM at /ec2/keypair/{KeyPairId})
+  BastionKeyPair:
+    Type: AWS::EC2::KeyPair
+    Condition: IsProduction
+    Properties:
+      KeyName: !Sub '${AWS::StackName}-bastion-key'
+      KeyType: rsa
+      KeyFormat: pem
+
+  # Security group for bastion host (production only; SSH from anywhere for pipeline)
+  BastionSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Condition: IsProduction
+    Properties:
+      GroupDescription: Security group for bastion host (SSH tunnel for migrations)
+      VpcId: !Ref WebScraperVPC
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: 0.0.0.0/0
+          Description: Allow SSH from pipeline runners
+      SecurityGroupEgress:
+        - IpProtocol: tcp
+          FromPort: 5432
+          ToPort: 5432
+          DestinationSecurityGroupId: !Ref RDSSecurityGroup
+          Description: Allow PostgreSQL access to RDS
+        - IpProtocol: -1
+          CidrIp: 0.0.0.0/0
+          Description: Allow all outbound (e.g. package updates)
+      Tags:
+        - Key: Name
+          Value: !Sub '${devEnvironment}-bastion-sg'
+
+  # Allow bastion to connect to RDS (production only)
+  BastionToRDSIngressRule:
+    Type: AWS::EC2::SecurityGroupIngress
+    Condition: IsProduction
+    Properties:
+      GroupId: !Ref RDSSecurityGroup
+      IpProtocol: tcp
+      FromPort: 5432
+      ToPort: 5432
+      SourceSecurityGroupId: !Ref BastionSecurityGroup
+      Description: Allow PostgreSQL access from bastion
+
+  # Bastion host for SSH tunnel (production only; run migrations via tunnel from pipeline)
+  BastionHost:
+    Type: AWS::EC2::Instance
+    Condition: IsProduction
+    DependsOn:
+      - BastionKeyPair
+      - BastionSecurityGroup
+      - BastionToRDSIngressRule
+    Properties:
+      ImageId: !Sub '{{resolve:ssm:/aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-arm64}}'
+      InstanceType: t4g.nano
+      KeyName: !Sub '${AWS::StackName}-bastion-key'
+      NetworkInterfaces:
+        - DeviceIndex: 0
+          AssociatePublicIpAddress: true
+          SubnetId: !Ref PublicSubnet1
+          GroupSet:
+            - !Ref BastionSecurityGroup
+      Tags:
+        - Key: Name
+          Value: !Sub '${devEnvironment}-bastion'
+
   ChromiumLayer:
     Type: AWS::Serverless::LayerVersion
     Properties:
@@ -626,6 +695,14 @@ Outputs:
     Condition: IsProduction
     Description: RDS instance endpoint for production migrations (used by pipeline run-migrations)
     Value: !GetAtt Database.Endpoint.Address
+  BastionPublicIP:
+    Condition: IsProduction
+    Description: Bastion host public IP for SSH tunnel (production migrations)
+    Value: !GetAtt BastionHost.PublicIp
+  BastionKeyPairId:
+    Condition: IsProduction
+    Description: Key pair ID; private key is in SSM at /ec2/keypair/{KeyPairId}
+    Value: !Ref BastionKeyPair
 
 # # More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
 Globals:

@@ -471,24 +471,59 @@ jobs:
           role-duration-seconds: 3600
           role-skip-session-tagging: true
 
-      - name: Get prod database endpoint
+      - name: Get prod bastion and database endpoint
         if: needs.deploy-prod.result == 'success'
-        id: get-prod-endpoint
+        id: get-prod-bastion
         run: |
+          BASTION_IP=$(aws cloudformation describe-stacks \
+            --stack-name ${PROD_STACK_NAME} \
+            --region ${PROD_REGION} \
+            --query "Stacks[0].Outputs[?OutputKey=='BastionPublicIP'].OutputValue" \
+            --output text)
           DB_ENDPOINT=$(aws cloudformation describe-stacks \
             --stack-name ${PROD_STACK_NAME} \
             --region ${PROD_REGION} \
             --query "Stacks[0].Outputs[?OutputKey=='ProductionDatabaseEndpoint'].OutputValue" \
             --output text)
+          KEY_PAIR_ID=$(aws cloudformation describe-stacks \
+            --stack-name ${PROD_STACK_NAME} \
+            --region ${PROD_REGION} \
+            --query "Stacks[0].Outputs[?OutputKey=='BastionKeyPairId'].OutputValue" \
+            --output text)
+          echo "BASTION_IP=${BASTION_IP}" >> $GITHUB_OUTPUT
           echo "DB_ENDPOINT=${DB_ENDPOINT}" >> $GITHUB_OUTPUT
+          echo "KEY_PAIR_ID=${KEY_PAIR_ID}" >> $GITHUB_OUTPUT
 
-      - name: Run migrations on prod database
+      - name: Run migrations on prod database (SSH tunnel via bastion)
         if: needs.deploy-prod.result == 'success'
         env:
           PROD_DATABASE_USERNAME: ${{ secrets.PROD_DATABASE_USERNAME }}
           PROD_DATABASE_PASSWORD: ${{ secrets.PROD_DATABASE_PASSWORD }}
         run: |
+          cleanup() {
+            SSH_PID=$(pgrep -f "ssh.*5432:.*:5432" 2>/dev/null) || true
+            [ -n "$SSH_PID" ] && kill $SSH_PID 2>/dev/null || true
+            rm -f bastion_key.pem
+          }
+          trap cleanup EXIT
+          BASTION_IP="${{ steps.get-prod-bastion.outputs.BASTION_IP }}"
+          DB_ENDPOINT="${{ steps.get-prod-bastion.outputs.DB_ENDPOINT }}"
+          KEY_PAIR_ID="${{ steps.get-prod-bastion.outputs.KEY_PAIR_ID }}"
+          if [ -z "$BASTION_IP" ] || [ -z "$DB_ENDPOINT" ] || [ -z "$KEY_PAIR_ID" ]; then
+            echo "Missing BASTION_IP, DB_ENDPOINT, or KEY_PAIR_ID from stack outputs."
+            exit 1
+          fi
+          aws ssm get-parameter --name "/ec2/keypair/${KEY_PAIR_ID}" --with-decryption --query Parameter.Value --output text --region ${PROD_REGION} > bastion_key.pem
+          chmod 600 bastion_key.pem
+          for i in $(seq 1 18); do
+            if ssh -o StrictHostKeyChecking=accept-new -o UserKnownHostsFile=/dev/null -o ConnectTimeout=10 -i bastion_key.pem -f -N -L 5432:${DB_ENDPOINT}:5432 ec2-user@${BASTION_IP}; then
+              break
+            fi
+            [ $i -eq 18 ] && { echo "SSH tunnel failed after 18 attempts."; exit 1; }
+            echo "Bastion may still be booting, retrying in 10s..."; sleep 10
+          done
+          sleep 2
           ENCODED_USER=$(python3 -c "import urllib.parse, os; print(urllib.parse.quote(os.environ.get('PROD_DATABASE_USERNAME', ''), safe=''))")
           ENCODED_PASS=$(python3 -c "import urllib.parse, os; print(urllib.parse.quote(os.environ.get('PROD_DATABASE_PASSWORD', ''), safe=''))")
-          DB_URL="postgres://${ENCODED_USER}:${ENCODED_PASS}@${{ steps.get-prod-endpoint.outputs.DB_ENDPOINT }}:5432/production-db?sslmode=require"
+          DB_URL="postgres://${ENCODED_USER}:${ENCODED_PASS}@127.0.0.1:5432/productiondb?sslmode=require"
           dbmate --url "${DB_URL}" up
