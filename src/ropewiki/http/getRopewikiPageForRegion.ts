@@ -1,4 +1,5 @@
 import RopewikiPage from '../types/page';
+import fetchRopewiki from './fetchRopewiki';
 
 const encode = (input: string) => {
     return encodeURIComponent(input).replace(/%/g, '-');
@@ -34,7 +35,7 @@ const getRopewikiPageForRegion = async (
         url.searchParams.append('limit', limit.toString());
         url.searchParams.append('offset', offset.toString());
 
-        const response = await fetch(url);
+        const response = await fetchRopewiki(url);
 
         if (response.ok) {
             const body = await response.json();

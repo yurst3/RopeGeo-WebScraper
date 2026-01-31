@@ -1,4 +1,5 @@
 import { RopewikiRegion } from '../types/region';
+import fetchRopewiki from './fetchRopewiki';
 
 const encode = (input: string) => {
     return encodeURIComponent(input).replace(/%/g, '-');
@@ -21,7 +22,7 @@ const getRegions = async (): Promise<RopewikiRegion[]> => {
         url.searchParams.append('format', 'json');
         url.searchParams.append('limit', '2000');
 
-        const response = await fetch(url);
+        const response = await fetchRopewiki(url);
 
         if (response.ok) {
             const body = await response.json();
