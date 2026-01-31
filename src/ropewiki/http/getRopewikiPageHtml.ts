@@ -10,7 +10,7 @@ const getRopewikiPageHtml = async (pageId: string): Promise<string> => {
             const body = await response.json();
             return body.parse.text['*'];
         } else {
-            throw new Error(`Error getting regions html: ${response.status} ${response.statusText}`);
+            throw new Error(`Error getting regions html: ${response.status} ${response.statusText} ${await response.text()}`);
         }
     } catch (error) {
         throw new Error(`Error getting regions html: ${error}`);

@@ -36,12 +36,15 @@ describe('getRopewikiPageHtml', () => {
 
     it('throws when fetch returns an error status', async () => {
         const regionPageId = '5597';
+        const mockErrorBody = 'Something went wrong!';
         const mockFetch = jest.fn<typeof fetch>().mockResolvedValue({
             ok: false,
             status: 500,
             statusText: 'Internal Server Error',
             url: 'http://ropewiki.com/api.php',
             headers: { get: () => null },
+            clone: () => ({ text: () => Promise.resolve(mockErrorBody) }),
+            text: () => Promise.resolve(mockErrorBody),
         } as Response);
         globalThis.fetch = mockFetch as unknown as typeof fetch;
 

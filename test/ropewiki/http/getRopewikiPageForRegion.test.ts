@@ -71,12 +71,14 @@ describe('getRopewikiPageForRegion', () => {
         const region = 'World';
         const offset = 0;
         const limit = 10;
+        const mockErrorBody = 'mock error body';
         const mockFetch = jest.fn<typeof fetch>().mockResolvedValue({
             ok: false,
             status: 500,
             statusText: 'Internal Server Error',
             url: 'https://ropewiki.com/index.php',
             headers: { get: () => null },
+            clone: () => ({ text: () => Promise.resolve(mockErrorBody) }),
         } as Response);
         globalThis.fetch = mockFetch as unknown as typeof fetch;
 

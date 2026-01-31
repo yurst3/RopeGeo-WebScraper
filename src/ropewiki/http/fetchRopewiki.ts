@@ -24,9 +24,16 @@ const fetchRopewiki = async (url: string | URL, init?: RequestInit): Promise<Res
   if (!response.ok) {
     const finalUrl = response.url;
     const server = response.headers.get('server') ?? response.headers.get('x-powered-by') ?? '(none)';
+    let bodyText = '';
+    try {
+      bodyText = await response.clone().text();
+    } catch {
+      bodyText = '(failed to read body)';
+    }
+    const bodyPreview = bodyText.length > 2000 ? `${bodyText.slice(0, 2000)}...` : bodyText;
     console.error(
       `fetchRopewiki non-OK: status=${response.status} statusText=${response.statusText} ` +
-        `requestUrl=${requestUrl} finalUrl=${finalUrl} server=${server}`,
+        `requestUrl=${requestUrl} finalUrl=${finalUrl} server=${server} responseBody=${bodyPreview}`,
     );
   }
   return response;
