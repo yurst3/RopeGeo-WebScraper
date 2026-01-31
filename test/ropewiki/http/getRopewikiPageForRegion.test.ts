@@ -75,6 +75,8 @@ describe('getRopewikiPageForRegion', () => {
             ok: false,
             status: 500,
             statusText: 'Internal Server Error',
+            url: 'https://ropewiki.com/index.php',
+            headers: { get: () => null },
         } as Response);
         globalThis.fetch = mockFetch as unknown as typeof fetch;
 
