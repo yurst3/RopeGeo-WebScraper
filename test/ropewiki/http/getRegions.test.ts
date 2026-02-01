@@ -111,9 +111,10 @@ describe('getRegions', () => {
         } as Response);
         globalThis.fetch = mockFetch as unknown as typeof fetch;
 
-        await expect(getRegions()).rejects.toThrow(
-            'Error getting regions: 500 Internal Server Error'
-        );
+        const err = await getRegions().catch((e) => e);
+        expect(err).toBeInstanceOf(Error);
+        expect((err as Error).message).toContain('Error getting regions');
+        expect((err as Error).message).toContain('500');
         expect(mockFetch).toHaveBeenCalledTimes(1);
     });
 
@@ -121,9 +122,10 @@ describe('getRegions', () => {
         const mockFetch = jest.fn<typeof fetch>().mockRejectedValue(new Error('network failure'));
         globalThis.fetch = mockFetch as unknown as typeof fetch;
 
-        await expect(getRegions()).rejects.toThrow(
-            'Error getting regions: Error: network failure'
-        );
+        const err = await getRegions().catch((e) => e);
+        expect(err).toBeInstanceOf(Error);
+        expect((err as Error).message).toContain('Error getting regions');
+        expect((err as Error).message).toContain('network failure');
         expect(mockFetch).toHaveBeenCalledTimes(1);
     });
 

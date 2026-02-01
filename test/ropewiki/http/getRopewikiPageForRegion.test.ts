@@ -82,9 +82,10 @@ describe('getRopewikiPageForRegion', () => {
         } as Response);
         globalThis.fetch = mockFetch as unknown as typeof fetch;
 
-        await expect(getRopewikiPageForRegion(region, offset, limit, {})).rejects.toThrow(
-            'Error getting pages info for region World offset 0 limit 10: 500 Internal Server Error'
-        );
+        const err = await getRopewikiPageForRegion(region, offset, limit, {}).catch((e) => e);
+        expect(err).toBeInstanceOf(Error);
+        expect((err as Error).message).toContain('Error getting pages info for region World offset 0 limit 10');
+        expect((err as Error).message).toContain('500');
         expect(mockFetch).toHaveBeenCalledTimes(1);
     });
 
@@ -95,9 +96,10 @@ describe('getRopewikiPageForRegion', () => {
         const mockFetch = jest.fn<typeof fetch>().mockRejectedValue(new Error('network failure'));
         globalThis.fetch = mockFetch as unknown as typeof fetch;
 
-        await expect(getRopewikiPageForRegion(region, offset, limit, {})).rejects.toThrow(
-            'Error getting pages info for region World offset 0 limit 10: Error: network failure'
-        );
+        const err = await getRopewikiPageForRegion(region, offset, limit, {}).catch((e) => e);
+        expect(err).toBeInstanceOf(Error);
+        expect((err as Error).message).toContain('Error getting pages info for region World offset 0 limit 10');
+        expect((err as Error).message).toContain('network failure');
         expect(mockFetch).toHaveBeenCalledTimes(1);
     });
 

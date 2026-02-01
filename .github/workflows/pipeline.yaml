@@ -134,10 +134,15 @@ jobs:
         env:
           DEV_DATABASE_USERNAME: ${{ secrets.DEV_DATABASE_USERNAME }}
           DEV_DATABASE_PASSWORD: ${{ secrets.DEV_DATABASE_PASSWORD }}
+          PROXY_URL: ${{ secrets.PROXY_URL }}
         shell: bash
         run: |
           if [ -z "$DEV_DATABASE_USERNAME" ] || [ -z "$DEV_DATABASE_PASSWORD" ]; then
             echo "Error: DEV_DATABASE_USERNAME and DEV_DATABASE_PASSWORD must be set as repository secrets."
+            exit 1
+          fi
+          if [ -z "$PROXY_URL" ]; then
+            echo "Error: PROXY_URL must be set as a repository secret for dev deployment."
             exit 1
           fi
           FCK_NAT_AMI=$(aws ec2 describe-images --owners 568608671756 \
@@ -151,7 +156,7 @@ jobs:
             --s3-bucket ${TESTING_ARTIFACTS_BUCKET} \
             --no-fail-on-empty-changeset \
             --role-arn ${TESTING_CLOUDFORMATION_EXECUTION_ROLE} \
-            --parameter-overrides "devEnvironment=dev DatabaseUsername=$DEV_DATABASE_USERNAME DatabasePassword=$DEV_DATABASE_PASSWORD FckNatAMIId=$FCK_NAT_AMI"
+            --parameter-overrides "devEnvironment=dev DatabaseUsername=$DEV_DATABASE_USERNAME DatabasePassword=$DEV_DATABASE_PASSWORD FckNatAMIId=$FCK_NAT_AMI ProxyUrl=$PROXY_URL"
 
   delete-feature-stack-on-failure:
     if: always() && startsWith(github.ref, 'refs/heads/feature') && needs.build-and-deploy-feature.result == 'failure'
@@ -272,9 +277,14 @@ jobs:
         env:
           DEV_DATABASE_USERNAME: ${{ secrets.DEV_DATABASE_USERNAME }}
           DEV_DATABASE_PASSWORD: ${{ secrets.DEV_DATABASE_PASSWORD }}
+          PROXY_URL: ${{ secrets.PROXY_URL }}
         run: |
           if [ -z "$DEV_DATABASE_USERNAME" ] || [ -z "$DEV_DATABASE_PASSWORD" ]; then
             echo "Error: DEV_DATABASE_USERNAME and DEV_DATABASE_PASSWORD must be set as repository secrets."
+            exit 1
+          fi
+          if [ -z "$PROXY_URL" ]; then
+            echo "Error: PROXY_URL must be set as a repository secret for dev deployment."
             exit 1
           fi
           FCK_NAT_AMI=$(aws ec2 describe-images --owners 568608671756 \
@@ -289,7 +299,7 @@ jobs:
             --s3-bucket ${TESTING_ARTIFACTS_BUCKET} \
             --no-fail-on-empty-changeset \
             --role-arn ${TESTING_CLOUDFORMATION_EXECUTION_ROLE} \
-            --parameter-overrides "devEnvironment=dev DatabaseUsername=$DEV_DATABASE_USERNAME DatabasePassword=$DEV_DATABASE_PASSWORD FckNatAMIId=$FCK_NAT_AMI"
+            --parameter-overrides "devEnvironment=dev DatabaseUsername=$DEV_DATABASE_USERNAME DatabasePassword=$DEV_DATABASE_PASSWORD FckNatAMIId=$FCK_NAT_AMI ProxyUrl=$PROXY_URL"
 
   delete-testing-stack-on-failure:
     if: always() && github.ref == 'refs/heads/master' && needs.deploy-testing.result == 'failure'
@@ -349,9 +359,14 @@ jobs:
         env:
           PROD_DATABASE_USERNAME: ${{ secrets.PROD_DATABASE_USERNAME }}
           PROD_DATABASE_PASSWORD: ${{ secrets.PROD_DATABASE_PASSWORD }}
+          PROXY_URL: ${{ secrets.PROXY_URL }}
         run: |
           if [ -z "$PROD_DATABASE_USERNAME" ] || [ -z "$PROD_DATABASE_PASSWORD" ]; then
             echo "Error: PROD_DATABASE_USERNAME and PROD_DATABASE_PASSWORD must be set as repository secrets."
+            exit 1
+          fi
+          if [ -z "$PROXY_URL" ]; then
+            echo "Error: PROXY_URL must be set as a repository secret for production deployment."
             exit 1
           fi
           FCK_NAT_AMI=$(aws ec2 describe-images --owners 568608671756 \
@@ -366,7 +381,7 @@ jobs:
             --s3-bucket ${PROD_ARTIFACTS_BUCKET} \
             --no-fail-on-empty-changeset \
             --role-arn ${PROD_CLOUDFORMATION_EXECUTION_ROLE} \
-            --parameter-overrides "devEnvironment=production DatabaseUsername=$PROD_DATABASE_USERNAME DatabasePassword=$PROD_DATABASE_PASSWORD FckNatAMIId=$FCK_NAT_AMI"
+            --parameter-overrides "devEnvironment=production DatabaseUsername=$PROD_DATABASE_USERNAME DatabasePassword=$PROD_DATABASE_PASSWORD FckNatAMIId=$FCK_NAT_AMI ProxyUrl=$PROXY_URL"
 
   delete-prod-stack-on-failure:
     if: always() && github.ref == 'refs/heads/master' && needs.deploy-prod.result == 'failure'

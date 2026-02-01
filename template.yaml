@@ -30,6 +30,11 @@ Parameters:
       fck-nat AMI ID for this region (arm64).
       Look up with: aws ec2 describe-images --owners 568608671756 --filters "Name=name,Values=fck-nat-al2023-*" "Name=architecture,Values=arm64" --query "sort_by(Images,&CreationDate)[-1].ImageId" --output text
 
+  ProxyUrl:
+    Type: String
+    Description: URL of HTTP proxy for Lambda egress when DEV_ENVIRONMENT is dev or production (e.g. http://host:port)
+    NoEcho: true
+
 Conditions:
   IsProduction: !Equals [!Ref devEnvironment, production]
   IsDev: !Equals [!Ref devEnvironment, dev]
@@ -582,6 +587,7 @@ Resources:
       Environment:
         Variables:
           DEV_ENVIRONMENT: !Ref devEnvironment
+          PROXY_URL: !Ref ProxyUrl
           DB_HOST: !If [IsProduction, !GetAtt RDSProxy.Endpoint, !GetAtt Database.Endpoint.Address]
           DB_PORT: !GetAtt Database.Endpoint.Port
           DB_NAME: !Sub '${devEnvironment}db'
@@ -632,14 +638,15 @@ Resources:
       Environment:
         Variables:
           DEV_ENVIRONMENT: !Ref devEnvironment
+          PROXY_URL: !Ref ProxyUrl
           DB_HOST: !If [IsProduction, !GetAtt RDSProxy.Endpoint, !GetAtt Database.Endpoint.Address]
           DB_PORT: !GetAtt Database.Endpoint.Port
           DB_NAME: !Sub '${devEnvironment}db'
           DB_USER: !Ref DatabaseUsername
           DB_PASSWORD: !Ref DatabasePassword
     Metadata: # Manage esbuild properties
-      BuildMethod: esbuild
-      BuildProperties:
+        BuildMethod: esbuild
+        BuildProperties:
         Minify: true
         Target: "esnext"
         Sourcemap: true
@@ -674,6 +681,7 @@ Resources:
       Environment:
         Variables:
           DEV_ENVIRONMENT: !Ref devEnvironment
+          PROXY_URL: !Ref ProxyUrl
           DB_HOST: !If [IsProduction, !GetAtt RDSProxy.Endpoint, !GetAtt Database.Endpoint.Address]
           DB_PORT: !GetAtt Database.Endpoint.Port
           DB_NAME: !Sub '${devEnvironment}db'

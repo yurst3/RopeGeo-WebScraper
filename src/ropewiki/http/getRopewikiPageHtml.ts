@@ -1,17 +1,12 @@
-import fetchRopewiki from './fetchRopewiki';
+import httpRequest from '../../helpers/httpRequest';
 
 const getRopewikiPageHtml = async (pageId: string): Promise<string> => {
     const url = `http://ropewiki.com/api.php?action=parse&pageid=${pageId}&format=json`;
 
     try {
-        const response = await fetchRopewiki(url);
-
-        if (response.ok) {
-            const body = await response.json();
-            return body.parse.text['*'];
-        } else {
-            throw new Error(`Error getting regions html: ${response.status} ${response.statusText} ${await response.text()}`);
-        }
+        const response = await httpRequest(url);
+        const body = await response.json();
+        return body.parse.text['*'];
     } catch (error) {
         throw new Error(`Error getting regions html: ${error}`);
     }
