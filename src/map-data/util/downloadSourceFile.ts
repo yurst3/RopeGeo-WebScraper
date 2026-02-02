@@ -1,9 +1,10 @@
 import { writeFile } from 'fs/promises';
 import { join } from 'path';
+import httpRequest from '../../helpers/httpRequest';
 
 /**
  * Downloads the source file from a URL and saves it to a temporary directory.
- * 
+ *
  * @param sourceFileUrl - URL of the source file to download
  * @param tempDir - Temporary directory where the file should be saved
  * @param mapDataId - UUID for the map data
@@ -20,11 +21,8 @@ export async function downloadSourceFile(
     const fileExtension = isKml ? 'kml' : 'gpx';
     const sourceFileName = `${mapDataId}.${fileExtension}`;
     const sourceFilePath = join(tempDir, sourceFileName);
-    
-    const sourceResponse = await fetch(sourceFileUrl);
-    if (!sourceResponse.ok) {
-        throw new Error(`Failed to download source file: ${sourceResponse.status} ${sourceResponse.statusText}`);
-    }
+
+    const sourceResponse = await httpRequest(sourceFileUrl);
     const sourceFileContent = await sourceResponse.text();
     await writeFile(sourceFilePath, sourceFileContent, 'utf-8');
     

@@ -1,3 +1,4 @@
+import httpRequest from '../../helpers/httpRequest';
 import RopewikiPage from '../types/page';
 
 const encode = (input: string) => {
@@ -34,15 +35,10 @@ const getRopewikiPageForRegion = async (
         url.searchParams.append('limit', limit.toString());
         url.searchParams.append('offset', offset.toString());
 
-        const response = await fetch(url);
+        const response = await httpRequest(url);
+        const body = await response.json();
 
-        if (response.ok) {
-            const body = await response.json();
-
-            return Object.values(body.results).map((result: unknown) => RopewikiPage.fromResponseBody(result, regionNameIds));
-        } else {
-            throw new Error(`Error getting pages info for region ${region} offset ${offset} limit ${limit}: ${response.status} ${response.statusText}`);
-        }
+        return Object.values(body.results).map((result: unknown) => RopewikiPage.fromResponseBody(result, regionNameIds));
     } catch (error) {
         throw new Error(`Error getting pages info for region ${region} offset ${offset} limit ${limit}: ${error}`);
     }

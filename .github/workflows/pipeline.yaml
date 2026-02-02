@@ -134,20 +134,58 @@ jobs:
         env:
           DEV_DATABASE_USERNAME: ${{ secrets.DEV_DATABASE_USERNAME }}
           DEV_DATABASE_PASSWORD: ${{ secrets.DEV_DATABASE_PASSWORD }}
+          PROXY_URL: ${{ secrets.PROXY_URL }}
         shell: bash
         run: |
           if [ -z "$DEV_DATABASE_USERNAME" ] || [ -z "$DEV_DATABASE_PASSWORD" ]; then
             echo "Error: DEV_DATABASE_USERNAME and DEV_DATABASE_PASSWORD must be set as repository secrets."
             exit 1
           fi
+          if [ -z "$PROXY_URL" ]; then
+            echo "Error: PROXY_URL must be set as a repository secret for dev deployment."
+            exit 1
+          fi
+          FCK_NAT_AMI=$(aws ec2 describe-images --owners 568608671756 \
+            --filters "Name=name,Values=fck-nat-al2023-*" "Name=architecture,Values=arm64" \
+            --query "sort_by(Images,&CreationDate)[-1].ImageId" --output text \
+            --region ${TESTING_REGION})
           sam deploy --config-env ci \
             --stack-name $(echo ${GITHUB_REF##*/} | tr -cd '[a-zA-Z0-9-]') \
-            --capabilities CAPABILITY_IAM \
+            --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM \
             --region ${TESTING_REGION} \
             --s3-bucket ${TESTING_ARTIFACTS_BUCKET} \
             --no-fail-on-empty-changeset \
             --role-arn ${TESTING_CLOUDFORMATION_EXECUTION_ROLE} \
-            --parameter-overrides "devEnvironment=dev DatabaseUsername=$DEV_DATABASE_USERNAME DatabasePassword=$DEV_DATABASE_PASSWORD"
+            --parameter-overrides "devEnvironment=dev DatabaseUsername=$DEV_DATABASE_USERNAME DatabasePassword=$DEV_DATABASE_PASSWORD FckNatAMIId=$FCK_NAT_AMI ProxyUrl=$PROXY_URL"
+
+  delete-feature-stack-on-failure:
+    if: always() && startsWith(github.ref, 'refs/heads/feature') && needs.build-and-deploy-feature.result == 'failure'
+    needs: [build-and-deploy-feature]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Assume the testing pipeline user role
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ env.PIPELINE_USER_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ env.PIPELINE_USER_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.TESTING_REGION }}
+          role-to-assume: ${{ env.TESTING_PIPELINE_EXECUTION_ROLE }}
+          role-session-name: feature-cleanup
+          role-duration-seconds: 3600
+          role-skip-session-tagging: true
+
+      - name: Delete failed feature stack
+        env:
+          FEATURE_STACK_NAME: $(echo ${GITHUB_REF##*/} | tr -cd '[a-zA-Z0-9-]')
+        run: |
+          STATUS=$(aws cloudformation describe-stacks --stack-name ${FEATURE_STACK_NAME} --region ${TESTING_REGION} --query 'Stacks[0].StackStatus' --output text 2>/dev/null) || true
+          if [ "$STATUS" = "ROLLBACK_COMPLETE" ]; then
+            echo "Stack ${FEATURE_STACK_NAME} is ROLLBACK_COMPLETE; deleting so the next run can create a fresh stack."
+            aws cloudformation delete-stack --stack-name ${FEATURE_STACK_NAME} --region ${TESTING_REGION}
+            echo "Stack delete initiated. Re-run the pipeline to deploy again."
+          else
+            echo "Stack status is '${STATUS:-stack may not exist}'; not deleting (only ROLLBACK_COMPLETE stacks are deleted)."
+          fi
 
   build-and-package:
     if: github.ref == 'refs/heads/master'
@@ -211,7 +249,8 @@ jobs:
           path: packaged-prod.yaml
 
   deploy-testing:
-    if: github.ref == 'refs/heads/master'
+    # Disabled for now; set to "github.ref == 'refs/heads/master'" to re-enable
+    if: false
     needs: [build-and-package]
     runs-on: ubuntu-latest
     steps:
@@ -238,24 +277,60 @@ jobs:
         env:
           DEV_DATABASE_USERNAME: ${{ secrets.DEV_DATABASE_USERNAME }}
           DEV_DATABASE_PASSWORD: ${{ secrets.DEV_DATABASE_PASSWORD }}
+          PROXY_URL: ${{ secrets.PROXY_URL }}
         run: |
           if [ -z "$DEV_DATABASE_USERNAME" ] || [ -z "$DEV_DATABASE_PASSWORD" ]; then
             echo "Error: DEV_DATABASE_USERNAME and DEV_DATABASE_PASSWORD must be set as repository secrets."
             exit 1
           fi
+          if [ -z "$PROXY_URL" ]; then
+            echo "Error: PROXY_URL must be set as a repository secret for dev deployment."
+            exit 1
+          fi
+          FCK_NAT_AMI=$(aws ec2 describe-images --owners 568608671756 \
+            --filters "Name=name,Values=fck-nat-al2023-*" "Name=architecture,Values=arm64" \
+            --query "sort_by(Images,&CreationDate)[-1].ImageId" --output text \
+            --region ${TESTING_REGION})
           sam deploy --config-env ci \
             --stack-name ${TESTING_STACK_NAME} \
             --template packaged-testing.yaml \
-            --capabilities CAPABILITY_IAM \
+            --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM \
             --region ${TESTING_REGION} \
             --s3-bucket ${TESTING_ARTIFACTS_BUCKET} \
             --no-fail-on-empty-changeset \
             --role-arn ${TESTING_CLOUDFORMATION_EXECUTION_ROLE} \
-            --parameter-overrides "devEnvironment=dev DatabaseUsername=$DEV_DATABASE_USERNAME DatabasePassword=$DEV_DATABASE_PASSWORD"
+            --parameter-overrides "devEnvironment=dev DatabaseUsername=$DEV_DATABASE_USERNAME DatabasePassword=$DEV_DATABASE_PASSWORD FckNatAMIId=$FCK_NAT_AMI ProxyUrl=$PROXY_URL"
+
+  delete-testing-stack-on-failure:
+    if: always() && github.ref == 'refs/heads/master' && needs.deploy-testing.result == 'failure'
+    needs: [deploy-testing]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Assume the testing pipeline user role
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ env.PIPELINE_USER_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ env.PIPELINE_USER_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.TESTING_REGION }}
+          role-to-assume: ${{ env.TESTING_PIPELINE_EXECUTION_ROLE }}
+          role-session-name: testing-cleanup
+          role-duration-seconds: 3600
+          role-skip-session-tagging: true
+
+      - name: Delete failed testing (dev) stack
+        run: |
+          STATUS=$(aws cloudformation describe-stacks --stack-name ${TESTING_STACK_NAME} --region ${TESTING_REGION} --query 'Stacks[0].StackStatus' --output text 2>/dev/null) || true
+          if [ "$STATUS" = "ROLLBACK_COMPLETE" ]; then
+            echo "Stack ${TESTING_STACK_NAME} is ROLLBACK_COMPLETE; deleting so the next run can create a fresh stack."
+            aws cloudformation delete-stack --stack-name ${TESTING_STACK_NAME} --region ${TESTING_REGION}
+            echo "Stack delete initiated. Re-run the pipeline to deploy again."
+          else
+            echo "Stack status is '${STATUS:-stack may not exist}'; not deleting (only ROLLBACK_COMPLETE stacks are deleted)."
+          fi
 
   deploy-prod:
     if: github.ref == 'refs/heads/master'
-    needs: [deploy-testing]
+    needs: [build-and-package]
     runs-on: ubuntu-latest
     # Configure GitHub Action Environment to have a manual approval step before deployment to production
     # https://docs.github.com/en/actions/reference/environments
@@ -284,20 +359,56 @@ jobs:
         env:
           PROD_DATABASE_USERNAME: ${{ secrets.PROD_DATABASE_USERNAME }}
           PROD_DATABASE_PASSWORD: ${{ secrets.PROD_DATABASE_PASSWORD }}
+          PROXY_URL: ${{ secrets.PROXY_URL }}
         run: |
           if [ -z "$PROD_DATABASE_USERNAME" ] || [ -z "$PROD_DATABASE_PASSWORD" ]; then
             echo "Error: PROD_DATABASE_USERNAME and PROD_DATABASE_PASSWORD must be set as repository secrets."
             exit 1
           fi
+          if [ -z "$PROXY_URL" ]; then
+            echo "Error: PROXY_URL must be set as a repository secret for production deployment."
+            exit 1
+          fi
+          FCK_NAT_AMI=$(aws ec2 describe-images --owners 568608671756 \
+            --filters "Name=name,Values=fck-nat-al2023-*" "Name=architecture,Values=arm64" \
+            --query "sort_by(Images,&CreationDate)[-1].ImageId" --output text \
+            --region ${PROD_REGION})
           sam deploy --config-env ci \
             --stack-name ${PROD_STACK_NAME} \
             --template packaged-prod.yaml \
-            --capabilities CAPABILITY_IAM \
+            --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM \
             --region ${PROD_REGION} \
             --s3-bucket ${PROD_ARTIFACTS_BUCKET} \
             --no-fail-on-empty-changeset \
             --role-arn ${PROD_CLOUDFORMATION_EXECUTION_ROLE} \
-            --parameter-overrides "devEnvironment=production DatabaseUsername=$PROD_DATABASE_USERNAME DatabasePassword=$PROD_DATABASE_PASSWORD"
+            --parameter-overrides "devEnvironment=production DatabaseUsername=$PROD_DATABASE_USERNAME DatabasePassword=$PROD_DATABASE_PASSWORD FckNatAMIId=$FCK_NAT_AMI ProxyUrl=$PROXY_URL"
+
+  delete-prod-stack-on-failure:
+    if: always() && github.ref == 'refs/heads/master' && needs.deploy-prod.result == 'failure'
+    needs: [deploy-prod]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Assume the prod pipeline user role
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ env.PIPELINE_USER_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ env.PIPELINE_USER_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.PROD_REGION }}
+          role-to-assume: ${{ env.PROD_PIPELINE_EXECUTION_ROLE }}
+          role-session-name: prod-cleanup
+          role-duration-seconds: 3600
+          role-skip-session-tagging: true
+
+      - name: Delete failed production stack
+        run: |
+          STATUS=$(aws cloudformation describe-stacks --stack-name ${PROD_STACK_NAME} --region ${PROD_REGION} --query 'Stacks[0].StackStatus' --output text 2>/dev/null) || true
+          if [ "$STATUS" = "ROLLBACK_COMPLETE" ]; then
+            echo "Stack ${PROD_STACK_NAME} is ROLLBACK_COMPLETE; deleting so the next run can create a fresh stack."
+            aws cloudformation delete-stack --stack-name ${PROD_STACK_NAME} --region ${PROD_REGION}
+            echo "Stack delete initiated. Re-run the pipeline to deploy again."
+          else
+            echo "Stack status is '${STATUS:-stack may not exist}'; not deleting (only ROLLBACK_COMPLETE stacks are deleted)."
+          fi
 
   run-migrations:
     runs-on: ubuntu-latest
@@ -344,18 +455,23 @@ jobs:
           else
             STACK_NAME=${TESTING_STACK_NAME}
           fi
-          DB_ENDPOINT=$(aws rds describe-db-instances \
-            --db-instance-identifier dev-db \
+          DB_ENDPOINT=$(aws cloudformation describe-stacks \
+            --stack-name ${STACK_NAME} \
             --region ${TESTING_REGION} \
-            --query 'DBInstances[0].Endpoint.Address' \
+            --query "Stacks[0].Outputs[?OutputKey=='DevDatabaseEndpoint'].OutputValue" \
             --output text)
           echo "DB_ENDPOINT=${DB_ENDPOINT}" >> $GITHUB_OUTPUT
           echo "STACK_NAME=${STACK_NAME}" >> $GITHUB_OUTPUT
 
       - name: Run migrations on dev database
         if: needs.deploy-testing.result == 'success' || needs.build-and-deploy-feature.result == 'success'
+        env:
+          DEV_DATABASE_USERNAME: ${{ secrets.DEV_DATABASE_USERNAME }}
+          DEV_DATABASE_PASSWORD: ${{ secrets.DEV_DATABASE_PASSWORD }}
         run: |
-          DB_URL="postgres://${DEV_DATABASE_USERNAME}:${DEV_DATABASE_PASSWORD}@${{ steps.get-dev-endpoint.outputs.DB_ENDPOINT }}:5432/dev-db?sslmode=require"
+          ENCODED_USER=$(python3 -c "import urllib.parse, os; print(urllib.parse.quote(os.environ.get('DEV_DATABASE_USERNAME', ''), safe=''))")
+          ENCODED_PASS=$(python3 -c "import urllib.parse, os; print(urllib.parse.quote(os.environ.get('DEV_DATABASE_PASSWORD', ''), safe=''))")
+          DB_URL="postgres://${ENCODED_USER}:${ENCODED_PASS}@${{ steps.get-dev-endpoint.outputs.DB_ENDPOINT }}:5432/dev-db?sslmode=require"
           dbmate --url "${DB_URL}" up
 
       - name: Assume the prod pipeline user role
@@ -370,19 +486,59 @@ jobs:
           role-duration-seconds: 3600
           role-skip-session-tagging: true
 
-      - name: Get prod database endpoint
+      - name: Get prod bastion and database endpoint
         if: needs.deploy-prod.result == 'success'
-        id: get-prod-endpoint
+        id: get-prod-bastion
         run: |
-          DB_ENDPOINT=$(aws rds describe-db-instances \
-            --db-instance-identifier production-db \
+          BASTION_IP=$(aws cloudformation describe-stacks \
+            --stack-name ${PROD_STACK_NAME} \
             --region ${PROD_REGION} \
-            --query 'DBInstances[0].Endpoint.Address' \
+            --query "Stacks[0].Outputs[?OutputKey=='BastionPublicIP'].OutputValue" \
             --output text)
+          DB_ENDPOINT=$(aws cloudformation describe-stacks \
+            --stack-name ${PROD_STACK_NAME} \
+            --region ${PROD_REGION} \
+            --query "Stacks[0].Outputs[?OutputKey=='ProductionDatabaseEndpoint'].OutputValue" \
+            --output text)
+          KEY_PAIR_ID=$(aws cloudformation describe-stacks \
+            --stack-name ${PROD_STACK_NAME} \
+            --region ${PROD_REGION} \
+            --query "Stacks[0].Outputs[?OutputKey=='BastionKeyPairId'].OutputValue" \
+            --output text)
+          echo "BASTION_IP=${BASTION_IP}" >> $GITHUB_OUTPUT
           echo "DB_ENDPOINT=${DB_ENDPOINT}" >> $GITHUB_OUTPUT
+          echo "KEY_PAIR_ID=${KEY_PAIR_ID}" >> $GITHUB_OUTPUT
 
-      - name: Run migrations on prod database
+      - name: Run migrations on prod database (SSH tunnel via bastion)
         if: needs.deploy-prod.result == 'success'
+        env:
+          PROD_DATABASE_USERNAME: ${{ secrets.PROD_DATABASE_USERNAME }}
+          PROD_DATABASE_PASSWORD: ${{ secrets.PROD_DATABASE_PASSWORD }}
         run: |
-          DB_URL="postgres://${PROD_DATABASE_USERNAME}:${PROD_DATABASE_PASSWORD}@${{ steps.get-prod-endpoint.outputs.DB_ENDPOINT }}:5432/production-db?sslmode=require"
+          cleanup() {
+            SSH_PID=$(pgrep -f "ssh.*5432:.*:5432" 2>/dev/null) || true
+            [ -n "$SSH_PID" ] && kill $SSH_PID 2>/dev/null || true
+            rm -f bastion_key.pem
+          }
+          trap cleanup EXIT
+          BASTION_IP="${{ steps.get-prod-bastion.outputs.BASTION_IP }}"
+          DB_ENDPOINT="${{ steps.get-prod-bastion.outputs.DB_ENDPOINT }}"
+          KEY_PAIR_ID="${{ steps.get-prod-bastion.outputs.KEY_PAIR_ID }}"
+          if [ -z "$BASTION_IP" ] || [ -z "$DB_ENDPOINT" ] || [ -z "$KEY_PAIR_ID" ]; then
+            echo "Missing BASTION_IP, DB_ENDPOINT, or KEY_PAIR_ID from stack outputs."
+            exit 1
+          fi
+          aws ssm get-parameter --name "/ec2/keypair/${KEY_PAIR_ID}" --with-decryption --query Parameter.Value --output text --region ${PROD_REGION} > bastion_key.pem
+          chmod 600 bastion_key.pem
+          for i in $(seq 1 18); do
+            if ssh -o StrictHostKeyChecking=accept-new -o UserKnownHostsFile=/dev/null -o ConnectTimeout=10 -i bastion_key.pem -f -N -L 5432:${DB_ENDPOINT}:5432 ec2-user@${BASTION_IP}; then
+              break
+            fi
+            [ $i -eq 18 ] && { echo "SSH tunnel failed after 18 attempts."; exit 1; }
+            echo "Bastion may still be booting, retrying in 10s..."; sleep 10
+          done
+          sleep 2
+          ENCODED_USER=$(python3 -c "import urllib.parse, os; print(urllib.parse.quote(os.environ.get('PROD_DATABASE_USERNAME', ''), safe=''))")
+          ENCODED_PASS=$(python3 -c "import urllib.parse, os; print(urllib.parse.quote(os.environ.get('PROD_DATABASE_PASSWORD', ''), safe=''))")
+          DB_URL="postgres://${ENCODED_USER}:${ENCODED_PASS}@127.0.0.1:5432/productiondb?sslmode=require"
           dbmate --url "${DB_URL}" up

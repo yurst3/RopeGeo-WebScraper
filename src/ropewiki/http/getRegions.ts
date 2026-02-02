@@ -1,3 +1,4 @@
+import httpRequest from '../../helpers/httpRequest';
 import { RopewikiRegion } from '../types/region';
 
 const encode = (input: string) => {
@@ -21,15 +22,10 @@ const getRegions = async (): Promise<RopewikiRegion[]> => {
         url.searchParams.append('format', 'json');
         url.searchParams.append('limit', '2000');
 
-        const response = await fetch(url);
+        const response = await httpRequest(url);
+        const body = await response.json();
 
-        if (response.ok) {
-            const body = await response.json();
-
-            return Object.entries(body.results).map(([name, result]) => RopewikiRegion.fromResponseBody(name, result));
-        } else {
-            throw new Error(`Error getting regions: ${response.status} ${response.statusText}`);
-        }
+        return Object.entries(body.results).map(([name, result]) => RopewikiRegion.fromResponseBody(name, result));
     } catch (error) {
         throw new Error(`Error getting regions: ${error}`);
     }

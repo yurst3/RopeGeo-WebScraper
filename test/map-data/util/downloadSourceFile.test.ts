@@ -37,7 +37,10 @@ describe('downloadSourceFile', () => {
             content: mockSourceFileContent,
         });
         expect(mockFetch).toHaveBeenCalledTimes(1);
-        expect(mockFetch).toHaveBeenCalledWith(mockSourceFileUrl);
+        expect(mockFetch).toHaveBeenCalledWith(
+            mockSourceFileUrl,
+            expect.objectContaining({ headers: expect.any(Object) }),
+        );
         expect(writeFile).toHaveBeenCalledTimes(1);
         expect(writeFile).toHaveBeenCalledWith(
             join(mockTempDir, `${mockMapDataId}.kml`),
@@ -61,6 +64,10 @@ describe('downloadSourceFile', () => {
             content: mockSourceFileContent,
         });
         expect(mockFetch).toHaveBeenCalledTimes(1);
+        expect(mockFetch).toHaveBeenCalledWith(
+            mockSourceFileUrl,
+            expect.objectContaining({ headers: expect.any(Object) }),
+        );
         expect(writeFile).toHaveBeenCalledWith(
             join(mockTempDir, `${mockMapDataId}.gpx`),
             mockSourceFileContent,
@@ -73,11 +80,15 @@ describe('downloadSourceFile', () => {
             ok: false,
             status: 404,
             statusText: 'Not Found',
+            url: mockSourceFileUrl,
+            headers: { get: () => null },
+            clone: () => ({ text: () => Promise.resolve('Not Found') }),
         } as unknown as Response);
 
-        await expect(downloadSourceFile(mockSourceFileUrl, mockTempDir, mockMapDataId, true)).rejects.toThrow(
-            'Failed to download source file: 404 Not Found'
-        );
+        const err = await downloadSourceFile(mockSourceFileUrl, mockTempDir, mockMapDataId, true).catch((e) => e);
+        expect(err).toBeInstanceOf(Error);
+        expect((err as Error).message).toContain('httpRequest non-OK');
+        expect((err as Error).message).toContain('404');
         expect(mockFetch).toHaveBeenCalledTimes(1);
         expect(writeFile).not.toHaveBeenCalled();
     });
@@ -86,9 +97,10 @@ describe('downloadSourceFile', () => {
         const fetchError = new Error('Network error');
         mockFetch.mockRejectedValue(fetchError);
 
-        await expect(downloadSourceFile(mockSourceFileUrl, mockTempDir, mockMapDataId, true)).rejects.toThrow(
-            'Network error'
-        );
+        const err = await downloadSourceFile(mockSourceFileUrl, mockTempDir, mockMapDataId, true).catch((e) => e);
+        expect(err).toBeInstanceOf(Error);
+        expect((err as Error).message).toContain('httpRequest failed');
+        expect((err as Error).message).toContain('Network error');
         expect(mockFetch).toHaveBeenCalledTimes(1);
         expect(writeFile).not.toHaveBeenCalled();
     });
@@ -127,6 +139,9 @@ describe('downloadSourceFile', () => {
     it('throws error for non-Error thrown values', async () => {
         mockFetch.mockRejectedValue('String error');
 
-        await expect(downloadSourceFile(mockSourceFileUrl, mockTempDir, mockMapDataId, true)).rejects.toBe('String error');
+        const err = await downloadSourceFile(mockSourceFileUrl, mockTempDir, mockMapDataId, true).catch((e) => e);
+        expect(err).toBeInstanceOf(Error);
+        expect((err as Error).message).toContain('httpRequest failed');
+        expect((err as Error).message).toContain('String error');
     });
 });
