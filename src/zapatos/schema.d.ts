@@ -346,6 +346,1681 @@ declare module 'zapatos/schema' {
   }
 
   /**
+   * **RoadTripRyanBetaSection**
+   * - Table in database
+   */
+  export namespace RoadTripRyanBetaSection {
+    export type Table = 'RoadTripRyanBetaSection';
+    export interface Selectable {
+      /**
+      * **RoadTripRyanBetaSection.createdAt**
+      * - `timestamp` in database
+      * - `NOT NULL`, default: `CURRENT_TIMESTAMP`
+      */
+      createdAt: Date;
+      /**
+      * **RoadTripRyanBetaSection.deletedAt**
+      * - `timestamp` in database
+      * - Nullable, no default
+      */
+      deletedAt: Date | null;
+      /**
+      * **RoadTripRyanBetaSection.id**
+      * - `uuid` in database
+      * - `NOT NULL`, no default
+      */
+      id: string;
+      /**
+      * **RoadTripRyanBetaSection.notes**
+      * - `jsonb` in database
+      * - Nullable, no default
+      */
+      notes: db.JSONValue | null;
+      /**
+      * **RoadTripRyanBetaSection.order**
+      * - `int4` in database
+      * - Nullable, no default
+      */
+      order: number | null;
+      /**
+      * **RoadTripRyanBetaSection.page**
+      * - `uuid` in database
+      * - Nullable, no default
+      */
+      page: string | null;
+      /**
+      * **RoadTripRyanBetaSection.region**
+      * - `uuid` in database
+      * - Nullable, no default
+      */
+      region: string | null;
+      /**
+      * **RoadTripRyanBetaSection.text**
+      * - `text` in database
+      * - `NOT NULL`, no default
+      */
+      text: string;
+      /**
+      * **RoadTripRyanBetaSection.title**
+      * - `text` in database
+      * - `NOT NULL`, no default
+      */
+      title: string;
+      /**
+      * **RoadTripRyanBetaSection.updatedAt**
+      * - `timestamp` in database
+      * - `NOT NULL`, default: `CURRENT_TIMESTAMP`
+      */
+      updatedAt: Date;
+    }
+    export interface JSONSelectable {
+      /**
+      * **RoadTripRyanBetaSection.createdAt**
+      * - `timestamp` in database
+      * - `NOT NULL`, default: `CURRENT_TIMESTAMP`
+      */
+      createdAt: db.TimestampString;
+      /**
+      * **RoadTripRyanBetaSection.deletedAt**
+      * - `timestamp` in database
+      * - Nullable, no default
+      */
+      deletedAt: db.TimestampString | null;
+      /**
+      * **RoadTripRyanBetaSection.id**
+      * - `uuid` in database
+      * - `NOT NULL`, no default
+      */
+      id: string;
+      /**
+      * **RoadTripRyanBetaSection.notes**
+      * - `jsonb` in database
+      * - Nullable, no default
+      */
+      notes: db.JSONValue | null;
+      /**
+      * **RoadTripRyanBetaSection.order**
+      * - `int4` in database
+      * - Nullable, no default
+      */
+      order: number | null;
+      /**
+      * **RoadTripRyanBetaSection.page**
+      * - `uuid` in database
+      * - Nullable, no default
+      */
+      page: string | null;
+      /**
+      * **RoadTripRyanBetaSection.region**
+      * - `uuid` in database
+      * - Nullable, no default
+      */
+      region: string | null;
+      /**
+      * **RoadTripRyanBetaSection.text**
+      * - `text` in database
+      * - `NOT NULL`, no default
+      */
+      text: string;
+      /**
+      * **RoadTripRyanBetaSection.title**
+      * - `text` in database
+      * - `NOT NULL`, no default
+      */
+      title: string;
+      /**
+      * **RoadTripRyanBetaSection.updatedAt**
+      * - `timestamp` in database
+      * - `NOT NULL`, default: `CURRENT_TIMESTAMP`
+      */
+      updatedAt: db.TimestampString;
+    }
+    export interface Whereable {
+      /**
+      * **RoadTripRyanBetaSection.createdAt**
+      * - `timestamp` in database
+      * - `NOT NULL`, default: `CURRENT_TIMESTAMP`
+      */
+      createdAt?: (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.SQLFragment | db.ParentColumn>;
+      /**
+      * **RoadTripRyanBetaSection.deletedAt**
+      * - `timestamp` in database
+      * - Nullable, no default
+      */
+      deletedAt?: (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.SQLFragment | db.ParentColumn>;
+      /**
+      * **RoadTripRyanBetaSection.id**
+      * - `uuid` in database
+      * - `NOT NULL`, no default
+      */
+      id?: string | db.Parameter<string> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, string | db.Parameter<string> | db.SQLFragment | db.ParentColumn>;
+      /**
+      * **RoadTripRyanBetaSection.notes**
+      * - `jsonb` in database
+      * - Nullable, no default
+      */
+      notes?: db.JSONValue | db.Parameter<db.JSONValue> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, db.JSONValue | db.Parameter<db.JSONValue> | db.SQLFragment | db.ParentColumn>;
+      /**
+      * **RoadTripRyanBetaSection.order**
+      * - `int4` in database
+      * - Nullable, no default
+      */
+      order?: number | db.Parameter<number> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, number | db.Parameter<number> | db.SQLFragment | db.ParentColumn>;
+      /**
+      * **RoadTripRyanBetaSection.page**
+      * - `uuid` in database
+      * - Nullable, no default
+      */
+      page?: string | db.Parameter<string> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, string | db.Parameter<string> | db.SQLFragment | db.ParentColumn>;
+      /**
+      * **RoadTripRyanBetaSection.region**
+      * - `uuid` in database
+      * - Nullable, no default
+      */
+      region?: string | db.Parameter<string> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, string | db.Parameter<string> | db.SQLFragment | db.ParentColumn>;
+      /**
+      * **RoadTripRyanBetaSection.text**
+      * - `text` in database
+      * - `NOT NULL`, no default
+      */
+      text?: string | db.Parameter<string> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, string | db.Parameter<string> | db.SQLFragment | db.ParentColumn>;
+      /**
+      * **RoadTripRyanBetaSection.title**
+      * - `text` in database
+      * - `NOT NULL`, no default
+      */
+      title?: string | db.Parameter<string> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, string | db.Parameter<string> | db.SQLFragment | db.ParentColumn>;
+      /**
+      * **RoadTripRyanBetaSection.updatedAt**
+      * - `timestamp` in database
+      * - `NOT NULL`, default: `CURRENT_TIMESTAMP`
+      */
+      updatedAt?: (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.SQLFragment | db.ParentColumn>;
+    }
+    export interface Insertable {
+      /**
+      * **RoadTripRyanBetaSection.createdAt**
+      * - `timestamp` in database
+      * - `NOT NULL`, default: `CURRENT_TIMESTAMP`
+      */
+      createdAt?: (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.DefaultType | db.SQLFragment;
+      /**
+      * **RoadTripRyanBetaSection.deletedAt**
+      * - `timestamp` in database
+      * - Nullable, no default
+      */
+      deletedAt?: (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | null | db.DefaultType | db.SQLFragment;
+      /**
+      * **RoadTripRyanBetaSection.id**
+      * - `uuid` in database
+      * - `NOT NULL`, no default
+      */
+      id: string | db.Parameter<string> | db.SQLFragment;
+      /**
+      * **RoadTripRyanBetaSection.notes**
+      * - `jsonb` in database
+      * - Nullable, no default
+      */
+      notes?: db.JSONValue | db.Parameter<db.JSONValue> | null | db.DefaultType | db.SQLFragment;
+      /**
+      * **RoadTripRyanBetaSection.order**
+      * - `int4` in database
+      * - Nullable, no default
+      */
+      order?: number | db.Parameter<number> | null | db.DefaultType | db.SQLFragment;
+      /**
+      * **RoadTripRyanBetaSection.page**
+      * - `uuid` in database
+      * - Nullable, no default
+      */
+      page?: string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment;
+      /**
+      * **RoadTripRyanBetaSection.region**
+      * - `uuid` in database
+      * - Nullable, no default
+      */
+      region?: string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment;
+      /**
+      * **RoadTripRyanBetaSection.text**
+      * - `text` in database
+      * - `NOT NULL`, no default
+      */
+      text: string | db.Parameter<string> | db.SQLFragment;
+      /**
+      * **RoadTripRyanBetaSection.title**
+      * - `text` in database
+      * - `NOT NULL`, no default
+      */
+      title: string | db.Parameter<string> | db.SQLFragment;
+      /**
+      * **RoadTripRyanBetaSection.updatedAt**
+      * - `timestamp` in database
+      * - `NOT NULL`, default: `CURRENT_TIMESTAMP`
+      */
+      updatedAt?: (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.DefaultType | db.SQLFragment;
+    }
+    export interface Updatable {
+      /**
+      * **RoadTripRyanBetaSection.createdAt**
+      * - `timestamp` in database
+      * - `NOT NULL`, default: `CURRENT_TIMESTAMP`
+      */
+      createdAt?: (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.DefaultType | db.SQLFragment | db.SQLFragment<any, (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.DefaultType | db.SQLFragment>;
+      /**
+      * **RoadTripRyanBetaSection.deletedAt**
+      * - `timestamp` in database
+      * - Nullable, no default
+      */
+      deletedAt?: (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | null | db.DefaultType | db.SQLFragment | db.SQLFragment<any, (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | null | db.DefaultType | db.SQLFragment>;
+      /**
+      * **RoadTripRyanBetaSection.id**
+      * - `uuid` in database
+      * - `NOT NULL`, no default
+      */
+      id?: string | db.Parameter<string> | db.SQLFragment | db.SQLFragment<any, string | db.Parameter<string> | db.SQLFragment>;
+      /**
+      * **RoadTripRyanBetaSection.notes**
+      * - `jsonb` in database
+      * - Nullable, no default
+      */
+      notes?: db.JSONValue | db.Parameter<db.JSONValue> | null | db.DefaultType | db.SQLFragment | db.SQLFragment<any, db.JSONValue | db.Parameter<db.JSONValue> | null | db.DefaultType | db.SQLFragment>;
+      /**
+      * **RoadTripRyanBetaSection.order**
+      * - `int4` in database
+      * - Nullable, no default
+      */
+      order?: number | db.Parameter<number> | null | db.DefaultType | db.SQLFragment | db.SQLFragment<any, number | db.Parameter<number> | null | db.DefaultType | db.SQLFragment>;
+      /**
+      * **RoadTripRyanBetaSection.page**
+      * - `uuid` in database
+      * - Nullable, no default
+      */
+      page?: string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment | db.SQLFragment<any, string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment>;
+      /**
+      * **RoadTripRyanBetaSection.region**
+      * - `uuid` in database
+      * - Nullable, no default
+      */
+      region?: string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment | db.SQLFragment<any, string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment>;
+      /**
+      * **RoadTripRyanBetaSection.text**
+      * - `text` in database
+      * - `NOT NULL`, no default
+      */
+      text?: string | db.Parameter<string> | db.SQLFragment | db.SQLFragment<any, string | db.Parameter<string> | db.SQLFragment>;
+      /**
+      * **RoadTripRyanBetaSection.title**
+      * - `text` in database
+      * - `NOT NULL`, no default
+      */
+      title?: string | db.Parameter<string> | db.SQLFragment | db.SQLFragment<any, string | db.Parameter<string> | db.SQLFragment>;
+      /**
+      * **RoadTripRyanBetaSection.updatedAt**
+      * - `timestamp` in database
+      * - `NOT NULL`, default: `CURRENT_TIMESTAMP`
+      */
+      updatedAt?: (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.DefaultType | db.SQLFragment | db.SQLFragment<any, (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.DefaultType | db.SQLFragment>;
+    }
+    export type UniqueIndex = 'RoadTripRyanBetaSection_pkey' | 'uk_RoadTripRyanBetaSection_order_page' | 'uk_RoadTripRyanBetaSection_order_region' | 'uk_RoadTripRyanBetaSection_title_page' | 'uk_RoadTripRyanBetaSection_title_region';
+    export type Column = keyof Selectable;
+    export type OnlyCols<T extends readonly Column[]> = Pick<Selectable, T[number]>;
+    export type SQLExpression = Table | db.ColumnNames<Updatable | (keyof Updatable)[]> | db.ColumnValues<Updatable> | Whereable | Column | db.ParentColumn | db.GenericSQLExpression;
+    export type SQL = SQLExpression | SQLExpression[];
+  }
+
+  /**
+   * **RoadTripRyanImage**
+   * - Table in database
+   */
+  export namespace RoadTripRyanImage {
+    export type Table = 'RoadTripRyanImage';
+    export interface Selectable {
+      /**
+      * **RoadTripRyanImage.caption**
+      * - `text` in database
+      * - Nullable, no default
+      */
+      caption: string | null;
+      /**
+      * **RoadTripRyanImage.createdAt**
+      * - `timestamp` in database
+      * - `NOT NULL`, default: `CURRENT_TIMESTAMP`
+      */
+      createdAt: Date;
+      /**
+      * **RoadTripRyanImage.deletedAt**
+      * - `timestamp` in database
+      * - Nullable, no default
+      */
+      deletedAt: Date | null;
+      /**
+      * **RoadTripRyanImage.id**
+      * - `uuid` in database
+      * - `NOT NULL`, no default
+      */
+      id: string;
+      /**
+      * **RoadTripRyanImage.isBanner**
+      * - `bool` in database
+      * - `NOT NULL`, no default
+      */
+      isBanner: boolean;
+      /**
+      * **RoadTripRyanImage.page**
+      * - `uuid` in database
+      * - Nullable, no default
+      */
+      page: string | null;
+      /**
+      * **RoadTripRyanImage.region**
+      * - `uuid` in database
+      * - Nullable, no default
+      */
+      region: string | null;
+      /**
+      * **RoadTripRyanImage.updatedAt**
+      * - `timestamp` in database
+      * - `NOT NULL`, default: `CURRENT_TIMESTAMP`
+      */
+      updatedAt: Date;
+      /**
+      * **RoadTripRyanImage.url**
+      * - `text` in database
+      * - `NOT NULL`, no default
+      */
+      url: string;
+    }
+    export interface JSONSelectable {
+      /**
+      * **RoadTripRyanImage.caption**
+      * - `text` in database
+      * - Nullable, no default
+      */
+      caption: string | null;
+      /**
+      * **RoadTripRyanImage.createdAt**
+      * - `timestamp` in database
+      * - `NOT NULL`, default: `CURRENT_TIMESTAMP`
+      */
+      createdAt: db.TimestampString;
+      /**
+      * **RoadTripRyanImage.deletedAt**
+      * - `timestamp` in database
+      * - Nullable, no default
+      */
+      deletedAt: db.TimestampString | null;
+      /**
+      * **RoadTripRyanImage.id**
+      * - `uuid` in database
+      * - `NOT NULL`, no default
+      */
+      id: string;
+      /**
+      * **RoadTripRyanImage.isBanner**
+      * - `bool` in database
+      * - `NOT NULL`, no default
+      */
+      isBanner: boolean;
+      /**
+      * **RoadTripRyanImage.page**
+      * - `uuid` in database
+      * - Nullable, no default
+      */
+      page: string | null;
+      /**
+      * **RoadTripRyanImage.region**
+      * - `uuid` in database
+      * - Nullable, no default
+      */
+      region: string | null;
+      /**
+      * **RoadTripRyanImage.updatedAt**
+      * - `timestamp` in database
+      * - `NOT NULL`, default: `CURRENT_TIMESTAMP`
+      */
+      updatedAt: db.TimestampString;
+      /**
+      * **RoadTripRyanImage.url**
+      * - `text` in database
+      * - `NOT NULL`, no default
+      */
+      url: string;
+    }
+    export interface Whereable {
+      /**
+      * **RoadTripRyanImage.caption**
+      * - `text` in database
+      * - Nullable, no default
+      */
+      caption?: string | db.Parameter<string> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, string | db.Parameter<string> | db.SQLFragment | db.ParentColumn>;
+      /**
+      * **RoadTripRyanImage.createdAt**
+      * - `timestamp` in database
+      * - `NOT NULL`, default: `CURRENT_TIMESTAMP`
+      */
+      createdAt?: (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.SQLFragment | db.ParentColumn>;
+      /**
+      * **RoadTripRyanImage.deletedAt**
+      * - `timestamp` in database
+      * - Nullable, no default
+      */
+      deletedAt?: (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.SQLFragment | db.ParentColumn>;
+      /**
+      * **RoadTripRyanImage.id**
+      * - `uuid` in database
+      * - `NOT NULL`, no default
+      */
+      id?: string | db.Parameter<string> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, string | db.Parameter<string> | db.SQLFragment | db.ParentColumn>;
+      /**
+      * **RoadTripRyanImage.isBanner**
+      * - `bool` in database
+      * - `NOT NULL`, no default
+      */
+      isBanner?: boolean | db.Parameter<boolean> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, boolean | db.Parameter<boolean> | db.SQLFragment | db.ParentColumn>;
+      /**
+      * **RoadTripRyanImage.page**
+      * - `uuid` in database
+      * - Nullable, no default
+      */
+      page?: string | db.Parameter<string> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, string | db.Parameter<string> | db.SQLFragment | db.ParentColumn>;
+      /**
+      * **RoadTripRyanImage.region**
+      * - `uuid` in database
+      * - Nullable, no default
+      */
+      region?: string | db.Parameter<string> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, string | db.Parameter<string> | db.SQLFragment | db.ParentColumn>;
+      /**
+      * **RoadTripRyanImage.updatedAt**
+      * - `timestamp` in database
+      * - `NOT NULL`, default: `CURRENT_TIMESTAMP`
+      */
+      updatedAt?: (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.SQLFragment | db.ParentColumn>;
+      /**
+      * **RoadTripRyanImage.url**
+      * - `text` in database
+      * - `NOT NULL`, no default
+      */
+      url?: string | db.Parameter<string> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, string | db.Parameter<string> | db.SQLFragment | db.ParentColumn>;
+    }
+    export interface Insertable {
+      /**
+      * **RoadTripRyanImage.caption**
+      * - `text` in database
+      * - Nullable, no default
+      */
+      caption?: string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment;
+      /**
+      * **RoadTripRyanImage.createdAt**
+      * - `timestamp` in database
+      * - `NOT NULL`, default: `CURRENT_TIMESTAMP`
+      */
+      createdAt?: (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.DefaultType | db.SQLFragment;
+      /**
+      * **RoadTripRyanImage.deletedAt**
+      * - `timestamp` in database
+      * - Nullable, no default
+      */
+      deletedAt?: (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | null | db.DefaultType | db.SQLFragment;
+      /**
+      * **RoadTripRyanImage.id**
+      * - `uuid` in database
+      * - `NOT NULL`, no default
+      */
+      id: string | db.Parameter<string> | db.SQLFragment;
+      /**
+      * **RoadTripRyanImage.isBanner**
+      * - `bool` in database
+      * - `NOT NULL`, no default
+      */
+      isBanner: boolean | db.Parameter<boolean> | db.SQLFragment;
+      /**
+      * **RoadTripRyanImage.page**
+      * - `uuid` in database
+      * - Nullable, no default
+      */
+      page?: string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment;
+      /**
+      * **RoadTripRyanImage.region**
+      * - `uuid` in database
+      * - Nullable, no default
+      */
+      region?: string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment;
+      /**
+      * **RoadTripRyanImage.updatedAt**
+      * - `timestamp` in database
+      * - `NOT NULL`, default: `CURRENT_TIMESTAMP`
+      */
+      updatedAt?: (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.DefaultType | db.SQLFragment;
+      /**
+      * **RoadTripRyanImage.url**
+      * - `text` in database
+      * - `NOT NULL`, no default
+      */
+      url: string | db.Parameter<string> | db.SQLFragment;
+    }
+    export interface Updatable {
+      /**
+      * **RoadTripRyanImage.caption**
+      * - `text` in database
+      * - Nullable, no default
+      */
+      caption?: string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment | db.SQLFragment<any, string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment>;
+      /**
+      * **RoadTripRyanImage.createdAt**
+      * - `timestamp` in database
+      * - `NOT NULL`, default: `CURRENT_TIMESTAMP`
+      */
+      createdAt?: (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.DefaultType | db.SQLFragment | db.SQLFragment<any, (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.DefaultType | db.SQLFragment>;
+      /**
+      * **RoadTripRyanImage.deletedAt**
+      * - `timestamp` in database
+      * - Nullable, no default
+      */
+      deletedAt?: (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | null | db.DefaultType | db.SQLFragment | db.SQLFragment<any, (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | null | db.DefaultType | db.SQLFragment>;
+      /**
+      * **RoadTripRyanImage.id**
+      * - `uuid` in database
+      * - `NOT NULL`, no default
+      */
+      id?: string | db.Parameter<string> | db.SQLFragment | db.SQLFragment<any, string | db.Parameter<string> | db.SQLFragment>;
+      /**
+      * **RoadTripRyanImage.isBanner**
+      * - `bool` in database
+      * - `NOT NULL`, no default
+      */
+      isBanner?: boolean | db.Parameter<boolean> | db.SQLFragment | db.SQLFragment<any, boolean | db.Parameter<boolean> | db.SQLFragment>;
+      /**
+      * **RoadTripRyanImage.page**
+      * - `uuid` in database
+      * - Nullable, no default
+      */
+      page?: string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment | db.SQLFragment<any, string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment>;
+      /**
+      * **RoadTripRyanImage.region**
+      * - `uuid` in database
+      * - Nullable, no default
+      */
+      region?: string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment | db.SQLFragment<any, string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment>;
+      /**
+      * **RoadTripRyanImage.updatedAt**
+      * - `timestamp` in database
+      * - `NOT NULL`, default: `CURRENT_TIMESTAMP`
+      */
+      updatedAt?: (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.DefaultType | db.SQLFragment | db.SQLFragment<any, (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.DefaultType | db.SQLFragment>;
+      /**
+      * **RoadTripRyanImage.url**
+      * - `text` in database
+      * - `NOT NULL`, no default
+      */
+      url?: string | db.Parameter<string> | db.SQLFragment | db.SQLFragment<any, string | db.Parameter<string> | db.SQLFragment>;
+    }
+    export type UniqueIndex = 'RoadTripRyanImage_pkey' | 'uk_RoadTripRyanImage_url_page' | 'uk_RoadTripRyanImage_url_region';
+    export type Column = keyof Selectable;
+    export type OnlyCols<T extends readonly Column[]> = Pick<Selectable, T[number]>;
+    export type SQLExpression = Table | db.ColumnNames<Updatable | (keyof Updatable)[]> | db.ColumnValues<Updatable> | Whereable | Column | db.ParentColumn | db.GenericSQLExpression;
+    export type SQL = SQLExpression | SQLExpression[];
+  }
+
+  /**
+   * **RoadTripRyanPage**
+   * - Table in database
+   */
+  export namespace RoadTripRyanPage {
+    export type Table = 'RoadTripRyanPage';
+    export interface Selectable {
+      /**
+      * **RoadTripRyanPage.createdAt**
+      * - `timestamp` in database
+      * - `NOT NULL`, default: `CURRENT_TIMESTAMP`
+      */
+      createdAt: Date;
+      /**
+      * **RoadTripRyanPage.deletedAt**
+      * - `timestamp` in database
+      * - Nullable, no default
+      */
+      deletedAt: Date | null;
+      /**
+      * **RoadTripRyanPage.flashFlood**
+      * - `text` in database
+      * - Nullable, no default
+      */
+      flashFlood: string | null;
+      /**
+      * **RoadTripRyanPage.gear**
+      * - `text` in database
+      * - Nullable, no default
+      */
+      gear: string | null;
+      /**
+      * **RoadTripRyanPage.gpx**
+      * - `text` in database
+      * - Nullable, no default
+      */
+      gpx: string | null;
+      /**
+      * **RoadTripRyanPage.id**
+      * - `uuid` in database
+      * - `NOT NULL`, no default
+      */
+      id: string;
+      /**
+      * **RoadTripRyanPage.length**
+      * - `numeric` in database
+      * - Nullable, no default
+      */
+      length: db.NumericString | null;
+      /**
+      * **RoadTripRyanPage.maps**
+      * - `text` in database
+      * - Nullable, no default
+      */
+      maps: string | null;
+      /**
+      * **RoadTripRyanPage.permitLink**
+      * - `text` in database
+      * - Nullable, no default
+      */
+      permitLink: string | null;
+      /**
+      * **RoadTripRyanPage.permitRequired**
+      * - `bool` in database
+      * - Nullable, no default
+      */
+      permitRequired: boolean | null;
+      /**
+      * **RoadTripRyanPage.rappels**
+      * - `int4` in database
+      * - Nullable, no default
+      */
+      rappels: number | null;
+      /**
+      * **RoadTripRyanPage.rated**
+      * - `numeric` in database
+      * - Nullable, no default
+      */
+      rated: db.NumericString | null;
+      /**
+      * **RoadTripRyanPage.region**
+      * - `uuid` in database
+      * - `NOT NULL`, no default
+      */
+      region: string;
+      /**
+      * **RoadTripRyanPage.season**
+      * - `text` in database
+      * - Nullable, no default
+      */
+      season: string | null;
+      /**
+      * **RoadTripRyanPage.tags**
+      * - `jsonb` in database
+      * - Nullable, no default
+      */
+      tags: db.JSONValue | null;
+      /**
+      * **RoadTripRyanPage.title**
+      * - `text` in database
+      * - `NOT NULL`, no default
+      */
+      title: string;
+      /**
+      * **RoadTripRyanPage.updatedAt**
+      * - `timestamp` in database
+      * - `NOT NULL`, default: `CURRENT_TIMESTAMP`
+      */
+      updatedAt: Date;
+      /**
+      * **RoadTripRyanPage.url**
+      * - `text` in database
+      * - `NOT NULL`, no default
+      */
+      url: string;
+      /**
+      * **RoadTripRyanPage.water**
+      * - `text` in database
+      * - Nullable, no default
+      */
+      water: string | null;
+    }
+    export interface JSONSelectable {
+      /**
+      * **RoadTripRyanPage.createdAt**
+      * - `timestamp` in database
+      * - `NOT NULL`, default: `CURRENT_TIMESTAMP`
+      */
+      createdAt: db.TimestampString;
+      /**
+      * **RoadTripRyanPage.deletedAt**
+      * - `timestamp` in database
+      * - Nullable, no default
+      */
+      deletedAt: db.TimestampString | null;
+      /**
+      * **RoadTripRyanPage.flashFlood**
+      * - `text` in database
+      * - Nullable, no default
+      */
+      flashFlood: string | null;
+      /**
+      * **RoadTripRyanPage.gear**
+      * - `text` in database
+      * - Nullable, no default
+      */
+      gear: string | null;
+      /**
+      * **RoadTripRyanPage.gpx**
+      * - `text` in database
+      * - Nullable, no default
+      */
+      gpx: string | null;
+      /**
+      * **RoadTripRyanPage.id**
+      * - `uuid` in database
+      * - `NOT NULL`, no default
+      */
+      id: string;
+      /**
+      * **RoadTripRyanPage.length**
+      * - `numeric` in database
+      * - Nullable, no default
+      */
+      length: number | null;
+      /**
+      * **RoadTripRyanPage.maps**
+      * - `text` in database
+      * - Nullable, no default
+      */
+      maps: string | null;
+      /**
+      * **RoadTripRyanPage.permitLink**
+      * - `text` in database
+      * - Nullable, no default
+      */
+      permitLink: string | null;
+      /**
+      * **RoadTripRyanPage.permitRequired**
+      * - `bool` in database
+      * - Nullable, no default
+      */
+      permitRequired: boolean | null;
+      /**
+      * **RoadTripRyanPage.rappels**
+      * - `int4` in database
+      * - Nullable, no default
+      */
+      rappels: number | null;
+      /**
+      * **RoadTripRyanPage.rated**
+      * - `numeric` in database
+      * - Nullable, no default
+      */
+      rated: number | null;
+      /**
+      * **RoadTripRyanPage.region**
+      * - `uuid` in database
+      * - `NOT NULL`, no default
+      */
+      region: string;
+      /**
+      * **RoadTripRyanPage.season**
+      * - `text` in database
+      * - Nullable, no default
+      */
+      season: string | null;
+      /**
+      * **RoadTripRyanPage.tags**
+      * - `jsonb` in database
+      * - Nullable, no default
+      */
+      tags: db.JSONValue | null;
+      /**
+      * **RoadTripRyanPage.title**
+      * - `text` in database
+      * - `NOT NULL`, no default
+      */
+      title: string;
+      /**
+      * **RoadTripRyanPage.updatedAt**
+      * - `timestamp` in database
+      * - `NOT NULL`, default: `CURRENT_TIMESTAMP`
+      */
+      updatedAt: db.TimestampString;
+      /**
+      * **RoadTripRyanPage.url**
+      * - `text` in database
+      * - `NOT NULL`, no default
+      */
+      url: string;
+      /**
+      * **RoadTripRyanPage.water**
+      * - `text` in database
+      * - Nullable, no default
+      */
+      water: string | null;
+    }
+    export interface Whereable {
+      /**
+      * **RoadTripRyanPage.createdAt**
+      * - `timestamp` in database
+      * - `NOT NULL`, default: `CURRENT_TIMESTAMP`
+      */
+      createdAt?: (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.SQLFragment | db.ParentColumn>;
+      /**
+      * **RoadTripRyanPage.deletedAt**
+      * - `timestamp` in database
+      * - Nullable, no default
+      */
+      deletedAt?: (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.SQLFragment | db.ParentColumn>;
+      /**
+      * **RoadTripRyanPage.flashFlood**
+      * - `text` in database
+      * - Nullable, no default
+      */
+      flashFlood?: string | db.Parameter<string> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, string | db.Parameter<string> | db.SQLFragment | db.ParentColumn>;
+      /**
+      * **RoadTripRyanPage.gear**
+      * - `text` in database
+      * - Nullable, no default
+      */
+      gear?: string | db.Parameter<string> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, string | db.Parameter<string> | db.SQLFragment | db.ParentColumn>;
+      /**
+      * **RoadTripRyanPage.gpx**
+      * - `text` in database
+      * - Nullable, no default
+      */
+      gpx?: string | db.Parameter<string> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, string | db.Parameter<string> | db.SQLFragment | db.ParentColumn>;
+      /**
+      * **RoadTripRyanPage.id**
+      * - `uuid` in database
+      * - `NOT NULL`, no default
+      */
+      id?: string | db.Parameter<string> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, string | db.Parameter<string> | db.SQLFragment | db.ParentColumn>;
+      /**
+      * **RoadTripRyanPage.length**
+      * - `numeric` in database
+      * - Nullable, no default
+      */
+      length?: (number | db.NumericString) | db.Parameter<(number | db.NumericString)> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, (number | db.NumericString) | db.Parameter<(number | db.NumericString)> | db.SQLFragment | db.ParentColumn>;
+      /**
+      * **RoadTripRyanPage.maps**
+      * - `text` in database
+      * - Nullable, no default
+      */
+      maps?: string | db.Parameter<string> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, string | db.Parameter<string> | db.SQLFragment | db.ParentColumn>;
+      /**
+      * **RoadTripRyanPage.permitLink**
+      * - `text` in database
+      * - Nullable, no default
+      */
+      permitLink?: string | db.Parameter<string> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, string | db.Parameter<string> | db.SQLFragment | db.ParentColumn>;
+      /**
+      * **RoadTripRyanPage.permitRequired**
+      * - `bool` in database
+      * - Nullable, no default
+      */
+      permitRequired?: boolean | db.Parameter<boolean> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, boolean | db.Parameter<boolean> | db.SQLFragment | db.ParentColumn>;
+      /**
+      * **RoadTripRyanPage.rappels**
+      * - `int4` in database
+      * - Nullable, no default
+      */
+      rappels?: number | db.Parameter<number> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, number | db.Parameter<number> | db.SQLFragment | db.ParentColumn>;
+      /**
+      * **RoadTripRyanPage.rated**
+      * - `numeric` in database
+      * - Nullable, no default
+      */
+      rated?: (number | db.NumericString) | db.Parameter<(number | db.NumericString)> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, (number | db.NumericString) | db.Parameter<(number | db.NumericString)> | db.SQLFragment | db.ParentColumn>;
+      /**
+      * **RoadTripRyanPage.region**
+      * - `uuid` in database
+      * - `NOT NULL`, no default
+      */
+      region?: string | db.Parameter<string> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, string | db.Parameter<string> | db.SQLFragment | db.ParentColumn>;
+      /**
+      * **RoadTripRyanPage.season**
+      * - `text` in database
+      * - Nullable, no default
+      */
+      season?: string | db.Parameter<string> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, string | db.Parameter<string> | db.SQLFragment | db.ParentColumn>;
+      /**
+      * **RoadTripRyanPage.tags**
+      * - `jsonb` in database
+      * - Nullable, no default
+      */
+      tags?: db.JSONValue | db.Parameter<db.JSONValue> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, db.JSONValue | db.Parameter<db.JSONValue> | db.SQLFragment | db.ParentColumn>;
+      /**
+      * **RoadTripRyanPage.title**
+      * - `text` in database
+      * - `NOT NULL`, no default
+      */
+      title?: string | db.Parameter<string> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, string | db.Parameter<string> | db.SQLFragment | db.ParentColumn>;
+      /**
+      * **RoadTripRyanPage.updatedAt**
+      * - `timestamp` in database
+      * - `NOT NULL`, default: `CURRENT_TIMESTAMP`
+      */
+      updatedAt?: (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.SQLFragment | db.ParentColumn>;
+      /**
+      * **RoadTripRyanPage.url**
+      * - `text` in database
+      * - `NOT NULL`, no default
+      */
+      url?: string | db.Parameter<string> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, string | db.Parameter<string> | db.SQLFragment | db.ParentColumn>;
+      /**
+      * **RoadTripRyanPage.water**
+      * - `text` in database
+      * - Nullable, no default
+      */
+      water?: string | db.Parameter<string> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, string | db.Parameter<string> | db.SQLFragment | db.ParentColumn>;
+    }
+    export interface Insertable {
+      /**
+      * **RoadTripRyanPage.createdAt**
+      * - `timestamp` in database
+      * - `NOT NULL`, default: `CURRENT_TIMESTAMP`
+      */
+      createdAt?: (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.DefaultType | db.SQLFragment;
+      /**
+      * **RoadTripRyanPage.deletedAt**
+      * - `timestamp` in database
+      * - Nullable, no default
+      */
+      deletedAt?: (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | null | db.DefaultType | db.SQLFragment;
+      /**
+      * **RoadTripRyanPage.flashFlood**
+      * - `text` in database
+      * - Nullable, no default
+      */
+      flashFlood?: string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment;
+      /**
+      * **RoadTripRyanPage.gear**
+      * - `text` in database
+      * - Nullable, no default
+      */
+      gear?: string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment;
+      /**
+      * **RoadTripRyanPage.gpx**
+      * - `text` in database
+      * - Nullable, no default
+      */
+      gpx?: string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment;
+      /**
+      * **RoadTripRyanPage.id**
+      * - `uuid` in database
+      * - `NOT NULL`, no default
+      */
+      id: string | db.Parameter<string> | db.SQLFragment;
+      /**
+      * **RoadTripRyanPage.length**
+      * - `numeric` in database
+      * - Nullable, no default
+      */
+      length?: (number | db.NumericString) | db.Parameter<(number | db.NumericString)> | null | db.DefaultType | db.SQLFragment;
+      /**
+      * **RoadTripRyanPage.maps**
+      * - `text` in database
+      * - Nullable, no default
+      */
+      maps?: string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment;
+      /**
+      * **RoadTripRyanPage.permitLink**
+      * - `text` in database
+      * - Nullable, no default
+      */
+      permitLink?: string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment;
+      /**
+      * **RoadTripRyanPage.permitRequired**
+      * - `bool` in database
+      * - Nullable, no default
+      */
+      permitRequired?: boolean | db.Parameter<boolean> | null | db.DefaultType | db.SQLFragment;
+      /**
+      * **RoadTripRyanPage.rappels**
+      * - `int4` in database
+      * - Nullable, no default
+      */
+      rappels?: number | db.Parameter<number> | null | db.DefaultType | db.SQLFragment;
+      /**
+      * **RoadTripRyanPage.rated**
+      * - `numeric` in database
+      * - Nullable, no default
+      */
+      rated?: (number | db.NumericString) | db.Parameter<(number | db.NumericString)> | null | db.DefaultType | db.SQLFragment;
+      /**
+      * **RoadTripRyanPage.region**
+      * - `uuid` in database
+      * - `NOT NULL`, no default
+      */
+      region: string | db.Parameter<string> | db.SQLFragment;
+      /**
+      * **RoadTripRyanPage.season**
+      * - `text` in database
+      * - Nullable, no default
+      */
+      season?: string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment;
+      /**
+      * **RoadTripRyanPage.tags**
+      * - `jsonb` in database
+      * - Nullable, no default
+      */
+      tags?: db.JSONValue | db.Parameter<db.JSONValue> | null | db.DefaultType | db.SQLFragment;
+      /**
+      * **RoadTripRyanPage.title**
+      * - `text` in database
+      * - `NOT NULL`, no default
+      */
+      title: string | db.Parameter<string> | db.SQLFragment;
+      /**
+      * **RoadTripRyanPage.updatedAt**
+      * - `timestamp` in database
+      * - `NOT NULL`, default: `CURRENT_TIMESTAMP`
+      */
+      updatedAt?: (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.DefaultType | db.SQLFragment;
+      /**
+      * **RoadTripRyanPage.url**
+      * - `text` in database
+      * - `NOT NULL`, no default
+      */
+      url: string | db.Parameter<string> | db.SQLFragment;
+      /**
+      * **RoadTripRyanPage.water**
+      * - `text` in database
+      * - Nullable, no default
+      */
+      water?: string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment;
+    }
+    export interface Updatable {
+      /**
+      * **RoadTripRyanPage.createdAt**
+      * - `timestamp` in database
+      * - `NOT NULL`, default: `CURRENT_TIMESTAMP`
+      */
+      createdAt?: (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.DefaultType | db.SQLFragment | db.SQLFragment<any, (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.DefaultType | db.SQLFragment>;
+      /**
+      * **RoadTripRyanPage.deletedAt**
+      * - `timestamp` in database
+      * - Nullable, no default
+      */
+      deletedAt?: (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | null | db.DefaultType | db.SQLFragment | db.SQLFragment<any, (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | null | db.DefaultType | db.SQLFragment>;
+      /**
+      * **RoadTripRyanPage.flashFlood**
+      * - `text` in database
+      * - Nullable, no default
+      */
+      flashFlood?: string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment | db.SQLFragment<any, string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment>;
+      /**
+      * **RoadTripRyanPage.gear**
+      * - `text` in database
+      * - Nullable, no default
+      */
+      gear?: string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment | db.SQLFragment<any, string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment>;
+      /**
+      * **RoadTripRyanPage.gpx**
+      * - `text` in database
+      * - Nullable, no default
+      */
+      gpx?: string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment | db.SQLFragment<any, string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment>;
+      /**
+      * **RoadTripRyanPage.id**
+      * - `uuid` in database
+      * - `NOT NULL`, no default
+      */
+      id?: string | db.Parameter<string> | db.SQLFragment | db.SQLFragment<any, string | db.Parameter<string> | db.SQLFragment>;
+      /**
+      * **RoadTripRyanPage.length**
+      * - `numeric` in database
+      * - Nullable, no default
+      */
+      length?: (number | db.NumericString) | db.Parameter<(number | db.NumericString)> | null | db.DefaultType | db.SQLFragment | db.SQLFragment<any, (number | db.NumericString) | db.Parameter<(number | db.NumericString)> | null | db.DefaultType | db.SQLFragment>;
+      /**
+      * **RoadTripRyanPage.maps**
+      * - `text` in database
+      * - Nullable, no default
+      */
+      maps?: string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment | db.SQLFragment<any, string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment>;
+      /**
+      * **RoadTripRyanPage.permitLink**
+      * - `text` in database
+      * - Nullable, no default
+      */
+      permitLink?: string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment | db.SQLFragment<any, string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment>;
+      /**
+      * **RoadTripRyanPage.permitRequired**
+      * - `bool` in database
+      * - Nullable, no default
+      */
+      permitRequired?: boolean | db.Parameter<boolean> | null | db.DefaultType | db.SQLFragment | db.SQLFragment<any, boolean | db.Parameter<boolean> | null | db.DefaultType | db.SQLFragment>;
+      /**
+      * **RoadTripRyanPage.rappels**
+      * - `int4` in database
+      * - Nullable, no default
+      */
+      rappels?: number | db.Parameter<number> | null | db.DefaultType | db.SQLFragment | db.SQLFragment<any, number | db.Parameter<number> | null | db.DefaultType | db.SQLFragment>;
+      /**
+      * **RoadTripRyanPage.rated**
+      * - `numeric` in database
+      * - Nullable, no default
+      */
+      rated?: (number | db.NumericString) | db.Parameter<(number | db.NumericString)> | null | db.DefaultType | db.SQLFragment | db.SQLFragment<any, (number | db.NumericString) | db.Parameter<(number | db.NumericString)> | null | db.DefaultType | db.SQLFragment>;
+      /**
+      * **RoadTripRyanPage.region**
+      * - `uuid` in database
+      * - `NOT NULL`, no default
+      */
+      region?: string | db.Parameter<string> | db.SQLFragment | db.SQLFragment<any, string | db.Parameter<string> | db.SQLFragment>;
+      /**
+      * **RoadTripRyanPage.season**
+      * - `text` in database
+      * - Nullable, no default
+      */
+      season?: string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment | db.SQLFragment<any, string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment>;
+      /**
+      * **RoadTripRyanPage.tags**
+      * - `jsonb` in database
+      * - Nullable, no default
+      */
+      tags?: db.JSONValue | db.Parameter<db.JSONValue> | null | db.DefaultType | db.SQLFragment | db.SQLFragment<any, db.JSONValue | db.Parameter<db.JSONValue> | null | db.DefaultType | db.SQLFragment>;
+      /**
+      * **RoadTripRyanPage.title**
+      * - `text` in database
+      * - `NOT NULL`, no default
+      */
+      title?: string | db.Parameter<string> | db.SQLFragment | db.SQLFragment<any, string | db.Parameter<string> | db.SQLFragment>;
+      /**
+      * **RoadTripRyanPage.updatedAt**
+      * - `timestamp` in database
+      * - `NOT NULL`, default: `CURRENT_TIMESTAMP`
+      */
+      updatedAt?: (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.DefaultType | db.SQLFragment | db.SQLFragment<any, (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.DefaultType | db.SQLFragment>;
+      /**
+      * **RoadTripRyanPage.url**
+      * - `text` in database
+      * - `NOT NULL`, no default
+      */
+      url?: string | db.Parameter<string> | db.SQLFragment | db.SQLFragment<any, string | db.Parameter<string> | db.SQLFragment>;
+      /**
+      * **RoadTripRyanPage.water**
+      * - `text` in database
+      * - Nullable, no default
+      */
+      water?: string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment | db.SQLFragment<any, string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment>;
+    }
+    export type UniqueIndex = 'RoadTripRyanPage_pkey' | 'uk_RoadTripRyanPage_title' | 'uk_RoadTripRyanPage_url';
+    export type Column = keyof Selectable;
+    export type OnlyCols<T extends readonly Column[]> = Pick<Selectable, T[number]>;
+    export type SQLExpression = Table | db.ColumnNames<Updatable | (keyof Updatable)[]> | db.ColumnValues<Updatable> | Whereable | Column | db.ParentColumn | db.GenericSQLExpression;
+    export type SQL = SQLExpression | SQLExpression[];
+  }
+
+  /**
+   * **RoadTripRyanRegion**
+   * - Table in database
+   */
+  export namespace RoadTripRyanRegion {
+    export type Table = 'RoadTripRyanRegion';
+    export interface Selectable {
+      /**
+      * **RoadTripRyanRegion.createdAt**
+      * - `timestamp` in database
+      * - `NOT NULL`, default: `CURRENT_TIMESTAMP`
+      */
+      createdAt: Date;
+      /**
+      * **RoadTripRyanRegion.deletedAt**
+      * - `timestamp` in database
+      * - Nullable, no default
+      */
+      deletedAt: Date | null;
+      /**
+      * **RoadTripRyanRegion.id**
+      * - `uuid` in database
+      * - `NOT NULL`, no default
+      */
+      id: string;
+      /**
+      * **RoadTripRyanRegion.name**
+      * - `text` in database
+      * - `NOT NULL`, no default
+      */
+      name: string;
+      /**
+      * **RoadTripRyanRegion.pageCount**
+      * - `int4` in database
+      * - `NOT NULL`, no default
+      */
+      pageCount: number;
+      /**
+      * **RoadTripRyanRegion.parentRegion**
+      * - `uuid` in database
+      * - Nullable, no default
+      */
+      parentRegion: string | null;
+      /**
+      * **RoadTripRyanRegion.updatedAt**
+      * - `timestamp` in database
+      * - `NOT NULL`, default: `CURRENT_TIMESTAMP`
+      */
+      updatedAt: Date;
+      /**
+      * **RoadTripRyanRegion.url**
+      * - `text` in database
+      * - `NOT NULL`, no default
+      */
+      url: string;
+    }
+    export interface JSONSelectable {
+      /**
+      * **RoadTripRyanRegion.createdAt**
+      * - `timestamp` in database
+      * - `NOT NULL`, default: `CURRENT_TIMESTAMP`
+      */
+      createdAt: db.TimestampString;
+      /**
+      * **RoadTripRyanRegion.deletedAt**
+      * - `timestamp` in database
+      * - Nullable, no default
+      */
+      deletedAt: db.TimestampString | null;
+      /**
+      * **RoadTripRyanRegion.id**
+      * - `uuid` in database
+      * - `NOT NULL`, no default
+      */
+      id: string;
+      /**
+      * **RoadTripRyanRegion.name**
+      * - `text` in database
+      * - `NOT NULL`, no default
+      */
+      name: string;
+      /**
+      * **RoadTripRyanRegion.pageCount**
+      * - `int4` in database
+      * - `NOT NULL`, no default
+      */
+      pageCount: number;
+      /**
+      * **RoadTripRyanRegion.parentRegion**
+      * - `uuid` in database
+      * - Nullable, no default
+      */
+      parentRegion: string | null;
+      /**
+      * **RoadTripRyanRegion.updatedAt**
+      * - `timestamp` in database
+      * - `NOT NULL`, default: `CURRENT_TIMESTAMP`
+      */
+      updatedAt: db.TimestampString;
+      /**
+      * **RoadTripRyanRegion.url**
+      * - `text` in database
+      * - `NOT NULL`, no default
+      */
+      url: string;
+    }
+    export interface Whereable {
+      /**
+      * **RoadTripRyanRegion.createdAt**
+      * - `timestamp` in database
+      * - `NOT NULL`, default: `CURRENT_TIMESTAMP`
+      */
+      createdAt?: (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.SQLFragment | db.ParentColumn>;
+      /**
+      * **RoadTripRyanRegion.deletedAt**
+      * - `timestamp` in database
+      * - Nullable, no default
+      */
+      deletedAt?: (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.SQLFragment | db.ParentColumn>;
+      /**
+      * **RoadTripRyanRegion.id**
+      * - `uuid` in database
+      * - `NOT NULL`, no default
+      */
+      id?: string | db.Parameter<string> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, string | db.Parameter<string> | db.SQLFragment | db.ParentColumn>;
+      /**
+      * **RoadTripRyanRegion.name**
+      * - `text` in database
+      * - `NOT NULL`, no default
+      */
+      name?: string | db.Parameter<string> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, string | db.Parameter<string> | db.SQLFragment | db.ParentColumn>;
+      /**
+      * **RoadTripRyanRegion.pageCount**
+      * - `int4` in database
+      * - `NOT NULL`, no default
+      */
+      pageCount?: number | db.Parameter<number> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, number | db.Parameter<number> | db.SQLFragment | db.ParentColumn>;
+      /**
+      * **RoadTripRyanRegion.parentRegion**
+      * - `uuid` in database
+      * - Nullable, no default
+      */
+      parentRegion?: string | db.Parameter<string> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, string | db.Parameter<string> | db.SQLFragment | db.ParentColumn>;
+      /**
+      * **RoadTripRyanRegion.updatedAt**
+      * - `timestamp` in database
+      * - `NOT NULL`, default: `CURRENT_TIMESTAMP`
+      */
+      updatedAt?: (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.SQLFragment | db.ParentColumn>;
+      /**
+      * **RoadTripRyanRegion.url**
+      * - `text` in database
+      * - `NOT NULL`, no default
+      */
+      url?: string | db.Parameter<string> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, string | db.Parameter<string> | db.SQLFragment | db.ParentColumn>;
+    }
+    export interface Insertable {
+      /**
+      * **RoadTripRyanRegion.createdAt**
+      * - `timestamp` in database
+      * - `NOT NULL`, default: `CURRENT_TIMESTAMP`
+      */
+      createdAt?: (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.DefaultType | db.SQLFragment;
+      /**
+      * **RoadTripRyanRegion.deletedAt**
+      * - `timestamp` in database
+      * - Nullable, no default
+      */
+      deletedAt?: (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | null | db.DefaultType | db.SQLFragment;
+      /**
+      * **RoadTripRyanRegion.id**
+      * - `uuid` in database
+      * - `NOT NULL`, no default
+      */
+      id: string | db.Parameter<string> | db.SQLFragment;
+      /**
+      * **RoadTripRyanRegion.name**
+      * - `text` in database
+      * - `NOT NULL`, no default
+      */
+      name: string | db.Parameter<string> | db.SQLFragment;
+      /**
+      * **RoadTripRyanRegion.pageCount**
+      * - `int4` in database
+      * - `NOT NULL`, no default
+      */
+      pageCount: number | db.Parameter<number> | db.SQLFragment;
+      /**
+      * **RoadTripRyanRegion.parentRegion**
+      * - `uuid` in database
+      * - Nullable, no default
+      */
+      parentRegion?: string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment;
+      /**
+      * **RoadTripRyanRegion.updatedAt**
+      * - `timestamp` in database
+      * - `NOT NULL`, default: `CURRENT_TIMESTAMP`
+      */
+      updatedAt?: (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.DefaultType | db.SQLFragment;
+      /**
+      * **RoadTripRyanRegion.url**
+      * - `text` in database
+      * - `NOT NULL`, no default
+      */
+      url: string | db.Parameter<string> | db.SQLFragment;
+    }
+    export interface Updatable {
+      /**
+      * **RoadTripRyanRegion.createdAt**
+      * - `timestamp` in database
+      * - `NOT NULL`, default: `CURRENT_TIMESTAMP`
+      */
+      createdAt?: (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.DefaultType | db.SQLFragment | db.SQLFragment<any, (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.DefaultType | db.SQLFragment>;
+      /**
+      * **RoadTripRyanRegion.deletedAt**
+      * - `timestamp` in database
+      * - Nullable, no default
+      */
+      deletedAt?: (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | null | db.DefaultType | db.SQLFragment | db.SQLFragment<any, (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | null | db.DefaultType | db.SQLFragment>;
+      /**
+      * **RoadTripRyanRegion.id**
+      * - `uuid` in database
+      * - `NOT NULL`, no default
+      */
+      id?: string | db.Parameter<string> | db.SQLFragment | db.SQLFragment<any, string | db.Parameter<string> | db.SQLFragment>;
+      /**
+      * **RoadTripRyanRegion.name**
+      * - `text` in database
+      * - `NOT NULL`, no default
+      */
+      name?: string | db.Parameter<string> | db.SQLFragment | db.SQLFragment<any, string | db.Parameter<string> | db.SQLFragment>;
+      /**
+      * **RoadTripRyanRegion.pageCount**
+      * - `int4` in database
+      * - `NOT NULL`, no default
+      */
+      pageCount?: number | db.Parameter<number> | db.SQLFragment | db.SQLFragment<any, number | db.Parameter<number> | db.SQLFragment>;
+      /**
+      * **RoadTripRyanRegion.parentRegion**
+      * - `uuid` in database
+      * - Nullable, no default
+      */
+      parentRegion?: string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment | db.SQLFragment<any, string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment>;
+      /**
+      * **RoadTripRyanRegion.updatedAt**
+      * - `timestamp` in database
+      * - `NOT NULL`, default: `CURRENT_TIMESTAMP`
+      */
+      updatedAt?: (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.DefaultType | db.SQLFragment | db.SQLFragment<any, (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.DefaultType | db.SQLFragment>;
+      /**
+      * **RoadTripRyanRegion.url**
+      * - `text` in database
+      * - `NOT NULL`, no default
+      */
+      url?: string | db.Parameter<string> | db.SQLFragment | db.SQLFragment<any, string | db.Parameter<string> | db.SQLFragment>;
+    }
+    export type UniqueIndex = 'RoadTripRyanRegion_pkey' | 'uk_RoadTripRyanRegion_id_parentRegion' | 'uk_RoadTripRyanRegion_name' | 'uk_RoadTripRyanRegion_url';
+    export type Column = keyof Selectable;
+    export type OnlyCols<T extends readonly Column[]> = Pick<Selectable, T[number]>;
+    export type SQLExpression = Table | db.ColumnNames<Updatable | (keyof Updatable)[]> | db.ColumnValues<Updatable> | Whereable | Column | db.ParentColumn | db.GenericSQLExpression;
+    export type SQL = SQLExpression | SQLExpression[];
+  }
+
+  /**
+   * **RoadTripRyanRoute**
+   * - Table in database
+   */
+  export namespace RoadTripRyanRoute {
+    export type Table = 'RoadTripRyanRoute';
+    export interface Selectable {
+      /**
+      * **RoadTripRyanRoute.createdAt**
+      * - `timestamp` in database
+      * - `NOT NULL`, default: `CURRENT_TIMESTAMP`
+      */
+      createdAt: Date;
+      /**
+      * **RoadTripRyanRoute.deletedAt**
+      * - `timestamp` in database
+      * - Nullable, no default
+      */
+      deletedAt: Date | null;
+      /**
+      * **RoadTripRyanRoute.mapData**
+      * - `uuid` in database
+      * - Nullable, no default
+      */
+      mapData: string | null;
+      /**
+      * **RoadTripRyanRoute.roadTripRyanPage**
+      * - `uuid` in database
+      * - `NOT NULL`, no default
+      */
+      roadTripRyanPage: string;
+      /**
+      * **RoadTripRyanRoute.route**
+      * - `uuid` in database
+      * - `NOT NULL`, no default
+      */
+      route: string;
+      /**
+      * **RoadTripRyanRoute.updatedAt**
+      * - `timestamp` in database
+      * - `NOT NULL`, default: `CURRENT_TIMESTAMP`
+      */
+      updatedAt: Date;
+    }
+    export interface JSONSelectable {
+      /**
+      * **RoadTripRyanRoute.createdAt**
+      * - `timestamp` in database
+      * - `NOT NULL`, default: `CURRENT_TIMESTAMP`
+      */
+      createdAt: db.TimestampString;
+      /**
+      * **RoadTripRyanRoute.deletedAt**
+      * - `timestamp` in database
+      * - Nullable, no default
+      */
+      deletedAt: db.TimestampString | null;
+      /**
+      * **RoadTripRyanRoute.mapData**
+      * - `uuid` in database
+      * - Nullable, no default
+      */
+      mapData: string | null;
+      /**
+      * **RoadTripRyanRoute.roadTripRyanPage**
+      * - `uuid` in database
+      * - `NOT NULL`, no default
+      */
+      roadTripRyanPage: string;
+      /**
+      * **RoadTripRyanRoute.route**
+      * - `uuid` in database
+      * - `NOT NULL`, no default
+      */
+      route: string;
+      /**
+      * **RoadTripRyanRoute.updatedAt**
+      * - `timestamp` in database
+      * - `NOT NULL`, default: `CURRENT_TIMESTAMP`
+      */
+      updatedAt: db.TimestampString;
+    }
+    export interface Whereable {
+      /**
+      * **RoadTripRyanRoute.createdAt**
+      * - `timestamp` in database
+      * - `NOT NULL`, default: `CURRENT_TIMESTAMP`
+      */
+      createdAt?: (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.SQLFragment | db.ParentColumn>;
+      /**
+      * **RoadTripRyanRoute.deletedAt**
+      * - `timestamp` in database
+      * - Nullable, no default
+      */
+      deletedAt?: (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.SQLFragment | db.ParentColumn>;
+      /**
+      * **RoadTripRyanRoute.mapData**
+      * - `uuid` in database
+      * - Nullable, no default
+      */
+      mapData?: string | db.Parameter<string> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, string | db.Parameter<string> | db.SQLFragment | db.ParentColumn>;
+      /**
+      * **RoadTripRyanRoute.roadTripRyanPage**
+      * - `uuid` in database
+      * - `NOT NULL`, no default
+      */
+      roadTripRyanPage?: string | db.Parameter<string> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, string | db.Parameter<string> | db.SQLFragment | db.ParentColumn>;
+      /**
+      * **RoadTripRyanRoute.route**
+      * - `uuid` in database
+      * - `NOT NULL`, no default
+      */
+      route?: string | db.Parameter<string> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, string | db.Parameter<string> | db.SQLFragment | db.ParentColumn>;
+      /**
+      * **RoadTripRyanRoute.updatedAt**
+      * - `timestamp` in database
+      * - `NOT NULL`, default: `CURRENT_TIMESTAMP`
+      */
+      updatedAt?: (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.SQLFragment | db.ParentColumn>;
+    }
+    export interface Insertable {
+      /**
+      * **RoadTripRyanRoute.createdAt**
+      * - `timestamp` in database
+      * - `NOT NULL`, default: `CURRENT_TIMESTAMP`
+      */
+      createdAt?: (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.DefaultType | db.SQLFragment;
+      /**
+      * **RoadTripRyanRoute.deletedAt**
+      * - `timestamp` in database
+      * - Nullable, no default
+      */
+      deletedAt?: (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | null | db.DefaultType | db.SQLFragment;
+      /**
+      * **RoadTripRyanRoute.mapData**
+      * - `uuid` in database
+      * - Nullable, no default
+      */
+      mapData?: string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment;
+      /**
+      * **RoadTripRyanRoute.roadTripRyanPage**
+      * - `uuid` in database
+      * - `NOT NULL`, no default
+      */
+      roadTripRyanPage: string | db.Parameter<string> | db.SQLFragment;
+      /**
+      * **RoadTripRyanRoute.route**
+      * - `uuid` in database
+      * - `NOT NULL`, no default
+      */
+      route: string | db.Parameter<string> | db.SQLFragment;
+      /**
+      * **RoadTripRyanRoute.updatedAt**
+      * - `timestamp` in database
+      * - `NOT NULL`, default: `CURRENT_TIMESTAMP`
+      */
+      updatedAt?: (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.DefaultType | db.SQLFragment;
+    }
+    export interface Updatable {
+      /**
+      * **RoadTripRyanRoute.createdAt**
+      * - `timestamp` in database
+      * - `NOT NULL`, default: `CURRENT_TIMESTAMP`
+      */
+      createdAt?: (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.DefaultType | db.SQLFragment | db.SQLFragment<any, (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.DefaultType | db.SQLFragment>;
+      /**
+      * **RoadTripRyanRoute.deletedAt**
+      * - `timestamp` in database
+      * - Nullable, no default
+      */
+      deletedAt?: (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | null | db.DefaultType | db.SQLFragment | db.SQLFragment<any, (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | null | db.DefaultType | db.SQLFragment>;
+      /**
+      * **RoadTripRyanRoute.mapData**
+      * - `uuid` in database
+      * - Nullable, no default
+      */
+      mapData?: string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment | db.SQLFragment<any, string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment>;
+      /**
+      * **RoadTripRyanRoute.roadTripRyanPage**
+      * - `uuid` in database
+      * - `NOT NULL`, no default
+      */
+      roadTripRyanPage?: string | db.Parameter<string> | db.SQLFragment | db.SQLFragment<any, string | db.Parameter<string> | db.SQLFragment>;
+      /**
+      * **RoadTripRyanRoute.route**
+      * - `uuid` in database
+      * - `NOT NULL`, no default
+      */
+      route?: string | db.Parameter<string> | db.SQLFragment | db.SQLFragment<any, string | db.Parameter<string> | db.SQLFragment>;
+      /**
+      * **RoadTripRyanRoute.updatedAt**
+      * - `timestamp` in database
+      * - `NOT NULL`, default: `CURRENT_TIMESTAMP`
+      */
+      updatedAt?: (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.DefaultType | db.SQLFragment | db.SQLFragment<any, (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.DefaultType | db.SQLFragment>;
+    }
+    export type UniqueIndex = 'uk_RoadTripRyanRoute_route_page';
+    export type Column = keyof Selectable;
+    export type OnlyCols<T extends readonly Column[]> = Pick<Selectable, T[number]>;
+    export type SQLExpression = Table | db.ColumnNames<Updatable | (keyof Updatable)[]> | db.ColumnValues<Updatable> | Whereable | Column | db.ParentColumn | db.GenericSQLExpression;
+    export type SQL = SQLExpression | SQLExpression[];
+  }
+
+  /**
    * **RopewikiImage**
    * - Table in database
    */
@@ -2849,20 +4524,20 @@ declare module 'zapatos/schema' {
   /* --- aggregate types --- */
 
   export namespace public {  
-    export type Table = MapData.Table | RopewikiImage.Table | RopewikiPage.Table | RopewikiPageBetaSection.Table | RopewikiRegion.Table | RopewikiRoute.Table | Route.Table | schema_migrations.Table;
-    export type Selectable = MapData.Selectable | RopewikiImage.Selectable | RopewikiPage.Selectable | RopewikiPageBetaSection.Selectable | RopewikiRegion.Selectable | RopewikiRoute.Selectable | Route.Selectable | schema_migrations.Selectable;
-    export type JSONSelectable = MapData.JSONSelectable | RopewikiImage.JSONSelectable | RopewikiPage.JSONSelectable | RopewikiPageBetaSection.JSONSelectable | RopewikiRegion.JSONSelectable | RopewikiRoute.JSONSelectable | Route.JSONSelectable | schema_migrations.JSONSelectable;
-    export type Whereable = MapData.Whereable | RopewikiImage.Whereable | RopewikiPage.Whereable | RopewikiPageBetaSection.Whereable | RopewikiRegion.Whereable | RopewikiRoute.Whereable | Route.Whereable | schema_migrations.Whereable;
-    export type Insertable = MapData.Insertable | RopewikiImage.Insertable | RopewikiPage.Insertable | RopewikiPageBetaSection.Insertable | RopewikiRegion.Insertable | RopewikiRoute.Insertable | Route.Insertable | schema_migrations.Insertable;
-    export type Updatable = MapData.Updatable | RopewikiImage.Updatable | RopewikiPage.Updatable | RopewikiPageBetaSection.Updatable | RopewikiRegion.Updatable | RopewikiRoute.Updatable | Route.Updatable | schema_migrations.Updatable;
-    export type UniqueIndex = MapData.UniqueIndex | RopewikiImage.UniqueIndex | RopewikiPage.UniqueIndex | RopewikiPageBetaSection.UniqueIndex | RopewikiRegion.UniqueIndex | RopewikiRoute.UniqueIndex | Route.UniqueIndex | schema_migrations.UniqueIndex;
-    export type Column = MapData.Column | RopewikiImage.Column | RopewikiPage.Column | RopewikiPageBetaSection.Column | RopewikiRegion.Column | RopewikiRoute.Column | Route.Column | schema_migrations.Column;
+    export type Table = MapData.Table | RoadTripRyanBetaSection.Table | RoadTripRyanImage.Table | RoadTripRyanPage.Table | RoadTripRyanRegion.Table | RoadTripRyanRoute.Table | RopewikiImage.Table | RopewikiPage.Table | RopewikiPageBetaSection.Table | RopewikiRegion.Table | RopewikiRoute.Table | Route.Table | schema_migrations.Table;
+    export type Selectable = MapData.Selectable | RoadTripRyanBetaSection.Selectable | RoadTripRyanImage.Selectable | RoadTripRyanPage.Selectable | RoadTripRyanRegion.Selectable | RoadTripRyanRoute.Selectable | RopewikiImage.Selectable | RopewikiPage.Selectable | RopewikiPageBetaSection.Selectable | RopewikiRegion.Selectable | RopewikiRoute.Selectable | Route.Selectable | schema_migrations.Selectable;
+    export type JSONSelectable = MapData.JSONSelectable | RoadTripRyanBetaSection.JSONSelectable | RoadTripRyanImage.JSONSelectable | RoadTripRyanPage.JSONSelectable | RoadTripRyanRegion.JSONSelectable | RoadTripRyanRoute.JSONSelectable | RopewikiImage.JSONSelectable | RopewikiPage.JSONSelectable | RopewikiPageBetaSection.JSONSelectable | RopewikiRegion.JSONSelectable | RopewikiRoute.JSONSelectable | Route.JSONSelectable | schema_migrations.JSONSelectable;
+    export type Whereable = MapData.Whereable | RoadTripRyanBetaSection.Whereable | RoadTripRyanImage.Whereable | RoadTripRyanPage.Whereable | RoadTripRyanRegion.Whereable | RoadTripRyanRoute.Whereable | RopewikiImage.Whereable | RopewikiPage.Whereable | RopewikiPageBetaSection.Whereable | RopewikiRegion.Whereable | RopewikiRoute.Whereable | Route.Whereable | schema_migrations.Whereable;
+    export type Insertable = MapData.Insertable | RoadTripRyanBetaSection.Insertable | RoadTripRyanImage.Insertable | RoadTripRyanPage.Insertable | RoadTripRyanRegion.Insertable | RoadTripRyanRoute.Insertable | RopewikiImage.Insertable | RopewikiPage.Insertable | RopewikiPageBetaSection.Insertable | RopewikiRegion.Insertable | RopewikiRoute.Insertable | Route.Insertable | schema_migrations.Insertable;
+    export type Updatable = MapData.Updatable | RoadTripRyanBetaSection.Updatable | RoadTripRyanImage.Updatable | RoadTripRyanPage.Updatable | RoadTripRyanRegion.Updatable | RoadTripRyanRoute.Updatable | RopewikiImage.Updatable | RopewikiPage.Updatable | RopewikiPageBetaSection.Updatable | RopewikiRegion.Updatable | RopewikiRoute.Updatable | Route.Updatable | schema_migrations.Updatable;
+    export type UniqueIndex = MapData.UniqueIndex | RoadTripRyanBetaSection.UniqueIndex | RoadTripRyanImage.UniqueIndex | RoadTripRyanPage.UniqueIndex | RoadTripRyanRegion.UniqueIndex | RoadTripRyanRoute.UniqueIndex | RopewikiImage.UniqueIndex | RopewikiPage.UniqueIndex | RopewikiPageBetaSection.UniqueIndex | RopewikiRegion.UniqueIndex | RopewikiRoute.UniqueIndex | Route.UniqueIndex | schema_migrations.UniqueIndex;
+    export type Column = MapData.Column | RoadTripRyanBetaSection.Column | RoadTripRyanImage.Column | RoadTripRyanPage.Column | RoadTripRyanRegion.Column | RoadTripRyanRoute.Column | RopewikiImage.Column | RopewikiPage.Column | RopewikiPageBetaSection.Column | RopewikiRegion.Column | RopewikiRoute.Column | Route.Column | schema_migrations.Column;
   
-    export type AllBaseTables = [MapData.Table, RopewikiImage.Table, RopewikiPage.Table, RopewikiPageBetaSection.Table, RopewikiRegion.Table, RopewikiRoute.Table, Route.Table, schema_migrations.Table];
+    export type AllBaseTables = [MapData.Table, RoadTripRyanBetaSection.Table, RoadTripRyanImage.Table, RoadTripRyanPage.Table, RoadTripRyanRegion.Table, RoadTripRyanRoute.Table, RopewikiImage.Table, RopewikiPage.Table, RopewikiPageBetaSection.Table, RopewikiRegion.Table, RopewikiRoute.Table, Route.Table, schema_migrations.Table];
     export type AllForeignTables = [];
     export type AllViews = [];
     export type AllMaterializedViews = [];
-    export type AllTablesAndViews = [MapData.Table, RopewikiImage.Table, RopewikiPage.Table, RopewikiPageBetaSection.Table, RopewikiRegion.Table, RopewikiRoute.Table, Route.Table, schema_migrations.Table];
+    export type AllTablesAndViews = [MapData.Table, RoadTripRyanBetaSection.Table, RoadTripRyanImage.Table, RoadTripRyanPage.Table, RoadTripRyanRegion.Table, RoadTripRyanRoute.Table, RopewikiImage.Table, RopewikiPage.Table, RopewikiPageBetaSection.Table, RopewikiRegion.Table, RopewikiRoute.Table, Route.Table, schema_migrations.Table];
   }
 
 
@@ -2891,6 +4566,11 @@ declare module 'zapatos/schema' {
 
   export type SelectableForTable<T extends Table> = {
     "MapData": MapData.Selectable;
+    "RoadTripRyanBetaSection": RoadTripRyanBetaSection.Selectable;
+    "RoadTripRyanImage": RoadTripRyanImage.Selectable;
+    "RoadTripRyanPage": RoadTripRyanPage.Selectable;
+    "RoadTripRyanRegion": RoadTripRyanRegion.Selectable;
+    "RoadTripRyanRoute": RoadTripRyanRoute.Selectable;
     "RopewikiImage": RopewikiImage.Selectable;
     "RopewikiPage": RopewikiPage.Selectable;
     "RopewikiPageBetaSection": RopewikiPageBetaSection.Selectable;
@@ -2902,6 +4582,11 @@ declare module 'zapatos/schema' {
 
   export type JSONSelectableForTable<T extends Table> = {
     "MapData": MapData.JSONSelectable;
+    "RoadTripRyanBetaSection": RoadTripRyanBetaSection.JSONSelectable;
+    "RoadTripRyanImage": RoadTripRyanImage.JSONSelectable;
+    "RoadTripRyanPage": RoadTripRyanPage.JSONSelectable;
+    "RoadTripRyanRegion": RoadTripRyanRegion.JSONSelectable;
+    "RoadTripRyanRoute": RoadTripRyanRoute.JSONSelectable;
     "RopewikiImage": RopewikiImage.JSONSelectable;
     "RopewikiPage": RopewikiPage.JSONSelectable;
     "RopewikiPageBetaSection": RopewikiPageBetaSection.JSONSelectable;
@@ -2913,6 +4598,11 @@ declare module 'zapatos/schema' {
 
   export type WhereableForTable<T extends Table> = {
     "MapData": MapData.Whereable;
+    "RoadTripRyanBetaSection": RoadTripRyanBetaSection.Whereable;
+    "RoadTripRyanImage": RoadTripRyanImage.Whereable;
+    "RoadTripRyanPage": RoadTripRyanPage.Whereable;
+    "RoadTripRyanRegion": RoadTripRyanRegion.Whereable;
+    "RoadTripRyanRoute": RoadTripRyanRoute.Whereable;
     "RopewikiImage": RopewikiImage.Whereable;
     "RopewikiPage": RopewikiPage.Whereable;
     "RopewikiPageBetaSection": RopewikiPageBetaSection.Whereable;
@@ -2924,6 +4614,11 @@ declare module 'zapatos/schema' {
 
   export type InsertableForTable<T extends Table> = {
     "MapData": MapData.Insertable;
+    "RoadTripRyanBetaSection": RoadTripRyanBetaSection.Insertable;
+    "RoadTripRyanImage": RoadTripRyanImage.Insertable;
+    "RoadTripRyanPage": RoadTripRyanPage.Insertable;
+    "RoadTripRyanRegion": RoadTripRyanRegion.Insertable;
+    "RoadTripRyanRoute": RoadTripRyanRoute.Insertable;
     "RopewikiImage": RopewikiImage.Insertable;
     "RopewikiPage": RopewikiPage.Insertable;
     "RopewikiPageBetaSection": RopewikiPageBetaSection.Insertable;
@@ -2935,6 +4630,11 @@ declare module 'zapatos/schema' {
 
   export type UpdatableForTable<T extends Table> = {
     "MapData": MapData.Updatable;
+    "RoadTripRyanBetaSection": RoadTripRyanBetaSection.Updatable;
+    "RoadTripRyanImage": RoadTripRyanImage.Updatable;
+    "RoadTripRyanPage": RoadTripRyanPage.Updatable;
+    "RoadTripRyanRegion": RoadTripRyanRegion.Updatable;
+    "RoadTripRyanRoute": RoadTripRyanRoute.Updatable;
     "RopewikiImage": RopewikiImage.Updatable;
     "RopewikiPage": RopewikiPage.Updatable;
     "RopewikiPageBetaSection": RopewikiPageBetaSection.Updatable;
@@ -2946,6 +4646,11 @@ declare module 'zapatos/schema' {
 
   export type UniqueIndexForTable<T extends Table> = {
     "MapData": MapData.UniqueIndex;
+    "RoadTripRyanBetaSection": RoadTripRyanBetaSection.UniqueIndex;
+    "RoadTripRyanImage": RoadTripRyanImage.UniqueIndex;
+    "RoadTripRyanPage": RoadTripRyanPage.UniqueIndex;
+    "RoadTripRyanRegion": RoadTripRyanRegion.UniqueIndex;
+    "RoadTripRyanRoute": RoadTripRyanRoute.UniqueIndex;
     "RopewikiImage": RopewikiImage.UniqueIndex;
     "RopewikiPage": RopewikiPage.UniqueIndex;
     "RopewikiPageBetaSection": RopewikiPageBetaSection.UniqueIndex;
@@ -2957,6 +4662,11 @@ declare module 'zapatos/schema' {
 
   export type ColumnForTable<T extends Table> = {
     "MapData": MapData.Column;
+    "RoadTripRyanBetaSection": RoadTripRyanBetaSection.Column;
+    "RoadTripRyanImage": RoadTripRyanImage.Column;
+    "RoadTripRyanPage": RoadTripRyanPage.Column;
+    "RoadTripRyanRegion": RoadTripRyanRegion.Column;
+    "RoadTripRyanRoute": RoadTripRyanRoute.Column;
     "RopewikiImage": RopewikiImage.Column;
     "RopewikiPage": RopewikiPage.Column;
     "RopewikiPageBetaSection": RopewikiPageBetaSection.Column;
@@ -2968,6 +4678,11 @@ declare module 'zapatos/schema' {
 
   export type SQLForTable<T extends Table> = {
     "MapData": MapData.SQL;
+    "RoadTripRyanBetaSection": RoadTripRyanBetaSection.SQL;
+    "RoadTripRyanImage": RoadTripRyanImage.SQL;
+    "RoadTripRyanPage": RoadTripRyanPage.SQL;
+    "RoadTripRyanRegion": RoadTripRyanRegion.SQL;
+    "RoadTripRyanRoute": RoadTripRyanRoute.SQL;
     "RopewikiImage": RopewikiImage.SQL;
     "RopewikiPage": RopewikiPage.SQL;
     "RopewikiPageBetaSection": RopewikiPageBetaSection.SQL;

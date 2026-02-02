@@ -5,6 +5,7 @@ import { MapDataEvent } from '../map-data/types/lambdaEvent';
 
 export enum PageDataSource {
     Ropewiki = 'ropewiki',
+    RoadTripRyan = 'roadtripryan',
 }
 
 export class PageRoute {
@@ -26,6 +27,8 @@ export class PageRoute {
         switch (event.source) {
             case PageDataSource.Ropewiki:
                 return new RopewikiRoute(event.routeId, event.pageId, event.mapDataId);
+            case PageDataSource.RoadTripRyan:
+                return new RoadTripRyanRoute(event.routeId, event.pageId, event.mapDataId);
         }
     }
 };
@@ -67,6 +70,19 @@ export class RopewikiRoute extends PageRoute {
             this.page,
             this.mapData,
         );
+    }
+}
+
+export class RoadTripRyanRoute extends PageRoute{
+    toDbRow(): s.RoadTripRyanRoute.Insertable {
+        const now = new Date();
+        return {
+            route: this.route,
+            roadTripRyanPage: this.page,
+            mapData: this.mapData ?? null,
+            updatedAt: now,
+            deletedAt: null,
+        };
     }
 }
 

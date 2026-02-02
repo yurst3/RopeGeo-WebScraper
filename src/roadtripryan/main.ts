@@ -1,5 +1,6 @@
 import getPageHtml from './http/getPageHtml';
 import parseCanyonsPage from './parsers/parseCanyonsPage';
+import processRegions from './processors/processRegions';
 
 export const main = async () => {
     console.log('Road Trip Ryan Scraper');
