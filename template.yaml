@@ -645,6 +645,18 @@ Resources:
           DB_USER: !Ref DatabaseUsername
           DB_PASSWORD: !Ref DatabasePassword
           ROPEWIKI_PAGE_PROCESSING_QUEUE_URL: !Ref RopewikiPageProcessingQueue
+      Policies:
+        - PolicyName: RopewikiPageProcessorSQSConsumerPolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - sqs:ChangeMessageVisibility
+                  - sqs:DeleteMessage
+                  - sqs:GetQueueAttributes
+                  - sqs:ReceiveMessage
+                Resource: !GetAtt RopewikiPageProcessingQueue.Arn
     Metadata: # Manage esbuild properties
       BuildMethod: esbuild
       BuildProperties:
@@ -693,6 +705,17 @@ Resources:
       Policies:
         - S3WritePolicy:
             BucketName: !Ref MapDataBucket
+        - PolicyName: MapDataProcessorSQSConsumerPolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - sqs:ChangeMessageVisibility
+                  - sqs:DeleteMessage
+                  - sqs:GetQueueAttributes
+                  - sqs:ReceiveMessage
+                Resource: !GetAtt MapDataProcessingQueue.Arn
     Metadata:
       BuildMethod: makefile
 
