@@ -19,6 +19,8 @@ const processRoutes = async (
     // Routes need coordinates, not all upserted pages have coordinates
     const pagesWithCoords = filterUpsertedPages(upsertedPages);
 
+    console.log(`Upserting routes for ${pagesWithCoords.length} of ${upsertedPages.length} updated pages...`);
+
     // Some pages might not have routes for them
     let routesAndPages: Array<[Route | null, RopewikiPage]> = await getRoutesForPages(conn, pagesWithCoords);
 
@@ -31,8 +33,12 @@ const processRoutes = async (
             .map(([,page]) => updateRouteForPage(conn, page))
     );
 
+    console.log(`Updated ${routesAndPages.filter(([route,]) => route !== null).length} existing routes, creating ${routesAndPages.filter(([route,]) => !route).length} new routes...`);
+
     // Insert routes for pages that don't have routes
     const allRoutesAndPages: Array<[Route, RopewikiPage]> = await insertMissingRoutes(conn, routesAndPages);
+
+    console.log(`Upserting ${allRoutesAndPages.length} RopewikiRoutes...`);
 
     // Upsert the ropewiki routes before processing the map data so we don't have any race conditions down the road
     const ropewikiRoutes: RopewikiRoute[] = await upsertRopewikiRoutes(conn, allRoutesAndPages);

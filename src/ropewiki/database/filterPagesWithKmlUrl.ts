@@ -9,9 +9,9 @@ import * as db from 'zapatos/db';
  */
 const filterPagesWithKmlUrl = async (
     conn: db.Queryable,
-    pageIds: string[],
+    ids: string[],
 ): Promise<string[]> => {
-    if (pageIds.length === 0) {
+    if (ids.length === 0) {
         return [];
     }
 
@@ -19,13 +19,13 @@ const filterPagesWithKmlUrl = async (
         .select(
             'RopewikiPage',
             {
-                pageId: db.conditions.isIn(pageIds),
+                id: db.conditions.isIn(ids),
                 kmlUrl: db.conditions.isNotNull,
             },
         )
         .run(conn);
 
-    return rows.map(row => row.pageId as string);
+    return rows.map(row => row.id as string);
 };
 
 export default filterPagesWithKmlUrl;

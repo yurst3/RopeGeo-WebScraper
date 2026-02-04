@@ -46,25 +46,25 @@ describe('filterPagesWithKmlUrl (integration)', () => {
         await pool.end();
     });
 
-    it('returns pageIds that have KML URLs', async () => {
-        const pageId1 = 'page-with-kml-1';
-        const pageId2 = 'page-with-kml-2';
+    it('returns ids that have KML URLs', async () => {
+        const id1 = '11111111-1111-1111-1111-111111111111';
+        const id2 = '22222222-2222-2222-2222-222222222222';
         const kmlUrl1 = 'https://example.com/page1.kml';
         const kmlUrl2 = 'https://example.com/page2.kml';
 
         await db
             .insert('RopewikiPage', [
                 {
-                    id: '11111111-1111-1111-1111-111111111111',
-                    pageId: pageId1,
+                    id: id1,
+                    pageId: 'page-with-kml-1',
                     name: 'Page 1',
                     region: testRegionId,
                     url: 'https://example.com/page1',
                     kmlUrl: kmlUrl1,
                 },
                 {
-                    id: '22222222-2222-2222-2222-222222222222',
-                    pageId: pageId2,
+                    id: id2,
+                    pageId: 'page-with-kml-2',
                     name: 'Page 2',
                     region: testRegionId,
                     url: 'https://example.com/page2',
@@ -73,30 +73,30 @@ describe('filterPagesWithKmlUrl (integration)', () => {
             ])
             .run(conn);
 
-        const result = await filterPagesWithKmlUrl(conn, [pageId1, pageId2]);
+        const result = await filterPagesWithKmlUrl(conn, [id1, id2]);
 
         expect(result).toHaveLength(2);
-        expect(result).toContain(pageId1);
-        expect(result).toContain(pageId2);
+        expect(result).toContain(id1);
+        expect(result).toContain(id2);
     });
 
     it('returns empty array when no pages have KML URLs', async () => {
-        const pageId1 = 'page-without-kml-1';
-        const pageId2 = 'page-without-kml-2';
+        const id1 = '33333333-3333-3333-3333-333333333333';
+        const id2 = '44444444-4444-4444-4444-444444444444';
 
         await db
             .insert('RopewikiPage', [
                 {
-                    id: '33333333-3333-3333-3333-333333333333',
-                    pageId: pageId1,
+                    id: id1,
+                    pageId: 'page-without-kml-1',
                     name: 'Page 1',
                     region: testRegionId,
                     url: 'https://example.com/page1',
                     kmlUrl: null,
                 },
                 {
-                    id: '44444444-4444-4444-4444-444444444444',
-                    pageId: pageId2,
+                    id: id2,
+                    pageId: 'page-without-kml-2',
                     name: 'Page 2',
                     region: testRegionId,
                     url: 'https://example.com/page2',
@@ -105,7 +105,7 @@ describe('filterPagesWithKmlUrl (integration)', () => {
             ])
             .run(conn);
 
-        const result = await filterPagesWithKmlUrl(conn, [pageId1, pageId2]);
+        const result = await filterPagesWithKmlUrl(conn, [id1, id2]);
 
         expect(result).toHaveLength(0);
         expect(result).toEqual([]);
@@ -119,42 +119,42 @@ describe('filterPagesWithKmlUrl (integration)', () => {
     });
 
     it('filters correctly when some pages have KML URLs and some do not', async () => {
-        const pageIdWithKml1 = 'page-with-kml';
-        const pageIdWithKml2 = 'page-with-kml-2';
-        const pageIdWithoutKml1 = 'page-without-kml';
-        const pageIdWithoutKml2 = 'page-without-kml-2';
+        const idWithKml1 = '55555555-5555-5555-5555-555555555555';
+        const idWithKml2 = '66666666-6666-6666-6666-666666666666';
+        const idWithoutKml1 = '77777777-7777-7777-7777-777777777777';
+        const idWithoutKml2 = '88888888-8888-8888-8888-888888888888';
         const kmlUrl1 = 'https://example.com/page1.kml';
         const kmlUrl2 = 'https://example.com/page2.kml';
 
         await db
             .insert('RopewikiPage', [
                 {
-                    id: '55555555-5555-5555-5555-555555555555',
-                    pageId: pageIdWithKml1,
+                    id: idWithKml1,
+                    pageId: 'page-with-kml-1',
                     name: 'Page With KML 1',
                     region: testRegionId,
                     url: 'https://example.com/page1',
                     kmlUrl: kmlUrl1,
                 },
                 {
-                    id: '66666666-6666-6666-6666-666666666666',
-                    pageId: pageIdWithKml2,
+                    id: idWithKml2,
+                    pageId: 'page-with-kml-2',
                     name: 'Page With KML 2',
                     region: testRegionId,
                     url: 'https://example.com/page2',
                     kmlUrl: kmlUrl2,
                 },
                 {
-                    id: '77777777-7777-7777-7777-777777777777',
-                    pageId: pageIdWithoutKml1,
+                    id: idWithoutKml1,
+                    pageId: 'page-without-kml-1',
                     name: 'Page Without KML 1',
                     region: testRegionId,
                     url: 'https://example.com/page3',
                     kmlUrl: null,
                 },
                 {
-                    id: '88888888-8888-8888-8888-888888888888',
-                    pageId: pageIdWithoutKml2,
+                    id: idWithoutKml2,
+                    pageId: 'page-without-kml-2',
                     name: 'Page Without KML 2',
                     region: testRegionId,
                     url: 'https://example.com/page4',
@@ -164,29 +164,29 @@ describe('filterPagesWithKmlUrl (integration)', () => {
             .run(conn);
 
         const result = await filterPagesWithKmlUrl(conn, [
-            pageIdWithKml1,
-            pageIdWithKml2,
-            pageIdWithoutKml1,
-            pageIdWithoutKml2,
+            idWithKml1,
+            idWithKml2,
+            idWithoutKml1,
+            idWithoutKml2,
         ]);
 
         expect(result).toHaveLength(2);
-        expect(result).toContain(pageIdWithKml1);
-        expect(result).toContain(pageIdWithKml2);
-        expect(result).not.toContain(pageIdWithoutKml1);
-        expect(result).not.toContain(pageIdWithoutKml2);
+        expect(result).toContain(idWithKml1);
+        expect(result).toContain(idWithKml2);
+        expect(result).not.toContain(idWithoutKml1);
+        expect(result).not.toContain(idWithoutKml2);
     });
 
-    it('excludes pageIds not in the database', async () => {
-        const pageIdWithKml = 'page-with-kml';
-        const nonExistentPageId1 = 'non-existent-1';
-        const nonExistentPageId2 = 'non-existent-2';
+    it('excludes ids not in the database', async () => {
+        const idWithKml = '99999999-9999-9999-9999-999999999999';
+        const nonExistentId1 = '00000000-0000-0000-0000-000000000001';
+        const nonExistentId2 = '00000000-0000-0000-0000-000000000002';
         const kmlUrl = 'https://example.com/page.kml';
 
         await db
             .insert('RopewikiPage', {
-                id: '99999999-9999-9999-9999-999999999999',
-                pageId: pageIdWithKml,
+                id: idWithKml,
+                pageId: 'page-with-kml',
                 name: 'Page With KML',
                 region: testRegionId,
                 url: 'https://example.com/page',
@@ -195,35 +195,35 @@ describe('filterPagesWithKmlUrl (integration)', () => {
             .run(conn);
 
         const result = await filterPagesWithKmlUrl(conn, [
-            pageIdWithKml,
-            nonExistentPageId1,
-            nonExistentPageId2,
+            idWithKml,
+            nonExistentId1,
+            nonExistentId2,
         ]);
 
         expect(result).toHaveLength(1);
-        expect(result).toContain(pageIdWithKml);
-        expect(result).not.toContain(nonExistentPageId1);
-        expect(result).not.toContain(nonExistentPageId2);
+        expect(result).toContain(idWithKml);
+        expect(result).not.toContain(nonExistentId1);
+        expect(result).not.toContain(nonExistentId2);
     });
 
     it('handles pages with null KML URL correctly', async () => {
-        const pageIdWithNullKml = 'page-null-kml';
-        const pageIdWithKml = 'page-with-kml';
+        const idWithNullKml = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa';
+        const idWithKml = 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb';
         const kmlUrl = 'https://example.com/page.kml';
 
         await db
             .insert('RopewikiPage', [
                 {
-                    id: 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
-                    pageId: pageIdWithNullKml,
+                    id: idWithNullKml,
+                    pageId: 'page-null-kml',
                     name: 'Page With Null KML',
                     region: testRegionId,
                     url: 'https://example.com/page1',
                     kmlUrl: null,
                 },
                 {
-                    id: 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb',
-                    pageId: pageIdWithKml,
+                    id: idWithKml,
+                    pageId: 'page-with-kml',
                     name: 'Page With KML',
                     region: testRegionId,
                     url: 'https://example.com/page2',
@@ -232,11 +232,11 @@ describe('filterPagesWithKmlUrl (integration)', () => {
             ])
             .run(conn);
 
-        const result = await filterPagesWithKmlUrl(conn, [pageIdWithNullKml, pageIdWithKml]);
+        const result = await filterPagesWithKmlUrl(conn, [idWithNullKml, idWithKml]);
 
         expect(result).toHaveLength(1);
-        expect(result).toContain(pageIdWithKml);
-        expect(result).not.toContain(pageIdWithNullKml);
+        expect(result).toContain(idWithKml);
+        expect(result).not.toContain(idWithNullKml);
     });
 
     it('propagates database errors', async () => {
@@ -248,7 +248,9 @@ describe('filterPagesWithKmlUrl (integration)', () => {
             database: 'nonexistent_database_for_test_error_filter_kml',
         });
 
-        await expect(filterPagesWithKmlUrl(badPool, ['page-1'])).rejects.toBeDefined();
+        await expect(
+            filterPagesWithKmlUrl(badPool, ['11111111-1111-1111-1111-111111111111']),
+        ).rejects.toBeDefined();
 
         await badPool.end();
     });

@@ -80,7 +80,7 @@ export async function httpRequest(url: string | URL, retryCount = 5): Promise<Re
         if (!response.ok) {
             const message = await buildNonOkMessage(response, requestUrl);
             lastError = new Error(message);
-            const isRetryableStatus = response.status === 500 || response.status === 403;
+            const isRetryableStatus = response.status >= 500 || response.status === 403;
             if (isRetryableStatus && attempt < maxAttempts - 1) {
                 console.warn(
                     `httpRequest retry ${attempt + 1}/${retryCount}: status ${response.status} ${response.statusText}`,

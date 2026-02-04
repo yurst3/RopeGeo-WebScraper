@@ -44,6 +44,7 @@ export const main = async (
             updatedPages.push(...parsedPages);
         }
 
+        // Generate/update routes for pages that were updated
         await processRoutes(pool, updatedPages, processRopewikiRoutesHookFn);
 
         const elapsedTimeMs = new Date().getTime() - beginTime.getTime();

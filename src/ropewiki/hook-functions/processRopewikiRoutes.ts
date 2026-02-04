@@ -72,6 +72,8 @@ export const lambdaProcessRopewikiRoutes: ProcessRopewikiRoutesHookFn = async (
         throw new Error('MAP_DATA_PROCESSING_QUEUE_URL environment variable is not set');
     }
 
+    console.log(`Queueing ${ropewikiRoutes.length} RopewikiRoutes to process their map data...`);
+
     const sqsClient = new SQSClient({});
     
     // Send a message for each route

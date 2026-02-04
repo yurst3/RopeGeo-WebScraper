@@ -18,16 +18,16 @@ const filterRopewikiRoutesWithMapData = async (
     }
 
     // Extract page IDs from RopewikiRoutes
-    const pageIds = ropewikiRoutes.map(route => route.page);
+    const ids = ropewikiRoutes.map(route => route.page);
 
     // Get page IDs that have KML URLs
-    const pageIdsWithKml = await filterPagesWithKmlUrl(conn, pageIds);
+    const idsWithKml = await filterPagesWithKmlUrl(conn, ids);
 
     // Create a Set for O(1) lookup
-    const pageIdsWithKmlSet = new Set(pageIdsWithKml);
+    const idsWithKmlSet = new Set(idsWithKml);
 
     // Filter RopewikiRoutes to only include those whose pages have KML URLs
-    return ropewikiRoutes.filter(route => pageIdsWithKmlSet.has(route.page));
+    return ropewikiRoutes.filter(route => idsWithKmlSet.has(route.page));
 };
 
 export default filterRopewikiRoutesWithMapData;

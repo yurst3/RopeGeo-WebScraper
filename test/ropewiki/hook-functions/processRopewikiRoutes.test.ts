@@ -363,7 +363,8 @@ describe('processRopewikiRoutes hook functions', () => {
 
             expect(MockSendMessageCommand).toHaveBeenCalledTimes(2);
             expect(mockSend).toHaveBeenCalledTimes(2);
-            expect(mockConsoleLog).toHaveBeenCalledTimes(2);
+            expect(mockConsoleLog).toHaveBeenCalledTimes(3);
+            expect(mockConsoleLog).toHaveBeenCalledWith('Queueing 2 RopewikiRoutes to process their map data...');
             expect(mockConsoleLog).toHaveBeenCalledWith('Sent route route-1 / page page-1 to MapDataProcessingQueue');
             expect(mockConsoleLog).toHaveBeenCalledWith('Sent route route-2 / page page-2 to MapDataProcessingQueue');
         });
@@ -420,7 +421,8 @@ describe('processRopewikiRoutes hook functions', () => {
                     message: 'SQS send failed',
                 }),
             );
-            expect(mockConsoleLog).toHaveBeenCalledTimes(1);
+            expect(mockConsoleLog).toHaveBeenCalledTimes(2);
+            expect(mockConsoleLog).toHaveBeenCalledWith('Queueing 2 RopewikiRoutes to process their map data...');
             expect(mockConsoleLog).toHaveBeenCalledWith('Sent route route-2 / page page-2 to MapDataProcessingQueue');
         });
 
