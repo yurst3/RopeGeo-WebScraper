@@ -48,7 +48,7 @@ const buildNonOkMessage = async (
 /**
  * Send an HTTP request with default headers and optional proxy (Lambda + dev/prod only).
  * Throws an Error with detailed message on non-OK response or failed request.
- * Retries on fetch errors or 500 responses up to retryCount times (default 5).
+ * Retries on fetch errors or 500/403 responses up to retryCount times (default 5).
  */
 export async function httpRequest(url: string | URL, retryCount = 5): Promise<Response> {
     const requestUrl = typeof url === 'string' ? url : url.toString();
@@ -80,8 +80,8 @@ export async function httpRequest(url: string | URL, retryCount = 5): Promise<Re
         if (!response.ok) {
             const message = await buildNonOkMessage(response, requestUrl);
             lastError = new Error(message);
-            const is500 = response.status === 500;
-            if (is500 && attempt < maxAttempts - 1) {
+            const isRetryableStatus = response.status === 500 || response.status === 403;
+            if (isRetryableStatus && attempt < maxAttempts - 1) {
                 console.warn(
                     `httpRequest retry ${attempt + 1}/${retryCount}: status ${response.status} ${response.statusText}`,
                 );

@@ -644,6 +644,7 @@ Resources:
           DB_NAME: !Sub '${devEnvironment}db'
           DB_USER: !Ref DatabaseUsername
           DB_PASSWORD: !Ref DatabasePassword
+          ROPEWIKI_PAGE_PROCESSING_QUEUE_URL: !Ref RopewikiPageProcessingQueue
     Metadata: # Manage esbuild properties
       BuildMethod: esbuild
       BuildProperties:
@@ -687,6 +688,7 @@ Resources:
           DB_NAME: !Sub '${devEnvironment}db'
           DB_USER: !Ref DatabaseUsername
           DB_PASSWORD: !Ref DatabasePassword
+          MAP_DATA_PROCESSING_QUEUE_URL: !Ref MapDataProcessingQueue
           MAP_DATA_BUCKET_NAME: !Ref MapDataBucket
       Policies:
         - S3WritePolicy:

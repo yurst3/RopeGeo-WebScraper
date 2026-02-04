@@ -196,20 +196,42 @@ describe('httpRequest', () => {
     expect(mockFetch).toHaveBeenCalledTimes(3);
   });
 
-  it('does not retry on non-500 error status', async () => {
+  it('retries on 403 and succeeds on second attempt', async () => {
+    mockFetch
+      .mockResolvedValueOnce({
+        ok: false,
+        status: 403,
+        statusText: 'Forbidden',
+        url: 'https://example.com/',
+        headers: { get: () => null },
+        clone: () => ({ text: () => Promise.resolve('Forbidden') }),
+      } as Response)
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        statusText: 'OK',
+      } as Response);
+
+    const response = await httpRequest('https://example.com/');
+
+    expect(response.ok).toBe(true);
+    expect(mockFetch).toHaveBeenCalledTimes(2);
+  });
+
+  it('does not retry on other error status (e.g. 404)', async () => {
     mockFetch.mockResolvedValue({
       ok: false,
-      status: 403,
-      statusText: 'Forbidden',
+      status: 404,
+      statusText: 'Not Found',
       url: 'https://example.com/',
       headers: { get: () => null },
-      clone: () => ({ text: () => Promise.resolve('Forbidden') }),
+      clone: () => ({ text: () => Promise.resolve('Not Found') }),
     } as Response);
 
     const err = await httpRequest('https://example.com/').catch((e) => e);
 
     expect(err).toBeInstanceOf(Error);
-    expect((err as Error).message).toContain('status=403');
+    expect((err as Error).message).toContain('status=404');
     expect(mockFetch).toHaveBeenCalledTimes(1);
   });
 });
