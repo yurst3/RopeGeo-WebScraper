@@ -1,7 +1,13 @@
 import { describe, it, expect, afterEach, jest } from '@jest/globals';
+import { fetch as undiciFetch } from 'undici';
 import { httpRequest } from '../../src/helpers/httpRequest';
 
-type MockFetch = ReturnType<typeof jest.fn<typeof fetch>>;
+jest.mock('undici', () => ({
+  ...jest.requireActual<typeof import('undici')>('undici'),
+  fetch: jest.fn(),
+}));
+
+const mockFetch = jest.mocked(undiciFetch);
 
 describe('httpRequest', () => {
   const originalEnv = process.env;
@@ -13,12 +19,7 @@ describe('httpRequest', () => {
     delete process.env.PROXY_URL;
     delete process.env.HTTP_PROXY;
     delete process.env.HTTPS_PROXY;
-    const mockFetch = globalThis.fetch as MockFetch | undefined;
-    if (mockFetch && typeof mockFetch.mockClear === 'function') {
-      mockFetch.mockClear();
-    }
-    // @ts-expect-error clear test double
-    globalThis.fetch = undefined;
+    mockFetch.mockClear();
   });
 
   it('throws when proxy should be used but PROXY_URL is not set (Lambda + dev)', async () => {
@@ -48,13 +49,12 @@ describe('httpRequest', () => {
   });
 
   it('sends request with default headers when fetch succeeds', async () => {
-    const mockFetch = jest.fn<typeof fetch>().mockResolvedValue({
+    mockFetch.mockResolvedValue({
       ok: true,
       status: 200,
       statusText: 'OK',
       json: async () => ({}),
     } as Response);
-    globalThis.fetch = mockFetch as unknown as typeof fetch;
 
     await httpRequest('https://example.com/');
 
@@ -62,32 +62,13 @@ describe('httpRequest', () => {
     const [url, init] = mockFetch.mock.calls[0]!;
     expect(url).toBe('https://example.com/');
     const headers = (init as RequestInit).headers as Record<string, string>;
-    expect(headers['User-Agent']).toContain('WebScraper');
     expect(headers['Accept']).toBe('application/json, text/html, application/xml, */*');
     expect(headers['Accept-Language']).toBe('en-US,en;q=0.9');
   });
 
-  it('merges custom headers with defaults', async () => {
-    const mockFetch = jest.fn<typeof fetch>().mockResolvedValue({
-      ok: true,
-      status: 200,
-      statusText: 'OK',
-    } as Response);
-    globalThis.fetch = mockFetch as unknown as typeof fetch;
-
-    await httpRequest('https://example.com/', {
-      headers: { 'X-Custom': 'value' },
-    });
-
-    const init = mockFetch.mock.calls[0]![1] as RequestInit;
-    const headers = init.headers as Record<string, string>;
-    expect(headers['User-Agent']).toContain('WebScraper');
-    expect(headers['X-Custom']).toBe('value');
-  });
-
   it('throws when response is not OK', async () => {
     const mockErrorBody = 'Forbidden';
-    const mockFetch = jest.fn<typeof fetch>().mockResolvedValue({
+    mockFetch.mockResolvedValue({
       ok: false,
       status: 403,
       statusText: 'Forbidden',
@@ -95,7 +76,6 @@ describe('httpRequest', () => {
       headers: { get: () => null },
       clone: () => ({ text: () => Promise.resolve(mockErrorBody) }),
     } as Response);
-    globalThis.fetch = mockFetch as unknown as typeof fetch;
 
     const err = await httpRequest('https://example.com/').catch((e) => e);
     expect(err).toBeInstanceOf(Error);
@@ -107,8 +87,7 @@ describe('httpRequest', () => {
 
   it('throws when fetch fails', async () => {
     const networkError = new Error('network failure');
-    const mockFetch = jest.fn<typeof fetch>().mockRejectedValue(networkError);
-    globalThis.fetch = mockFetch as unknown as typeof fetch;
+    mockFetch.mockRejectedValue(networkError);
 
     const err = await httpRequest('https://example.com/').catch((e) => e);
     expect(err).toBeInstanceOf(Error);
@@ -122,12 +101,11 @@ describe('httpRequest', () => {
     delete process.env.AWS_LAMBDA_FUNCTION_NAME;
     delete process.env.DEV_ENVIRONMENT;
     delete process.env.PROXY_URL;
-    const mockFetch = jest.fn<typeof fetch>().mockResolvedValue({
+    mockFetch.mockResolvedValue({
       ok: true,
       status: 200,
       statusText: 'OK',
     } as Response);
-    globalThis.fetch = mockFetch as unknown as typeof fetch;
 
     await httpRequest('https://example.com/');
 
@@ -140,12 +118,11 @@ describe('httpRequest', () => {
     process.env.AWS_LAMBDA_FUNCTION_NAME = 'test-function';
     process.env.DEV_ENVIRONMENT = 'local';
     process.env.PROXY_URL = 'http://proxy.example.com:8080';
-    const mockFetch = jest.fn<typeof fetch>().mockResolvedValue({
+    mockFetch.mockResolvedValue({
       ok: true,
       status: 200,
       statusText: 'OK',
     } as Response);
-    globalThis.fetch = mockFetch as unknown as typeof fetch;
 
     await httpRequest('https://example.com/');
 
@@ -154,4 +131,85 @@ describe('httpRequest', () => {
     expect(init).not.toHaveProperty('dispatcher');
   });
 
+  it('retries on 500 and succeeds on second attempt', async () => {
+    mockFetch
+      .mockResolvedValueOnce({
+        ok: false,
+        status: 500,
+        statusText: 'Internal Server Error',
+        url: 'https://example.com/',
+        headers: { get: () => null },
+        clone: () => ({ text: () => Promise.resolve('error') }),
+      } as Response)
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        statusText: 'OK',
+      } as Response);
+
+    const response = await httpRequest('https://example.com/');
+
+    expect(response.ok).toBe(true);
+    expect(mockFetch).toHaveBeenCalledTimes(2);
+  });
+
+  it('retries on fetch throw and succeeds on second attempt', async () => {
+    mockFetch
+      .mockRejectedValueOnce(new Error('network failure'))
+      .mockResolvedValueOnce({
+        ok: true,
+        status: 200,
+        statusText: 'OK',
+      } as Response);
+
+    const response = await httpRequest('https://example.com/');
+
+    expect(response.ok).toBe(true);
+    expect(mockFetch).toHaveBeenCalledTimes(2);
+  });
+
+  it('throws after exhausting retries on 500', async () => {
+    mockFetch.mockResolvedValue({
+      ok: false,
+      status: 500,
+      statusText: 'Internal Server Error',
+      url: 'https://example.com/',
+      headers: { get: () => null },
+      clone: () => ({ text: () => Promise.resolve('error') }),
+    } as Response);
+
+    const err = await httpRequest('https://example.com/', 2).catch((e) => e);
+
+    expect(err).toBeInstanceOf(Error);
+    expect((err as Error).message).toContain('httpRequest non-OK: status=500');
+    expect(mockFetch).toHaveBeenCalledTimes(3);
+  });
+
+  it('throws after exhausting retries on fetch error', async () => {
+    mockFetch.mockRejectedValue(new Error('network failure'));
+
+    const err = await httpRequest('https://example.com/', 2).catch((e) => e);
+
+    expect(err).toBeInstanceOf(Error);
+    expect((err as Error).message).toContain('httpRequest failed:');
+    expect((err as Error).message).toContain('network failure');
+    expect(mockFetch).toHaveBeenCalledTimes(3);
+  });
+
+  it('does not retry on non-500 error status', async () => {
+    mockFetch.mockResolvedValue({
+      ok: false,
+      status: 403,
+      statusText: 'Forbidden',
+      url: 'https://example.com/',
+      headers: { get: () => null },
+      clone: () => ({ text: () => Promise.resolve('Forbidden') }),
+    } as Response);
+
+    const err = await httpRequest('https://example.com/').catch((e) => e);
+
+    expect(err).toBeInstanceOf(Error);
+    expect((err as Error).message).toContain('status=403');
+    expect(mockFetch).toHaveBeenCalledTimes(1);
+  });
 });

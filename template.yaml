@@ -645,12 +645,12 @@ Resources:
           DB_USER: !Ref DatabaseUsername
           DB_PASSWORD: !Ref DatabasePassword
     Metadata: # Manage esbuild properties
-        BuildMethod: esbuild
-        BuildProperties:
+      BuildMethod: esbuild
+      BuildProperties:
         Minify: true
         Target: "esnext"
         Sourcemap: true
-        EntryPoints: 
+        EntryPoints:
         - src/ropewiki/lambda-handlers/processPageHandler.ts
         External:
         - "@sparticuz/chromium"
