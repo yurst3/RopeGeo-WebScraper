@@ -1,9 +1,9 @@
-import { SQSClient, SendMessageCommand } from '@aws-sdk/client-sqs';
 import { PoolClient } from 'pg';
 import { Queryable } from 'zapatos/db';
 import { processPage } from '../processors/processPage';
 import RopewikiPage from '../types/page';
 import ProgressLogger from '../../helpers/progressLogger';
+import sendProcessPageSQSMessage from '../sqs/sendProcessPageSQSMessage';
 
 export type ProcessPagesChunkHookFn = (client: PoolClient, upsertedPages: RopewikiPage[], logger: ProgressLogger) => Promise<void>;
 
@@ -40,33 +40,14 @@ export const lambdaProcessPagesChunk: ProcessPagesChunkHookFn = async (
     logger: ProgressLogger,
 ): Promise<void> => {
     const devEnvironment = process.env.DEV_ENVIRONMENT;
-    
+
     if (devEnvironment === 'local') {
         console.log(`Skipping SQS message sending for ${upsertedPages.length} page(s) - no queue configured locally`);
         return;
     }
 
-    const queueUrl = process.env.ROPEWIKI_PAGE_PROCESSING_QUEUE_URL;
-    if (!queueUrl) {
-        throw new Error('ROPEWIKI_PAGE_PROCESSING_QUEUE_URL environment variable is not set');
-    }
-
-    const sqsClient = new SQSClient({});
-    
-    // Send a message for each page
     for (const page of upsertedPages) {
-        try {
-            const command = new SendMessageCommand({
-                QueueUrl: queueUrl,
-                MessageBody: JSON.stringify(page),
-            });
-            
-            await sqsClient.send(command);
-            
-            logger.logProgress(`Sent page ${page.pageid} ${page.name} to queue`);
-        } catch (error) {
-            const errorMessage = error instanceof Error ? error.message : String(error);
-            logger.logError(`Error sending page ${page.pageid} ${page.name} to queue: ${errorMessage}`);
-        }
+        await sendProcessPageSQSMessage(page);
+        logger.logProgress(`Sent page ${page.pageid} ${page.name} to queue`);
     }
 };

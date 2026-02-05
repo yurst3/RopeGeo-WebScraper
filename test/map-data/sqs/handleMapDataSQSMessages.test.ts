@@ -7,13 +7,11 @@ jest.mock('../../../src/map-data/main');
 jest.mock('../../../src/map-data/types/lambdaEvent');
 jest.mock('../../../src/helpers/progressLogger');
 jest.mock('../../../src/map-data/sqs/deleteMapDataSQSMessage');
-jest.mock('../../../src/map-data/sqs/setMapDataSQSMessageRetryTime');
 
 const mockMain = require('../../../src/map-data/main').main as jest.MockedFunction<typeof import('../../../src/map-data/main').main>;
 const MapDataEvent = require('../../../src/map-data/types/lambdaEvent').MapDataEvent;
 const ProgressLogger = require('../../../src/helpers/progressLogger').default;
 const mockDeleteMapDataSQSMessage = require('../../../src/map-data/sqs/deleteMapDataSQSMessage').default as jest.MockedFunction<typeof import('../../../src/map-data/sqs/deleteMapDataSQSMessage').default>;
-const mockSetMapDataSQSMessageRetryTime = require('../../../src/map-data/sqs/setMapDataSQSMessageRetryTime').default as jest.MockedFunction<typeof import('../../../src/map-data/sqs/setMapDataSQSMessageRetryTime').default>;
 
 describe('handleMapDataSQSMessages', () => {
     let mockClient: any;
@@ -85,7 +83,6 @@ describe('handleMapDataSQSMessages', () => {
         // Default: main succeeds
         mockMain.mockResolvedValue(undefined);
         mockDeleteMapDataSQSMessage.mockResolvedValue(undefined);
-        mockSetMapDataSQSMessageRetryTime.mockResolvedValue(undefined);
     });
 
     it('successfully processes a single record', async () => {
@@ -196,9 +193,6 @@ describe('handleMapDataSQSMessages', () => {
         expect(mockDeleteMapDataSQSMessage).toHaveBeenCalledTimes(2); // First and third deleted
         expect(mockDeleteMapDataSQSMessage).toHaveBeenNthCalledWith(1, 'receipt-1');
         expect(mockDeleteMapDataSQSMessage).toHaveBeenNthCalledWith(2, 'receipt-3');
-        // Should set retry time only for the failed message (second)
-        expect(mockSetMapDataSQSMessageRetryTime).toHaveBeenCalledTimes(1);
-        expect(mockSetMapDataSQSMessageRetryTime).toHaveBeenCalledWith('receipt-2', 43140);
         expect(mockLogger.logError).toHaveBeenCalledWith(
             'Error processing map data for route route-2 / page page-2: Processing failed'
         );
@@ -229,8 +223,6 @@ describe('handleMapDataSQSMessages', () => {
         expect(mockMain).toHaveBeenCalledTimes(2);
         expect(mockDeleteMapDataSQSMessage).toHaveBeenCalledTimes(1); // Only second deleted
         expect(mockDeleteMapDataSQSMessage).toHaveBeenCalledWith('receipt-2');
-        expect(mockSetMapDataSQSMessageRetryTime).toHaveBeenCalledTimes(1);
-        expect(mockSetMapDataSQSMessageRetryTime).toHaveBeenCalledWith('receipt-1', 43140);
         expect(result).toEqual({
             successes: 1,
             errors: 1,

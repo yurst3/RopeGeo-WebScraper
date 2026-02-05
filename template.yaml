@@ -531,6 +531,31 @@ Resources:
       BuildMethod: makefile
       BuildArchitecture: *chromiumArch
 
+  # Dead-letter queue for Ropewiki page processing (messages received 5 times)
+  RopewikiPageProcessingDLQ:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !Sub '${devEnvironment}-ropewiki-page-processing-dlq'
+      MessageRetentionPeriod: 1209600  # 14 days
+
+  # Allow source queue to send messages to the DLQ when redrive policy triggers
+  RopewikiPageProcessingDLQPolicy:
+    Type: AWS::SQS::QueuePolicy
+    Properties:
+      Queues:
+        - !Ref RopewikiPageProcessingDLQ
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: sqs.amazonaws.com
+            Action: sqs:SendMessage
+            Resource: !GetAtt RopewikiPageProcessingDLQ.Arn
+            Condition:
+              ArnEquals:
+                aws:SourceArn: !GetAtt RopewikiPageProcessingQueue.Arn
+
   # SQS Queue for Ropewiki page processing
   RopewikiPageProcessingQueue:
     Type: AWS::SQS::Queue
@@ -539,6 +564,34 @@ Resources:
       VisibilityTimeout: 960
       MessageRetentionPeriod: 345600
       ReceiveMessageWaitTimeSeconds: 5
+      RedrivePolicy:
+        deadLetterTargetArn: !GetAtt RopewikiPageProcessingDLQ.Arn
+        maxReceiveCount: 5
+
+  # Dead-letter queue for map data processing (messages received 5 times)
+  MapDataProcessingDLQ:
+    Type: AWS::SQS::Queue
+    Properties:
+      QueueName: !Sub '${devEnvironment}-map-data-processing-dlq'
+      MessageRetentionPeriod: 1209600  # 14 days
+
+  # Allow source queue to send messages to the DLQ when redrive policy triggers
+  MapDataProcessingDLQPolicy:
+    Type: AWS::SQS::QueuePolicy
+    Properties:
+      Queues:
+        - !Ref MapDataProcessingDLQ
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: sqs.amazonaws.com
+            Action: sqs:SendMessage
+            Resource: !GetAtt MapDataProcessingDLQ.Arn
+            Condition:
+              ArnEquals:
+                aws:SourceArn: !GetAtt MapDataProcessingQueue.Arn
 
   # SQS Queue for map data processing
   MapDataProcessingQueue:
@@ -548,6 +601,9 @@ Resources:
       VisibilityTimeout: 960
       MessageRetentionPeriod: 345600
       ReceiveMessageWaitTimeSeconds: 5
+      RedrivePolicy:
+        deadLetterTargetArn: !GetAtt MapDataProcessingDLQ.Arn
+        maxReceiveCount: 5
 
   # S3 Bucket for storing map data files
   MapDataBucket:
@@ -645,6 +701,7 @@ Resources:
           DB_USER: !Ref DatabaseUsername
           DB_PASSWORD: !Ref DatabasePassword
           ROPEWIKI_PAGE_PROCESSING_QUEUE_URL: !Ref RopewikiPageProcessingQueue
+          ROPEWIKI_PAGE_PROCESSOR_TIMEOUT_SECONDS: "900"
       Policies:
         - Version: '2012-10-17'
           Statement:
@@ -667,7 +724,7 @@ Resources:
         - "@sparticuz/chromium"
 
   # Lambda function that processes map data (KML to MBTiles conversion)
-  # Uses arm64 (no Chromium dependency). RopewikiScraper/RopewikiPageProcessor use x86_64 for Chromium layer.
+  # Uses arm64 (no Chromium dependency)
   MapDataProcessor:
     Type: AWS::Serverless::Function
     Properties:
@@ -699,6 +756,7 @@ Resources:
           DB_USER: !Ref DatabaseUsername
           DB_PASSWORD: !Ref DatabasePassword
           MAP_DATA_PROCESSING_QUEUE_URL: !Ref MapDataProcessingQueue
+          MAP_DATA_PROCESSOR_TIMEOUT_SECONDS: "900"
           MAP_DATA_BUCKET_NAME: !Ref MapDataBucket
       Policies:
         - S3WritePolicy:

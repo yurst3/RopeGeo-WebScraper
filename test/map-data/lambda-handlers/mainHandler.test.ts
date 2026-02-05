@@ -4,11 +4,16 @@ import { PageDataSource } from '../../../src/types/pageRoute';
 import { MapDataEvent } from '../../../src/map-data/types/lambdaEvent';
 import type { SqsEvent, SqsRecord } from '@aws-lambda-powertools/parser/types';
 
-// Mock handleMapDataSQSMessages
+// Mock handleMapDataSQSMessages and setMapDataSQSMessageVisibilityTimeout
 let mockHandleMapDataSQSMessages: jest.MockedFunction<typeof import('../../../src/map-data/sqs/handleMapDataSQSMessages').default>;
+let mockSetMapDataSQSMessageVisibilityTimeout: jest.MockedFunction<typeof import('../../../src/map-data/sqs/setMapDataSQSMessageVisibilityTimeout').default>;
 jest.mock('../../../src/map-data/sqs/handleMapDataSQSMessages', () => ({
     __esModule: true,
     default: jest.fn(),
+}));
+jest.mock('../../../src/map-data/sqs/setMapDataSQSMessageVisibilityTimeout', () => ({
+    __esModule: true,
+    default: jest.fn(() => Promise.resolve()),
 }));
 
 // Mock database connection
@@ -73,8 +78,9 @@ describe('mainHandler', () => {
         // Setup mocks
         const handleMapDataSQSMessagesModule = require('../../../src/map-data/sqs/handleMapDataSQSMessages');
         mockHandleMapDataSQSMessages = handleMapDataSQSMessagesModule.default;
+        mockSetMapDataSQSMessageVisibilityTimeout = require('../../../src/map-data/sqs/setMapDataSQSMessageVisibilityTimeout').default;
 
-        // Default mock implementations
+        mockSetMapDataSQSMessageVisibilityTimeout.mockResolvedValue(undefined);
         mockHandleMapDataSQSMessages.mockResolvedValue({
             successes: 1,
             errors: 0,
@@ -120,6 +126,7 @@ describe('mainHandler', () => {
 
         const result = await mainHandler(sqsEvent, mockContext);
 
+        expect(mockSetMapDataSQSMessageVisibilityTimeout).not.toHaveBeenCalled();
         expect(mockHandleMapDataSQSMessages).not.toHaveBeenCalled();
         expect(result.statusCode).toBe(500);
         const body = JSON.parse(result.body);
@@ -134,6 +141,7 @@ describe('mainHandler', () => {
 
         const result = await mainHandler(sqsEvent, mockContext);
 
+        expect(mockSetMapDataSQSMessageVisibilityTimeout).not.toHaveBeenCalled();
         expect(mockHandleMapDataSQSMessages).not.toHaveBeenCalled();
         expect(result.statusCode).toBe(500);
         const body = JSON.parse(result.body);
@@ -148,6 +156,7 @@ describe('mainHandler', () => {
 
         const result = await mainHandler(sqsEvent, mockContext);
 
+        expect(mockSetMapDataSQSMessageVisibilityTimeout).not.toHaveBeenCalled();
         expect(mockHandleMapDataSQSMessages).not.toHaveBeenCalled();
         expect(result.statusCode).toBe(500);
         const body = JSON.parse(result.body);
@@ -269,6 +278,9 @@ describe('mainHandler', () => {
 
         const result = await mainHandler(sqsEvent, mockContext);
 
+        expect(mockSetMapDataSQSMessageVisibilityTimeout).toHaveBeenCalledTimes(2);
+        expect(mockSetMapDataSQSMessageVisibilityTimeout).toHaveBeenNthCalledWith(1, 'test-receipt-handle-1');
+        expect(mockSetMapDataSQSMessageVisibilityTimeout).toHaveBeenNthCalledWith(2, 'test-receipt-handle-2');
         expect(mockHandleMapDataSQSMessages).toHaveBeenCalledTimes(1);
         expect(mockHandleMapDataSQSMessages).toHaveBeenCalledWith(
             sqsEvent.Records,
@@ -282,6 +294,29 @@ describe('mainHandler', () => {
             errors: 0,
             remaining: 0,
         });
+    });
+
+    it('calls setMapDataSQSMessageVisibilityTimeout before handleMapDataSQSMessages', async () => {
+        const sqsEvent: SqsEvent = {
+            Records: [
+                {
+                    body: JSON.stringify({ source, routeId, pageId }),
+                    receiptHandle: 'receipt-1',
+                } as SqsRecord,
+            ],
+        };
+        const callOrder: string[] = [];
+        mockSetMapDataSQSMessageVisibilityTimeout.mockImplementation(async () => {
+            callOrder.push('visibility');
+        });
+        mockHandleMapDataSQSMessages.mockImplementation(async () => {
+            callOrder.push('handle');
+            return { successes: 1, errors: 0, remaining: 0 };
+        });
+
+        await mainHandler(sqsEvent, mockContext);
+
+        expect(callOrder).toEqual(['visibility', 'handle']);
     });
 
     it('calls handleMapDataSQSMessages with records and client', async () => {

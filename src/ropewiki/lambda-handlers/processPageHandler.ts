@@ -1,7 +1,9 @@
 import getDatabaseConnection from '../../helpers/getDatabaseConnection';
 import type { SqsEvent } from '@aws-lambda-powertools/parser/types';
 import handleProcessPageSQSMessages from '../sqs/handleProcessPageSQSMessages';
+import setProcessPageSQSMessageVisibilityTimeout from '../sqs/setProcessPageSQSMessageVisibilityTimeout';
 import type { Pool, PoolClient } from 'pg';
+import type { SqsRecord } from '@aws-lambda-powertools/parser/types';
 
 /**
  * Lambda handler for processing multiple Ropewiki pages from an SQS event.
@@ -22,7 +24,17 @@ export const processPageHandler = async (event: SqsEvent, context: any) => {
             throw new Error('Invalid SQS event: missing Records array or empty Records');
         }
 
-        console.log(`Processing ${event.Records.length} messages...`)
+        console.log(`Processing ${event.Records.length} messages...`);
+
+        /* 
+        By default messages only remain "invisibile" for 30 seconds before they move back to the "in-flight" state.
+        We need to increase the visibility timeout for all messages so they don't become "visible" before we're done
+        processing them. We do this by setting their visibility timeouts to the lambda's timeout value, that way the
+        lambda will always finish before the messages become visibile again.
+        */
+        await Promise.all((event.Records as SqsRecord[]).map(record => 
+            setProcessPageSQSMessageVisibilityTimeout(record.receiptHandle)
+        ));
 
         const results = await handleProcessPageSQSMessages(event.Records, client);
         const totalRecords = event.Records.length;

@@ -1,8 +1,8 @@
-import type { SqsEvent } from '@aws-lambda-powertools/parser/types';
-import ProgressLogger from '../../helpers/progressLogger';
+import type { SqsEvent, SqsRecord } from '@aws-lambda-powertools/parser/types';
 import getDatabaseConnection from '../../helpers/getDatabaseConnection';
 import type { Pool, PoolClient } from 'pg';
 import handleMapDataSQSMessages from '../sqs/handleMapDataSQSMessages';
+import setMapDataSQSMessageVisibilityTimeout from '../sqs/setMapDataSQSMessageVisibilityTimeout';
 
 /**
  * Lambda handler for processing map data (KML to MBTiles conversion).
@@ -22,11 +22,19 @@ export const mainHandler = async (event: SqsEvent, context: any) => {
             throw new Error('Invalid SQS event: missing Records array or empty Records');
         }
 
-        console.log(`Processing map data for ${event.Records.length} page routes...`)
+        console.log(`Processing map data for ${event.Records.length} page routes...`);
 
-        // Initialize progress logger
-        const logger = new ProgressLogger('Processing map data', 1);
-        logger.setChunk(0, 1);
+        /* 
+        By default messages only remain "invisibile" for 30 seconds before they move back to the "in-flight" state.
+        We need to increase the visibility timeout for all messages so they don't become "visible" before we're done
+        processing them. We do this by setting their visibility timeouts to the lambda's timeout value, that way the
+        lambda will always finish before the messages become visibile again.
+        */
+        await Promise.all(
+            (event.Records as SqsRecord[]).map(record =>
+                setMapDataSQSMessageVisibilityTimeout(record.receiptHandle),
+            ),
+        );
 
         const results = await handleMapDataSQSMessages(event.Records, client);
         const totalRecords = event.Records.length;

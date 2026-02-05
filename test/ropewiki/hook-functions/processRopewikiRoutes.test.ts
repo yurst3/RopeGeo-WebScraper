@@ -1,7 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach, jest } from '@jest/globals';
 import { nodeProcessRopewikiRoutes, lambdaProcessRopewikiRoutes } from '../../../src/ropewiki/hook-functions/processRopewikiRoutes';
 import { RopewikiRoute } from '../../../src/types/pageRoute';
-import { PageDataSource } from '../../../src/types/pageRoute';
 import { MapDataEvent } from '../../../src/map-data/types/lambdaEvent';
 import { Route, RouteType } from '../../../src/types/route';
 import RopewikiPage from '../../../src/ropewiki/types/page';
@@ -45,25 +44,10 @@ jest.mock('../../../src/helpers/progressLogger', () => {
     };
 });
 
-// Mock @aws-sdk/client-sqs
-const mockSend = jest.fn<() => Promise<any>>();
-const mockSQSClient = {
-    send: mockSend,
-};
-
-jest.mock('@aws-sdk/client-sqs', () => {
-    // Create mocks inside factory to avoid hoisting issues
-    const mockSendFn = jest.fn<() => Promise<any>>();
-    const mockSQSClientInstance = {
-        send: mockSendFn,
-    };
-    const MockSQSClient = jest.fn(() => mockSQSClientInstance);
-    const MockSendMessageCommand = jest.fn();
-    return {
-        SQSClient: MockSQSClient,
-        SendMessageCommand: MockSendMessageCommand,
-    };
-});
+jest.mock('../../../src/ropewiki/sqs/sendMapDataSQSMessage', () => ({
+    __esModule: true,
+    default: jest.fn(() => Promise.resolve()),
+}));
 
 // Mock console methods
 const mockConsoleLog = jest.spyOn(console, 'log').mockImplementation(() => {});
@@ -75,10 +59,8 @@ describe('processRopewikiRoutes hook functions', () => {
     let mockSetChunk: jest.MockedFunction<(start: number, end: number) => void>;
     let mockLogProgress: jest.MockedFunction<(message: string) => void>;
     let mockLogError: jest.MockedFunction<(message: string) => void>;
-    let mockSend: jest.MockedFunction<() => Promise<any>>;
     let MockProgressLogger: any;
-    let MockSQSClient: any;
-    let MockSendMessageCommand: any;
+    let mockSendMapDataSQSMessage: jest.MockedFunction<typeof import('../../../src/ropewiki/sqs/sendMapDataSQSMessage').default>;
 
     beforeEach(() => {
         jest.clearAllMocks();
@@ -95,13 +77,8 @@ describe('processRopewikiRoutes hook functions', () => {
         mockLogProgress = loggerInstance.logProgress as jest.MockedFunction<(message: string) => void>;
         mockLogError = loggerInstance.logError as jest.MockedFunction<(message: string) => void>;
         
-        const sqs = jest.requireMock('@aws-sdk/client-sqs') as { SQSClient: any; SendMessageCommand: any };
-        MockSQSClient = sqs.SQSClient;
-        MockSendMessageCommand = sqs.SendMessageCommand;
-        // Get the mock client instance and its send method
-        const sqsClientInstance = new MockSQSClient({});
-        mockSend = sqsClientInstance.send as jest.MockedFunction<() => Promise<any>>;
-        mockSend.mockResolvedValue({});
+        mockSendMapDataSQSMessage = jest.requireMock('../../../src/ropewiki/sqs/sendMapDataSQSMessage').default;
+        mockSendMapDataSQSMessage.mockResolvedValue(undefined);
     });
 
     afterEach(() => {
@@ -316,44 +293,44 @@ describe('processRopewikiRoutes hook functions', () => {
             expect(mockConsoleLog).toHaveBeenCalledWith(
                 'Skipping SQS message sending for 1 route(s) - no queue configured locally',
             );
-            // SQSClient is instantiated before the check, so it will be called
-            // but send() should not be called
-            expect(mockSend).not.toHaveBeenCalled();
+            expect(mockSendMapDataSQSMessage).not.toHaveBeenCalled();
+            // ProgressLogger only created in beforeEach for node tests; lambda path returns before creating one
+            expect(MockProgressLogger).not.toHaveBeenCalledWith('Queueing RopewikiRoutes to map data queue', expect.any(Number));
         });
 
         it('throws error when MAP_DATA_PROCESSING_QUEUE_URL is not set', async () => {
             delete process.env.DEV_ENVIRONMENT;
             delete process.env.MAP_DATA_PROCESSING_QUEUE_URL;
             const ropewikiRoute = createTestRopewikiRoute('route-1', 'page-1');
+            mockSendMapDataSQSMessage.mockRejectedValueOnce(
+                new Error('MAP_DATA_PROCESSING_QUEUE_URL environment variable is not set'),
+            );
 
             await expect(lambdaProcessRopewikiRoutes([ropewikiRoute])).rejects.toThrow(
                 'MAP_DATA_PROCESSING_QUEUE_URL environment variable is not set',
             );
+
+            expect(MockProgressLogger).toHaveBeenCalledWith('Queueing RopewikiRoutes to map data queue', 1);
+            expect(mockSetChunk).toHaveBeenCalledWith(0, 1);
+            expect(mockLogProgress).not.toHaveBeenCalled();
         });
 
-        it('sends SQS message for a single route/page pair', async () => {
+        it('calls sendMapDataSQSMessage for a single route/page pair and logs progress', async () => {
             delete process.env.DEV_ENVIRONMENT;
             process.env.MAP_DATA_PROCESSING_QUEUE_URL = 'https://sqs.us-east-1.amazonaws.com/123456789/test-queue';
             const ropewikiRoute = createTestRopewikiRoute('route-1', 'page-1');
 
             await lambdaProcessRopewikiRoutes([ropewikiRoute]);
 
-            expect(MockSQSClient).toHaveBeenCalledWith({});
-            expect(MockSendMessageCommand).toHaveBeenCalled();
-            const sendMessageCall = MockSendMessageCommand.mock.calls[0]?.[0];
-            expect(sendMessageCall).toMatchObject({
-                QueueUrl: 'https://sqs.us-east-1.amazonaws.com/123456789/test-queue',
-                MessageBody: JSON.stringify({
-                    source: PageDataSource.Ropewiki,
-                    routeId: 'route-1',
-                    pageId: 'page-1',
-                }),
-            });
-            expect(mockSend).toHaveBeenCalledTimes(1);
-            expect(mockConsoleLog).toHaveBeenCalledWith('Sent route route-1 / page page-1 to MapDataProcessingQueue');
+            expect(MockProgressLogger).toHaveBeenCalledWith('Queueing RopewikiRoutes to map data queue', 1);
+            expect(mockSetChunk).toHaveBeenCalledWith(0, 1);
+            expect(mockSendMapDataSQSMessage).toHaveBeenCalledTimes(1);
+            expect(mockSendMapDataSQSMessage).toHaveBeenCalledWith(ropewikiRoute);
+            expect(mockLogProgress).toHaveBeenCalledTimes(1);
+            expect(mockLogProgress).toHaveBeenCalledWith('Sent route route-1 / page page-1 to queue');
         });
 
-        it('sends SQS messages for multiple route/page pairs', async () => {
+        it('calls sendMapDataSQSMessage for multiple route/page pairs and logs progress', async () => {
             delete process.env.DEV_ENVIRONMENT;
             process.env.MAP_DATA_PROCESSING_QUEUE_URL = 'https://sqs.us-east-1.amazonaws.com/123456789/test-queue';
             const ropewikiRoute1 = createTestRopewikiRoute('route-1', 'page-1');
@@ -361,79 +338,82 @@ describe('processRopewikiRoutes hook functions', () => {
 
             await lambdaProcessRopewikiRoutes([ropewikiRoute1, ropewikiRoute2]);
 
-            expect(MockSendMessageCommand).toHaveBeenCalledTimes(2);
-            expect(mockSend).toHaveBeenCalledTimes(2);
-            expect(mockConsoleLog).toHaveBeenCalledTimes(3);
-            expect(mockConsoleLog).toHaveBeenCalledWith('Queueing 2 RopewikiRoutes to process their map data...');
-            expect(mockConsoleLog).toHaveBeenCalledWith('Sent route route-1 / page page-1 to MapDataProcessingQueue');
-            expect(mockConsoleLog).toHaveBeenCalledWith('Sent route route-2 / page page-2 to MapDataProcessingQueue');
+            expect(MockProgressLogger).toHaveBeenCalledWith('Queueing RopewikiRoutes to map data queue', 2);
+            expect(mockSetChunk).toHaveBeenCalledWith(0, 2);
+            expect(mockSendMapDataSQSMessage).toHaveBeenCalledTimes(2);
+            expect(mockSendMapDataSQSMessage).toHaveBeenNthCalledWith(1, ropewikiRoute1);
+            expect(mockSendMapDataSQSMessage).toHaveBeenNthCalledWith(2, ropewikiRoute2);
+            expect(mockLogProgress).toHaveBeenCalledTimes(2);
+            expect(mockLogProgress).toHaveBeenNthCalledWith(1, 'Sent route route-1 / page page-1 to queue');
+            expect(mockLogProgress).toHaveBeenNthCalledWith(2, 'Sent route route-2 / page page-2 to queue');
         });
 
-        it('skips sending when route.id is missing', async () => {
+        it('throws when route is missing (fail fast)', async () => {
             delete process.env.DEV_ENVIRONMENT;
             process.env.MAP_DATA_PROCESSING_QUEUE_URL = 'https://sqs.us-east-1.amazonaws.com/123456789/test-queue';
             const ropewikiRoute = createTestRopewikiRoute('', 'page-1');
-
-            await lambdaProcessRopewikiRoutes([ropewikiRoute]);
-
-            expect(mockSend).not.toHaveBeenCalled();
-            expect(mockConsoleError).toHaveBeenCalledWith(
-                'Error sending route unknown / page page-1 to queue:',
-                expect.any(Error),
+            mockSendMapDataSQSMessage.mockRejectedValueOnce(
+                new Error('RopewikiRoute must have a route to send to queue'),
             );
-            const errorCall = mockConsoleError.mock.calls.find(call => 
-                call[0] === 'Error sending route unknown / page page-1 to queue:'
+
+            await expect(lambdaProcessRopewikiRoutes([ropewikiRoute])).rejects.toThrow(
+                'RopewikiRoute must have a route to send to queue',
             );
-            expect(errorCall?.[1]).toHaveProperty('message', 'RopewikiRoute must have a route id to send to queue');
+
+            expect(MockProgressLogger).toHaveBeenCalledWith('Queueing RopewikiRoutes to map data queue', 1);
+            expect(mockSetChunk).toHaveBeenCalledWith(0, 1);
+            expect(mockSendMapDataSQSMessage).toHaveBeenCalledTimes(1);
+            expect(mockLogProgress).not.toHaveBeenCalled();
         });
 
-        it('skips sending when page.id is missing', async () => {
+        it('throws when page is missing (fail fast)', async () => {
             delete process.env.DEV_ENVIRONMENT;
             process.env.MAP_DATA_PROCESSING_QUEUE_URL = 'https://sqs.us-east-1.amazonaws.com/123456789/test-queue';
             const ropewikiRoute = createTestRopewikiRoute('route-1', '');
-
-            await lambdaProcessRopewikiRoutes([ropewikiRoute]);
-
-            expect(mockSend).not.toHaveBeenCalled();
-            expect(mockConsoleError).toHaveBeenCalledWith(
-                'Error sending route route-1 / page unknown to queue:',
-                expect.any(Error),
+            mockSendMapDataSQSMessage.mockRejectedValueOnce(
+                new Error('RopewikiRoute must have a page to send to queue'),
             );
+
+            await expect(lambdaProcessRopewikiRoutes([ropewikiRoute])).rejects.toThrow(
+                'RopewikiRoute must have a page to send to queue',
+            );
+
+            expect(MockProgressLogger).toHaveBeenCalledWith('Queueing RopewikiRoutes to map data queue', 1);
+            expect(mockSetChunk).toHaveBeenCalledWith(0, 1);
+            expect(mockSendMapDataSQSMessage).toHaveBeenCalledTimes(1);
+            expect(mockLogProgress).not.toHaveBeenCalled();
         });
 
-        it('continues sending after an error', async () => {
+        it('propagates error from sendMapDataSQSMessage (fail fast)', async () => {
             delete process.env.DEV_ENVIRONMENT;
             process.env.MAP_DATA_PROCESSING_QUEUE_URL = 'https://sqs.us-east-1.amazonaws.com/123456789/test-queue';
             const ropewikiRoute1 = createTestRopewikiRoute('route-1', 'page-1');
             const ropewikiRoute2 = createTestRopewikiRoute('route-2', 'page-2');
 
-            mockSend
+            mockSendMapDataSQSMessage
                 .mockRejectedValueOnce(new Error('SQS send failed'))
-                .mockResolvedValueOnce({});
+                .mockResolvedValueOnce(undefined);
 
-            await lambdaProcessRopewikiRoutes([ropewikiRoute1, ropewikiRoute2]);
-
-            expect(mockSend).toHaveBeenCalledTimes(2);
-            expect(mockConsoleError).toHaveBeenCalledTimes(1);
-            expect(mockConsoleError).toHaveBeenCalledWith(
-                'Error sending route route-1 / page page-1 to queue:',
-                expect.objectContaining({
-                    message: 'SQS send failed',
-                }),
+            await expect(lambdaProcessRopewikiRoutes([ropewikiRoute1, ropewikiRoute2])).rejects.toThrow(
+                'SQS send failed',
             );
-            expect(mockConsoleLog).toHaveBeenCalledTimes(2);
-            expect(mockConsoleLog).toHaveBeenCalledWith('Queueing 2 RopewikiRoutes to process their map data...');
-            expect(mockConsoleLog).toHaveBeenCalledWith('Sent route route-2 / page page-2 to MapDataProcessingQueue');
+
+            expect(MockProgressLogger).toHaveBeenCalledWith('Queueing RopewikiRoutes to map data queue', 2);
+            expect(mockSetChunk).toHaveBeenCalledWith(0, 2);
+            expect(mockSendMapDataSQSMessage).toHaveBeenCalledTimes(1);
+            expect(mockSendMapDataSQSMessage).toHaveBeenCalledWith(ropewikiRoute1);
+            expect(mockLogProgress).not.toHaveBeenCalled();
         });
 
-        it('handles empty routesAndPages array', async () => {
+        it('returns early when routes array is empty', async () => {
             delete process.env.DEV_ENVIRONMENT;
             process.env.MAP_DATA_PROCESSING_QUEUE_URL = 'https://sqs.us-east-1.amazonaws.com/123456789/test-queue';
 
             await lambdaProcessRopewikiRoutes([]);
 
-            expect(MockSQSClient).toHaveBeenCalled();
-            expect(mockSend).not.toHaveBeenCalled();
+            // ProgressLogger only created in beforeEach for node tests; lambda path returns before creating one
+            expect(MockProgressLogger).not.toHaveBeenCalledWith('Queueing RopewikiRoutes to map data queue', expect.any(Number));
+            expect(mockSendMapDataSQSMessage).not.toHaveBeenCalled();
         });
     });
 });

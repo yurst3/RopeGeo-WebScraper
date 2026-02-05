@@ -5,9 +5,11 @@ import type { SqsEvent } from '@aws-lambda-powertools/parser/types';
 // Mock dependencies
 jest.mock('../../../src/helpers/getDatabaseConnection');
 jest.mock('../../../src/ropewiki/sqs/handleProcessPageSQSMessages');
+jest.mock('../../../src/ropewiki/sqs/setProcessPageSQSMessageVisibilityTimeout');
 
 const mockGetDatabaseConnection = require('../../../src/helpers/getDatabaseConnection').default as jest.MockedFunction<typeof import('../../../src/helpers/getDatabaseConnection').default>;
 const mockHandleProcessPageSQSMessages = require('../../../src/ropewiki/sqs/handleProcessPageSQSMessages').default as jest.MockedFunction<typeof import('../../../src/ropewiki/sqs/handleProcessPageSQSMessages').default>;
+const mockSetProcessPageSQSMessageVisibilityTimeout = require('../../../src/ropewiki/sqs/setProcessPageSQSMessageVisibilityTimeout').default as jest.MockedFunction<typeof import('../../../src/ropewiki/sqs/setProcessPageSQSMessageVisibilityTimeout').default>;
 
 describe('processPageHandler', () => {
     let mockPool: any;
@@ -63,7 +65,8 @@ describe('processPageHandler', () => {
         } as any;
         mockGetDatabaseConnection.mockResolvedValue(mockPool);
 
-        // Default: handleProcessPageSQSMessages succeeds
+        // Default: visibility timeout and handleProcessPageSQSMessages succeed
+        mockSetProcessPageSQSMessageVisibilityTimeout.mockResolvedValue(undefined);
         mockHandleProcessPageSQSMessages.mockResolvedValue({
             successes: 0,
             errors: 0,
@@ -83,6 +86,8 @@ describe('processPageHandler', () => {
 
         expect(mockGetDatabaseConnection).toHaveBeenCalledTimes(1);
         expect(mockPool.connect).toHaveBeenCalledTimes(1);
+        expect(mockSetProcessPageSQSMessageVisibilityTimeout).toHaveBeenCalledTimes(1);
+        expect(mockSetProcessPageSQSMessageVisibilityTimeout).toHaveBeenCalledWith('receipt-0');
         expect(mockHandleProcessPageSQSMessages).toHaveBeenCalledTimes(1);
         expect(mockHandleProcessPageSQSMessages).toHaveBeenCalledWith(event.Records, mockClient);
         expect(mockClient.release).toHaveBeenCalledTimes(1);
@@ -112,6 +117,10 @@ describe('processPageHandler', () => {
 
         const result = await processPageHandler(event, {});
 
+        expect(mockSetProcessPageSQSMessageVisibilityTimeout).toHaveBeenCalledTimes(3);
+        expect(mockSetProcessPageSQSMessageVisibilityTimeout).toHaveBeenNthCalledWith(1, 'receipt-0');
+        expect(mockSetProcessPageSQSMessageVisibilityTimeout).toHaveBeenNthCalledWith(2, 'receipt-1');
+        expect(mockSetProcessPageSQSMessageVisibilityTimeout).toHaveBeenNthCalledWith(3, 'receipt-2');
         expect(mockHandleProcessPageSQSMessages).toHaveBeenCalledWith(event.Records, mockClient);
         expect(result.statusCode).toBe(200);
         const body = JSON.parse(result.body);
@@ -137,6 +146,7 @@ describe('processPageHandler', () => {
 
         const result = await processPageHandler(event, {});
 
+        expect(mockSetProcessPageSQSMessageVisibilityTimeout).toHaveBeenCalledTimes(2);
         expect(result.statusCode).toBe(200);
         const body = JSON.parse(result.body);
         expect(body.results).toEqual({
@@ -151,6 +161,7 @@ describe('processPageHandler', () => {
 
         const result = await processPageHandler(event, {});
 
+        expect(mockSetProcessPageSQSMessageVisibilityTimeout).not.toHaveBeenCalled();
         expect(mockHandleProcessPageSQSMessages).not.toHaveBeenCalled();
         expect(consoleErrorSpy).toHaveBeenCalled();
         expect(result.statusCode).toBe(500);
@@ -167,10 +178,42 @@ describe('processPageHandler', () => {
 
         const result = await processPageHandler(event, {});
 
+        expect(mockSetProcessPageSQSMessageVisibilityTimeout).not.toHaveBeenCalled();
         expect(mockHandleProcessPageSQSMessages).not.toHaveBeenCalled();
         expect(result.statusCode).toBe(500);
         const body = JSON.parse(result.body);
         expect(body.error).toBe('Invalid SQS event: missing Records array or empty Records');
+        expect(body.results).toBeUndefined();
+    });
+
+    it('calls setProcessPageSQSMessageVisibilityTimeout before handleProcessPageSQSMessages', async () => {
+        const event = createSqsEvent([createPageData('123', 'Test Page')]);
+        const callOrder: string[] = [];
+        mockSetProcessPageSQSMessageVisibilityTimeout.mockImplementation(async () => {
+            callOrder.push('visibility');
+        });
+        mockHandleProcessPageSQSMessages.mockImplementation(async () => {
+            callOrder.push('handle');
+            return { successes: 1, errors: 0, remaining: 0 };
+        });
+
+        await processPageHandler(event, {});
+
+        expect(callOrder).toEqual(['visibility', 'handle']);
+    });
+
+    it('handles errors from setProcessPageSQSMessageVisibilityTimeout', async () => {
+        const event = createSqsEvent([createPageData('123', 'Test Page')]);
+        mockSetProcessPageSQSMessageVisibilityTimeout.mockRejectedValue(new Error('Visibility timeout failed'));
+
+        const result = await processPageHandler(event, {});
+
+        expect(mockSetProcessPageSQSMessageVisibilityTimeout).toHaveBeenCalledWith('receipt-0');
+        expect(mockHandleProcessPageSQSMessages).not.toHaveBeenCalled();
+        expect(result.statusCode).toBe(500);
+        const body = JSON.parse(result.body);
+        expect(body.message).toBe('Failed to process pages');
+        expect(body.error).toBe('Visibility timeout failed');
         expect(body.results).toBeUndefined();
     });
 
@@ -183,6 +226,7 @@ describe('processPageHandler', () => {
 
         const result = await processPageHandler(event, {});
 
+        expect(mockSetProcessPageSQSMessageVisibilityTimeout).toHaveBeenCalledTimes(2);
         expect(mockHandleProcessPageSQSMessages).toHaveBeenCalledWith(event.Records, mockClient);
         expect(consoleErrorSpy).toHaveBeenCalled();
         expect(result.statusCode).toBe(500);
@@ -211,6 +255,7 @@ describe('processPageHandler', () => {
 
         const result = await processPageHandler(event, {});
 
+        expect(mockSetProcessPageSQSMessageVisibilityTimeout).not.toHaveBeenCalled();
         expect(mockHandleProcessPageSQSMessages).not.toHaveBeenCalled();
         expect(result.statusCode).toBe(500);
         const body = JSON.parse(result.body);

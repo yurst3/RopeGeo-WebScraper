@@ -5,7 +5,6 @@ import { lambdaSaveMapData } from '../hook-functions/saveMapData';
 import { MapDataEvent } from '../types/lambdaEvent';
 import ProgressLogger from '../../helpers/progressLogger';
 import deleteMapDataSQSMessage from './deleteMapDataSQSMessage';
-import setMapDataSQSMessageRetryTime from './setMapDataSQSMessageRetryTime';
 
 /**
  * Handles processing of map data from SQS records.
@@ -47,13 +46,9 @@ const handleMapDataSQSMessages = async (
             // Delete the message from the queue so we don't keep reprocessing it
             await deleteMapDataSQSMessage(record.receiptHandle);
         } catch (error) {
-            // Log the error and set retry time for this specific message
             const errorMessage = error instanceof Error ? error.message : String(error);
             logger.logError(`Error processing map data for route ${mapDataEvent.routeId} / page ${mapDataEvent.pageId}: ${errorMessage}`);
-            
-            // Set retry time for this failed message and continue to the next
-            // Max 43200; use 43140 so total (elapsed + new) stays under 12h from first receive
-            await setMapDataSQSMessageRetryTime(record.receiptHandle, 43140);
+            // Don't change visibility timeout; message will become visible again for retry (or go to DLQ after max receives)
         }
     }
 

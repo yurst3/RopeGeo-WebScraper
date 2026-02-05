@@ -7,13 +7,11 @@ jest.mock('../../../src/ropewiki/processors/processPage');
 jest.mock('../../../src/ropewiki/types/page');
 jest.mock('../../../src/helpers/progressLogger');
 jest.mock('../../../src/ropewiki/sqs/deleteProcessPageSQSMessage');
-jest.mock('../../../src/ropewiki/sqs/setProcessPageSQSMessageRetryTime');
 
 const mockProcessPage = require('../../../src/ropewiki/processors/processPage').processPage as jest.MockedFunction<typeof import('../../../src/ropewiki/processors/processPage').processPage>;
 const RopewikiPage = require('../../../src/ropewiki/types/page').default;
 const ProgressLogger = require('../../../src/helpers/progressLogger').default;
 const mockDeleteProcessPageSQSMessage = require('../../../src/ropewiki/sqs/deleteProcessPageSQSMessage').default as jest.MockedFunction<typeof import('../../../src/ropewiki/sqs/deleteProcessPageSQSMessage').default>;
-const mockSetProcessPageSQSMessageRetryTime = require('../../../src/ropewiki/sqs/setProcessPageSQSMessageRetryTime').default as jest.MockedFunction<typeof import('../../../src/ropewiki/sqs/setProcessPageSQSMessageRetryTime').default>;
 
 describe('handleProcessPageSQSMessages', () => {
     let mockClient: any;
@@ -87,7 +85,6 @@ describe('handleProcessPageSQSMessages', () => {
         // Default: processPage succeeds
         mockProcessPage.mockResolvedValue(undefined);
         mockDeleteProcessPageSQSMessage.mockResolvedValue(undefined);
-        mockSetProcessPageSQSMessageRetryTime.mockResolvedValue(undefined);
     });
 
     it('successfully processes a single record', async () => {
@@ -177,93 +174,70 @@ describe('handleProcessPageSQSMessages', () => {
         });
     });
 
-    it('handles HTTP errors and sets retry time for unprocessed records', async () => {
+    it('handles HTTP errors and continues to next message', async () => {
         const records = [
             createSqsRecord(createPageData('123', 'Page 1'), 'receipt-1'),
             createSqsRecord(createPageData('456', 'Page 2'), 'receipt-2'),
             createSqsRecord(createPageData('789', 'Page 3'), 'receipt-3'),
         ];
-        // First page succeeds, second page throws HTTP error
         mockProcessPage
             .mockResolvedValueOnce(undefined)
-            .mockRejectedValueOnce(new Error('HTTP error: Failed to fetch'));
+            .mockRejectedValueOnce(new Error('HTTP error: Failed to fetch'))
+            .mockResolvedValueOnce(undefined);
 
         mockLogger.getResults.mockReturnValue({
-            successes: 1,
-            errors: 0,
+            successes: 2,
+            errors: 1,
             remaining: 0,
         });
 
         const result = await handleProcessPageSQSMessages(records, mockClient);
 
-        expect(mockClient.query).toHaveBeenCalledWith('ROLLBACK');
-        expect(mockProcessPage).toHaveBeenCalledTimes(2);
-        expect(mockDeleteProcessPageSQSMessage).toHaveBeenCalledTimes(1); // Only first page deleted
+        expect(mockClient.query).toHaveBeenCalledWith('COMMIT');
+        expect(mockClient.query).not.toHaveBeenCalledWith('ROLLBACK');
+        expect(mockProcessPage).toHaveBeenCalledTimes(3);
+        expect(mockDeleteProcessPageSQSMessage).toHaveBeenCalledTimes(2); // receipt-1 and receipt-3
         expect(mockDeleteProcessPageSQSMessage).toHaveBeenCalledWith('receipt-1');
-        // Should set retry time for unprocessed records (indices 1 and 2)
-        expect(mockSetProcessPageSQSMessageRetryTime).toHaveBeenCalledTimes(2);
-        expect(mockSetProcessPageSQSMessageRetryTime).toHaveBeenNthCalledWith(1, 'receipt-2', 43140);
-        expect(mockSetProcessPageSQSMessageRetryTime).toHaveBeenNthCalledWith(2, 'receipt-3', 43140);
-        expect(consoleErrorSpy).toHaveBeenCalled();
+        expect(mockDeleteProcessPageSQSMessage).toHaveBeenCalledWith('receipt-3');
+        expect(mockLogger.logError).toHaveBeenCalledWith('Error processing page: HTTP error: Failed to fetch');
         expect(result).toEqual({
-            successes: 1,
-            errors: 0,
+            successes: 2,
+            errors: 1,
             remaining: 0,
         });
     });
 
-    it('handles HTTP error on first record and sets retry time for all records', async () => {
+    it('handles HTTP error on first record and continues to second', async () => {
         const records = [
             createSqsRecord(createPageData('123', 'Page 1'), 'receipt-1'),
             createSqsRecord(createPageData('456', 'Page 2'), 'receipt-2'),
         ];
-        mockProcessPage.mockRejectedValueOnce(new Error('HTTP error: Failed to fetch'));
+        mockProcessPage
+            .mockRejectedValueOnce(new Error('HTTP error: Failed to fetch'))
+            .mockResolvedValueOnce(undefined);
 
         mockLogger.getResults.mockReturnValue({
-            successes: 0,
-            errors: 0,
+            successes: 1,
+            errors: 1,
             remaining: 0,
         });
 
         const result = await handleProcessPageSQSMessages(records, mockClient);
 
-        expect(mockClient.query).toHaveBeenCalledWith('ROLLBACK');
-        expect(mockDeleteProcessPageSQSMessage).not.toHaveBeenCalled();
-        expect(mockSetProcessPageSQSMessageRetryTime).toHaveBeenCalledTimes(2);
-        expect(mockSetProcessPageSQSMessageRetryTime).toHaveBeenNthCalledWith(1, 'receipt-1', 43140);
-        expect(mockSetProcessPageSQSMessageRetryTime).toHaveBeenNthCalledWith(2, 'receipt-2', 43140);
+        expect(mockClient.query).toHaveBeenCalledWith('COMMIT');
+        expect(mockClient.query).not.toHaveBeenCalledWith('ROLLBACK');
+        expect(mockProcessPage).toHaveBeenCalledTimes(2);
+        expect(mockDeleteProcessPageSQSMessage).toHaveBeenCalledTimes(1);
+        expect(mockDeleteProcessPageSQSMessage).toHaveBeenCalledWith('receipt-2');
+        expect(mockLogger.logError).toHaveBeenCalledWith('Error processing page: HTTP error: Failed to fetch');
         expect(result).toEqual({
-            successes: 0,
-            errors: 0,
+            successes: 1,
+            errors: 1,
             remaining: 0,
         });
     });
 
-    it('handles errors when setting retry time fails', async () => {
-        const records = [
-            createSqsRecord(createPageData('123', 'Page 1'), 'receipt-1'),
-        ];
-        mockProcessPage.mockRejectedValueOnce(new Error('HTTP error'));
-        mockSetProcessPageSQSMessageRetryTime.mockRejectedValueOnce(new Error('Failed to set retry time'));
-
-        mockLogger.getResults.mockReturnValue({
-            successes: 0,
-            errors: 0,
-            remaining: 0,
-        });
-
-        const result = await handleProcessPageSQSMessages(records, mockClient);
-
-        expect(mockSetProcessPageSQSMessageRetryTime).toHaveBeenCalled();
-        expect(consoleErrorSpy).toHaveBeenCalledWith('Failed to set retry time for record 0:', expect.any(Error));
-        expect(result).toEqual({
-            successes: 0,
-            errors: 0,
-            remaining: 0,
-        });
-    });
-
-    it('handles database errors when beginning transaction fails', async () => {
+    it('propagates error when BEGIN fails', async () => {
         const records = [createSqsRecord(createPageData('123', 'Test Page'), 'receipt-1')];
         mockClient.query.mockImplementation((query: string) => {
             if (query === 'BEGIN') {
@@ -272,24 +246,14 @@ describe('handleProcessPageSQSMessages', () => {
             return Promise.resolve({});
         });
 
-        mockLogger.getResults.mockReturnValue({
-            successes: 0,
-            errors: 0,
-            remaining: 0,
-        });
+        await expect(handleProcessPageSQSMessages(records, mockClient)).rejects.toThrow(
+            'Transaction begin failed',
+        );
 
-        const result = await handleProcessPageSQSMessages(records, mockClient);
-
-        expect(mockClient.query).toHaveBeenCalledWith('ROLLBACK');
-        expect(mockSetProcessPageSQSMessageRetryTime).toHaveBeenCalledTimes(1);
-        expect(result).toEqual({
-            successes: 0,
-            errors: 0,
-            remaining: 0,
-        });
+        expect(mockProcessPage).not.toHaveBeenCalled();
     });
 
-    it('handles database errors when committing transaction fails', async () => {
+    it('propagates error when COMMIT fails', async () => {
         const records = [createSqsRecord(createPageData('123', 'Test Page'), 'receipt-1')];
         mockClient.query.mockImplementation((query: string) => {
             if (query === 'COMMIT') {
@@ -298,45 +262,32 @@ describe('handleProcessPageSQSMessages', () => {
             return Promise.resolve({});
         });
 
-        mockLogger.getResults.mockReturnValue({
-            successes: 1,
-            errors: 0,
-            remaining: 0,
-        });
+        await expect(handleProcessPageSQSMessages(records, mockClient)).rejects.toThrow(
+            'Transaction commit failed',
+        );
 
-        const result = await handleProcessPageSQSMessages(records, mockClient);
-
-        expect(mockClient.query).toHaveBeenCalledWith('ROLLBACK');
-        expect(mockSetProcessPageSQSMessageRetryTime).toHaveBeenCalledTimes(0);
-        expect(result).toEqual({
-            successes: 1,
-            errors: 0,
-            remaining: 0,
-        });
+        expect(mockDeleteProcessPageSQSMessage).toHaveBeenCalledWith('receipt-1');
     });
 
-    it('handles rollback errors gracefully', async () => {
+    it('logs processPage error and continues without rolling back', async () => {
         const records = [createSqsRecord(createPageData('123', 'Test Page'), 'receipt-1')];
         mockProcessPage.mockRejectedValueOnce(new Error('Processing failed'));
-        mockClient.query.mockImplementation((query: string) => {
-            if (query === 'ROLLBACK') {
-                return Promise.reject(new Error('Rollback failed'));
-            }
-            return Promise.resolve({});
-        });
 
         mockLogger.getResults.mockReturnValue({
             successes: 0,
-            errors: 0,
+            errors: 1,
             remaining: 0,
         });
 
         const result = await handleProcessPageSQSMessages(records, mockClient);
 
-        expect(mockSetProcessPageSQSMessageRetryTime).toHaveBeenCalled();
+        expect(mockClient.query).toHaveBeenCalledWith('COMMIT');
+        expect(mockClient.query).not.toHaveBeenCalledWith('ROLLBACK');
+        expect(mockLogger.logError).toHaveBeenCalledWith('Error processing page: Processing failed');
+        expect(mockDeleteProcessPageSQSMessage).not.toHaveBeenCalled(); // message not deleted so it can retry
         expect(result).toEqual({
             successes: 0,
-            errors: 0,
+            errors: 1,
             remaining: 0,
         });
     });
