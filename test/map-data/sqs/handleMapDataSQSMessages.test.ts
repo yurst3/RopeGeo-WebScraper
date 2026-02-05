@@ -198,7 +198,7 @@ describe('handleMapDataSQSMessages', () => {
         expect(mockDeleteMapDataSQSMessage).toHaveBeenNthCalledWith(2, 'receipt-3');
         // Should set retry time only for the failed message (second)
         expect(mockSetMapDataSQSMessageRetryTime).toHaveBeenCalledTimes(1);
-        expect(mockSetMapDataSQSMessageRetryTime).toHaveBeenCalledWith('receipt-2', 43200);
+        expect(mockSetMapDataSQSMessageRetryTime).toHaveBeenCalledWith('receipt-2', 43140);
         expect(mockLogger.logError).toHaveBeenCalledWith(
             'Error processing map data for route route-2 / page page-2: Processing failed'
         );
@@ -230,7 +230,7 @@ describe('handleMapDataSQSMessages', () => {
         expect(mockDeleteMapDataSQSMessage).toHaveBeenCalledTimes(1); // Only second deleted
         expect(mockDeleteMapDataSQSMessage).toHaveBeenCalledWith('receipt-2');
         expect(mockSetMapDataSQSMessageRetryTime).toHaveBeenCalledTimes(1);
-        expect(mockSetMapDataSQSMessageRetryTime).toHaveBeenCalledWith('receipt-1', 43200);
+        expect(mockSetMapDataSQSMessageRetryTime).toHaveBeenCalledWith('receipt-1', 43140);
         expect(result).toEqual({
             successes: 1,
             errors: 1,

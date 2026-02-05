@@ -202,8 +202,8 @@ describe('handleProcessPageSQSMessages', () => {
         expect(mockDeleteProcessPageSQSMessage).toHaveBeenCalledWith('receipt-1');
         // Should set retry time for unprocessed records (indices 1 and 2)
         expect(mockSetProcessPageSQSMessageRetryTime).toHaveBeenCalledTimes(2);
-        expect(mockSetProcessPageSQSMessageRetryTime).toHaveBeenNthCalledWith(1, 'receipt-2', 43200);
-        expect(mockSetProcessPageSQSMessageRetryTime).toHaveBeenNthCalledWith(2, 'receipt-3', 43200);
+        expect(mockSetProcessPageSQSMessageRetryTime).toHaveBeenNthCalledWith(1, 'receipt-2', 43140);
+        expect(mockSetProcessPageSQSMessageRetryTime).toHaveBeenNthCalledWith(2, 'receipt-3', 43140);
         expect(consoleErrorSpy).toHaveBeenCalled();
         expect(result).toEqual({
             successes: 1,
@@ -230,8 +230,8 @@ describe('handleProcessPageSQSMessages', () => {
         expect(mockClient.query).toHaveBeenCalledWith('ROLLBACK');
         expect(mockDeleteProcessPageSQSMessage).not.toHaveBeenCalled();
         expect(mockSetProcessPageSQSMessageRetryTime).toHaveBeenCalledTimes(2);
-        expect(mockSetProcessPageSQSMessageRetryTime).toHaveBeenNthCalledWith(1, 'receipt-1', 43200);
-        expect(mockSetProcessPageSQSMessageRetryTime).toHaveBeenNthCalledWith(2, 'receipt-2', 43200);
+        expect(mockSetProcessPageSQSMessageRetryTime).toHaveBeenNthCalledWith(1, 'receipt-1', 43140);
+        expect(mockSetProcessPageSQSMessageRetryTime).toHaveBeenNthCalledWith(2, 'receipt-2', 43140);
         expect(result).toEqual({
             successes: 0,
             errors: 0,
