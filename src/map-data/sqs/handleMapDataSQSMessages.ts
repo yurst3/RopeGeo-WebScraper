@@ -52,7 +52,8 @@ const handleMapDataSQSMessages = async (
             logger.logError(`Error processing map data for route ${mapDataEvent.routeId} / page ${mapDataEvent.pageId}: ${errorMessage}`);
             
             // Set retry time for this failed message and continue to the next
-            await setMapDataSQSMessageRetryTime(record.receiptHandle, 43200);
+            // Max 43200; use 43140 so total (elapsed + new) stays under 12h from first receive
+            await setMapDataSQSMessageRetryTime(record.receiptHandle, 43140);
         }
     }
 

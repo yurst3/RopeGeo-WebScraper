@@ -74,7 +74,8 @@ const handleProcessPageSQSMessages = async (
         for (let i = 0; i < records.length; i++) {
             if (!processedIndices.has(i)) {
                 try {
-                    await setProcessPageSQSMessageRetryTime(records[i]!.receiptHandle, 43200);
+                    // Max 43200; use 43140 so total (elapsed + new) stays under 12h from first receive
+                    await setProcessPageSQSMessageRetryTime(records[i]!.receiptHandle, 43140);
                 } catch (retryError) {
                     // Log but don't throw - we're already in error handling
                     console.error(`Failed to set retry time for record ${i}:`, retryError);
