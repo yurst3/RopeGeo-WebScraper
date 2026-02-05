@@ -1,12 +1,9 @@
-import getPageHtml from './http/getPageHtml';
-import parseCanyonsPage from './parsers/parseCanyonsPage';
-import processRegions from './processors/processRegions';
+import proccessRegions from './processors/processRegions';
 
 export const main = async () => {
     console.log('Road Trip Ryan Scraper');
 
-    const pageHtml = await getPageHtml("https://www.roadtripryan.com/go/type/canyon");
-    const canyons = await parseCanyonsPage(pageHtml);
+    const regions = await proccessRegions();
 
 };
 
