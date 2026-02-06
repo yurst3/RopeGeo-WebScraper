@@ -283,6 +283,46 @@ Resources:
         - Key: Name
           Value: WebScraperLambdaSecurityGroup
 
+  # Security Group for SQS VPC endpoint (allows Lambda to reach the endpoint)
+  SQSEndpointSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Security group for SQS VPC interface endpoint
+      VpcId: !Ref WebScraperVPC
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 443
+          ToPort: 443
+          SourceSecurityGroupId: !Ref LambdaSecurityGroup
+          Description: Allow HTTPS from Lambda to SQS endpoint
+      Tags:
+        - Key: Name
+          Value: WebScraperSQSEndpointSecurityGroup
+
+  # SQS interface endpoint so Lambda can reach SQS without NAT (avoids getaddrinfo EBUSY under load)
+  SQSEndpoint:
+    Type: AWS::EC2::VPCEndpoint
+    Properties:
+      VpcId: !Ref WebScraperVPC
+      ServiceName: !Sub 'com.amazonaws.${AWS::Region}.sqs'
+      VpcEndpointType: Interface
+      PrivateDnsEnabled: true
+      SubnetIds:
+        - !Ref PrivateSubnet1
+        - !Ref PrivateSubnet2
+      SecurityGroupIds:
+        - !Ref SQSEndpointSecurityGroup
+
+  # S3 Gateway endpoint so Lambda can reach S3 (e.g. MapDataBucket) without NAT (avoids DNS/connection pressure)
+  S3Endpoint:
+    Type: AWS::EC2::VPCEndpoint
+    Properties:
+      VpcId: !Ref WebScraperVPC
+      ServiceName: !Sub 'com.amazonaws.${AWS::Region}.s3'
+      VpcEndpointType: Gateway
+      RouteTableIds:
+        - !Ref PrivateRouteTable
+
   # Security Group for RDS
   RDSSecurityGroup:
     Type: AWS::EC2::SecurityGroup
@@ -675,6 +715,7 @@ Resources:
       Runtime: nodejs22.x
       Architectures:
         - *chromiumArch
+      ReservedConcurrentExecutions: 1
       Layers:
         - !Ref ChromiumLayer
       Handler: src/ropewiki/lambda-handlers/processPageHandler.processPageHandler
@@ -732,6 +773,7 @@ Resources:
       Runtime: nodejs22.x
       Architectures:
         - arm64
+      ReservedConcurrentExecutions: 1
       Handler: src/map-data/lambda-handlers/mainHandler.mainHandler
       Events:
         SQSEvent:

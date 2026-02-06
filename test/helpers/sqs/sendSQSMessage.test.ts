@@ -152,4 +152,17 @@ describe('sendSQSMessage', () => {
         expect(MockSendMessageCommandConstructor).toHaveBeenCalled();
         expect(mockSend).toHaveBeenCalledTimes(1);
     });
+
+    it('retries on EBUSY and succeeds on second attempt', async () => {
+        delete process.env.DEV_ENVIRONMENT;
+        const queueUrl = 'https://sqs.us-east-1.amazonaws.com/123456789/test-queue';
+        const body = 'message';
+        const ebusy = new Error('getaddrinfo EBUSY sqs.us-east-1.amazonaws.com') as NodeJS.ErrnoException;
+        ebusy.code = 'EBUSY';
+        mockSend.mockRejectedValueOnce(ebusy).mockResolvedValueOnce({});
+
+        await sendSQSMessage(body, queueUrl, undefined, 5);
+
+        expect(mockSend).toHaveBeenCalledTimes(2);
+    });
 });

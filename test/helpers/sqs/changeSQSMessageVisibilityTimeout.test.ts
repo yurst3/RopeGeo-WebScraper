@@ -147,6 +147,20 @@ describe('changeSQSMessageVisibilityTimeout', () => {
         expect(mockSend).toHaveBeenCalledTimes(1);
     });
 
+    it('retries on EBUSY and succeeds on second attempt', async () => {
+        delete process.env.DEV_ENVIRONMENT;
+        const queueUrl = 'https://sqs.us-east-1.amazonaws.com/123456789/test-queue';
+        const receiptHandle = 'test-receipt-handle';
+        const retryInSeconds = 300;
+        const ebusy = new Error('getaddrinfo EBUSY') as NodeJS.ErrnoException;
+        ebusy.code = 'EBUSY';
+        mockSend.mockRejectedValueOnce(ebusy).mockResolvedValueOnce({});
+
+        await changeSQSMessageVisibilityTimeout(queueUrl, receiptHandle, retryInSeconds, 5);
+
+        expect(mockSend).toHaveBeenCalledTimes(2);
+    });
+
     it('does not skip when DEV_ENVIRONMENT is not "local"', async () => {
         process.env.DEV_ENVIRONMENT = 'dev';
         const queueUrl = 'https://sqs.us-east-1.amazonaws.com/123456789/test-queue';
