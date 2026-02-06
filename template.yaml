@@ -715,7 +715,6 @@ Resources:
       Runtime: nodejs22.x
       Architectures:
         - *chromiumArch
-      ReservedConcurrentExecutions: 1
       Layers:
         - !Ref ChromiumLayer
       Handler: src/ropewiki/lambda-handlers/processPageHandler.processPageHandler
@@ -773,7 +772,6 @@ Resources:
       Runtime: nodejs22.x
       Architectures:
         - arm64
-      ReservedConcurrentExecutions: 1
       Handler: src/map-data/lambda-handlers/mainHandler.mainHandler
       Events:
         SQSEvent:
