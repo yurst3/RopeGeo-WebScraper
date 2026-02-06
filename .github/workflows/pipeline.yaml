@@ -117,7 +117,8 @@ jobs:
       - uses: aws-actions/setup-sam@v2
         with:
           use-installer: true
-      - run: sam build --template ${SAM_TEMPLATE} --use-container --build-image public.ecr.aws/sam/build-nodejs22.x
+      # MapDataProcessor is arm64 and includes a native tippecanoe binary; it must be built in an arm64 container.
+      - run: sam build --template ${SAM_TEMPLATE} --use-container --build-image public.ecr.aws/sam/build-nodejs22.x --build-image MapDataProcessor=public.ecr.aws/sam/build-nodejs22.x:latest-arm64
 
       - name: Assume the testing pipeline user role
         uses: aws-actions/configure-aws-credentials@v4
@@ -197,8 +198,9 @@ jobs:
         with:
           use-installer: true
 
+      # MapDataProcessor is arm64 and includes a native tippecanoe binary; it must be built in an arm64 container.
       - name: Build resources
-        run: sam build --template ${SAM_TEMPLATE} --use-container --build-image public.ecr.aws/sam/build-nodejs22.x
+        run: sam build --template ${SAM_TEMPLATE} --use-container --build-image public.ecr.aws/sam/build-nodejs22.x --build-image MapDataProcessor=public.ecr.aws/sam/build-nodejs22.x:latest-arm64
 
       - name: Assume the testing pipeline user role
         uses: aws-actions/configure-aws-credentials@v4

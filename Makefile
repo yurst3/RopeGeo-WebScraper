@@ -3,6 +3,11 @@
 # CI/Production: sam build --use-container uses public.ecr.aws/sam/build-nodejs22.x (Amazon Linux 2023).
 # That image does not include tippecanoe, so we install it from source (dnf + build). If install or copy
 # fails, the build fails so we never deploy a Lambda without the binary.
+#
+# IMPORTANT: This Lambda is arm64. The tippecanoe binary must be compiled for Linux arm64. When using
+# --use-container, the build image for MapDataProcessor MUST be the arm64 variant (e.g. ...:latest-arm64),
+# otherwise you get "Exec format error" in production. The pipeline and package.json script use the
+# arm64 build image for MapDataProcessor.
 build-MapDataProcessor:
 	# Install tippecanoe CLI (required for GeoJSON -> vector tiles in Lambda)
 	@echo "Installing tippecanoe..."
