@@ -24,17 +24,15 @@ export const mainHandler = async (event: SqsEvent, context: any) => {
 
         console.log(`Processing map data for ${event.Records.length} page routes...`);
 
-        /* 
-        By default messages only remain "invisibile" for 30 seconds before they move back to the "in-flight" state.
+        /*
+        By default messages only remain "invisible" for 30 seconds before they move back to the "in-flight" state.
         We need to increase the visibility timeout for all messages so they don't become "visible" before we're done
-        processing them. We do this by setting their visibility timeouts to the lambda's timeout value, that way the
-        lambda will always finish before the messages become visibile again.
+        processing them. We do this by setting their visibility timeouts to the lambda's timeout value.
+        Serialize these calls to avoid many concurrent SQS/DNS operations (getaddrinfo EBUSY).
         */
-        await Promise.all(
-            (event.Records as SqsRecord[]).map(record =>
-                setMapDataSQSMessageVisibilityTimeout(record.receiptHandle),
-            ),
-        );
+        for (const record of event.Records as SqsRecord[]) {
+            await setMapDataSQSMessageVisibilityTimeout(record.receiptHandle);
+        }
 
         const results = await handleMapDataSQSMessages(event.Records, client);
         const totalRecords = event.Records.length;

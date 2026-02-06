@@ -1,4 +1,5 @@
-import { SQSClient, SendMessageCommand } from '@aws-sdk/client-sqs';
+import { SendMessageCommand } from '@aws-sdk/client-sqs';
+import { getSQSClient } from './getSQSClient';
 
 const isRetryableSQSError = (error: unknown): boolean => {
     const code = (error as NodeJS.ErrnoException)?.code;
@@ -34,7 +35,7 @@ const sendSQSMessage = async (
         return;
     }
 
-    const sqsClient = new SQSClient({});
+    const sqsClient = getSQSClient();
 
     const messageAttributes =
         attributes && Object.keys(attributes).length > 0

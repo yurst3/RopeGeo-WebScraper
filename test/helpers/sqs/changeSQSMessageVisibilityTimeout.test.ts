@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach, jest } from '@jest/globals';
 import changeSQSMessageVisibilityTimeout from '../../../src/helpers/sqs/changeSQSMessageVisibilityTimeout';
+import { resetSQSClientForTests } from '../../../src/helpers/sqs/getSQSClient';
 
 // Mock @aws-sdk/client-sqs
 const mockSend = jest.fn<() => Promise<any>>();
@@ -25,6 +26,7 @@ describe('changeSQSMessageVisibilityTimeout', () => {
     let MockChangeMessageVisibilityCommand: any;
 
     beforeEach(() => {
+        resetSQSClientForTests();
         jest.clearAllMocks();
         process.env = { ...originalEnv };
         

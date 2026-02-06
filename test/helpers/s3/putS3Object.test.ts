@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach, jest } from '@jest/globals';
 import putS3Object from '../../../src/helpers/s3/putS3Object';
+import { resetS3ClientForTests } from '../../../src/helpers/s3/getS3Client';
 
 const mockSend = jest.fn<() => Promise<unknown>>();
 const mockS3Client = {
@@ -26,6 +27,7 @@ describe('putS3Object', () => {
     let consoleLogSpy: ReturnType<typeof jest.spyOn>;
 
     beforeEach(() => {
+        resetS3ClientForTests();
         jest.clearAllMocks();
         process.env = { ...originalEnv };
         consoleLogSpy = jest.spyOn(console, 'log').mockImplementation(() => {});

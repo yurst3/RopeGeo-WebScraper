@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach, jest } from '@jest/globals';
 import sendSQSMessage from '../../../src/helpers/sqs/sendSQSMessage';
+import { resetSQSClientForTests } from '../../../src/helpers/sqs/getSQSClient';
 
 // Mock @aws-sdk/client-sqs
 const mockSend = jest.fn<() => Promise<unknown>>();
@@ -27,6 +28,7 @@ describe('sendSQSMessage', () => {
     let consoleLogSpy: ReturnType<typeof jest.spyOn>;
 
     beforeEach(() => {
+        resetSQSClientForTests();
         jest.clearAllMocks();
         process.env = { ...originalEnv };
 

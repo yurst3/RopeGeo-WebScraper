@@ -1,4 +1,5 @@
-import { SQSClient, DeleteMessageCommand } from '@aws-sdk/client-sqs';
+import { DeleteMessageCommand } from '@aws-sdk/client-sqs';
+import { getSQSClient } from './getSQSClient';
 
 const isRetryableSQSError = (error: unknown): boolean => {
     const code = (error as NodeJS.ErrnoException)?.code;
@@ -28,7 +29,7 @@ const deleteSQSMessage = async (queueUrl: string, receiptHandle: string, retries
         return;
     }
 
-    const sqsClient = new SQSClient({});
+    const sqsClient = getSQSClient();
 
     const command = new DeleteMessageCommand({
         QueueUrl: queueUrl,

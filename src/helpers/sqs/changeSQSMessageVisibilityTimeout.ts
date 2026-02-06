@@ -1,4 +1,5 @@
-import { SQSClient, ChangeMessageVisibilityCommand } from '@aws-sdk/client-sqs';
+import { ChangeMessageVisibilityCommand } from '@aws-sdk/client-sqs';
+import { getSQSClient } from './getSQSClient';
 
 const isRetryableSQSError = (error: unknown): boolean => {
     const code = (error as NodeJS.ErrnoException)?.code;
@@ -39,7 +40,7 @@ const changeSQSMessageVisibilityTimeout = async (
         return;
     }
 
-    const sqsClient = new SQSClient({});
+    const sqsClient = getSQSClient();
 
     const command = new ChangeMessageVisibilityCommand({
         QueueUrl: queueUrl,

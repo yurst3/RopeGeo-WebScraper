@@ -1,4 +1,5 @@
-import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
+import { PutObjectCommand } from '@aws-sdk/client-s3';
+import { getS3Client } from './getS3Client';
 
 /**
  * Builds the public URL for an S3 object (standard path-style format).
@@ -30,7 +31,7 @@ const putS3Object = async (
         return buildS3Url(bucket, key);
     }
 
-    const s3Client = new S3Client({});
+    const s3Client = getS3Client();
 
     await s3Client.send(
         new PutObjectCommand({
