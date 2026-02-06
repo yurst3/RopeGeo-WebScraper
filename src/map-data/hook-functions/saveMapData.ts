@@ -1,8 +1,21 @@
-import { copyFile, mkdir, rename, unlink, readFile } from 'fs/promises';
-import { dirname, join } from 'path';
-import { S3Client, PutObjectCommand } from '@aws-sdk/client-s3';
+import { join } from 'path';
+import type { Pool } from 'pg';
 import MapData from '../types/mapData';
 import ProgressLogger from '../../helpers/progressLogger';
+import getDatabaseConnection from '../../helpers/getDatabaseConnection';
+import uploadMapDataToS3 from '../s3/uploadMapDataToS3';
+import getMapData from '../database/getMapData';
+import moveFile from '../util/moveFile';
+
+const SKIP_S3_REASON = 'skipping S3 upload because there is no S3 Bucket configured';
+
+let _localPool: Pool | null = null;
+async function getLocalPool(): Promise<Pool> {
+    if (!_localPool) {
+        _localPool = await getDatabaseConnection();
+    }
+    return _localPool;
+}
 
 export type SaveMapDataHookFn = (
     sourceFilePath: string | undefined,
@@ -17,32 +30,14 @@ export type SaveMapDataHookFn = (
 
 const SAVED_MAP_DATA_DIR = '.savedMapData';
 
-async function moveFile(sourcePath: string, destPath: string): Promise<void> {
-    await mkdir(dirname(destPath), { recursive: true });
-
-    // Remove destination file if it exists to ensure overwrite
-    try {
-        await unlink(destPath);
-    } catch (err: any) {
-        // Ignore error if file doesn't exist (ENOENT)
-        if (err?.code !== 'ENOENT') {
-            throw err;
-        }
-    }
-
-    try {
-        await rename(sourcePath, destPath);
-    } catch (err: any) {
-        // Cross-device rename can fail (EXDEV); fall back to copy+unlink.
-        if (err?.code === 'EXDEV') {
-            await copyFile(sourcePath, destPath);
-            await unlink(sourcePath);
-            return;
-        }
-        throw err;
-    }
-}
-
+/**
+ * Save-map-data hook for Lambda (or local invoke): persists source, GeoJSON, and vector tile files
+ * and returns a MapData instance with their URLs.
+ * When DEV_ENVIRONMENT is "local", skips S3 and returns existing MapData from the database by
+ * mapDataId (or a MapData with an error if not found). Otherwise uploads each file to the
+ * MAP_DATA_BUCKET_NAME S3 bucket and returns a MapData with the resulting URLs. Collects per-file
+ * upload errors into the returned MapData.errorMessage and logs progress or errors via the logger.
+ */
 export const lambdaSaveMapData: SaveMapDataHookFn = async (
     sourceFilePath: string | undefined,
     geoJsonFilePath: string | undefined,
@@ -53,13 +48,34 @@ export const lambdaSaveMapData: SaveMapDataHookFn = async (
     errorMessage: string | undefined,
     logger: ProgressLogger,
 ): Promise<MapData> => {
+    if (process.env.DEV_ENVIRONMENT === 'local') {
+        const pool = await getLocalPool();
+        const client = await pool.connect();
+        try {
+            const existing = await getMapData(client, mapDataId);
+            if (existing) {
+                logger.logProgress(`Map data ${mapDataId} processed successfully - ${SKIP_S3_REASON}`);
+                return existing;
+            }
+            logger.logError(`Map data ${mapDataId} not found - ${SKIP_S3_REASON}`);
+            return new MapData(
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                mapDataId,
+                sourceFileUrl,
+                `Map data not found (${SKIP_S3_REASON})`,
+            );
+        } finally {
+            client.release();
+        }
+    }
+
     const bucketName = process.env.MAP_DATA_BUCKET_NAME;
     if (!bucketName) {
         throw new Error('MAP_DATA_BUCKET_NAME environment variable is not set');
     }
-
-    console.log('Uploading map data files to S3...');
-    const s3Client = new S3Client({});
 
     const fileExtension = isKml ? 'kml' : 'gpx';
     const sourceFileName = `${mapDataId}.${fileExtension}`;
@@ -72,63 +88,41 @@ export const lambdaSaveMapData: SaveMapDataHookFn = async (
 
     const uploadErrors: string[] = [];
 
-    // Upload source file if provided
-    // Note: PutObjectCommand overwrites existing objects with the same key by default
+    const sourceContentType = isKml ? 'application/vnd.google-earth.kml+xml' : 'application/gpx+xml';
+
     if (sourceFilePath) {
         try {
-            const sourceS3Key = `source/${sourceFileName}`;
-            const sourceFileBuffer = await readFile(sourceFilePath);
-            await s3Client.send(
-                new PutObjectCommand({
-                    Bucket: bucketName,
-                    Key: sourceS3Key,
-                    Body: sourceFileBuffer,
-                    ContentType: isKml ? 'application/vnd.google-earth.kml+xml' : 'application/gpx+xml',
-                }),
+            sourceFile = await uploadMapDataToS3(
+                sourceFilePath,
+                `source/${sourceFileName}`,
+                sourceContentType,
             );
-            sourceFile = `https://${bucketName}.s3.amazonaws.com/${sourceS3Key}`;
         } catch (error) {
             const errorMsg = error instanceof Error ? error.message : String(error);
             uploadErrors.push(`Failed to upload source file: ${errorMsg}`);
         }
     }
 
-    // Upload GeoJSON file if provided
-    // Note: PutObjectCommand overwrites existing objects with the same key by default
     if (geoJsonFilePath) {
         try {
-            const geoJsonS3Key = `geojson/${geoJsonFileName}`;
-            const geoJsonFileBuffer = await readFile(geoJsonFilePath);
-            await s3Client.send(
-                new PutObjectCommand({
-                    Bucket: bucketName,
-                    Key: geoJsonS3Key,
-                    Body: geoJsonFileBuffer,
-                    ContentType: 'application/geo+json',
-                }),
+            geoJsonFile = await uploadMapDataToS3(
+                geoJsonFilePath,
+                `geojson/${geoJsonFileName}`,
+                'application/geo+json',
             );
-            geoJsonFile = `https://${bucketName}.s3.amazonaws.com/${geoJsonS3Key}`;
         } catch (error) {
             const errorMsg = error instanceof Error ? error.message : String(error);
             uploadErrors.push(`Failed to upload GeoJSON file: ${errorMsg}`);
         }
     }
 
-    // Upload vector tile file if provided
-    // Note: PutObjectCommand overwrites existing objects with the same key by default
     if (vectorTileFilePath) {
         try {
-            const vectorTileS3Key = `vector-tiles/${vectorTileFileName}`;
-            const vectorTileFileBuffer = await readFile(vectorTileFilePath);
-            await s3Client.send(
-                new PutObjectCommand({
-                    Bucket: bucketName,
-                    Key: vectorTileS3Key,
-                    Body: vectorTileFileBuffer,
-                    ContentType: 'application/x-protobuf',
-                }),
+            vectorTileFile = await uploadMapDataToS3(
+                vectorTileFilePath,
+                `vector-tiles/${vectorTileFileName}`,
+                'application/x-protobuf',
             );
-            vectorTileFile = `https://${bucketName}.s3.amazonaws.com/${vectorTileS3Key}`;
         } catch (error) {
             const errorMsg = error instanceof Error ? error.message : String(error);
             uploadErrors.push(`Failed to upload vector tile file: ${errorMsg}`);
@@ -158,6 +152,12 @@ export const lambdaSaveMapData: SaveMapDataHookFn = async (
     return mapData;
 };
 
+/**
+ * Save-map-data hook for Node (e.g. scripts): moves source, GeoJSON, and vector tile files from
+ * their temp paths into the project’s .savedMapData directory (source/, geojson/, vector-tiles/)
+ * and returns a MapData instance with local file paths. Collects per-file move errors into the
+ * returned MapData.errorMessage and logs progress or errors via the logger.
+ */
 export const nodeSaveMapData: SaveMapDataHookFn = async (
     sourceFilePath: string | undefined,
     geoJsonFilePath: string | undefined,

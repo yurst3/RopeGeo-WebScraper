@@ -4,7 +4,7 @@ import { tmpdir } from 'os';
 import { randomUUID } from 'crypto';
 import MapData from '../types/mapData';
 import type { SaveMapDataHookFn } from '../hook-functions/saveMapData';
-import { downloadSourceFile } from '../util/downloadSourceFile';
+import { downloadSourceFile } from '../http/downloadSourceFile';
 import { convertToGeoJson } from '../util/convertToGeoJson';
 import { convertToVectorTiles } from '../util/convertToVectorTiles';
 import ProgressLogger from '../../helpers/progressLogger';

@@ -234,4 +234,21 @@ describe('httpRequest', () => {
     expect((err as Error).message).toContain('status=404');
     expect(mockFetch).toHaveBeenCalledTimes(1);
   });
+
+  it('does not retry on 502 (Bad Gateway)', async () => {
+    mockFetch.mockResolvedValue({
+      ok: false,
+      status: 502,
+      statusText: 'Bad Gateway',
+      url: 'https://example.com/',
+      headers: { get: () => null },
+      clone: () => ({ text: () => Promise.resolve('Bad Gateway') }),
+    } as Response);
+
+    const err = await httpRequest('https://example.com/', 2).catch((e) => e);
+
+    expect(err).toBeInstanceOf(Error);
+    expect((err as Error).message).toContain('status=502');
+    expect(mockFetch).toHaveBeenCalledTimes(1);
+  });
 });

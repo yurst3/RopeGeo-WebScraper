@@ -21,7 +21,7 @@ jest.mock('crypto', () => ({
 }));
 
 // Mock utility functions
-jest.mock('../../../src/map-data/util/downloadSourceFile', () => ({
+jest.mock('../../../src/map-data/http/downloadSourceFile', () => ({
     downloadSourceFile: jest.fn(),
 }));
 
@@ -71,7 +71,7 @@ describe('processMapData', () => {
         mockRandomUUID.mockReturnValue(mockMapDataId);
         
         // Get mocked utility functions
-        const downloadSourceFileModule = require('../../../src/map-data/util/downloadSourceFile');
+        const downloadSourceFileModule = require('../../../src/map-data/http/downloadSourceFile');
         const convertToGeoJsonModule = require('../../../src/map-data/util/convertToGeoJson');
         const convertToVectorTilesModule = require('../../../src/map-data/util/convertToVectorTiles');
         

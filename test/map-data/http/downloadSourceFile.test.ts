@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, jest } from '@jest/globals';
-import { downloadSourceFile } from '../../../src/map-data/util/downloadSourceFile';
+import { downloadSourceFile } from '../../../src/map-data/http/downloadSourceFile';
 import httpRequest from '../../../src/helpers/httpRequest';
 import { writeFile } from 'fs/promises';
 import { join } from 'path';
