@@ -111,7 +111,8 @@ jobs:
     # https://github.com/aws-actions/configure-aws-credentials#notice-node12-deprecation-warning
     if: startsWith(github.ref, 'refs/heads/feature')
     needs: [test]
-    runs-on: ubuntu-latest
+    # Use arm64 runner so MapDataProcessor's arm64 build image runs natively (avoids slow QEMU emulation on x86_64).
+    runs-on: ubuntu-24.04-arm
     steps:
       - uses: actions/checkout@v3
       - uses: aws-actions/setup-sam@v2
@@ -191,7 +192,8 @@ jobs:
   build-and-package:
     if: github.ref == 'refs/heads/master'
     needs: [test]
-    runs-on: ubuntu-latest
+    # Use arm64 runner so MapDataProcessor's arm64 build image runs natively (avoids slow QEMU emulation on x86_64).
+    runs-on: ubuntu-24.04-arm
     steps:
       - uses: actions/checkout@v3
       - uses: aws-actions/setup-sam@v2

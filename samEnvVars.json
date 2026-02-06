@@ -22,5 +22,13 @@
         "DB_USER": "localUser",
         "DB_PASSWORD": "localPass",
         "DEV_ENVIRONMENT": "local"
+    },
+    "RopewikiRouteReprocessor": {
+        "DB_HOST": "local-db",
+        "DB_PORT": "5432",
+        "DB_NAME": "local",
+        "DB_USER": "localUser",
+        "DB_PASSWORD": "localPass",
+        "DEV_ENVIRONMENT": "local"
     }
 }
