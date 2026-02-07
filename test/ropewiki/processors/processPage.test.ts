@@ -139,7 +139,7 @@ describe('processPage', () => {
 
 
 
-    it('sets deletedAt for beta sections and images not in updated lists', async () => {
+    it('calls setDeletedAt then upserts for each page', async () => {
         const revisionDate = new Date('2024-01-01T00:00:00Z');
         const pages = [
             createPage('728', 'Test Page', 'page-uuid-1', revisionDate),
@@ -158,8 +158,8 @@ describe('processPage', () => {
         // Should use savepoints instead of BEGIN/COMMIT
         expect(mockClient.query).toHaveBeenCalledWith('SAVEPOINT sp_page_0');
         expect(mockClient.query).toHaveBeenCalledWith('RELEASE SAVEPOINT sp_page_0');
-        expect(mockSetBetaSectionsDeletedAt).toHaveBeenCalledWith(mockClient as unknown as db.Queryable, 'page-uuid-1', ['beta-id-1']);
-        expect(mockSetImagesDeletedAt).toHaveBeenCalledWith(mockClient as unknown as db.Queryable, 'page-uuid-1', ['image-id-1']);
+        expect(mockSetBetaSectionsDeletedAt).toHaveBeenCalledWith(mockClient as unknown as db.Queryable, 'page-uuid-1');
+        expect(mockSetImagesDeletedAt).toHaveBeenCalledWith(mockClient as unknown as db.Queryable, 'page-uuid-1');
     });
 
 

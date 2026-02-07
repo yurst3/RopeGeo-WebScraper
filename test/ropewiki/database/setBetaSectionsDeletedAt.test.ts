@@ -63,7 +63,7 @@ describe('setBetaSectionsDeletedAt (integration)', () => {
         await pool.end();
     });
 
-    it('sets deletedAt for all beta sections when updatedBetaSectionIds is empty', async () => {
+    it('sets deletedAt and order null for all beta sections for the page', async () => {
         const latestRevisionDate = new Date('2025-01-01T00:00:00Z');
 
         // Insert beta sections directly
@@ -107,121 +107,15 @@ describe('setBetaSectionsDeletedAt (integration)', () => {
             expect(section.deletedAt).toBeNull();
         });
 
-        // Set deletedAt for all (empty updatedBetaSectionIds)
-        await setBetaSectionsDeletedAt(conn, testPageUuid, []);
+        await setBetaSectionsDeletedAt(conn, testPageUuid);
 
-        // Verify all sections now have deletedAt set
+        // Verify all sections now have deletedAt set and order null
         const afterRows = await db.select('RopewikiPageBetaSection', { ropewikiPage: testPageUuid }).run(conn);
         expect(afterRows).toHaveLength(3);
         afterRows.forEach(section => {
             expect(section.deletedAt).not.toBeNull();
             expect(new Date(section.deletedAt as string).getTime()).toBeCloseTo(Date.now(), -3); // Within 1 second
-        });
-    });
-
-    it('sets deletedAt only for beta sections NOT in updatedBetaSectionIds', async () => {
-        const latestRevisionDate = new Date('2025-01-01T00:00:00Z');
-
-        // Insert beta sections directly with known IDs
-        const section1Id = 'dddddddd-dddd-dddd-dddd-dddddddddddd';
-        const section2Id = 'eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee';
-        const section3Id = 'ffffffff-ffff-ffff-ffff-ffffffffffff';
-
-        await db
-            .insert('RopewikiPageBetaSection', [
-                {
-                    id: section1Id,
-                    ropewikiPage: testPageUuid,
-                    title: 'Section 1',
-                    text: 'Text 1',
-                    order: 1,
-                    latestRevisionDate: latestRevisionDate.toISOString() as db.TimestampString,
-                },
-                {
-                    id: section2Id,
-                    ropewikiPage: testPageUuid,
-                    title: 'Section 2',
-                    text: 'Text 2',
-                    order: 2,
-                    latestRevisionDate: latestRevisionDate.toISOString() as db.TimestampString,
-                },
-                {
-                    id: section3Id,
-                    ropewikiPage: testPageUuid,
-                    title: 'Section 3',
-                    text: 'Text 3',
-                    order: 3,
-                    latestRevisionDate: latestRevisionDate.toISOString() as db.TimestampString,
-                },
-            ])
-            .run(conn);
-
-        // Verify all sections have deletedAt as null
-        const beforeRows = await db.select('RopewikiPageBetaSection', { ropewikiPage: testPageUuid }).run(conn);
-        expect(beforeRows).toHaveLength(3);
-        beforeRows.forEach(section => {
-            expect(section.deletedAt).toBeNull();
-        });
-
-        // Set deletedAt for sections NOT in [section1Id, section2Id]
-        // This should mark section3Id as deleted
-        await setBetaSectionsDeletedAt(conn, testPageUuid, [section1Id, section2Id]);
-
-        // Verify section1 and section2 still have deletedAt as null
-        const section1 = await db.select('RopewikiPageBetaSection', { id: section1Id }).run(conn);
-        const section2 = await db.select('RopewikiPageBetaSection', { id: section2Id }).run(conn);
-        const section3 = await db.select('RopewikiPageBetaSection', { id: section3Id }).run(conn);
-
-        expect(section1[0]?.deletedAt).toBeNull();
-        expect(section2[0]?.deletedAt).toBeNull();
-        expect(section3[0]?.deletedAt).not.toBeNull();
-        expect(new Date(section3[0]?.deletedAt as string).getTime()).toBeCloseTo(Date.now(), -3);
-    });
-
-    it('does not set deletedAt when all beta sections are in updatedBetaSectionIds', async () => {
-        const latestRevisionDate = new Date('2025-01-01T00:00:00Z');
-
-        // Insert beta sections directly with known IDs
-        const section1Id = '11111111-1111-1111-1111-111111111112';
-        const section2Id = '22222222-2222-2222-2222-222222222223';
-
-        await db
-            .insert('RopewikiPageBetaSection', [
-                {
-                    id: section1Id,
-                    ropewikiPage: testPageUuid,
-                    title: 'Section 1',
-                    text: 'Text 1',
-                    order: 1,
-                    latestRevisionDate: latestRevisionDate.toISOString() as db.TimestampString,
-                },
-                {
-                    id: section2Id,
-                    ropewikiPage: testPageUuid,
-                    title: 'Section 2',
-                    text: 'Text 2',
-                    order: 2,
-                    latestRevisionDate: latestRevisionDate.toISOString() as db.TimestampString,
-                },
-            ])
-            .run(conn);
-
-        // Verify all sections have deletedAt as null
-        const beforeRows = await db.select('RopewikiPageBetaSection', { ropewikiPage: testPageUuid }).run(conn);
-        expect(beforeRows).toHaveLength(2);
-        beforeRows.forEach(section => {
-            expect(section.deletedAt).toBeNull();
-        });
-
-        // Set deletedAt for sections NOT in [section1Id, section2Id]
-        // Since all sections are in the list, none should be marked as deleted
-        await setBetaSectionsDeletedAt(conn, testPageUuid, [section1Id, section2Id]);
-
-        // Verify all sections still have deletedAt as null
-        const afterRows = await db.select('RopewikiPageBetaSection', { ropewikiPage: testPageUuid }).run(conn);
-        expect(afterRows).toHaveLength(2);
-        afterRows.forEach(section => {
-            expect(section.deletedAt).toBeNull();
+            expect(section.order).toBeNull();
         });
     });
 
@@ -267,8 +161,7 @@ describe('setBetaSectionsDeletedAt (integration)', () => {
             ])
             .run(conn);
 
-        // Set deletedAt for page1 (empty updatedBetaSectionIds)
-        await setBetaSectionsDeletedAt(conn, testPageUuid, []);
+        await setBetaSectionsDeletedAt(conn, testPageUuid);
 
         // Verify page1 section is deleted
         const page1Section = await db.select('RopewikiPageBetaSection', { id: page1SectionId }).run(conn);
@@ -326,13 +219,11 @@ describe('setBetaSectionsDeletedAt (integration)', () => {
         // Wait a bit to ensure new timestamp would be different
         await new Promise(resolve => setTimeout(resolve, 100));
 
-        // Set deletedAt for sections NOT in [section1Id]
-        // This should update section3 (deletedAt is null) but NOT section2 (deletedAt already set)
-        await setBetaSectionsDeletedAt(conn, testPageUuid, [section1Id]);
+        await setBetaSectionsDeletedAt(conn, testPageUuid);
 
-        // Verify section1 still has deletedAt as null (it's in updatedBetaSectionIds)
+        // Verify section1 was updated (had deletedAt null)
         const section1 = await db.select('RopewikiPageBetaSection', { id: section1Id }).run(conn);
-        expect(section1[0]?.deletedAt).toBeNull();
+        expect(section1[0]?.deletedAt).not.toBeNull();
 
         // Verify section2's deletedAt was NOT updated (it already had a value)
         const afterSection2 = await db.select('RopewikiPageBetaSection', { id: section2Id }).run(conn);
@@ -357,7 +248,7 @@ describe('setBetaSectionsDeletedAt (integration)', () => {
             database: 'nonexistent_database_for_test_error_set_beta_sections_deleted_at',
         });
 
-        await expect(setBetaSectionsDeletedAt(badPool, testPageUuid, [])).rejects.toBeDefined();
+        await expect(setBetaSectionsDeletedAt(badPool, testPageUuid)).rejects.toBeDefined();
 
         await badPool.end();
     });

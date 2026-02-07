@@ -63,7 +63,7 @@ describe('setImagesDeletedAt (integration)', () => {
         await pool.end();
     });
 
-    it('sets deletedAt for all images when updatedImageIds is empty', async () => {
+    it('sets deletedAt and order null for all images for the page', async () => {
         const latestRevisionDate = new Date('2025-01-01T00:00:00Z');
 
         // Insert images directly
@@ -110,126 +110,15 @@ describe('setImagesDeletedAt (integration)', () => {
             expect(image.deletedAt).toBeNull();
         });
 
-        // Set deletedAt for all (empty updatedImageIds)
-        await setImagesDeletedAt(conn, testPageUuid, []);
+        await setImagesDeletedAt(conn, testPageUuid);
 
-        // Verify all images now have deletedAt set
+        // Verify all images now have deletedAt set and order null
         const afterRows = await db.select('RopewikiImage', { ropewikiPage: testPageUuid }).run(conn);
         expect(afterRows).toHaveLength(3);
         afterRows.forEach(image => {
             expect(image.deletedAt).not.toBeNull();
             expect(new Date(image.deletedAt as string).getTime()).toBeCloseTo(Date.now(), -3); // Within 1 second
-        });
-    });
-
-    it('sets deletedAt only for images NOT in updatedImageIds', async () => {
-        const latestRevisionDate = new Date('2025-01-01T00:00:00Z');
-
-        // Insert images directly with known IDs
-        const image1Id = 'dddddddd-dddd-dddd-dddd-dddddddddddd';
-        const image2Id = 'eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee';
-        const image3Id = 'ffffffff-ffff-ffff-ffff-ffffffffffff';
-
-        await db
-            .insert('RopewikiImage', [
-                {
-                    id: image1Id,
-                    ropewikiPage: testPageUuid,
-                    fileUrl: 'https://ropewiki.com/files/Image1.jpg',
-                    linkUrl: 'https://ropewiki.com/Image1',
-                    caption: 'Image 1 caption',
-                    order: 1,
-                    latestRevisionDate: latestRevisionDate.toISOString() as db.TimestampString,
-                },
-                {
-                    id: image2Id,
-                    ropewikiPage: testPageUuid,
-                    fileUrl: 'https://ropewiki.com/files/Image2.jpg',
-                    linkUrl: 'https://ropewiki.com/Image2',
-                    caption: 'Image 2 caption',
-                    order: 2,
-                    latestRevisionDate: latestRevisionDate.toISOString() as db.TimestampString,
-                },
-                {
-                    id: image3Id,
-                    ropewikiPage: testPageUuid,
-                    fileUrl: 'https://ropewiki.com/files/Image3.jpg',
-                    linkUrl: 'https://ropewiki.com/Image3',
-                    caption: 'Image 3 caption',
-                    order: 3,
-                    latestRevisionDate: latestRevisionDate.toISOString() as db.TimestampString,
-                },
-            ])
-            .run(conn);
-
-        // Verify all images have deletedAt as null
-        const beforeRows = await db.select('RopewikiImage', { ropewikiPage: testPageUuid }).run(conn);
-        expect(beforeRows).toHaveLength(3);
-        beforeRows.forEach(image => {
-            expect(image.deletedAt).toBeNull();
-        });
-
-        // Set deletedAt for images NOT in [image1Id, image2Id]
-        // This should mark image3Id as deleted
-        await setImagesDeletedAt(conn, testPageUuid, [image1Id, image2Id]);
-
-        // Verify image1 and image2 still have deletedAt as null
-        const image1 = await db.select('RopewikiImage', { id: image1Id }).run(conn);
-        const image2 = await db.select('RopewikiImage', { id: image2Id }).run(conn);
-        const image3 = await db.select('RopewikiImage', { id: image3Id }).run(conn);
-
-        expect(image1[0]?.deletedAt).toBeNull();
-        expect(image2[0]?.deletedAt).toBeNull();
-        expect(image3[0]?.deletedAt).not.toBeNull();
-        expect(new Date(image3[0]?.deletedAt as string).getTime()).toBeCloseTo(Date.now(), -3);
-    });
-
-    it('does not set deletedAt when all images are in updatedImageIds', async () => {
-        const latestRevisionDate = new Date('2025-01-01T00:00:00Z');
-
-        // Insert images directly with known IDs
-        const image1Id = '11111111-1111-1111-1111-111111111112';
-        const image2Id = '22222222-2222-2222-2222-222222222223';
-
-        await db
-            .insert('RopewikiImage', [
-                {
-                    id: image1Id,
-                    ropewikiPage: testPageUuid,
-                    fileUrl: 'https://ropewiki.com/files/Image1.jpg',
-                    linkUrl: 'https://ropewiki.com/Image1',
-                    caption: 'Image 1 caption',
-                    order: 1,
-                    latestRevisionDate: latestRevisionDate.toISOString() as db.TimestampString,
-                },
-                {
-                    id: image2Id,
-                    ropewikiPage: testPageUuid,
-                    fileUrl: 'https://ropewiki.com/files/Image2.jpg',
-                    linkUrl: 'https://ropewiki.com/Image2',
-                    caption: 'Image 2 caption',
-                    order: 2,
-                    latestRevisionDate: latestRevisionDate.toISOString() as db.TimestampString,
-                },
-            ])
-            .run(conn);
-
-        // Verify all images have deletedAt as null
-        const beforeRows = await db.select('RopewikiImage', { ropewikiPage: testPageUuid }).run(conn);
-        expect(beforeRows).toHaveLength(2);
-        beforeRows.forEach(image => {
-            expect(image.deletedAt).toBeNull();
-        });
-
-        // Set deletedAt for images NOT in [image1Id, image2Id]
-        // Since all images are in the list, none should be marked as deleted
-        await setImagesDeletedAt(conn, testPageUuid, [image1Id, image2Id]);
-
-        // Verify all images still have deletedAt as null
-        const afterRows = await db.select('RopewikiImage', { ropewikiPage: testPageUuid }).run(conn);
-        expect(afterRows).toHaveLength(2);
-        afterRows.forEach(image => {
-            expect(image.deletedAt).toBeNull();
+            expect(image.order).toBeNull();
         });
     });
 
@@ -277,8 +166,7 @@ describe('setImagesDeletedAt (integration)', () => {
             ])
             .run(conn);
 
-        // Set deletedAt for page1 (empty updatedImageIds)
-        await setImagesDeletedAt(conn, testPageUuid, []);
+        await setImagesDeletedAt(conn, testPageUuid);
 
         // Verify page1 image is deleted
         const page1Image = await db.select('RopewikiImage', { id: page1ImageId }).run(conn);
@@ -339,13 +227,11 @@ describe('setImagesDeletedAt (integration)', () => {
         // Wait a bit to ensure new timestamp would be different
         await new Promise(resolve => setTimeout(resolve, 100));
 
-        // Set deletedAt for images NOT in [image1Id]
-        // This should update image3 (deletedAt is null) but NOT image2 (deletedAt already set)
-        await setImagesDeletedAt(conn, testPageUuid, [image1Id]);
+        await setImagesDeletedAt(conn, testPageUuid);
 
-        // Verify image1 still has deletedAt as null (it's in updatedImageIds)
+        // Verify image1 was updated (had deletedAt null)
         const image1 = await db.select('RopewikiImage', { id: image1Id }).run(conn);
-        expect(image1[0]?.deletedAt).toBeNull();
+        expect(image1[0]?.deletedAt).not.toBeNull();
 
         // Verify image2's deletedAt was NOT updated (it already had a value)
         const afterImage2 = await db.select('RopewikiImage', { id: image2Id }).run(conn);
@@ -370,7 +256,7 @@ describe('setImagesDeletedAt (integration)', () => {
             database: 'nonexistent_database_for_test_error_set_images_deleted_at',
         });
 
-        await expect(setImagesDeletedAt(badPool, testPageUuid, [])).rejects.toBeDefined();
+        await expect(setImagesDeletedAt(badPool, testPageUuid)).rejects.toBeDefined();
 
         await badPool.end();
     });

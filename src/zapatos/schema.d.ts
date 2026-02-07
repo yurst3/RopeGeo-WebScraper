@@ -403,9 +403,9 @@ declare module 'zapatos/schema' {
       /**
       * **RopewikiImage.order**
       * - `int4` in database
-      * - `NOT NULL`, no default
+      * - Nullable, no default
       */
-      order: number;
+      order: number | null;
       /**
       * **RopewikiImage.ropewikiPage**
       * - `uuid` in database
@@ -471,9 +471,9 @@ declare module 'zapatos/schema' {
       /**
       * **RopewikiImage.order**
       * - `int4` in database
-      * - `NOT NULL`, no default
+      * - Nullable, no default
       */
-      order: number;
+      order: number | null;
       /**
       * **RopewikiImage.ropewikiPage**
       * - `uuid` in database
@@ -539,7 +539,7 @@ declare module 'zapatos/schema' {
       /**
       * **RopewikiImage.order**
       * - `int4` in database
-      * - `NOT NULL`, no default
+      * - Nullable, no default
       */
       order?: number | db.Parameter<number> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, number | db.Parameter<number> | db.SQLFragment | db.ParentColumn>;
       /**
@@ -607,9 +607,9 @@ declare module 'zapatos/schema' {
       /**
       * **RopewikiImage.order**
       * - `int4` in database
-      * - `NOT NULL`, no default
+      * - Nullable, no default
       */
-      order: number | db.Parameter<number> | db.SQLFragment;
+      order?: number | db.Parameter<number> | null | db.DefaultType | db.SQLFragment;
       /**
       * **RopewikiImage.ropewikiPage**
       * - `uuid` in database
@@ -675,9 +675,9 @@ declare module 'zapatos/schema' {
       /**
       * **RopewikiImage.order**
       * - `int4` in database
-      * - `NOT NULL`, no default
+      * - Nullable, no default
       */
-      order?: number | db.Parameter<number> | db.SQLFragment | db.SQLFragment<any, number | db.Parameter<number> | db.SQLFragment>;
+      order?: number | db.Parameter<number> | null | db.DefaultType | db.SQLFragment | db.SQLFragment<any, number | db.Parameter<number> | null | db.DefaultType | db.SQLFragment>;
       /**
       * **RopewikiImage.ropewikiPage**
       * - `uuid` in database
@@ -1655,9 +1655,9 @@ declare module 'zapatos/schema' {
       /**
       * **RopewikiPageBetaSection.order**
       * - `int4` in database
-      * - `NOT NULL`, no default
+      * - Nullable, no default
       */
-      order: number;
+      order: number | null;
       /**
       * **RopewikiPageBetaSection.ropewikiPage**
       * - `uuid` in database
@@ -1711,9 +1711,9 @@ declare module 'zapatos/schema' {
       /**
       * **RopewikiPageBetaSection.order**
       * - `int4` in database
-      * - `NOT NULL`, no default
+      * - Nullable, no default
       */
-      order: number;
+      order: number | null;
       /**
       * **RopewikiPageBetaSection.ropewikiPage**
       * - `uuid` in database
@@ -1767,7 +1767,7 @@ declare module 'zapatos/schema' {
       /**
       * **RopewikiPageBetaSection.order**
       * - `int4` in database
-      * - `NOT NULL`, no default
+      * - Nullable, no default
       */
       order?: number | db.Parameter<number> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, number | db.Parameter<number> | db.SQLFragment | db.ParentColumn>;
       /**
@@ -1823,9 +1823,9 @@ declare module 'zapatos/schema' {
       /**
       * **RopewikiPageBetaSection.order**
       * - `int4` in database
-      * - `NOT NULL`, no default
+      * - Nullable, no default
       */
-      order: number | db.Parameter<number> | db.SQLFragment;
+      order?: number | db.Parameter<number> | null | db.DefaultType | db.SQLFragment;
       /**
       * **RopewikiPageBetaSection.ropewikiPage**
       * - `uuid` in database
@@ -1879,9 +1879,9 @@ declare module 'zapatos/schema' {
       /**
       * **RopewikiPageBetaSection.order**
       * - `int4` in database
-      * - `NOT NULL`, no default
+      * - Nullable, no default
       */
-      order?: number | db.Parameter<number> | db.SQLFragment | db.SQLFragment<any, number | db.Parameter<number> | db.SQLFragment>;
+      order?: number | db.Parameter<number> | null | db.DefaultType | db.SQLFragment | db.SQLFragment<any, number | db.Parameter<number> | null | db.DefaultType | db.SQLFragment>;
       /**
       * **RopewikiPageBetaSection.ropewikiPage**
       * - `uuid` in database

@@ -1,4 +1,4 @@
-\restrict Dv2S27Y8zsMVBqMBG3Q8YUyfCYNaK68eyPyGzt6fNhwoPCruUO2aqUozMMCuUkz
+\restrict 6rQhQ1Jj9ttHHXlHwBtaJfkjp191LcqARO9iyfv4bO4GI1aJaYBQxe7cLAU2qpS
 
 -- Dumped from database version 18.1 (Debian 18.1-1.pgdg13+2)
 -- Dumped by pg_dump version 18.1 (Homebrew)
@@ -52,7 +52,8 @@ CREATE TABLE public."RopewikiImage" (
     "updatedAt" timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
     "deletedAt" timestamp without time zone,
     "latestRevisionDate" timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    "order" integer NOT NULL
+    "order" integer,
+    CONSTRAINT "chk_ropewikiImage_order_null_only_when_deleted" CHECK ((("order" IS NOT NULL) OR ("deletedAt" IS NOT NULL)))
 );
 
 
@@ -107,7 +108,8 @@ CREATE TABLE public."RopewikiPageBetaSection" (
     "updatedAt" timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
     "deletedAt" timestamp without time zone,
     "latestRevisionDate" timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    "order" integer NOT NULL
+    "order" integer,
+    CONSTRAINT "chk_ropewikiPageBetaSection_order_null_only_when_deleted" CHECK ((("order" IS NOT NULL) OR ("deletedAt" IS NOT NULL)))
 );
 
 
@@ -236,14 +238,6 @@ ALTER TABLE ONLY public."RopewikiImage"
 
 
 --
--- Name: RopewikiImage uk_ropewikiImage_ropewikiPage_betaSection_order; Type: CONSTRAINT; Schema: public; Owner: -
---
-
-ALTER TABLE ONLY public."RopewikiImage"
-    ADD CONSTRAINT "uk_ropewikiImage_ropewikiPage_betaSection_order" UNIQUE NULLS NOT DISTINCT ("ropewikiPage", "betaSection", "order");
-
-
---
 -- Name: RopewikiPageBetaSection uk_ropewikiPageBetaSection_ropewikiPage_order; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -296,6 +290,13 @@ ALTER TABLE ONLY public."RopewikiRoute"
 --
 
 CREATE INDEX "RopewikiPage_pageId_index" ON public."RopewikiPage" USING btree ("pageId");
+
+
+--
+-- Name: uk_ropewikiImage_ropewikiPage_betaSection_order; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE UNIQUE INDEX "uk_ropewikiImage_ropewikiPage_betaSection_order" ON public."RopewikiImage" USING btree ("ropewikiPage", "betaSection", "order") NULLS NOT DISTINCT WHERE ("order" IS NOT NULL);
 
 
 --
@@ -358,7 +359,7 @@ ALTER TABLE ONLY public."RopewikiRoute"
 -- PostgreSQL database dump complete
 --
 
-\unrestrict Dv2S27Y8zsMVBqMBG3Q8YUyfCYNaK68eyPyGzt6fNhwoPCruUO2aqUozMMCuUkz
+\unrestrict 6rQhQ1Jj9ttHHXlHwBtaJfkjp191LcqARO9iyfv4bO4GI1aJaYBQxe7cLAU2qpS
 
 
 --
@@ -381,4 +382,6 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20260120163351'),
     ('20260120174146'),
     ('20260121110901'),
-    ('20260121120000');
+    ('20260121120000'),
+    ('20260206120000'),
+    ('20260206130000');

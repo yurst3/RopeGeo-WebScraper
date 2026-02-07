@@ -43,14 +43,14 @@ const processPage = async (
         // Parse the page into its beta sections and images
         const { beta, images } = await parseRopewikiPage(pageHTML);
 
-        // Upsert the beta sections and images
-        const betaTitleIds = await upsertBetaSections(poolClient, page.id, beta, page.latestRevisionDate);
-        const updatedBetaSectionIds = Object.values(betaTitleIds);
-        const updatedImageIds = await upsertImages(poolClient, page.id, images, betaTitleIds, page.latestRevisionDate);
+        // Soft-delete all existing beta sections and images for this page (set deletedAt and order = null)
+        // so we can upsert the new set without uk_ropewikiPageBetaSection_ropewikiPage_order conflicts.
+        await setBetaSectionsDeletedAt(poolClient, page.id);
+        await setImagesDeletedAt(poolClient, page.id);
 
-        // Assume that beta sections & images which have not been upserted are deleted
-        await setBetaSectionsDeletedAt(poolClient, page.id, updatedBetaSectionIds);
-        await setImagesDeletedAt(poolClient, page.id, updatedImageIds);
+        // Upsert the new beta sections and images (order is free; upsert may update previously soft-deleted rows)
+        const betaTitleIds = await upsertBetaSections(poolClient, page.id, beta, page.latestRevisionDate);
+        await upsertImages(poolClient, page.id, images, betaTitleIds, page.latestRevisionDate);
 
         // Release the savepoint on success
         await poolClient.query(`RELEASE SAVEPOINT ${savepointName}`);

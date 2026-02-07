@@ -1,21 +1,19 @@
 import * as db from 'zapatos/db';
 
-// Set deletedAt to now for all images with the given pageUuid
-// that are NOT in the updatedImageIds array and have deletedAt = null.
+// Soft-delete all images for the given page (set deletedAt and order = null).
+// Call before upserting the new set to avoid unique constraint conflicts on order.
 const setImagesDeletedAt = async (
     tx: db.Queryable,
     pageUuid: string,
-    updatedImageIds: string[],
 ): Promise<void> => {
     const now = new Date();
 
     await db
         .update(
             'RopewikiImage',
-            { deletedAt: now },
+            { deletedAt: now, order: null as number | null },
             {
                 ropewikiPage: pageUuid,
-                id: db.conditions.isNotIn(updatedImageIds),
                 deletedAt: db.conditions.isNull,
             }
         )
