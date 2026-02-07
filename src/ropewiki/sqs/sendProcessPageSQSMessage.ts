@@ -4,7 +4,7 @@ import RopewikiPage from '../types/page';
 /**
  * Sends a single RopewikiPage to the RopewikiPageProcessingQueue.
  * If DEV_ENVIRONMENT is "local", returns without sending.
- * When not local, validates that the page has an id and ROPEWIKI_PAGE_PROCESSING_QUEUE_URL is set, then sends the message with body (JSON page) and attribute "attempts" = "0".
+ * When not local, validates that the page has an id and ROPEWIKI_PAGE_PROCESSING_QUEUE_URL is set, then sends the message with body (JSON page).
  *
  * @param page - The RopewikiPage to send
  * @throws Error if not local and page.id is undefined
@@ -27,7 +27,7 @@ const sendProcessPageSQSMessage = async (page: RopewikiPage): Promise<void> => {
         throw new Error('ROPEWIKI_PAGE_PROCESSING_QUEUE_URL environment variable is not set');
     }
 
-    await sendSQSMessage(JSON.stringify(page), queueUrl, { attempts: '0' });
+    await sendSQSMessage(JSON.stringify(page), queueUrl);
 };
 
 export default sendProcessPageSQSMessage;

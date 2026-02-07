@@ -33,15 +33,15 @@ class ProgressLogger {
 
     logError(message: string): void {
         this.errors++;
-        this.writeLog(message);
+        console.error(this.getProgressLog(message));
     }
 
     logProgress(message: string): void {
         this.successes++;
-        this.writeLog(message);
+        console.log(this.getProgressLog(message));
     }
 
-    private writeLog(message: string): void {
+    private getProgressLog(message: string): string {
         const now = Date.now();
         
         // Calculate time interval since last progress
@@ -86,8 +86,7 @@ class ProgressLogger {
             estimatedTimeStr = `${estimatedSeconds}s`;
         }
 
-        // Log progress
-        console.log(
+        return (
             `${this.title}: ${message} | ` +
             `Progress: ${this.current}/${this.total} | ` +
             `Remaining in chunk: ${remainingInChunk} | ` +

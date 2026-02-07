@@ -1,4 +1,4 @@
-\restrict 6rQhQ1Jj9ttHHXlHwBtaJfkjp191LcqARO9iyfv4bO4GI1aJaYBQxe7cLAU2qpS
+\restrict 7hzCNllcWQbN1R3ZPRTNd7NYo6R2wrJYNOpOsLXugnjae6939tl2LOHegTN0Qb0
 
 -- Dumped from database version 18.1 (Debian 18.1-1.pgdg13+2)
 -- Dumped by pg_dump version 18.1 (Homebrew)
@@ -34,6 +34,24 @@ CREATE TABLE public."MapData" (
     "deletedAt" timestamp without time zone,
     "sourceFileUrl" text DEFAULT ''::text NOT NULL,
     "errorMessage" text
+);
+
+
+--
+-- Name: RopewikiBetaSection; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public."RopewikiBetaSection" (
+    id uuid DEFAULT gen_random_uuid() CONSTRAINT "RopewikiPageBetaSection_id_not_null" NOT NULL,
+    "ropewikiPage" uuid CONSTRAINT "RopewikiPageBetaSection_ropewikiPage_not_null" NOT NULL,
+    title text CONSTRAINT "RopewikiPageBetaSection_title_not_null" NOT NULL,
+    text text CONSTRAINT "RopewikiPageBetaSection_text_not_null" NOT NULL,
+    "createdAt" timestamp without time zone DEFAULT CURRENT_TIMESTAMP CONSTRAINT "RopewikiPageBetaSection_createdAt_not_null" NOT NULL,
+    "updatedAt" timestamp without time zone DEFAULT CURRENT_TIMESTAMP CONSTRAINT "RopewikiPageBetaSection_updatedAt_not_null" NOT NULL,
+    "deletedAt" timestamp without time zone,
+    "latestRevisionDate" timestamp without time zone DEFAULT CURRENT_TIMESTAMP CONSTRAINT "RopewikiPageBetaSection_latestRevisionDate_not_null" NOT NULL,
+    "order" integer,
+    CONSTRAINT "chk_ropewikiPageBetaSection_order_null_only_when_deleted" CHECK ((("order" IS NOT NULL) OR ("deletedAt" IS NOT NULL)))
 );
 
 
@@ -90,26 +108,20 @@ CREATE TABLE public."RopewikiPage" (
     "latestRevisionDate" timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
     "rappelInfo" text,
     aka jsonb,
-    "betaSites" jsonb,
     "userVotes" integer
 );
 
 
 --
--- Name: RopewikiPageBetaSection; Type: TABLE; Schema: public; Owner: -
+-- Name: RopewikiPageSiteLink; Type: TABLE; Schema: public; Owner: -
 --
 
-CREATE TABLE public."RopewikiPageBetaSection" (
-    id uuid DEFAULT gen_random_uuid() NOT NULL,
-    "ropewikiPage" uuid NOT NULL,
-    title text NOT NULL,
-    text text NOT NULL,
+CREATE TABLE public."RopewikiPageSiteLink" (
+    page uuid NOT NULL,
+    "siteLink" uuid NOT NULL,
     "createdAt" timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
     "updatedAt" timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    "deletedAt" timestamp without time zone,
-    "latestRevisionDate" timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    "order" integer,
-    CONSTRAINT "chk_ropewikiPageBetaSection_order_null_only_when_deleted" CHECK ((("order" IS NOT NULL) OR ("deletedAt" IS NOT NULL)))
+    "deletedAt" timestamp without time zone
 );
 
 
@@ -143,6 +155,19 @@ CREATE TABLE public."RopewikiRoute" (
     route uuid NOT NULL,
     "ropewikiPage" uuid NOT NULL,
     "mapData" uuid,
+    "createdAt" timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    "updatedAt" timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    "deletedAt" timestamp without time zone
+);
+
+
+--
+-- Name: RopewikiSiteLink; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public."RopewikiSiteLink" (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    url text NOT NULL,
     "createdAt" timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
     "updatedAt" timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
     "deletedAt" timestamp without time zone
@@ -190,10 +215,10 @@ ALTER TABLE ONLY public."RopewikiImage"
 
 
 --
--- Name: RopewikiPageBetaSection RopewikiPageBetaSection_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: RopewikiBetaSection RopewikiPageBetaSection_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public."RopewikiPageBetaSection"
+ALTER TABLE ONLY public."RopewikiBetaSection"
     ADD CONSTRAINT "RopewikiPageBetaSection_pkey" PRIMARY KEY (id);
 
 
@@ -211,6 +236,14 @@ ALTER TABLE ONLY public."RopewikiPage"
 
 ALTER TABLE ONLY public."RopewikiRegion"
     ADD CONSTRAINT "RopewikiRegion_pkey" PRIMARY KEY (id);
+
+
+--
+-- Name: RopewikiSiteLink RopewikiSiteLink_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public."RopewikiSiteLink"
+    ADD CONSTRAINT "RopewikiSiteLink_pkey" PRIMARY KEY (id);
 
 
 --
@@ -238,19 +271,27 @@ ALTER TABLE ONLY public."RopewikiImage"
 
 
 --
--- Name: RopewikiPageBetaSection uk_ropewikiPageBetaSection_ropewikiPage_order; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: RopewikiBetaSection uk_ropewikiPageBetaSection_ropewikiPage_order; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public."RopewikiPageBetaSection"
+ALTER TABLE ONLY public."RopewikiBetaSection"
     ADD CONSTRAINT "uk_ropewikiPageBetaSection_ropewikiPage_order" UNIQUE ("ropewikiPage", "order");
 
 
 --
--- Name: RopewikiPageBetaSection uk_ropewikiPageBetaSection_ropewikiPage_title; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: RopewikiBetaSection uk_ropewikiPageBetaSection_ropewikiPage_title; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public."RopewikiPageBetaSection"
+ALTER TABLE ONLY public."RopewikiBetaSection"
     ADD CONSTRAINT "uk_ropewikiPageBetaSection_ropewikiPage_title" UNIQUE ("ropewikiPage", title);
+
+
+--
+-- Name: RopewikiPageSiteLink uk_ropewikiPageSiteLink_page_siteLink; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public."RopewikiPageSiteLink"
+    ADD CONSTRAINT "uk_ropewikiPageSiteLink_page_siteLink" UNIQUE (page, "siteLink");
 
 
 --
@@ -286,6 +327,14 @@ ALTER TABLE ONLY public."RopewikiRoute"
 
 
 --
+-- Name: RopewikiSiteLink uk_ropewikiSiteLink_url; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public."RopewikiSiteLink"
+    ADD CONSTRAINT "uk_ropewikiSiteLink_url" UNIQUE (url);
+
+
+--
 -- Name: RopewikiPage_pageId_index; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -304,7 +353,7 @@ CREATE UNIQUE INDEX "uk_ropewikiImage_ropewikiPage_betaSection_order" ON public.
 --
 
 ALTER TABLE ONLY public."RopewikiImage"
-    ADD CONSTRAINT "fk_ropewikiImage_betaSection" FOREIGN KEY ("betaSection") REFERENCES public."RopewikiPageBetaSection"(id);
+    ADD CONSTRAINT "fk_ropewikiImage_betaSection" FOREIGN KEY ("betaSection") REFERENCES public."RopewikiBetaSection"(id);
 
 
 --
@@ -316,11 +365,27 @@ ALTER TABLE ONLY public."RopewikiImage"
 
 
 --
--- Name: RopewikiPageBetaSection fk_ropewikiPageBetaSection_ropewikiPage; Type: FK CONSTRAINT; Schema: public; Owner: -
+-- Name: RopewikiBetaSection fk_ropewikiPageBetaSection_ropewikiPage; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
-ALTER TABLE ONLY public."RopewikiPageBetaSection"
+ALTER TABLE ONLY public."RopewikiBetaSection"
     ADD CONSTRAINT "fk_ropewikiPageBetaSection_ropewikiPage" FOREIGN KEY ("ropewikiPage") REFERENCES public."RopewikiPage"(id);
+
+
+--
+-- Name: RopewikiPageSiteLink fk_ropewikiPageSiteLink_page; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public."RopewikiPageSiteLink"
+    ADD CONSTRAINT "fk_ropewikiPageSiteLink_page" FOREIGN KEY (page) REFERENCES public."RopewikiPage"(id);
+
+
+--
+-- Name: RopewikiPageSiteLink fk_ropewikiPageSiteLink_siteLink; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public."RopewikiPageSiteLink"
+    ADD CONSTRAINT "fk_ropewikiPageSiteLink_siteLink" FOREIGN KEY ("siteLink") REFERENCES public."RopewikiSiteLink"(id);
 
 
 --
@@ -359,7 +424,7 @@ ALTER TABLE ONLY public."RopewikiRoute"
 -- PostgreSQL database dump complete
 --
 
-\unrestrict 6rQhQ1Jj9ttHHXlHwBtaJfkjp191LcqARO9iyfv4bO4GI1aJaYBQxe7cLAU2qpS
+\unrestrict 7hzCNllcWQbN1R3ZPRTNd7NYo6R2wrJYNOpOsLXugnjae6939tl2LOHegTN0Qb0
 
 
 --
@@ -384,4 +449,6 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20260121110901'),
     ('20260121120000'),
     ('20260206120000'),
-    ('20260206130000');
+    ('20260206130000'),
+    ('20260206140000'),
+    ('20260206150000');

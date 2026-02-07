@@ -23,7 +23,7 @@ describe('upsertBetaSections (integration)', () => {
 
     beforeAll(async () => {
         // Clean tables
-        await db.sql`DELETE FROM "RopewikiPageBetaSection"`.run(conn);
+        await db.sql`DELETE FROM "RopewikiBetaSection"`.run(conn);
         await db.sql`DELETE FROM "RopewikiPage"`.run(conn);
         await db.sql`DELETE FROM "RopewikiRegion"`.run(conn);
 
@@ -58,11 +58,11 @@ describe('upsertBetaSections (integration)', () => {
 
     afterEach(async () => {
         // Clean between tests
-        await db.sql`DELETE FROM "RopewikiPageBetaSection"`.run(conn);
+        await db.sql`DELETE FROM "RopewikiBetaSection"`.run(conn);
     });
 
     afterAll(async () => {
-        await db.sql`DELETE FROM "RopewikiPageBetaSection"`.run(conn);
+        await db.sql`DELETE FROM "RopewikiBetaSection"`.run(conn);
         await db.sql`DELETE FROM "RopewikiPage"`.run(conn);
         await db.sql`DELETE FROM "RopewikiRegion"`.run(conn);
         await pool.end();
@@ -76,7 +76,7 @@ describe('upsertBetaSections (integration)', () => {
 
         expect(result).toEqual({});
 
-        const rows = await db.select('RopewikiPageBetaSection', {}).run(conn);
+        const rows = await db.select('RopewikiBetaSection', {}).run(conn);
         expect(rows).toHaveLength(0);
     });
 
@@ -108,13 +108,13 @@ describe('upsertBetaSections (integration)', () => {
 
         // Verify the beta sections were inserted correctly
         const rows = await db
-            .select('RopewikiPageBetaSection', { ropewikiPage: testPageUuid })
+            .select('RopewikiBetaSection', { ropewikiPage: testPageUuid })
             .run(conn);
         expect(rows).toHaveLength(3);
 
-        const introduction = rows.find((r) => r.title === 'Introduction') as s.RopewikiPageBetaSection.JSONSelectable;
-        const approach = rows.find((r) => r.title === 'Approach') as s.RopewikiPageBetaSection.JSONSelectable;
-        const descent = rows.find((r) => r.title === 'Descent') as s.RopewikiPageBetaSection.JSONSelectable;
+        const introduction = rows.find((r) => r.title === 'Introduction') as s.RopewikiBetaSection.JSONSelectable;
+        const approach = rows.find((r) => r.title === 'Approach') as s.RopewikiBetaSection.JSONSelectable;
+        const descent = rows.find((r) => r.title === 'Descent') as s.RopewikiBetaSection.JSONSelectable;
 
         expect(introduction.id).toBe(result.Introduction);
         expect(introduction.text).toBe('This is the introduction text.');
@@ -151,7 +151,7 @@ describe('upsertBetaSections (integration)', () => {
 
         // Verify the beta sections were inserted
         const initialRows = await db
-            .select('RopewikiPageBetaSection', { ropewikiPage: testPageUuid })
+            .select('RopewikiBetaSection', { ropewikiPage: testPageUuid })
             .run(conn);
         expect(initialRows).toHaveLength(2);
         expect(initialRows.find((r) => r.title === 'Introduction')?.id).toBe(initialResult.Introduction);
@@ -171,12 +171,12 @@ describe('upsertBetaSections (integration)', () => {
 
         // Verify the beta sections were updated
         const updatedRows = await db
-            .select('RopewikiPageBetaSection', { ropewikiPage: testPageUuid })
+            .select('RopewikiBetaSection', { ropewikiPage: testPageUuid })
             .run(conn);
         expect(updatedRows).toHaveLength(2);
 
-        const introduction = updatedRows.find((r) => r.title === 'Introduction') as s.RopewikiPageBetaSection.JSONSelectable;
-        const approach = updatedRows.find((r) => r.title === 'Approach') as s.RopewikiPageBetaSection.JSONSelectable;
+        const introduction = updatedRows.find((r) => r.title === 'Introduction') as s.RopewikiBetaSection.JSONSelectable;
+        const approach = updatedRows.find((r) => r.title === 'Approach') as s.RopewikiBetaSection.JSONSelectable;
 
         expect(introduction.id).toBe(initialResult.Introduction);
         expect(introduction.text).toBe('Updated introduction text.');
@@ -197,7 +197,7 @@ describe('upsertBetaSections (integration)', () => {
 
         // Insert a beta section with deletedAt set
         await db
-            .insert('RopewikiPageBetaSection', {
+            .insert('RopewikiBetaSection', {
                 ropewikiPage: testPageUuid,
                 title: 'Deleted Section',
                 text: 'Deleted text.',
@@ -208,20 +208,20 @@ describe('upsertBetaSections (integration)', () => {
             .run(conn);
 
         // Get the inserted beta section ID
-        const insertedRows = await db.select('RopewikiPageBetaSection', { title: 'Deleted Section', ropewikiPage: testPageUuid }).run(conn);
+        const insertedRows = await db.select('RopewikiBetaSection', { title: 'Deleted Section', ropewikiPage: testPageUuid }).run(conn);
         const betaSectionId = insertedRows[0]?.id as string;
 
         // Verify deletedAt is set
-        const beforeRows = await db.select('RopewikiPageBetaSection', { id: betaSectionId }).run(conn);
+        const beforeRows = await db.select('RopewikiBetaSection', { id: betaSectionId }).run(conn);
         expect(beforeRows[0]?.deletedAt).not.toBeNull();
 
         // Upsert the beta section
         await upsertBetaSections(conn, testPageUuid, betaSections, latestRevisionDate);
 
         // Verify deletedAt is now null
-        const afterRows = await db.select('RopewikiPageBetaSection', { id: betaSectionId }).run(conn);
+        const afterRows = await db.select('RopewikiBetaSection', { id: betaSectionId }).run(conn);
         expect(afterRows).toHaveLength(1);
-        const betaSection = afterRows[0] as s.RopewikiPageBetaSection.JSONSelectable;
+        const betaSection = afterRows[0] as s.RopewikiBetaSection.JSONSelectable;
         expect(betaSection.deletedAt).toBeNull();
         expect(betaSection.text).toBe('Deleted text.');
     });
@@ -255,7 +255,7 @@ describe('upsertBetaSections (integration)', () => {
 
         // Verify order was updated
         const rows = await db
-            .select('RopewikiPageBetaSection', { ropewikiPage: testPageUuid, title: 'Section' })
+            .select('RopewikiBetaSection', { ropewikiPage: testPageUuid, title: 'Section' })
             .run(conn);
         expect(rows).toHaveLength(1);
         expect(rows[0]?.order).toBe(2);

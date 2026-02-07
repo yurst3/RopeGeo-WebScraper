@@ -37,7 +37,6 @@ const upsertPages = async (
             'hike',
             'months',
             'aka',
-            'betaSites',
             'userVotes',
             'latestRevisionDate',
             'updatedAt',

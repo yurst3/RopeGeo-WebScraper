@@ -52,7 +52,7 @@ describe('sendProcessPageSQSMessage', () => {
         expect(sendSQSMessage).not.toHaveBeenCalled();
     });
 
-    it('sends message with body and attempts attribute when not local', async () => {
+    it('sends message with body when not local', async () => {
         delete process.env.DEV_ENVIRONMENT;
         process.env.ROPEWIKI_PAGE_PROCESSING_QUEUE_URL = 'https://sqs.us-east-1.amazonaws.com/123456789/ropewiki-queue';
         const page = createTestPage({ id: 'page-uuid-456' });
@@ -63,7 +63,6 @@ describe('sendProcessPageSQSMessage', () => {
         expect(sendSQSMessage).toHaveBeenCalledWith(
             expect.any(String),
             'https://sqs.us-east-1.amazonaws.com/123456789/ropewiki-queue',
-            { attempts: '0' },
         );
         const bodyArg = sendSQSMessage.mock.calls[0]![0];
         expect(() => JSON.parse(bodyArg)).not.toThrow();

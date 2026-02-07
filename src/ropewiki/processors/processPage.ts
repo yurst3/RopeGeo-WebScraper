@@ -4,8 +4,10 @@ import getRopewikiPageHtml from "../http/getRopewikiPageHtml";
 import parseRopewikiPage from "../parsers/parseRopewikiPage";
 import upsertBetaSections from "../database/upsertBetaSections";
 import upsertImages from "../database/upsertImages";
+import upsertSiteLinks from "../database/upsertSiteLinks";
 import setBetaSectionsDeletedAt from "../database/setBetaSectionsDeletedAt";
 import setImagesDeletedAt from "../database/setImagesDeletedAt";
+import setPageSiteLinksDeletedAt from "../database/setPageSiteLinksDeletedAt";
 import ProgressLogger from "../../helpers/progressLogger";
 
 import RopewikiPage from "../types/page";
@@ -43,14 +45,16 @@ const processPage = async (
         // Parse the page into its beta sections and images
         const { beta, images } = await parseRopewikiPage(pageHTML);
 
-        // Soft-delete all existing beta sections and images for this page (set deletedAt and order = null)
-        // so we can upsert the new set without uk_ropewikiPageBetaSection_ropewikiPage_order conflicts.
+        // Soft-delete all existing beta sections, images, and page-site links for this page
+        // so we can upsert the new set without unique constraint conflicts.
         await setBetaSectionsDeletedAt(poolClient, page.id);
         await setImagesDeletedAt(poolClient, page.id);
+        await setPageSiteLinksDeletedAt(poolClient, page.id);
 
-        // Upsert the new beta sections and images (order is free; upsert may update previously soft-deleted rows)
+        // Upsert the new beta sections, images, and site links
         const betaTitleIds = await upsertBetaSections(poolClient, page.id, beta, page.latestRevisionDate);
         await upsertImages(poolClient, page.id, images, betaTitleIds, page.latestRevisionDate);
+        await upsertSiteLinks(poolClient, page.id, page.betaSites);
 
         // Release the savepoint on success
         await poolClient.query(`RELEASE SAVEPOINT ${savepointName}`);

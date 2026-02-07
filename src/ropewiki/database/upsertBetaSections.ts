@@ -27,7 +27,7 @@ const upsertBetaSections = async (
     }));
 
     const result = await db
-        .upsert('RopewikiPageBetaSection', rows, ['ropewikiPage', 'title'], {
+        .upsert('RopewikiBetaSection', rows, ['ropewikiPage', 'title'], {
             updateColumns: ['text', 'order', 'latestRevisionDate', 'updatedAt', 'deletedAt'],
         })
         .run(tx);

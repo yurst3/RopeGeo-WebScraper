@@ -5,8 +5,10 @@ import getRopewikiPageHtml from '../../../src/ropewiki/http/getRopewikiPageHtml'
 import parseRopewikiPage from '../../../src/ropewiki/parsers/parseRopewikiPage';
 import upsertBetaSections from '../../../src/ropewiki/database/upsertBetaSections';
 import upsertImages from '../../../src/ropewiki/database/upsertImages';
+import upsertSiteLinks from '../../../src/ropewiki/database/upsertSiteLinks';
 import setBetaSectionsDeletedAt from '../../../src/ropewiki/database/setBetaSectionsDeletedAt';
 import setImagesDeletedAt from '../../../src/ropewiki/database/setImagesDeletedAt';
+import setPageSiteLinksDeletedAt from '../../../src/ropewiki/database/setPageSiteLinksDeletedAt';
 import ProgressLogger from '../../../src/helpers/progressLogger';
 import * as db from 'zapatos/db';
 import RopewikiPage from '../../../src/ropewiki/types/page';
@@ -16,15 +18,19 @@ jest.mock('../../../src/ropewiki/http/getRopewikiPageHtml');
 jest.mock('../../../src/ropewiki/parsers/parseRopewikiPage');
 jest.mock('../../../src/ropewiki/database/upsertBetaSections');
 jest.mock('../../../src/ropewiki/database/upsertImages');
+jest.mock('../../../src/ropewiki/database/upsertSiteLinks');
 jest.mock('../../../src/ropewiki/database/setBetaSectionsDeletedAt');
 jest.mock('../../../src/ropewiki/database/setImagesDeletedAt');
+jest.mock('../../../src/ropewiki/database/setPageSiteLinksDeletedAt');
 
 const mockGetRopewikiPageHtml = getRopewikiPageHtml as jest.MockedFunction<typeof getRopewikiPageHtml>;
 const mockParseRopewikiPage = parseRopewikiPage as jest.MockedFunction<typeof parseRopewikiPage>;
 const mockUpsertBetaSections = upsertBetaSections as jest.MockedFunction<typeof upsertBetaSections>;
 const mockUpsertImages = upsertImages as jest.MockedFunction<typeof upsertImages>;
+const mockUpsertSiteLinks = upsertSiteLinks as jest.MockedFunction<typeof upsertSiteLinks>;
 const mockSetBetaSectionsDeletedAt = setBetaSectionsDeletedAt as jest.MockedFunction<typeof setBetaSectionsDeletedAt>;
 const mockSetImagesDeletedAt = setImagesDeletedAt as jest.MockedFunction<typeof setImagesDeletedAt>;
+const mockSetPageSiteLinksDeletedAt = setPageSiteLinksDeletedAt as jest.MockedFunction<typeof setPageSiteLinksDeletedAt>;
 
 describe('processPage', () => {
     let mockClient: {
@@ -82,6 +88,8 @@ describe('processPage', () => {
             logProgress: jest.fn(),
             logError: jest.fn(),
         };
+
+        mockUpsertSiteLinks.mockResolvedValue(undefined);
     });
 
     it('processes pages successfully', async () => {
@@ -133,8 +141,10 @@ describe('processPage', () => {
         expect(mockUpsertBetaSections).toHaveBeenNthCalledWith(1, mockClient as unknown as db.Queryable, 'page-uuid-1', [{ title: 'Introduction', text: 'Text 1', order: 1 }], page1RevisionDate);
         expect(mockUpsertBetaSections).toHaveBeenNthCalledWith(2, mockClient as unknown as db.Queryable, 'page-uuid-2', [{ title: 'Approach', text: 'Text 2', order: 1 }], page2RevisionDate);
         expect(mockUpsertImages).toHaveBeenCalledTimes(2);
+        expect(mockUpsertSiteLinks).toHaveBeenCalledTimes(2);
         expect(mockSetBetaSectionsDeletedAt).toHaveBeenCalledTimes(2);
         expect(mockSetImagesDeletedAt).toHaveBeenCalledTimes(2);
+        expect(mockSetPageSiteLinksDeletedAt).toHaveBeenCalledTimes(2);
     });
 
 
@@ -160,6 +170,8 @@ describe('processPage', () => {
         expect(mockClient.query).toHaveBeenCalledWith('RELEASE SAVEPOINT sp_page_0');
         expect(mockSetBetaSectionsDeletedAt).toHaveBeenCalledWith(mockClient as unknown as db.Queryable, 'page-uuid-1');
         expect(mockSetImagesDeletedAt).toHaveBeenCalledWith(mockClient as unknown as db.Queryable, 'page-uuid-1');
+        expect(mockSetPageSiteLinksDeletedAt).toHaveBeenCalledWith(mockClient as unknown as db.Queryable, 'page-uuid-1');
+        expect(mockUpsertSiteLinks).toHaveBeenCalledWith(mockClient as unknown as db.Queryable, 'page-uuid-1', []);
     });
 
 
@@ -242,6 +254,55 @@ describe('processPage', () => {
         expect(mockClient.query).toHaveBeenCalledWith('SAVEPOINT sp_page_0');
         expect(mockClient.query).toHaveBeenCalledWith('ROLLBACK TO SAVEPOINT sp_page_0');
         expect(mockLogger.logError).toHaveBeenCalledWith('Error processing page 728 Test Page, rolled back to savepoint: Images error');
+        expect(mockLogger.logProgress).not.toHaveBeenCalled();
+    });
+
+    it('propagates errors from setPageSiteLinksDeletedAt()', async () => {
+        const revisionDate = new Date('2024-01-01T00:00:00Z');
+        const pages = [
+            createPage('728', 'Test Page', 'page-uuid-1', revisionDate),
+        ];
+
+        mockGetRopewikiPageHtml.mockResolvedValue('<html>Page</html>');
+        mockParseRopewikiPage.mockResolvedValue({
+            beta: [{ title: 'Introduction', text: 'Text', order: 1 }],
+            images: [],
+        });
+        mockUpsertBetaSections.mockResolvedValue({ 'Introduction': 'beta-id-1' });
+        mockUpsertImages.mockResolvedValue([]);
+        const deleteError = new Error('Delete page site links error');
+        mockSetPageSiteLinksDeletedAt.mockRejectedValue(deleteError);
+
+        await processPagesChunk(mockClient as unknown as db.Queryable, pages, mockLogger as unknown as ProgressLogger);
+
+        expect(mockClient.query).toHaveBeenCalledWith('SAVEPOINT sp_page_0');
+        expect(mockClient.query).toHaveBeenCalledWith('ROLLBACK TO SAVEPOINT sp_page_0');
+        expect(mockLogger.logError).toHaveBeenCalledWith('Error processing page 728 Test Page, rolled back to savepoint: Delete page site links error');
+        expect(mockLogger.logProgress).not.toHaveBeenCalled();
+    });
+
+    it('propagates errors from upsertSiteLinks()', async () => {
+        const revisionDate = new Date('2024-01-01T00:00:00Z');
+        const pages = [
+            createPage('728', 'Test Page', 'page-uuid-1', revisionDate),
+        ];
+
+        mockGetRopewikiPageHtml.mockResolvedValue('<html>Page</html>');
+        mockParseRopewikiPage.mockResolvedValue({
+            beta: [{ title: 'Introduction', text: 'Text', order: 1 }],
+            images: [],
+        });
+        mockUpsertBetaSections.mockResolvedValue({ 'Introduction': 'beta-id-1' });
+        mockUpsertImages.mockResolvedValue([]);
+        mockSetPageSiteLinksDeletedAt.mockResolvedValue();
+        const siteLinksError = new Error('Site links error');
+        mockUpsertSiteLinks.mockRejectedValue(siteLinksError);
+
+        await processPagesChunk(mockClient as unknown as db.Queryable, pages, mockLogger as unknown as ProgressLogger);
+
+        expect(mockClient.query).toHaveBeenCalledWith('SAVEPOINT sp_page_0');
+        expect(mockClient.query).toHaveBeenCalledWith('ROLLBACK TO SAVEPOINT sp_page_0');
+        expect(mockLogger.logError).toHaveBeenCalledWith('Error processing page 728 Test Page, rolled back to savepoint: Site links error');
         expect(mockLogger.logProgress).not.toHaveBeenCalled();
     });
 

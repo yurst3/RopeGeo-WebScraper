@@ -10,7 +10,7 @@ const setBetaSectionsDeletedAt = async (
 
     await db
         .update(
-            'RopewikiPageBetaSection',
+            'RopewikiBetaSection',
             { deletedAt: now, order: null as number | null },
             {
                 ropewikiPage: pageUuid,

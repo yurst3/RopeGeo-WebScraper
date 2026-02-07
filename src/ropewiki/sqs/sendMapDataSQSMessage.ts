@@ -5,7 +5,7 @@ import type { RopewikiRoute } from '../../types/pageRoute';
  * Sends a single RopewikiRoute to the MapDataProcessingQueue.
  * If DEV_ENVIRONMENT is "local", returns without sending.
  * When not local, validates that the route has page and route, and MAP_DATA_PROCESSING_QUEUE_URL is set,
- * then sends the message with body (JSON map data event) and attribute "attempts" = "0".
+ * then sends the message with body (JSON map data event).
  *
  * @param ropewikiRoute - The RopewikiRoute to send (must have page and route)
  * @throws Error if not local and ropewikiRoute.page is missing
@@ -36,7 +36,7 @@ const sendMapDataSQSMessage = async (ropewikiRoute: RopewikiRoute): Promise<void
     }
 
     const mapDataEvent = ropewikiRoute.toMapDataEvent();
-    await sendSQSMessage(JSON.stringify(mapDataEvent), queueUrl, { attempts: '0' });
+    await sendSQSMessage(JSON.stringify(mapDataEvent), queueUrl);
 };
 
 export default sendMapDataSQSMessage;

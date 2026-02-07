@@ -667,12 +667,12 @@ Resources:
       Handler: src/ropewiki/lambda-handlers/mainHandler.mainHandler
       # This property associates this Lambda function with a scheduled CloudWatch Event. For all available properties, see
       # https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#schedule
-      # This runs once a week on Sunday at midnight UTC.
+      # This runs every night at midnight UTC.
       Events:
         CloudWatchEvent:
           Type: Schedule
           Properties:
-            Schedule: cron(0 0 ? * SUN *)
+            Schedule: cron(0 0 * * ? *)
       MemorySize: 1024
       Timeout: 900
       VpcConfig:

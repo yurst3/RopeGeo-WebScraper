@@ -31,7 +31,7 @@ describe('soft delete then upsert beta sections (integration)', () => {
     let otherPageUuid: string;
 
     beforeAll(async () => {
-        await db.sql`DELETE FROM "RopewikiPageBetaSection"`.run(conn);
+        await db.sql`DELETE FROM "RopewikiBetaSection"`.run(conn);
         await db.sql`DELETE FROM "RopewikiPage"`.run(conn);
         await db.sql`DELETE FROM "RopewikiRegion"`.run(conn);
 
@@ -92,11 +92,11 @@ describe('soft delete then upsert beta sections (integration)', () => {
     });
 
     afterEach(async () => {
-        await db.sql`DELETE FROM "RopewikiPageBetaSection"`.run(conn);
+        await db.sql`DELETE FROM "RopewikiBetaSection"`.run(conn);
     });
 
     afterAll(async () => {
-        await db.sql`DELETE FROM "RopewikiPageBetaSection"`.run(conn);
+        await db.sql`DELETE FROM "RopewikiBetaSection"`.run(conn);
         await db.sql`DELETE FROM "RopewikiPage"`.run(conn);
         await db.sql`DELETE FROM "RopewikiRegion"`.run(conn);
         await pool.end();
@@ -122,7 +122,7 @@ describe('soft delete then upsert beta sections (integration)', () => {
         await upsertBetaSections(conn, otherPageUuid, otherPageSections, rev1);
 
         const afterFirst = await db
-            .select('RopewikiPageBetaSection', { ropewikiPage: testPageUuid, deletedAt: db.conditions.isNull })
+            .select('RopewikiBetaSection', { ropewikiPage: testPageUuid, deletedAt: db.conditions.isNull })
             .run(conn);
         expect(afterFirst).toHaveLength(3);
 
@@ -140,13 +140,13 @@ describe('soft delete then upsert beta sections (integration)', () => {
 
         // Live sections (deletedAt null) should be exactly the second parse set with correct order
         const liveRows = await db
-            .select('RopewikiPageBetaSection', { ropewikiPage: testPageUuid, deletedAt: db.conditions.isNull })
+            .select('RopewikiBetaSection', { ropewikiPage: testPageUuid, deletedAt: db.conditions.isNull })
             .run(conn);
         expect(liveRows).toHaveLength(3);
 
-        const introduction = liveRows.find((r) => r.title === 'Introduction') as s.RopewikiPageBetaSection.JSONSelectable;
-        const newSection = liveRows.find((r) => r.title === 'New Section') as s.RopewikiPageBetaSection.JSONSelectable;
-        const descent = liveRows.find((r) => r.title === 'Descent') as s.RopewikiPageBetaSection.JSONSelectable;
+        const introduction = liveRows.find((r) => r.title === 'Introduction') as s.RopewikiBetaSection.JSONSelectable;
+        const newSection = liveRows.find((r) => r.title === 'New Section') as s.RopewikiBetaSection.JSONSelectable;
+        const descent = liveRows.find((r) => r.title === 'Descent') as s.RopewikiBetaSection.JSONSelectable;
 
         expect(introduction).toBeDefined();
         expect(introduction.order).toBe(0);
@@ -162,7 +162,7 @@ describe('soft delete then upsert beta sections (integration)', () => {
 
         // Approach must be soft-deleted (deletedAt set, order null)
         const approachRows = await db
-            .select('RopewikiPageBetaSection', { ropewikiPage: testPageUuid, title: 'Approach' })
+            .select('RopewikiBetaSection', { ropewikiPage: testPageUuid, title: 'Approach' })
             .run(conn);
         expect(approachRows).toHaveLength(1);
         expect(approachRows[0]?.deletedAt).not.toBeNull();
@@ -170,7 +170,7 @@ describe('soft delete then upsert beta sections (integration)', () => {
 
         // Other page must be unaffected: same sections, still live, same order and text
         const otherPageRows = await db
-            .select('RopewikiPageBetaSection', { ropewikiPage: otherPageUuid, deletedAt: db.conditions.isNull })
+            .select('RopewikiBetaSection', { ropewikiPage: otherPageUuid, deletedAt: db.conditions.isNull })
             .run(conn);
         expect(otherPageRows).toHaveLength(2);
         const overview = otherPageRows.find((r) => r.title === 'Overview');
@@ -198,7 +198,7 @@ describe('soft delete then upsert beta sections (integration)', () => {
         await setBetaSectionsDeletedAt(conn, testPageUuid);
 
         const softDeleted = await db
-            .select('RopewikiPageBetaSection', { ropewikiPage: testPageUuid, deletedAt: db.conditions.isNotNull })
+            .select('RopewikiBetaSection', { ropewikiPage: testPageUuid, deletedAt: db.conditions.isNotNull })
             .run(conn);
         expect(softDeleted).toHaveLength(3);
         for (const row of softDeleted) {

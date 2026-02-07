@@ -27,7 +27,7 @@ describe('upsertImages (integration)', () => {
     beforeAll(async () => {
         // Clean tables
         await db.sql`DELETE FROM "RopewikiImage"`.run(conn);
-        await db.sql`DELETE FROM "RopewikiPageBetaSection"`.run(conn);
+        await db.sql`DELETE FROM "RopewikiBetaSection"`.run(conn);
         await db.sql`DELETE FROM "RopewikiPage"`.run(conn);
         await db.sql`DELETE FROM "RopewikiRegion"`.run(conn);
 
@@ -56,8 +56,9 @@ describe('upsertImages (integration)', () => {
                 latestRevisionDate: [{ timestamp: String(Math.floor(latestRevisionDate.getTime() / 1000)), raw: '2025-01-01T00:00:00Z' }],
             },
         }, regionNameIds);
-        const results = await upsertPages(conn, [pageInfo], regionNameIds);
-        testPageUuid = results[0].id;
+        const results = await upsertPages(conn, [pageInfo]);
+        testPageUuid = results[0]!.id ?? '';
+        expect(testPageUuid).toBeTruthy();
 
         // Insert test beta sections to get betaTitleIds
         const betaSections: RopewikiBetaSection[] = [
@@ -74,7 +75,7 @@ describe('upsertImages (integration)', () => {
 
     afterAll(async () => {
         await db.sql`DELETE FROM "RopewikiImage"`.run(conn);
-        await db.sql`DELETE FROM "RopewikiPageBetaSection"`.run(conn);
+        await db.sql`DELETE FROM "RopewikiBetaSection"`.run(conn);
         await db.sql`DELETE FROM "RopewikiPage"`.run(conn);
         await db.sql`DELETE FROM "RopewikiRegion"`.run(conn);
         await pool.end();

@@ -397,7 +397,6 @@ describe('RopewikiPage', () => {
             expect(dbRow.hike).toBe(JSON.stringify({ value: 1, unit: 'km' }));
             expect(dbRow.months).toBe(JSON.stringify(['January', 'February', 'March']));
             expect(dbRow.aka).toBe(JSON.stringify(['Alternative Name']));
-            expect(dbRow.betaSites).toBe(JSON.stringify(['http://beta.com']));
             expect(dbRow.userVotes).toBe(10);
             expect(dbRow.latestRevisionDate).toEqual(new Date(1609459200000));
             expect(dbRow.updatedAt).toEqual(mockDate);
@@ -443,7 +442,6 @@ describe('RopewikiPage', () => {
             expect(dbRow.hike).toBeNull();
             expect(dbRow.months).toBeNull();
             expect(dbRow.aka).toBeNull();
-            expect(dbRow.betaSites).toBeNull();
             expect(dbRow.userVotes).toBeNull();
             expect(dbRow.updatedAt).toEqual(mockDate);
             expect(dbRow.deletedAt).toBeNull();
@@ -451,7 +449,7 @@ describe('RopewikiPage', () => {
             jest.useRealTimers();
         });
 
-        it('converts empty arrays to null for aka and betaSites', () => {
+        it('converts empty arrays to null for aka', () => {
             const mockDate = new Date('2023-01-15T10:30:00.000Z');
             jest.useFakeTimers();
             jest.setSystemTime(mockDate);
@@ -464,7 +462,6 @@ describe('RopewikiPage', () => {
                     url: ['https://ropewiki.com/test'],
                     latestRevisionDate: validLatestRevisionDate,
                     aka: [],
-                    betaSites: [],
                 },
             };
 
@@ -472,7 +469,6 @@ describe('RopewikiPage', () => {
             const dbRow = pageInfo.toDbRow();
 
             expect(dbRow.aka).toBeNull();
-            expect(dbRow.betaSites).toBeNull();
 
             jest.useRealTimers();
         });

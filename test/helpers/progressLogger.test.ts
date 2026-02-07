@@ -3,14 +3,17 @@ import ProgressLogger from '../../src/helpers/progressLogger';
 
 describe('ProgressLogger', () => {
     let consoleLogSpy: jest.SpiedFunction<typeof console.log>;
+    let consoleErrorSpy: jest.SpiedFunction<typeof console.error>;
 
     beforeEach(() => {
         consoleLogSpy = jest.spyOn(console, 'log').mockImplementation(() => {});
+        consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
         jest.useFakeTimers();
     });
 
     afterEach(() => {
         consoleLogSpy.mockRestore();
+        consoleErrorSpy.mockRestore();
         jest.useRealTimers();
     });
 
@@ -297,14 +300,14 @@ describe('ProgressLogger', () => {
     });
 
     describe('logError', () => {
-        it('logs error with correct format', () => {
+        it('logs error with correct format using console.error', () => {
             const logger = new ProgressLogger('Test Progress', 100);
             logger.setChunk(0, 10);
             
             logger.logError('Error processing item 1');
             
-            expect(consoleLogSpy).toHaveBeenCalledTimes(1);
-            const logCall = consoleLogSpy.mock.calls[0]?.[0] as string;
+            expect(consoleErrorSpy).toHaveBeenCalledTimes(1);
+            const logCall = consoleErrorSpy.mock.calls[0]?.[0] as string;
             expect(logCall).toContain('Test Progress: Error processing item 1');
             expect(logCall).toContain('Progress: 1/100');
             expect(logCall).toContain('Remaining in chunk: 10');
@@ -330,10 +333,10 @@ describe('ProgressLogger', () => {
             logger.logError('Error 2');
             logger.logError('Error 3');
             
-            expect(consoleLogSpy).toHaveBeenCalledTimes(3);
-            const firstCall = consoleLogSpy.mock.calls[0]?.[0] as string;
-            const secondCall = consoleLogSpy.mock.calls[1]?.[0] as string;
-            const thirdCall = consoleLogSpy.mock.calls[2]?.[0] as string;
+            expect(consoleErrorSpy).toHaveBeenCalledTimes(3);
+            const firstCall = consoleErrorSpy.mock.calls[0]?.[0] as string;
+            const secondCall = consoleErrorSpy.mock.calls[1]?.[0] as string;
+            const thirdCall = consoleErrorSpy.mock.calls[2]?.[0] as string;
             
             expect(firstCall).toContain('Progress: 1/100');
             expect(secondCall).toContain('Progress: 2/100');
@@ -355,7 +358,7 @@ describe('ProgressLogger', () => {
             jest.setSystemTime(2000);
             logger.logError('Error 3');
             
-            const thirdCall = consoleLogSpy.mock.calls[2]?.[0] as string;
+            const thirdCall = consoleErrorSpy.mock.calls[2]?.[0] as string;
             expect(thirdCall).toContain('ETA:');
         });
 
@@ -371,7 +374,8 @@ describe('ProgressLogger', () => {
             const results = logger.getResults();
             expect(results.successes).toBe(2);
             expect(results.errors).toBe(2);
-            expect(consoleLogSpy).toHaveBeenCalledTimes(4);
+            expect(consoleLogSpy).toHaveBeenCalledTimes(2);
+            expect(consoleErrorSpy).toHaveBeenCalledTimes(2);
         });
 
         it('handles chunk boundaries correctly', () => {
@@ -380,7 +384,7 @@ describe('ProgressLogger', () => {
             
             logger.logError('Error 1');
             
-            const logCall = consoleLogSpy.mock.calls[0]?.[0] as string;
+            const logCall = consoleErrorSpy.mock.calls[0]?.[0] as string;
             expect(logCall).toContain('Progress: 11/100');
             expect(logCall).toContain('Remaining in chunk: 10');
         });

@@ -285,7 +285,6 @@ class RopewikiPage {
             hike: this.hike ? JSON.stringify(this.hike) : null,
             months: this.months && this.months.length > 0 ? JSON.stringify(this.months) : null,
             aka: this.aka && this.aka.length > 0 ? JSON.stringify(this.aka) : null,
-            betaSites: this.betaSites && this.betaSites.length > 0 ? JSON.stringify(this.betaSites) : null,
             userVotes: this.userVotes ?? null,
             latestRevisionDate: this.latestRevisionDate,
             updatedAt: now,
@@ -303,9 +302,8 @@ class RopewikiPage {
         const hike = row.hike as { value: number; unit: string } | null;
         const months = row.months as string[] | null;
         const aka = row.aka as string[] | null;
-        const betaSites = row.betaSites as string[] | null;
 
-        // Create instance using constructor
+        // Create instance using constructor (betaSites no longer in DB; kept on class for use elsewhere)
         return new RopewikiPage(
             row.pageId,
             row.name,
@@ -331,7 +329,7 @@ class RopewikiPage {
             maxTime ?? undefined,
             hike ?? undefined,
             aka ?? [],
-            betaSites ?? [],
+            [], // betaSites migrated to RopewikiPageSiteLink; not read from DB
             row.userVotes ?? undefined,
             row.id
         );

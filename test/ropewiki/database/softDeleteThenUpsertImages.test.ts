@@ -36,7 +36,7 @@ describe('soft delete then upsert images (integration)', () => {
 
     beforeAll(async () => {
         await db.sql`DELETE FROM "RopewikiImage"`.run(conn);
-        await db.sql`DELETE FROM "RopewikiPageBetaSection"`.run(conn);
+        await db.sql`DELETE FROM "RopewikiBetaSection"`.run(conn);
         await db.sql`DELETE FROM "RopewikiPage"`.run(conn);
         await db.sql`DELETE FROM "RopewikiRegion"`.run(conn);
 
@@ -102,7 +102,7 @@ describe('soft delete then upsert images (integration)', () => {
 
     afterAll(async () => {
         await db.sql`DELETE FROM "RopewikiImage"`.run(conn);
-        await db.sql`DELETE FROM "RopewikiPageBetaSection"`.run(conn);
+        await db.sql`DELETE FROM "RopewikiBetaSection"`.run(conn);
         await db.sql`DELETE FROM "RopewikiPage"`.run(conn);
         await db.sql`DELETE FROM "RopewikiRegion"`.run(conn);
         await pool.end();

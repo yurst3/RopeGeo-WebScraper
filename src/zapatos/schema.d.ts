@@ -346,6 +346,299 @@ declare module 'zapatos/schema' {
   }
 
   /**
+   * **RopewikiBetaSection**
+   * - Table in database
+   */
+  export namespace RopewikiBetaSection {
+    export type Table = 'RopewikiBetaSection';
+    export interface Selectable {
+      /**
+      * **RopewikiBetaSection.createdAt**
+      * - `timestamp` in database
+      * - `NOT NULL`, default: `CURRENT_TIMESTAMP`
+      */
+      createdAt: Date;
+      /**
+      * **RopewikiBetaSection.deletedAt**
+      * - `timestamp` in database
+      * - Nullable, no default
+      */
+      deletedAt: Date | null;
+      /**
+      * **RopewikiBetaSection.id**
+      * - `uuid` in database
+      * - `NOT NULL`, default: `gen_random_uuid()`
+      */
+      id: string;
+      /**
+      * **RopewikiBetaSection.latestRevisionDate**
+      * - `timestamp` in database
+      * - `NOT NULL`, default: `CURRENT_TIMESTAMP`
+      */
+      latestRevisionDate: Date;
+      /**
+      * **RopewikiBetaSection.order**
+      * - `int4` in database
+      * - Nullable, no default
+      */
+      order: number | null;
+      /**
+      * **RopewikiBetaSection.ropewikiPage**
+      * - `uuid` in database
+      * - `NOT NULL`, no default
+      */
+      ropewikiPage: string;
+      /**
+      * **RopewikiBetaSection.text**
+      * - `text` in database
+      * - `NOT NULL`, no default
+      */
+      text: string;
+      /**
+      * **RopewikiBetaSection.title**
+      * - `text` in database
+      * - `NOT NULL`, no default
+      */
+      title: string;
+      /**
+      * **RopewikiBetaSection.updatedAt**
+      * - `timestamp` in database
+      * - `NOT NULL`, default: `CURRENT_TIMESTAMP`
+      */
+      updatedAt: Date;
+    }
+    export interface JSONSelectable {
+      /**
+      * **RopewikiBetaSection.createdAt**
+      * - `timestamp` in database
+      * - `NOT NULL`, default: `CURRENT_TIMESTAMP`
+      */
+      createdAt: db.TimestampString;
+      /**
+      * **RopewikiBetaSection.deletedAt**
+      * - `timestamp` in database
+      * - Nullable, no default
+      */
+      deletedAt: db.TimestampString | null;
+      /**
+      * **RopewikiBetaSection.id**
+      * - `uuid` in database
+      * - `NOT NULL`, default: `gen_random_uuid()`
+      */
+      id: string;
+      /**
+      * **RopewikiBetaSection.latestRevisionDate**
+      * - `timestamp` in database
+      * - `NOT NULL`, default: `CURRENT_TIMESTAMP`
+      */
+      latestRevisionDate: db.TimestampString;
+      /**
+      * **RopewikiBetaSection.order**
+      * - `int4` in database
+      * - Nullable, no default
+      */
+      order: number | null;
+      /**
+      * **RopewikiBetaSection.ropewikiPage**
+      * - `uuid` in database
+      * - `NOT NULL`, no default
+      */
+      ropewikiPage: string;
+      /**
+      * **RopewikiBetaSection.text**
+      * - `text` in database
+      * - `NOT NULL`, no default
+      */
+      text: string;
+      /**
+      * **RopewikiBetaSection.title**
+      * - `text` in database
+      * - `NOT NULL`, no default
+      */
+      title: string;
+      /**
+      * **RopewikiBetaSection.updatedAt**
+      * - `timestamp` in database
+      * - `NOT NULL`, default: `CURRENT_TIMESTAMP`
+      */
+      updatedAt: db.TimestampString;
+    }
+    export interface Whereable {
+      /**
+      * **RopewikiBetaSection.createdAt**
+      * - `timestamp` in database
+      * - `NOT NULL`, default: `CURRENT_TIMESTAMP`
+      */
+      createdAt?: (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.SQLFragment | db.ParentColumn>;
+      /**
+      * **RopewikiBetaSection.deletedAt**
+      * - `timestamp` in database
+      * - Nullable, no default
+      */
+      deletedAt?: (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.SQLFragment | db.ParentColumn>;
+      /**
+      * **RopewikiBetaSection.id**
+      * - `uuid` in database
+      * - `NOT NULL`, default: `gen_random_uuid()`
+      */
+      id?: string | db.Parameter<string> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, string | db.Parameter<string> | db.SQLFragment | db.ParentColumn>;
+      /**
+      * **RopewikiBetaSection.latestRevisionDate**
+      * - `timestamp` in database
+      * - `NOT NULL`, default: `CURRENT_TIMESTAMP`
+      */
+      latestRevisionDate?: (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.SQLFragment | db.ParentColumn>;
+      /**
+      * **RopewikiBetaSection.order**
+      * - `int4` in database
+      * - Nullable, no default
+      */
+      order?: number | db.Parameter<number> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, number | db.Parameter<number> | db.SQLFragment | db.ParentColumn>;
+      /**
+      * **RopewikiBetaSection.ropewikiPage**
+      * - `uuid` in database
+      * - `NOT NULL`, no default
+      */
+      ropewikiPage?: string | db.Parameter<string> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, string | db.Parameter<string> | db.SQLFragment | db.ParentColumn>;
+      /**
+      * **RopewikiBetaSection.text**
+      * - `text` in database
+      * - `NOT NULL`, no default
+      */
+      text?: string | db.Parameter<string> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, string | db.Parameter<string> | db.SQLFragment | db.ParentColumn>;
+      /**
+      * **RopewikiBetaSection.title**
+      * - `text` in database
+      * - `NOT NULL`, no default
+      */
+      title?: string | db.Parameter<string> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, string | db.Parameter<string> | db.SQLFragment | db.ParentColumn>;
+      /**
+      * **RopewikiBetaSection.updatedAt**
+      * - `timestamp` in database
+      * - `NOT NULL`, default: `CURRENT_TIMESTAMP`
+      */
+      updatedAt?: (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.SQLFragment | db.ParentColumn>;
+    }
+    export interface Insertable {
+      /**
+      * **RopewikiBetaSection.createdAt**
+      * - `timestamp` in database
+      * - `NOT NULL`, default: `CURRENT_TIMESTAMP`
+      */
+      createdAt?: (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.DefaultType | db.SQLFragment;
+      /**
+      * **RopewikiBetaSection.deletedAt**
+      * - `timestamp` in database
+      * - Nullable, no default
+      */
+      deletedAt?: (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | null | db.DefaultType | db.SQLFragment;
+      /**
+      * **RopewikiBetaSection.id**
+      * - `uuid` in database
+      * - `NOT NULL`, default: `gen_random_uuid()`
+      */
+      id?: string | db.Parameter<string> | db.DefaultType | db.SQLFragment;
+      /**
+      * **RopewikiBetaSection.latestRevisionDate**
+      * - `timestamp` in database
+      * - `NOT NULL`, default: `CURRENT_TIMESTAMP`
+      */
+      latestRevisionDate?: (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.DefaultType | db.SQLFragment;
+      /**
+      * **RopewikiBetaSection.order**
+      * - `int4` in database
+      * - Nullable, no default
+      */
+      order?: number | db.Parameter<number> | null | db.DefaultType | db.SQLFragment;
+      /**
+      * **RopewikiBetaSection.ropewikiPage**
+      * - `uuid` in database
+      * - `NOT NULL`, no default
+      */
+      ropewikiPage: string | db.Parameter<string> | db.SQLFragment;
+      /**
+      * **RopewikiBetaSection.text**
+      * - `text` in database
+      * - `NOT NULL`, no default
+      */
+      text: string | db.Parameter<string> | db.SQLFragment;
+      /**
+      * **RopewikiBetaSection.title**
+      * - `text` in database
+      * - `NOT NULL`, no default
+      */
+      title: string | db.Parameter<string> | db.SQLFragment;
+      /**
+      * **RopewikiBetaSection.updatedAt**
+      * - `timestamp` in database
+      * - `NOT NULL`, default: `CURRENT_TIMESTAMP`
+      */
+      updatedAt?: (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.DefaultType | db.SQLFragment;
+    }
+    export interface Updatable {
+      /**
+      * **RopewikiBetaSection.createdAt**
+      * - `timestamp` in database
+      * - `NOT NULL`, default: `CURRENT_TIMESTAMP`
+      */
+      createdAt?: (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.DefaultType | db.SQLFragment | db.SQLFragment<any, (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.DefaultType | db.SQLFragment>;
+      /**
+      * **RopewikiBetaSection.deletedAt**
+      * - `timestamp` in database
+      * - Nullable, no default
+      */
+      deletedAt?: (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | null | db.DefaultType | db.SQLFragment | db.SQLFragment<any, (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | null | db.DefaultType | db.SQLFragment>;
+      /**
+      * **RopewikiBetaSection.id**
+      * - `uuid` in database
+      * - `NOT NULL`, default: `gen_random_uuid()`
+      */
+      id?: string | db.Parameter<string> | db.DefaultType | db.SQLFragment | db.SQLFragment<any, string | db.Parameter<string> | db.DefaultType | db.SQLFragment>;
+      /**
+      * **RopewikiBetaSection.latestRevisionDate**
+      * - `timestamp` in database
+      * - `NOT NULL`, default: `CURRENT_TIMESTAMP`
+      */
+      latestRevisionDate?: (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.DefaultType | db.SQLFragment | db.SQLFragment<any, (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.DefaultType | db.SQLFragment>;
+      /**
+      * **RopewikiBetaSection.order**
+      * - `int4` in database
+      * - Nullable, no default
+      */
+      order?: number | db.Parameter<number> | null | db.DefaultType | db.SQLFragment | db.SQLFragment<any, number | db.Parameter<number> | null | db.DefaultType | db.SQLFragment>;
+      /**
+      * **RopewikiBetaSection.ropewikiPage**
+      * - `uuid` in database
+      * - `NOT NULL`, no default
+      */
+      ropewikiPage?: string | db.Parameter<string> | db.SQLFragment | db.SQLFragment<any, string | db.Parameter<string> | db.SQLFragment>;
+      /**
+      * **RopewikiBetaSection.text**
+      * - `text` in database
+      * - `NOT NULL`, no default
+      */
+      text?: string | db.Parameter<string> | db.SQLFragment | db.SQLFragment<any, string | db.Parameter<string> | db.SQLFragment>;
+      /**
+      * **RopewikiBetaSection.title**
+      * - `text` in database
+      * - `NOT NULL`, no default
+      */
+      title?: string | db.Parameter<string> | db.SQLFragment | db.SQLFragment<any, string | db.Parameter<string> | db.SQLFragment>;
+      /**
+      * **RopewikiBetaSection.updatedAt**
+      * - `timestamp` in database
+      * - `NOT NULL`, default: `CURRENT_TIMESTAMP`
+      */
+      updatedAt?: (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.DefaultType | db.SQLFragment | db.SQLFragment<any, (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.DefaultType | db.SQLFragment>;
+    }
+    export type UniqueIndex = 'RopewikiPageBetaSection_pkey' | 'uk_ropewikiPageBetaSection_ropewikiPage_order' | 'uk_ropewikiPageBetaSection_ropewikiPage_title';
+    export type Column = keyof Selectable;
+    export type OnlyCols<T extends readonly Column[]> = Pick<Selectable, T[number]>;
+    export type SQLExpression = Table | db.ColumnNames<Updatable | (keyof Updatable)[]> | db.ColumnValues<Updatable> | Whereable | Column | db.ParentColumn | db.GenericSQLExpression;
+    export type SQL = SQLExpression | SQLExpression[];
+  }
+
+  /**
    * **RopewikiImage**
    * - Table in database
    */
@@ -712,12 +1005,6 @@ declare module 'zapatos/schema' {
       */
       aka: db.JSONValue | null;
       /**
-      * **RopewikiPage.betaSites**
-      * - `jsonb` in database
-      * - Nullable, no default
-      */
-      betaSites: db.JSONValue | null;
-      /**
       * **RopewikiPage.coordinates**
       * - `jsonb` in database
       * - Nullable, no default
@@ -893,12 +1180,6 @@ declare module 'zapatos/schema' {
       * - Nullable, no default
       */
       aka: db.JSONValue | null;
-      /**
-      * **RopewikiPage.betaSites**
-      * - `jsonb` in database
-      * - Nullable, no default
-      */
-      betaSites: db.JSONValue | null;
       /**
       * **RopewikiPage.coordinates**
       * - `jsonb` in database
@@ -1076,12 +1357,6 @@ declare module 'zapatos/schema' {
       */
       aka?: db.JSONValue | db.Parameter<db.JSONValue> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, db.JSONValue | db.Parameter<db.JSONValue> | db.SQLFragment | db.ParentColumn>;
       /**
-      * **RopewikiPage.betaSites**
-      * - `jsonb` in database
-      * - Nullable, no default
-      */
-      betaSites?: db.JSONValue | db.Parameter<db.JSONValue> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, db.JSONValue | db.Parameter<db.JSONValue> | db.SQLFragment | db.ParentColumn>;
-      /**
       * **RopewikiPage.coordinates**
       * - `jsonb` in database
       * - Nullable, no default
@@ -1257,12 +1532,6 @@ declare module 'zapatos/schema' {
       * - Nullable, no default
       */
       aka?: db.JSONValue | db.Parameter<db.JSONValue> | null | db.DefaultType | db.SQLFragment;
-      /**
-      * **RopewikiPage.betaSites**
-      * - `jsonb` in database
-      * - Nullable, no default
-      */
-      betaSites?: db.JSONValue | db.Parameter<db.JSONValue> | null | db.DefaultType | db.SQLFragment;
       /**
       * **RopewikiPage.coordinates**
       * - `jsonb` in database
@@ -1440,12 +1709,6 @@ declare module 'zapatos/schema' {
       */
       aka?: db.JSONValue | db.Parameter<db.JSONValue> | null | db.DefaultType | db.SQLFragment | db.SQLFragment<any, db.JSONValue | db.Parameter<db.JSONValue> | null | db.DefaultType | db.SQLFragment>;
       /**
-      * **RopewikiPage.betaSites**
-      * - `jsonb` in database
-      * - Nullable, no default
-      */
-      betaSites?: db.JSONValue | db.Parameter<db.JSONValue> | null | db.DefaultType | db.SQLFragment | db.SQLFragment<any, db.JSONValue | db.Parameter<db.JSONValue> | null | db.DefaultType | db.SQLFragment>;
-      /**
       * **RopewikiPage.coordinates**
       * - `jsonb` in database
       * - Nullable, no default
@@ -1622,62 +1885,38 @@ declare module 'zapatos/schema' {
   }
 
   /**
-   * **RopewikiPageBetaSection**
+   * **RopewikiPageSiteLink**
    * - Table in database
    */
-  export namespace RopewikiPageBetaSection {
-    export type Table = 'RopewikiPageBetaSection';
+  export namespace RopewikiPageSiteLink {
+    export type Table = 'RopewikiPageSiteLink';
     export interface Selectable {
       /**
-      * **RopewikiPageBetaSection.createdAt**
+      * **RopewikiPageSiteLink.createdAt**
       * - `timestamp` in database
       * - `NOT NULL`, default: `CURRENT_TIMESTAMP`
       */
       createdAt: Date;
       /**
-      * **RopewikiPageBetaSection.deletedAt**
+      * **RopewikiPageSiteLink.deletedAt**
       * - `timestamp` in database
       * - Nullable, no default
       */
       deletedAt: Date | null;
       /**
-      * **RopewikiPageBetaSection.id**
-      * - `uuid` in database
-      * - `NOT NULL`, default: `gen_random_uuid()`
-      */
-      id: string;
-      /**
-      * **RopewikiPageBetaSection.latestRevisionDate**
-      * - `timestamp` in database
-      * - `NOT NULL`, default: `CURRENT_TIMESTAMP`
-      */
-      latestRevisionDate: Date;
-      /**
-      * **RopewikiPageBetaSection.order**
-      * - `int4` in database
-      * - Nullable, no default
-      */
-      order: number | null;
-      /**
-      * **RopewikiPageBetaSection.ropewikiPage**
+      * **RopewikiPageSiteLink.page**
       * - `uuid` in database
       * - `NOT NULL`, no default
       */
-      ropewikiPage: string;
+      page: string;
       /**
-      * **RopewikiPageBetaSection.text**
-      * - `text` in database
+      * **RopewikiPageSiteLink.siteLink**
+      * - `uuid` in database
       * - `NOT NULL`, no default
       */
-      text: string;
+      siteLink: string;
       /**
-      * **RopewikiPageBetaSection.title**
-      * - `text` in database
-      * - `NOT NULL`, no default
-      */
-      title: string;
-      /**
-      * **RopewikiPageBetaSection.updatedAt**
+      * **RopewikiPageSiteLink.updatedAt**
       * - `timestamp` in database
       * - `NOT NULL`, default: `CURRENT_TIMESTAMP`
       */
@@ -1685,55 +1924,31 @@ declare module 'zapatos/schema' {
     }
     export interface JSONSelectable {
       /**
-      * **RopewikiPageBetaSection.createdAt**
+      * **RopewikiPageSiteLink.createdAt**
       * - `timestamp` in database
       * - `NOT NULL`, default: `CURRENT_TIMESTAMP`
       */
       createdAt: db.TimestampString;
       /**
-      * **RopewikiPageBetaSection.deletedAt**
+      * **RopewikiPageSiteLink.deletedAt**
       * - `timestamp` in database
       * - Nullable, no default
       */
       deletedAt: db.TimestampString | null;
       /**
-      * **RopewikiPageBetaSection.id**
-      * - `uuid` in database
-      * - `NOT NULL`, default: `gen_random_uuid()`
-      */
-      id: string;
-      /**
-      * **RopewikiPageBetaSection.latestRevisionDate**
-      * - `timestamp` in database
-      * - `NOT NULL`, default: `CURRENT_TIMESTAMP`
-      */
-      latestRevisionDate: db.TimestampString;
-      /**
-      * **RopewikiPageBetaSection.order**
-      * - `int4` in database
-      * - Nullable, no default
-      */
-      order: number | null;
-      /**
-      * **RopewikiPageBetaSection.ropewikiPage**
+      * **RopewikiPageSiteLink.page**
       * - `uuid` in database
       * - `NOT NULL`, no default
       */
-      ropewikiPage: string;
+      page: string;
       /**
-      * **RopewikiPageBetaSection.text**
-      * - `text` in database
+      * **RopewikiPageSiteLink.siteLink**
+      * - `uuid` in database
       * - `NOT NULL`, no default
       */
-      text: string;
+      siteLink: string;
       /**
-      * **RopewikiPageBetaSection.title**
-      * - `text` in database
-      * - `NOT NULL`, no default
-      */
-      title: string;
-      /**
-      * **RopewikiPageBetaSection.updatedAt**
+      * **RopewikiPageSiteLink.updatedAt**
       * - `timestamp` in database
       * - `NOT NULL`, default: `CURRENT_TIMESTAMP`
       */
@@ -1741,55 +1956,31 @@ declare module 'zapatos/schema' {
     }
     export interface Whereable {
       /**
-      * **RopewikiPageBetaSection.createdAt**
+      * **RopewikiPageSiteLink.createdAt**
       * - `timestamp` in database
       * - `NOT NULL`, default: `CURRENT_TIMESTAMP`
       */
       createdAt?: (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.SQLFragment | db.ParentColumn>;
       /**
-      * **RopewikiPageBetaSection.deletedAt**
+      * **RopewikiPageSiteLink.deletedAt**
       * - `timestamp` in database
       * - Nullable, no default
       */
       deletedAt?: (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.SQLFragment | db.ParentColumn>;
       /**
-      * **RopewikiPageBetaSection.id**
-      * - `uuid` in database
-      * - `NOT NULL`, default: `gen_random_uuid()`
-      */
-      id?: string | db.Parameter<string> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, string | db.Parameter<string> | db.SQLFragment | db.ParentColumn>;
-      /**
-      * **RopewikiPageBetaSection.latestRevisionDate**
-      * - `timestamp` in database
-      * - `NOT NULL`, default: `CURRENT_TIMESTAMP`
-      */
-      latestRevisionDate?: (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.SQLFragment | db.ParentColumn>;
-      /**
-      * **RopewikiPageBetaSection.order**
-      * - `int4` in database
-      * - Nullable, no default
-      */
-      order?: number | db.Parameter<number> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, number | db.Parameter<number> | db.SQLFragment | db.ParentColumn>;
-      /**
-      * **RopewikiPageBetaSection.ropewikiPage**
+      * **RopewikiPageSiteLink.page**
       * - `uuid` in database
       * - `NOT NULL`, no default
       */
-      ropewikiPage?: string | db.Parameter<string> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, string | db.Parameter<string> | db.SQLFragment | db.ParentColumn>;
+      page?: string | db.Parameter<string> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, string | db.Parameter<string> | db.SQLFragment | db.ParentColumn>;
       /**
-      * **RopewikiPageBetaSection.text**
-      * - `text` in database
+      * **RopewikiPageSiteLink.siteLink**
+      * - `uuid` in database
       * - `NOT NULL`, no default
       */
-      text?: string | db.Parameter<string> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, string | db.Parameter<string> | db.SQLFragment | db.ParentColumn>;
+      siteLink?: string | db.Parameter<string> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, string | db.Parameter<string> | db.SQLFragment | db.ParentColumn>;
       /**
-      * **RopewikiPageBetaSection.title**
-      * - `text` in database
-      * - `NOT NULL`, no default
-      */
-      title?: string | db.Parameter<string> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, string | db.Parameter<string> | db.SQLFragment | db.ParentColumn>;
-      /**
-      * **RopewikiPageBetaSection.updatedAt**
+      * **RopewikiPageSiteLink.updatedAt**
       * - `timestamp` in database
       * - `NOT NULL`, default: `CURRENT_TIMESTAMP`
       */
@@ -1797,55 +1988,31 @@ declare module 'zapatos/schema' {
     }
     export interface Insertable {
       /**
-      * **RopewikiPageBetaSection.createdAt**
+      * **RopewikiPageSiteLink.createdAt**
       * - `timestamp` in database
       * - `NOT NULL`, default: `CURRENT_TIMESTAMP`
       */
       createdAt?: (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.DefaultType | db.SQLFragment;
       /**
-      * **RopewikiPageBetaSection.deletedAt**
+      * **RopewikiPageSiteLink.deletedAt**
       * - `timestamp` in database
       * - Nullable, no default
       */
       deletedAt?: (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | null | db.DefaultType | db.SQLFragment;
       /**
-      * **RopewikiPageBetaSection.id**
-      * - `uuid` in database
-      * - `NOT NULL`, default: `gen_random_uuid()`
-      */
-      id?: string | db.Parameter<string> | db.DefaultType | db.SQLFragment;
-      /**
-      * **RopewikiPageBetaSection.latestRevisionDate**
-      * - `timestamp` in database
-      * - `NOT NULL`, default: `CURRENT_TIMESTAMP`
-      */
-      latestRevisionDate?: (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.DefaultType | db.SQLFragment;
-      /**
-      * **RopewikiPageBetaSection.order**
-      * - `int4` in database
-      * - Nullable, no default
-      */
-      order?: number | db.Parameter<number> | null | db.DefaultType | db.SQLFragment;
-      /**
-      * **RopewikiPageBetaSection.ropewikiPage**
+      * **RopewikiPageSiteLink.page**
       * - `uuid` in database
       * - `NOT NULL`, no default
       */
-      ropewikiPage: string | db.Parameter<string> | db.SQLFragment;
+      page: string | db.Parameter<string> | db.SQLFragment;
       /**
-      * **RopewikiPageBetaSection.text**
-      * - `text` in database
+      * **RopewikiPageSiteLink.siteLink**
+      * - `uuid` in database
       * - `NOT NULL`, no default
       */
-      text: string | db.Parameter<string> | db.SQLFragment;
+      siteLink: string | db.Parameter<string> | db.SQLFragment;
       /**
-      * **RopewikiPageBetaSection.title**
-      * - `text` in database
-      * - `NOT NULL`, no default
-      */
-      title: string | db.Parameter<string> | db.SQLFragment;
-      /**
-      * **RopewikiPageBetaSection.updatedAt**
+      * **RopewikiPageSiteLink.updatedAt**
       * - `timestamp` in database
       * - `NOT NULL`, default: `CURRENT_TIMESTAMP`
       */
@@ -1853,61 +2020,37 @@ declare module 'zapatos/schema' {
     }
     export interface Updatable {
       /**
-      * **RopewikiPageBetaSection.createdAt**
+      * **RopewikiPageSiteLink.createdAt**
       * - `timestamp` in database
       * - `NOT NULL`, default: `CURRENT_TIMESTAMP`
       */
       createdAt?: (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.DefaultType | db.SQLFragment | db.SQLFragment<any, (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.DefaultType | db.SQLFragment>;
       /**
-      * **RopewikiPageBetaSection.deletedAt**
+      * **RopewikiPageSiteLink.deletedAt**
       * - `timestamp` in database
       * - Nullable, no default
       */
       deletedAt?: (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | null | db.DefaultType | db.SQLFragment | db.SQLFragment<any, (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | null | db.DefaultType | db.SQLFragment>;
       /**
-      * **RopewikiPageBetaSection.id**
-      * - `uuid` in database
-      * - `NOT NULL`, default: `gen_random_uuid()`
-      */
-      id?: string | db.Parameter<string> | db.DefaultType | db.SQLFragment | db.SQLFragment<any, string | db.Parameter<string> | db.DefaultType | db.SQLFragment>;
-      /**
-      * **RopewikiPageBetaSection.latestRevisionDate**
-      * - `timestamp` in database
-      * - `NOT NULL`, default: `CURRENT_TIMESTAMP`
-      */
-      latestRevisionDate?: (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.DefaultType | db.SQLFragment | db.SQLFragment<any, (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.DefaultType | db.SQLFragment>;
-      /**
-      * **RopewikiPageBetaSection.order**
-      * - `int4` in database
-      * - Nullable, no default
-      */
-      order?: number | db.Parameter<number> | null | db.DefaultType | db.SQLFragment | db.SQLFragment<any, number | db.Parameter<number> | null | db.DefaultType | db.SQLFragment>;
-      /**
-      * **RopewikiPageBetaSection.ropewikiPage**
+      * **RopewikiPageSiteLink.page**
       * - `uuid` in database
       * - `NOT NULL`, no default
       */
-      ropewikiPage?: string | db.Parameter<string> | db.SQLFragment | db.SQLFragment<any, string | db.Parameter<string> | db.SQLFragment>;
+      page?: string | db.Parameter<string> | db.SQLFragment | db.SQLFragment<any, string | db.Parameter<string> | db.SQLFragment>;
       /**
-      * **RopewikiPageBetaSection.text**
-      * - `text` in database
+      * **RopewikiPageSiteLink.siteLink**
+      * - `uuid` in database
       * - `NOT NULL`, no default
       */
-      text?: string | db.Parameter<string> | db.SQLFragment | db.SQLFragment<any, string | db.Parameter<string> | db.SQLFragment>;
+      siteLink?: string | db.Parameter<string> | db.SQLFragment | db.SQLFragment<any, string | db.Parameter<string> | db.SQLFragment>;
       /**
-      * **RopewikiPageBetaSection.title**
-      * - `text` in database
-      * - `NOT NULL`, no default
-      */
-      title?: string | db.Parameter<string> | db.SQLFragment | db.SQLFragment<any, string | db.Parameter<string> | db.SQLFragment>;
-      /**
-      * **RopewikiPageBetaSection.updatedAt**
+      * **RopewikiPageSiteLink.updatedAt**
       * - `timestamp` in database
       * - `NOT NULL`, default: `CURRENT_TIMESTAMP`
       */
       updatedAt?: (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.DefaultType | db.SQLFragment | db.SQLFragment<any, (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.DefaultType | db.SQLFragment>;
     }
-    export type UniqueIndex = 'RopewikiPageBetaSection_pkey' | 'uk_ropewikiPageBetaSection_ropewikiPage_order' | 'uk_ropewikiPageBetaSection_ropewikiPage_title';
+    export type UniqueIndex = 'uk_ropewikiPageSiteLink_page_siteLink';
     export type Column = keyof Selectable;
     export type OnlyCols<T extends readonly Column[]> = Pick<Selectable, T[number]>;
     export type SQLExpression = Table | db.ColumnNames<Updatable | (keyof Updatable)[]> | db.ColumnValues<Updatable> | Whereable | Column | db.ParentColumn | db.GenericSQLExpression;
@@ -2561,6 +2704,179 @@ declare module 'zapatos/schema' {
   }
 
   /**
+   * **RopewikiSiteLink**
+   * - Table in database
+   */
+  export namespace RopewikiSiteLink {
+    export type Table = 'RopewikiSiteLink';
+    export interface Selectable {
+      /**
+      * **RopewikiSiteLink.createdAt**
+      * - `timestamp` in database
+      * - `NOT NULL`, default: `CURRENT_TIMESTAMP`
+      */
+      createdAt: Date;
+      /**
+      * **RopewikiSiteLink.deletedAt**
+      * - `timestamp` in database
+      * - Nullable, no default
+      */
+      deletedAt: Date | null;
+      /**
+      * **RopewikiSiteLink.id**
+      * - `uuid` in database
+      * - `NOT NULL`, default: `gen_random_uuid()`
+      */
+      id: string;
+      /**
+      * **RopewikiSiteLink.updatedAt**
+      * - `timestamp` in database
+      * - `NOT NULL`, default: `CURRENT_TIMESTAMP`
+      */
+      updatedAt: Date;
+      /**
+      * **RopewikiSiteLink.url**
+      * - `text` in database
+      * - `NOT NULL`, no default
+      */
+      url: string;
+    }
+    export interface JSONSelectable {
+      /**
+      * **RopewikiSiteLink.createdAt**
+      * - `timestamp` in database
+      * - `NOT NULL`, default: `CURRENT_TIMESTAMP`
+      */
+      createdAt: db.TimestampString;
+      /**
+      * **RopewikiSiteLink.deletedAt**
+      * - `timestamp` in database
+      * - Nullable, no default
+      */
+      deletedAt: db.TimestampString | null;
+      /**
+      * **RopewikiSiteLink.id**
+      * - `uuid` in database
+      * - `NOT NULL`, default: `gen_random_uuid()`
+      */
+      id: string;
+      /**
+      * **RopewikiSiteLink.updatedAt**
+      * - `timestamp` in database
+      * - `NOT NULL`, default: `CURRENT_TIMESTAMP`
+      */
+      updatedAt: db.TimestampString;
+      /**
+      * **RopewikiSiteLink.url**
+      * - `text` in database
+      * - `NOT NULL`, no default
+      */
+      url: string;
+    }
+    export interface Whereable {
+      /**
+      * **RopewikiSiteLink.createdAt**
+      * - `timestamp` in database
+      * - `NOT NULL`, default: `CURRENT_TIMESTAMP`
+      */
+      createdAt?: (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.SQLFragment | db.ParentColumn>;
+      /**
+      * **RopewikiSiteLink.deletedAt**
+      * - `timestamp` in database
+      * - Nullable, no default
+      */
+      deletedAt?: (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.SQLFragment | db.ParentColumn>;
+      /**
+      * **RopewikiSiteLink.id**
+      * - `uuid` in database
+      * - `NOT NULL`, default: `gen_random_uuid()`
+      */
+      id?: string | db.Parameter<string> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, string | db.Parameter<string> | db.SQLFragment | db.ParentColumn>;
+      /**
+      * **RopewikiSiteLink.updatedAt**
+      * - `timestamp` in database
+      * - `NOT NULL`, default: `CURRENT_TIMESTAMP`
+      */
+      updatedAt?: (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.SQLFragment | db.ParentColumn>;
+      /**
+      * **RopewikiSiteLink.url**
+      * - `text` in database
+      * - `NOT NULL`, no default
+      */
+      url?: string | db.Parameter<string> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, string | db.Parameter<string> | db.SQLFragment | db.ParentColumn>;
+    }
+    export interface Insertable {
+      /**
+      * **RopewikiSiteLink.createdAt**
+      * - `timestamp` in database
+      * - `NOT NULL`, default: `CURRENT_TIMESTAMP`
+      */
+      createdAt?: (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.DefaultType | db.SQLFragment;
+      /**
+      * **RopewikiSiteLink.deletedAt**
+      * - `timestamp` in database
+      * - Nullable, no default
+      */
+      deletedAt?: (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | null | db.DefaultType | db.SQLFragment;
+      /**
+      * **RopewikiSiteLink.id**
+      * - `uuid` in database
+      * - `NOT NULL`, default: `gen_random_uuid()`
+      */
+      id?: string | db.Parameter<string> | db.DefaultType | db.SQLFragment;
+      /**
+      * **RopewikiSiteLink.updatedAt**
+      * - `timestamp` in database
+      * - `NOT NULL`, default: `CURRENT_TIMESTAMP`
+      */
+      updatedAt?: (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.DefaultType | db.SQLFragment;
+      /**
+      * **RopewikiSiteLink.url**
+      * - `text` in database
+      * - `NOT NULL`, no default
+      */
+      url: string | db.Parameter<string> | db.SQLFragment;
+    }
+    export interface Updatable {
+      /**
+      * **RopewikiSiteLink.createdAt**
+      * - `timestamp` in database
+      * - `NOT NULL`, default: `CURRENT_TIMESTAMP`
+      */
+      createdAt?: (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.DefaultType | db.SQLFragment | db.SQLFragment<any, (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.DefaultType | db.SQLFragment>;
+      /**
+      * **RopewikiSiteLink.deletedAt**
+      * - `timestamp` in database
+      * - Nullable, no default
+      */
+      deletedAt?: (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | null | db.DefaultType | db.SQLFragment | db.SQLFragment<any, (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | null | db.DefaultType | db.SQLFragment>;
+      /**
+      * **RopewikiSiteLink.id**
+      * - `uuid` in database
+      * - `NOT NULL`, default: `gen_random_uuid()`
+      */
+      id?: string | db.Parameter<string> | db.DefaultType | db.SQLFragment | db.SQLFragment<any, string | db.Parameter<string> | db.DefaultType | db.SQLFragment>;
+      /**
+      * **RopewikiSiteLink.updatedAt**
+      * - `timestamp` in database
+      * - `NOT NULL`, default: `CURRENT_TIMESTAMP`
+      */
+      updatedAt?: (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.DefaultType | db.SQLFragment | db.SQLFragment<any, (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.DefaultType | db.SQLFragment>;
+      /**
+      * **RopewikiSiteLink.url**
+      * - `text` in database
+      * - `NOT NULL`, no default
+      */
+      url?: string | db.Parameter<string> | db.SQLFragment | db.SQLFragment<any, string | db.Parameter<string> | db.SQLFragment>;
+    }
+    export type UniqueIndex = 'RopewikiSiteLink_pkey' | 'uk_ropewikiSiteLink_url';
+    export type Column = keyof Selectable;
+    export type OnlyCols<T extends readonly Column[]> = Pick<Selectable, T[number]>;
+    export type SQLExpression = Table | db.ColumnNames<Updatable | (keyof Updatable)[]> | db.ColumnValues<Updatable> | Whereable | Column | db.ParentColumn | db.GenericSQLExpression;
+    export type SQL = SQLExpression | SQLExpression[];
+  }
+
+  /**
    * **Route**
    * - Table in database
    */
@@ -2849,20 +3165,20 @@ declare module 'zapatos/schema' {
   /* --- aggregate types --- */
 
   export namespace public {  
-    export type Table = MapData.Table | RopewikiImage.Table | RopewikiPage.Table | RopewikiPageBetaSection.Table | RopewikiRegion.Table | RopewikiRoute.Table | Route.Table | schema_migrations.Table;
-    export type Selectable = MapData.Selectable | RopewikiImage.Selectable | RopewikiPage.Selectable | RopewikiPageBetaSection.Selectable | RopewikiRegion.Selectable | RopewikiRoute.Selectable | Route.Selectable | schema_migrations.Selectable;
-    export type JSONSelectable = MapData.JSONSelectable | RopewikiImage.JSONSelectable | RopewikiPage.JSONSelectable | RopewikiPageBetaSection.JSONSelectable | RopewikiRegion.JSONSelectable | RopewikiRoute.JSONSelectable | Route.JSONSelectable | schema_migrations.JSONSelectable;
-    export type Whereable = MapData.Whereable | RopewikiImage.Whereable | RopewikiPage.Whereable | RopewikiPageBetaSection.Whereable | RopewikiRegion.Whereable | RopewikiRoute.Whereable | Route.Whereable | schema_migrations.Whereable;
-    export type Insertable = MapData.Insertable | RopewikiImage.Insertable | RopewikiPage.Insertable | RopewikiPageBetaSection.Insertable | RopewikiRegion.Insertable | RopewikiRoute.Insertable | Route.Insertable | schema_migrations.Insertable;
-    export type Updatable = MapData.Updatable | RopewikiImage.Updatable | RopewikiPage.Updatable | RopewikiPageBetaSection.Updatable | RopewikiRegion.Updatable | RopewikiRoute.Updatable | Route.Updatable | schema_migrations.Updatable;
-    export type UniqueIndex = MapData.UniqueIndex | RopewikiImage.UniqueIndex | RopewikiPage.UniqueIndex | RopewikiPageBetaSection.UniqueIndex | RopewikiRegion.UniqueIndex | RopewikiRoute.UniqueIndex | Route.UniqueIndex | schema_migrations.UniqueIndex;
-    export type Column = MapData.Column | RopewikiImage.Column | RopewikiPage.Column | RopewikiPageBetaSection.Column | RopewikiRegion.Column | RopewikiRoute.Column | Route.Column | schema_migrations.Column;
+    export type Table = MapData.Table | RopewikiBetaSection.Table | RopewikiImage.Table | RopewikiPage.Table | RopewikiPageSiteLink.Table | RopewikiRegion.Table | RopewikiRoute.Table | RopewikiSiteLink.Table | Route.Table | schema_migrations.Table;
+    export type Selectable = MapData.Selectable | RopewikiBetaSection.Selectable | RopewikiImage.Selectable | RopewikiPage.Selectable | RopewikiPageSiteLink.Selectable | RopewikiRegion.Selectable | RopewikiRoute.Selectable | RopewikiSiteLink.Selectable | Route.Selectable | schema_migrations.Selectable;
+    export type JSONSelectable = MapData.JSONSelectable | RopewikiBetaSection.JSONSelectable | RopewikiImage.JSONSelectable | RopewikiPage.JSONSelectable | RopewikiPageSiteLink.JSONSelectable | RopewikiRegion.JSONSelectable | RopewikiRoute.JSONSelectable | RopewikiSiteLink.JSONSelectable | Route.JSONSelectable | schema_migrations.JSONSelectable;
+    export type Whereable = MapData.Whereable | RopewikiBetaSection.Whereable | RopewikiImage.Whereable | RopewikiPage.Whereable | RopewikiPageSiteLink.Whereable | RopewikiRegion.Whereable | RopewikiRoute.Whereable | RopewikiSiteLink.Whereable | Route.Whereable | schema_migrations.Whereable;
+    export type Insertable = MapData.Insertable | RopewikiBetaSection.Insertable | RopewikiImage.Insertable | RopewikiPage.Insertable | RopewikiPageSiteLink.Insertable | RopewikiRegion.Insertable | RopewikiRoute.Insertable | RopewikiSiteLink.Insertable | Route.Insertable | schema_migrations.Insertable;
+    export type Updatable = MapData.Updatable | RopewikiBetaSection.Updatable | RopewikiImage.Updatable | RopewikiPage.Updatable | RopewikiPageSiteLink.Updatable | RopewikiRegion.Updatable | RopewikiRoute.Updatable | RopewikiSiteLink.Updatable | Route.Updatable | schema_migrations.Updatable;
+    export type UniqueIndex = MapData.UniqueIndex | RopewikiBetaSection.UniqueIndex | RopewikiImage.UniqueIndex | RopewikiPage.UniqueIndex | RopewikiPageSiteLink.UniqueIndex | RopewikiRegion.UniqueIndex | RopewikiRoute.UniqueIndex | RopewikiSiteLink.UniqueIndex | Route.UniqueIndex | schema_migrations.UniqueIndex;
+    export type Column = MapData.Column | RopewikiBetaSection.Column | RopewikiImage.Column | RopewikiPage.Column | RopewikiPageSiteLink.Column | RopewikiRegion.Column | RopewikiRoute.Column | RopewikiSiteLink.Column | Route.Column | schema_migrations.Column;
   
-    export type AllBaseTables = [MapData.Table, RopewikiImage.Table, RopewikiPage.Table, RopewikiPageBetaSection.Table, RopewikiRegion.Table, RopewikiRoute.Table, Route.Table, schema_migrations.Table];
+    export type AllBaseTables = [MapData.Table, RopewikiBetaSection.Table, RopewikiImage.Table, RopewikiPage.Table, RopewikiPageSiteLink.Table, RopewikiRegion.Table, RopewikiRoute.Table, RopewikiSiteLink.Table, Route.Table, schema_migrations.Table];
     export type AllForeignTables = [];
     export type AllViews = [];
     export type AllMaterializedViews = [];
-    export type AllTablesAndViews = [MapData.Table, RopewikiImage.Table, RopewikiPage.Table, RopewikiPageBetaSection.Table, RopewikiRegion.Table, RopewikiRoute.Table, Route.Table, schema_migrations.Table];
+    export type AllTablesAndViews = [MapData.Table, RopewikiBetaSection.Table, RopewikiImage.Table, RopewikiPage.Table, RopewikiPageSiteLink.Table, RopewikiRegion.Table, RopewikiRoute.Table, RopewikiSiteLink.Table, Route.Table, schema_migrations.Table];
   }
 
 
@@ -2891,88 +3207,104 @@ declare module 'zapatos/schema' {
 
   export type SelectableForTable<T extends Table> = {
     "MapData": MapData.Selectable;
+    "RopewikiBetaSection": RopewikiBetaSection.Selectable;
     "RopewikiImage": RopewikiImage.Selectable;
     "RopewikiPage": RopewikiPage.Selectable;
-    "RopewikiPageBetaSection": RopewikiPageBetaSection.Selectable;
+    "RopewikiPageSiteLink": RopewikiPageSiteLink.Selectable;
     "RopewikiRegion": RopewikiRegion.Selectable;
     "RopewikiRoute": RopewikiRoute.Selectable;
+    "RopewikiSiteLink": RopewikiSiteLink.Selectable;
     "Route": Route.Selectable;
     "schema_migrations": schema_migrations.Selectable;
   }[T];
 
   export type JSONSelectableForTable<T extends Table> = {
     "MapData": MapData.JSONSelectable;
+    "RopewikiBetaSection": RopewikiBetaSection.JSONSelectable;
     "RopewikiImage": RopewikiImage.JSONSelectable;
     "RopewikiPage": RopewikiPage.JSONSelectable;
-    "RopewikiPageBetaSection": RopewikiPageBetaSection.JSONSelectable;
+    "RopewikiPageSiteLink": RopewikiPageSiteLink.JSONSelectable;
     "RopewikiRegion": RopewikiRegion.JSONSelectable;
     "RopewikiRoute": RopewikiRoute.JSONSelectable;
+    "RopewikiSiteLink": RopewikiSiteLink.JSONSelectable;
     "Route": Route.JSONSelectable;
     "schema_migrations": schema_migrations.JSONSelectable;
   }[T];
 
   export type WhereableForTable<T extends Table> = {
     "MapData": MapData.Whereable;
+    "RopewikiBetaSection": RopewikiBetaSection.Whereable;
     "RopewikiImage": RopewikiImage.Whereable;
     "RopewikiPage": RopewikiPage.Whereable;
-    "RopewikiPageBetaSection": RopewikiPageBetaSection.Whereable;
+    "RopewikiPageSiteLink": RopewikiPageSiteLink.Whereable;
     "RopewikiRegion": RopewikiRegion.Whereable;
     "RopewikiRoute": RopewikiRoute.Whereable;
+    "RopewikiSiteLink": RopewikiSiteLink.Whereable;
     "Route": Route.Whereable;
     "schema_migrations": schema_migrations.Whereable;
   }[T];
 
   export type InsertableForTable<T extends Table> = {
     "MapData": MapData.Insertable;
+    "RopewikiBetaSection": RopewikiBetaSection.Insertable;
     "RopewikiImage": RopewikiImage.Insertable;
     "RopewikiPage": RopewikiPage.Insertable;
-    "RopewikiPageBetaSection": RopewikiPageBetaSection.Insertable;
+    "RopewikiPageSiteLink": RopewikiPageSiteLink.Insertable;
     "RopewikiRegion": RopewikiRegion.Insertable;
     "RopewikiRoute": RopewikiRoute.Insertable;
+    "RopewikiSiteLink": RopewikiSiteLink.Insertable;
     "Route": Route.Insertable;
     "schema_migrations": schema_migrations.Insertable;
   }[T];
 
   export type UpdatableForTable<T extends Table> = {
     "MapData": MapData.Updatable;
+    "RopewikiBetaSection": RopewikiBetaSection.Updatable;
     "RopewikiImage": RopewikiImage.Updatable;
     "RopewikiPage": RopewikiPage.Updatable;
-    "RopewikiPageBetaSection": RopewikiPageBetaSection.Updatable;
+    "RopewikiPageSiteLink": RopewikiPageSiteLink.Updatable;
     "RopewikiRegion": RopewikiRegion.Updatable;
     "RopewikiRoute": RopewikiRoute.Updatable;
+    "RopewikiSiteLink": RopewikiSiteLink.Updatable;
     "Route": Route.Updatable;
     "schema_migrations": schema_migrations.Updatable;
   }[T];
 
   export type UniqueIndexForTable<T extends Table> = {
     "MapData": MapData.UniqueIndex;
+    "RopewikiBetaSection": RopewikiBetaSection.UniqueIndex;
     "RopewikiImage": RopewikiImage.UniqueIndex;
     "RopewikiPage": RopewikiPage.UniqueIndex;
-    "RopewikiPageBetaSection": RopewikiPageBetaSection.UniqueIndex;
+    "RopewikiPageSiteLink": RopewikiPageSiteLink.UniqueIndex;
     "RopewikiRegion": RopewikiRegion.UniqueIndex;
     "RopewikiRoute": RopewikiRoute.UniqueIndex;
+    "RopewikiSiteLink": RopewikiSiteLink.UniqueIndex;
     "Route": Route.UniqueIndex;
     "schema_migrations": schema_migrations.UniqueIndex;
   }[T];
 
   export type ColumnForTable<T extends Table> = {
     "MapData": MapData.Column;
+    "RopewikiBetaSection": RopewikiBetaSection.Column;
     "RopewikiImage": RopewikiImage.Column;
     "RopewikiPage": RopewikiPage.Column;
-    "RopewikiPageBetaSection": RopewikiPageBetaSection.Column;
+    "RopewikiPageSiteLink": RopewikiPageSiteLink.Column;
     "RopewikiRegion": RopewikiRegion.Column;
     "RopewikiRoute": RopewikiRoute.Column;
+    "RopewikiSiteLink": RopewikiSiteLink.Column;
     "Route": Route.Column;
     "schema_migrations": schema_migrations.Column;
   }[T];
 
   export type SQLForTable<T extends Table> = {
     "MapData": MapData.SQL;
+    "RopewikiBetaSection": RopewikiBetaSection.SQL;
     "RopewikiImage": RopewikiImage.SQL;
     "RopewikiPage": RopewikiPage.SQL;
-    "RopewikiPageBetaSection": RopewikiPageBetaSection.SQL;
+    "RopewikiPageSiteLink": RopewikiPageSiteLink.SQL;
     "RopewikiRegion": RopewikiRegion.SQL;
     "RopewikiRoute": RopewikiRoute.SQL;
+    "RopewikiSiteLink": RopewikiSiteLink.SQL;
     "Route": Route.SQL;
     "schema_migrations": schema_migrations.SQL;
   }[T];
