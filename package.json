@@ -24,8 +24,8 @@
     "local-db:stop": "docker stop local-db",
     "test-db:start": "docker run --publish 127.0.0.1:8080:5432/tcp --name test-db -e POSTGRES_PASSWORD=testPass -e POSTGRES_USER=testUser -e POSTGRES_DB=test -d postgres; sleep 1; npm run migrate-test:up",
     "test-db:delete": "docker stop test-db; docker rm test-db",
-    "test:unit": "NODE_OPTIONS=\"$NODE_OPTIONS --experimental-vm-modules\" jest -i --testPathIgnorePatterns=/test/ropewiki/database/* --testPathIgnorePatterns=/test/map-data/database/*",
-    "test:database": "TEST_USER=testUser TEST_PASS=testPass TEST_HOST=127.0.0.1 TEST_PORT=8080 TEST_DB=test jest -i --testPathPatterns=/test/ropewiki/database/* --testPathPatterns=/test/map-data/database/*",
+    "test:unit": "NODE_OPTIONS=\"$NODE_OPTIONS --experimental-vm-modules\" jest -i --testPathIgnorePatterns=/test/ropewiki/database/* --testPathIgnorePatterns=/test/ropewiki/integration/* --testPathIgnorePatterns=/test/map-data/database/*",
+    "test:database": "TEST_USER=testUser TEST_PASS=testPass TEST_HOST=127.0.0.1 TEST_PORT=8080 TEST_DB=test jest -i --testPathPatterns=/test/ropewiki/database/* --testPathPatterns=/test/ropewiki/integration/* --testPathPatterns=/test/map-data/database/*",
     "test:local": "npm run test:unit; npm run test-db:start; npm run test:database; npm run test-db:delete",
     "test:deploy": "NODE_OPTIONS=\"$NODE_OPTIONS --experimental-vm-modules\" jest -i"
   },
