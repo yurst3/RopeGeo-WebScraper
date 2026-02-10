@@ -693,8 +693,8 @@ Resources:
             Resource:
               - !GetAtt DocsBucket.Arn
               - !Sub
-                - '{0}/*'
-                - !GetAtt DocsBucket.Arn
+                - '${BucketArn}/*'
+                - BucketArn: !GetAtt DocsBucket.Arn
 
   # Lambda function that scrapes ALL Ropewiki pages and stores them in the database
   RopewikiScraper:
