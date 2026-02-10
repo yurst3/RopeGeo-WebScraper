@@ -35,7 +35,13 @@ Parameters:
     Description: URL of HTTP proxy for Lambda egress when DEV_ENVIRONMENT is dev or production (e.g. http://host:port)
     NoEcho: true
 
+  DocsBucketPipelineRoleArn:
+    Type: String
+    Description: IAM role ARN allowed to upload docs to the docs bucket (e.g. pipeline execution role for upload-api-docs). Leave blank to skip bucket policy.
+    Default: ''
+
 Conditions:
+  HasDocsBucketPipelineRole: !Not [!Equals [!Ref DocsBucketPipelineRoleArn, '']]
   IsProduction: !Equals [!Ref devEnvironment, production]
   IsDev: !Equals [!Ref devEnvironment, dev]
 
@@ -666,6 +672,29 @@ Resources:
         BlockPublicPolicy: true
         IgnorePublicAcls: true
         RestrictPublicBuckets: true
+
+  DocsBucketPolicy:
+    Type: AWS::S3::BucketPolicy
+    Condition: HasDocsBucketPipelineRole
+    Properties:
+      Bucket: !Ref DocsBucket
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Sid: AllowPipelineUpload
+            Effect: Allow
+            Principal:
+              AWS: !Ref DocsBucketPipelineRoleArn
+            Action:
+              - s3:ListBucket
+              - s3:GetObject
+              - s3:PutObject
+              - s3:DeleteObject
+            Resource:
+              - !GetAtt DocsBucket.Arn
+              - !Sub
+                - '{0}/*'
+                - !GetAtt DocsBucket.Arn
 
   # Lambda function that scrapes ALL Ropewiki pages and stores them in the database
   RopewikiScraper:

@@ -258,7 +258,7 @@ jobs:
   deploy-testing:
     # Disabled for now; set to "github.ref == 'refs/heads/master'" to re-enable
     if: false
-    needs: [build-and-package, upload-api-docs]
+    needs: [build-and-package]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -337,7 +337,7 @@ jobs:
 
   deploy-prod:
     if: github.ref == 'refs/heads/master'
-    needs: [build-and-package]
+    needs: [build-and-package, upload-api-docs]
     runs-on: ubuntu-latest
     # Configure GitHub Action Environment to have a manual approval step before deployment to production
     # https://docs.github.com/en/actions/reference/environments
@@ -388,7 +388,7 @@ jobs:
             --s3-bucket ${PROD_ARTIFACTS_BUCKET} \
             --no-fail-on-empty-changeset \
             --role-arn ${PROD_CLOUDFORMATION_EXECUTION_ROLE} \
-            --parameter-overrides "devEnvironment=production DatabaseUsername=$PROD_DATABASE_USERNAME DatabasePassword=$PROD_DATABASE_PASSWORD FckNatAMIId=$FCK_NAT_AMI ProxyUrl=$PROXY_URL"
+            --parameter-overrides "devEnvironment=production DatabaseUsername=$PROD_DATABASE_USERNAME DatabasePassword=$PROD_DATABASE_PASSWORD FckNatAMIId=$FCK_NAT_AMI ProxyUrl=$PROXY_URL DocsBucketPipelineRoleArn=$PROD_PIPELINE_EXECUTION_ROLE"
 
   upload-api-docs:
     if: github.ref == 'refs/heads/master'
