@@ -1,0 +1,33 @@
+get:
+  summary: Serve API documentation
+  description: |
+    Returns the built API documentation files.
+    - index.html - Redoc HTML documentation
+    - openapi.yaml - Bundled OpenAPI spec (YAML)
+    - openapi.json - Bundled OpenAPI spec (JSON)
+  operationId: getApiDocs
+  tags:
+    - docs
+  parameters:
+    - name: file
+      in: path
+      required: true
+      description: The documentation file to return
+      schema:
+        type: string
+        enum:
+          - index.html
+          - openapi.yaml
+          - openapi.json
+  responses:
+    '200':
+      description: The requested documentation file
+      content:
+        text/html:
+          schema: { type: string }
+        application/x-yaml:
+          schema: { type: string }
+        application/json:
+          schema: { type: object }
+    '404':
+      description: File not found

@@ -656,6 +656,17 @@ Resources:
         IgnorePublicAcls: true
         RestrictPublicBuckets: true
 
+  # S3 Bucket for OpenAPI/Redoc documentation (uploaded by pipeline)
+  DocsBucket:
+    Type: AWS::S3::Bucket
+    Properties:
+      BucketName: !Sub 'webscraper-${devEnvironment}-api-docs'
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+
   # Lambda function that scrapes ALL Ropewiki pages and stores them in the database
   RopewikiScraper:
     Type: AWS::Serverless::Function
@@ -852,6 +863,9 @@ Resources:
         - src/ropewiki/lambda-handlers/reprocessRoutesHandler.ts
 
 Outputs:
+  DocsBucketName:
+    Description: S3 bucket for API documentation (OpenAPI/Redoc)
+    Value: !Ref DocsBucket
   DevDatabaseEndpoint:
     Condition: IsDev
     Description: RDS instance endpoint for dev/testing migrations (used by pipeline run-migrations)

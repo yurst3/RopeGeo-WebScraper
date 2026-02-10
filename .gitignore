@@ -144,6 +144,9 @@ tmp/
 temp/
 .savedMapData/
 
+# Redocly/OpenAPI docs build output
+docs-build/
+
 ### OSX ###
 # General
 .DS_Store
