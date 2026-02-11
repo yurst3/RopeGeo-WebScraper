@@ -21,15 +21,22 @@ const evalPage = (): RoadTripRyanRegion[] => {
         return {name, parentRegion, pageCount, url};
     }
 
-    const getRegionsForCard = (card: Element): any[] => {
+    const getRegionsForCard = (card: Element): RoadTripRyanRegion[] => {
         const cardTitle = card.querySelector(".card-title");
         const anchor = cardTitle?.children[0];
         if (!anchor) {
             return [];
         }
-        const region = getRegion(anchor);
+        const parentRegion = getRegion(anchor);
 
-        return[region];
+        const anchors: (Element | undefined)[] = [];
+        const row = card.querySelector(".row");
+        const columns = row?.querySelectorAll(".col-lg-6");
+        columns?.forEach(column => anchors.push(column.children[0]));
+        const childRegions = anchors.filter((anchor): anchor is Element => anchor !== undefined)
+            .map(anchor => getRegion(anchor, parentRegion.name))
+
+        return[parentRegion, ...childRegions];
     }
     cards?.forEach(card => regions.push(...getRegionsForCard(card)))
 
