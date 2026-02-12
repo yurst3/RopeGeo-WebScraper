@@ -199,33 +199,6 @@ jobs:
             --role-arn ${TESTING_CLOUDFORMATION_EXECUTION_ROLE} \
             --parameter-overrides "devEnvironment=dev DatabaseUsername=$DEV_DATABASE_USERNAME DatabasePassword=$DEV_DATABASE_PASSWORD FckNatAMIId=$FCK_NAT_AMI ProxyUrl=$PROXY_URL"
 
-  delete-testing-stack-on-failure:
-    if: always() && github.ref == 'refs/heads/master' && needs.deploy-testing-main.result == 'failure'
-    needs: [deploy-testing-main]
-    runs-on: ubuntu-latest
-    steps:
-      - name: Assume the testing pipeline user role
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          aws-access-key-id: ${{ env.PIPELINE_USER_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ env.PIPELINE_USER_SECRET_ACCESS_KEY }}
-          aws-region: ${{ env.TESTING_REGION }}
-          role-to-assume: ${{ env.TESTING_PIPELINE_EXECUTION_ROLE }}
-          role-session-name: testing-cleanup
-          role-duration-seconds: 3600
-          role-skip-session-tagging: true
-
-      - name: Delete failed testing (dev) stack
-        run: |
-          STATUS=$(aws cloudformation describe-stacks --stack-name ${TESTING_STACK_NAME} --region ${TESTING_REGION} --query 'Stacks[0].StackStatus' --output text 2>/dev/null) || true
-          if [ "$STATUS" = "ROLLBACK_COMPLETE" ]; then
-            echo "Stack ${TESTING_STACK_NAME} is ROLLBACK_COMPLETE; deleting so the next run can create a fresh stack."
-            aws cloudformation delete-stack --stack-name ${TESTING_STACK_NAME} --region ${TESTING_REGION}
-            echo "Stack delete initiated. Re-run the pipeline to deploy again."
-          else
-            echo "Stack status is '${STATUS:-stack may not exist}'; not deleting (only ROLLBACK_COMPLETE stacks are deleted)."
-          fi
-
   deploy-prod-main:
     if: github.ref == 'refs/heads/master'
     needs: [build-and-package-main]
@@ -283,7 +256,7 @@ jobs:
 
   upload-api-docs:
     if: github.ref == 'refs/heads/master'
-    needs: [deploy-prod-main]
+    needs: [deploy-prod-main, deploy-testing-main]
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository code
@@ -342,7 +315,6 @@ jobs:
           APIGATEWAY_INVOKE_S3_ROLE_ARN=${{ steps.stack-outputs.outputs.invoke_s3_role }} \
           DOCS_BUCKET_NAME=${{ steps.stack-outputs.outputs.bucket }} \
           npx ts-node --files scripts/resolveYamlEnvs.ts docs-build/openapi.yaml docs-build/openapiResolved.yaml
-          mv docs-build/openapiResolved.yaml docs-build/openapi.yaml
 
       - name: Upload docs to S3
         run: |
@@ -424,33 +396,6 @@ jobs:
             --capabilities CAPABILITY_IAM \
             --region ${PROD_REGION} \
             --no-fail-on-empty-changeset
-
-  delete-prod-stack-on-failure:
-    if: always() && github.ref == 'refs/heads/master' && needs.deploy-prod-main.result == 'failure'
-    needs: [deploy-prod-main]
-    runs-on: ubuntu-latest
-    steps:
-      - name: Assume the prod pipeline user role
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          aws-access-key-id: ${{ env.PIPELINE_USER_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ env.PIPELINE_USER_SECRET_ACCESS_KEY }}
-          aws-region: ${{ env.PROD_REGION }}
-          role-to-assume: ${{ env.PROD_PIPELINE_EXECUTION_ROLE }}
-          role-session-name: prod-cleanup
-          role-duration-seconds: 3600
-          role-skip-session-tagging: true
-
-      - name: Delete failed production stack
-        run: |
-          STATUS=$(aws cloudformation describe-stacks --stack-name ${PROD_STACK_NAME} --region ${PROD_REGION} --query 'Stacks[0].StackStatus' --output text 2>/dev/null) || true
-          if [ "$STATUS" = "ROLLBACK_COMPLETE" ]; then
-            echo "Stack ${PROD_STACK_NAME} is ROLLBACK_COMPLETE; deleting so the next run can create a fresh stack."
-            aws cloudformation delete-stack --stack-name ${PROD_STACK_NAME} --region ${PROD_REGION}
-            echo "Stack delete initiated. Re-run the pipeline to deploy again."
-          else
-            echo "Stack status is '${STATUS:-stack may not exist}'; not deleting (only ROLLBACK_COMPLETE stacks are deleted)."
-          fi
 
   run-migrations:
     runs-on: ubuntu-latest
