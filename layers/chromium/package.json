@@ -1,9 +1,1 @@
-{
-    "name": "ChromiumLayer",
-    "private": true,
-    "version": "1.0.0",
-    "description": "Chromium layer for AWS Lambda",
-    "dependencies": {
-        "@sparticuz/chromium": "^137.0.0"
-    }
-}
+{"name":"ChromiumLayer","private":true,"version":"1.0.0","description":"Chromium layer for AWS Lambda","dependencies":{"@sparticuz/chromium":"^137.0.0"}}

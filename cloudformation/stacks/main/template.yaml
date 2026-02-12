@@ -567,7 +567,7 @@ Resources:
     Type: AWS::Serverless::LayerVersion
     Properties:
       Description: Chromium with Node.js integration for AWS Lambda
-      ContentUri: layers/chromium
+      ContentUri: ../../../layers/chromium
       CompatibleRuntimes:
         - &nodejsRuntime nodejs22.x
       CompatibleArchitectures:
