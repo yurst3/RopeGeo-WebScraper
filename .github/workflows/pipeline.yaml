@@ -360,7 +360,7 @@ jobs:
             --no-fail-on-empty-changeset
 
   deploy-prod-api:
-    if: github.ref == 'refs/heads/master'
+    if: always() && github.ref == 'refs/heads/master' && needs.upload-api-docs.result == 'success'
     needs: [upload-api-docs]
     runs-on: ubuntu-latest
     steps:
