@@ -406,6 +406,18 @@ jobs:
             --capabilities CAPABILITY_IAM \
             --region ${PROD_REGION} \
             --no-fail-on-empty-changeset
+      - name: Re-import API from OpenAPI spec
+        run: |
+          API_ID=$(aws cloudformation describe-stacks \
+            --stack-name ${PROD_API_STACK_NAME} \
+            --region ${PROD_REGION} \
+            --query "Stacks[0].Outputs[?OutputKey=='WebScraperApiId'].OutputValue" \
+            --output text)
+          aws s3 cp s3://${{ steps.get-docs-bucket.outputs.bucket }}/openapiResolved.yaml openapiResolved.yaml
+          aws apigatewayv2 reimport-api \
+            --api-id "${API_ID}" \
+            --body file://openapiResolved.yaml \
+            --region ${PROD_REGION}
 
   run-migrations:
     runs-on: ubuntu-latest
