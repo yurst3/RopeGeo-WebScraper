@@ -6,10 +6,12 @@ info:
   contact: {}
 
 servers:
-  - url: https://api.example.com
+  - url: https://api.webscraper.ropegeo.com
     description: API Gateway base URL (override at deployment)
 
 paths:
+  /:
+    $ref: './paths/getRootRedirect.yaml'
   /routes:
     $ref: './paths/getRoutes.yaml'
   /docs/{file}:

@@ -734,7 +734,11 @@ Resources:
   GetApiDocs:
     $ref: lambdas/GetApiDocs.yaml
 
-  # IAM role for API Gateway to invoke Lambda (GetRoutes, GetApiDocs integrations)
+  # Lambda for GET / API endpoint (redirects to /docs/index.html)
+  GetRootRedirect:
+    $ref: lambdas/GetRootRedirect.yaml
+
+  # IAM role for API Gateway to invoke Lambda (GetRoutes, GetApiDocs, GetRootRedirect integrations)
   ApiGatewayInvokeLambdaRole:
     Type: AWS::IAM::Role
     Properties:
@@ -755,6 +759,7 @@ Resources:
                 Resource:
                   - !GetAtt GetRoutes.Arn
                   - !GetAtt GetApiDocs.Arn
+                  - !GetAtt GetRootRedirect.Arn
       Tags:
         - Key: Name
           Value: !Sub '${AWS::StackName}-apig-invoke-lambda'
@@ -798,6 +803,14 @@ Resources:
       Action: lambda:InvokeFunction
       Principal: apigateway.amazonaws.com
 
+  # Allow API Gateway to invoke GetRootRedirect Lambda (required for HTTP API integration)
+  GetRootRedirectApiGatewayPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref GetRootRedirect
+      Action: lambda:InvokeFunction
+      Principal: apigateway.amazonaws.com
+
 Outputs:
   DocsBucketName:
     Description: S3 bucket for API documentation (OpenAPI/Redoc)
@@ -808,6 +821,9 @@ Outputs:
   GetApiDocsLambdaArn:
     Description: ARN of the GetApiDocs Lambda (for OpenAPI integration resolveYamlEnvs)
     Value: !GetAtt GetApiDocs.Arn
+  GetRootRedirectLambdaArn:
+    Description: ARN of the GetRootRedirect Lambda (for OpenAPI integration resolveYamlEnvs)
+    Value: !GetAtt GetRootRedirect.Arn
   ApiGatewayInvokeLambdaRoleArn:
     Description: IAM role ARN for API Gateway to invoke Lambda (for OpenAPI integration resolveYamlEnvs)
     Value: !GetAtt ApiGatewayInvokeLambdaRole.Arn

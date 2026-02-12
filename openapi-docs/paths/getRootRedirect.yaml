@@ -1,0 +1,19 @@
+# /
+get:
+  summary: Redirect to API docs
+  description: Redirects to the API documentation at /docs/index.html.
+  operationId: getRootRedirect
+  tags:
+    - root
+  x-amazon-apigateway-integration:
+    $ref: '../integrations/getRootRedirectLambda.yaml#/GetRootRedirectLambdaIntegration'
+  responses:
+    '302':
+      description: Redirect to /docs/index.html
+      headers:
+        Location:
+          schema:
+            type: string
+            example: /docs/index.html
+    '500':
+      description: Internal server error
