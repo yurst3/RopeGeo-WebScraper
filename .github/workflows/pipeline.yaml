@@ -255,7 +255,7 @@ jobs:
             --parameter-overrides "devEnvironment=production DatabaseUsername=$PROD_DATABASE_USERNAME DatabasePassword=$PROD_DATABASE_PASSWORD FckNatAMIId=$FCK_NAT_AMI ProxyUrl=$PROXY_URL DocsBucketPipelineRoleArn=$PROD_PIPELINE_EXECUTION_ROLE"
 
   upload-api-docs:
-    if: github.ref == 'refs/heads/master'
+    if: always() && github.ref == 'refs/heads/master' && (needs.deploy-prod-main.result == 'success' || needs.deploy-testing-main.result == 'success')
     needs: [deploy-prod-main, deploy-testing-main]
     runs-on: ubuntu-latest
     steps:
