@@ -147,6 +147,10 @@ temp/
 # Redocly/OpenAPI docs build output
 docs-build/
 
+# Merged SAM template (generated from template.yaml + lambdas/*.yaml)
+cloudformation/stacks/main/template-merged.yaml
+cloudformation/stacks/api/template-resolved.yaml
+
 ### OSX ###
 # General
 .DS_Store

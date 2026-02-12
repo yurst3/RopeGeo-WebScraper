@@ -675,226 +675,128 @@ Resources:
 
   DocsBucketPolicy:
     Type: AWS::S3::BucketPolicy
-    Condition: HasDocsBucketPipelineRole
     Properties:
       Bucket: !Ref DocsBucket
       PolicyDocument:
         Version: '2012-10-17'
         Statement:
-          - Sid: AllowPipelineUpload
+          - Sid: AllowApiGatewayReadOpenApi
             Effect: Allow
             Principal:
-              AWS: !Ref DocsBucketPipelineRoleArn
-            Action:
-              - s3:ListBucket
-              - s3:GetObject
-              - s3:PutObject
-              - s3:DeleteObject
+              Service: apigateway.amazonaws.com
+            Action: s3:GetObject
             Resource:
-              - !GetAtt DocsBucket.Arn
               - !Sub
-                - '${BucketArn}/*'
+                - '${BucketArn}/openapi.yaml'
                 - BucketArn: !GetAtt DocsBucket.Arn
+              - !Sub
+                - '${BucketArn}/openapi.json'
+                - BucketArn: !GetAtt DocsBucket.Arn
+          - !If
+            - HasDocsBucketPipelineRole
+            - Sid: AllowPipelineUpload
+              Effect: Allow
+              Principal:
+                AWS: !Ref DocsBucketPipelineRoleArn
+              Action:
+                - s3:ListBucket
+                - s3:GetObject
+                - s3:PutObject
+                - s3:DeleteObject
+              Resource:
+                - !GetAtt DocsBucket.Arn
+                - !Sub
+                  - '${BucketArn}/*'
+                  - BucketArn: !GetAtt DocsBucket.Arn
+            - !Ref AWS::NoValue
 
   # Lambda function that scrapes ALL Ropewiki pages and stores them in the database
   RopewikiScraper:
-    Type: AWS::Serverless::Function
-    Properties:
-      Description: A Lambda function that scrapes Ropewiki pages and stores them in the database
-      Runtime: nodejs22.x
-      Architectures:
-        - arm64
-      Handler: src/ropewiki/lambda-handlers/mainHandler.mainHandler
-      # This property associates this Lambda function with a scheduled CloudWatch Event. For all available properties, see
-      # https://github.com/awslabs/serverless-application-model/blob/master/versions/2016-10-31.md#schedule
-      # This runs every night at midnight UTC.
-      Events:
-        CloudWatchEvent:
-          Type: Schedule
-          Properties:
-            Schedule: cron(0 0 * * ? *)
-      MemorySize: 1024
-      Timeout: 900
-      VpcConfig:
-        SecurityGroupIds:
-          - !Ref LambdaSecurityGroup
-        SubnetIds:
-          - !Ref PrivateSubnet1
-      Environment:
-        Variables:
-          DEV_ENVIRONMENT: !Ref devEnvironment
-          PROXY_URL: !Ref ProxyUrl
-          DB_HOST: !If [IsProduction, !GetAtt RDSProxy.Endpoint, !GetAtt Database.Endpoint.Address]
-          DB_PORT: !GetAtt Database.Endpoint.Port
-          DB_NAME: !Sub '${devEnvironment}db'
-          DB_USER: !Ref DatabaseUsername
-          DB_PASSWORD: !Ref DatabasePassword
-          ROPEWIKI_PAGE_PROCESSING_QUEUE_URL: !Ref RopewikiPageProcessingQueue
-          MAP_DATA_PROCESSING_QUEUE_URL: !Ref MapDataProcessingQueue
-      Policies:
-        - SQSSendMessagePolicy:
-            QueueName: !GetAtt RopewikiPageProcessingQueue.QueueName
-        - SQSSendMessagePolicy:
-            QueueName: !GetAtt MapDataProcessingQueue.QueueName
-    Metadata: # Manage esbuild properties
-      BuildMethod: esbuild
-      BuildProperties:
-        Minify: true
-        Target: "esnext"
-        Sourcemap: true
-        EntryPoints: 
-        - src/ropewiki/lambda-handlers/mainHandler.ts
-        External:
-        - "@sparticuz/chromium"
+    $ref: lambdas/RopewikiScraper.yaml
 
   # Lambda function that processes individual Ropewiki pages
   RopewikiPageProcessor:
-    Type: AWS::Serverless::Function
-    Properties:
-      Description: A Lambda function that processes individual Ropewiki pages (beta sections and images)
-      Runtime: nodejs22.x
-      Architectures:
-        - *chromiumArch
-      Layers:
-        - !Ref ChromiumLayer
-      Handler: src/ropewiki/lambda-handlers/processPageHandler.processPageHandler
-      Events:
-        SQSEvent:
-          Type: SQS
-          Properties:
-            Queue: !GetAtt RopewikiPageProcessingQueue.Arn
-            BatchSize: 10
-      MemorySize: 1024
-      Timeout: 900
-      VpcConfig:
-        SecurityGroupIds:
-          - !Ref LambdaSecurityGroup
-        SubnetIds:
-          - !Ref PrivateSubnet1
-      Environment:
-        Variables:
-          DEV_ENVIRONMENT: !Ref devEnvironment
-          PROXY_URL: !Ref ProxyUrl
-          DB_HOST: !If [IsProduction, !GetAtt RDSProxy.Endpoint, !GetAtt Database.Endpoint.Address]
-          DB_PORT: !GetAtt Database.Endpoint.Port
-          DB_NAME: !Sub '${devEnvironment}db'
-          DB_USER: !Ref DatabaseUsername
-          DB_PASSWORD: !Ref DatabasePassword
-          ROPEWIKI_PAGE_PROCESSING_QUEUE_URL: !Ref RopewikiPageProcessingQueue
-          ROPEWIKI_PAGE_PROCESSOR_TIMEOUT_SECONDS: "900"
-      Policies:
-        - Version: '2012-10-17'
-          Statement:
-            - Effect: Allow
-              Action:
-                - sqs:ChangeMessageVisibility
-                - sqs:DeleteMessage
-                - sqs:GetQueueAttributes
-                - sqs:ReceiveMessage
-              Resource: !GetAtt RopewikiPageProcessingQueue.Arn
-    Metadata: # Manage esbuild properties
-      BuildMethod: esbuild
-      BuildProperties:
-        Minify: true
-        Target: "esnext"
-        Sourcemap: true
-        EntryPoints:
-        - src/ropewiki/lambda-handlers/processPageHandler.ts
-        External:
-        - "@sparticuz/chromium"
+    $ref: lambdas/RopewikiPageProcessor.yaml
 
   # Lambda function that processes map data (KML to MBTiles conversion)
-  # Uses arm64 (no Chromium dependency)
   MapDataProcessor:
-    Type: AWS::Serverless::Function
-    Properties:
-      Description: A Lambda function that processes map data by converting KML files to MBTiles
-      Runtime: nodejs22.x
-      Architectures:
-        - arm64
-      Handler: src/map-data/lambda-handlers/mainHandler.mainHandler
-      Events:
-        SQSEvent:
-          Type: SQS
-          Properties:
-            Queue: !GetAtt MapDataProcessingQueue.Arn
-            BatchSize: 10
-      MemorySize: 1024
-      Timeout: 900
-      VpcConfig:
-        SecurityGroupIds:
-          - !Ref LambdaSecurityGroup
-        SubnetIds:
-          - !Ref PrivateSubnet1
-      Environment:
-        Variables:
-          DEV_ENVIRONMENT: !Ref devEnvironment
-          PROXY_URL: !Ref ProxyUrl
-          DB_HOST: !If [IsProduction, !GetAtt RDSProxy.Endpoint, !GetAtt Database.Endpoint.Address]
-          DB_PORT: !GetAtt Database.Endpoint.Port
-          DB_NAME: !Sub '${devEnvironment}db'
-          DB_USER: !Ref DatabaseUsername
-          DB_PASSWORD: !Ref DatabasePassword
-          MAP_DATA_PROCESSING_QUEUE_URL: !Ref MapDataProcessingQueue
-          MAP_DATA_PROCESSOR_TIMEOUT_SECONDS: "900"
-          MAP_DATA_BUCKET_NAME: !Ref MapDataBucket
-      Policies:
-        - S3WritePolicy:
-            BucketName: !Ref MapDataBucket
-        - Version: '2012-10-17'
-          Statement:
-            - Effect: Allow
-              Action:
-                - sqs:ChangeMessageVisibility
-                - sqs:DeleteMessage
-                - sqs:GetQueueAttributes
-                - sqs:ReceiveMessage
-              Resource: !GetAtt MapDataProcessingQueue.Arn
-    Metadata:
-      BuildMethod: makefile
+    $ref: lambdas/MapDataProcessor.yaml
 
   # Lambda function that reprocesses Ropewiki routes (on-demand invoke)
   RopewikiRouteReprocessor:
-    Type: AWS::Serverless::Function
+    $ref: lambdas/RopewikiRouteReprocessor.yaml
+
+  # Lambda for GET /routes API endpoint
+  GetRoutes:
+    $ref: lambdas/GetRoutes.yaml
+
+  # IAM role for API Gateway to invoke Lambda (GetRoutes integration)
+  ApiGatewayInvokeLambdaRole:
+    Type: AWS::IAM::Role
     Properties:
-      Description: A Lambda function that reprocesses Ropewiki routes on demand
-      Runtime: nodejs22.x
-      Architectures:
-        - arm64
-      Handler: src/ropewiki/lambda-handlers/reprocessRoutesHandler.reprocessRoutesHandler
-      MemorySize: 1024
-      Timeout: 900
-      VpcConfig:
-        SecurityGroupIds:
-          - !Ref LambdaSecurityGroup
-        SubnetIds:
-          - !Ref PrivateSubnet1
-      Environment:
-        Variables:
-          DEV_ENVIRONMENT: !Ref devEnvironment
-          PROXY_URL: !Ref ProxyUrl
-          DB_HOST: !If [IsProduction, !GetAtt RDSProxy.Endpoint, !GetAtt Database.Endpoint.Address]
-          DB_PORT: !GetAtt Database.Endpoint.Port
-          DB_NAME: !Sub '${devEnvironment}db'
-          DB_USER: !Ref DatabaseUsername
-          DB_PASSWORD: !Ref DatabasePassword
-          MAP_DATA_PROCESSING_QUEUE_URL: !Ref MapDataProcessingQueue
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: apigateway.amazonaws.com
+            Action: sts:AssumeRole
       Policies:
-        - SQSSendMessagePolicy:
-            QueueName: !GetAtt MapDataProcessingQueue.QueueName
-    Metadata:
-      BuildMethod: esbuild
-      BuildProperties:
-        Minify: true
-        Target: "esnext"
-        Sourcemap: true
-        EntryPoints:
-        - src/ropewiki/lambda-handlers/reprocessRoutesHandler.ts
+        - PolicyName: InvokeGetRoutesLambda
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action: lambda:InvokeFunction
+                Resource: !GetAtt GetRoutes.Arn
+      Tags:
+        - Key: Name
+          Value: !Sub '${AWS::StackName}-apig-invoke-lambda'
+
+  # IAM role for API Gateway to read from DocsBucket (S3 integration for /docs/{file})
+  ApiGatewayInvokeS3Role:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: apigateway.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: GetObjectFromDocsBucket
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action: s3:GetObject
+                Resource: !Sub '${DocsBucket.Arn}/*'
+      Tags:
+        - Key: Name
+          Value: !Sub '${AWS::StackName}-apig-invoke-s3'
+
+  # Allow API Gateway to invoke GetRoutes Lambda (required for REST API integration)
+  GetRoutesApiGatewayPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref GetRoutes
+      Action: lambda:InvokeFunction
+      Principal: apigateway.amazonaws.com
 
 Outputs:
   DocsBucketName:
     Description: S3 bucket for API documentation (OpenAPI/Redoc)
     Value: !Ref DocsBucket
+  GetRoutesLambdaArn:
+    Description: ARN of the GetRoutes Lambda (for OpenAPI integration resolveYamlEnvs)
+    Value: !GetAtt GetRoutes.Arn
+  ApiGatewayInvokeLambdaRoleArn:
+    Description: IAM role ARN for API Gateway to invoke Lambda (for OpenAPI integration resolveYamlEnvs)
+    Value: !GetAtt ApiGatewayInvokeLambdaRole.Arn
+  ApiGatewayInvokeS3RoleArn:
+    Description: IAM role ARN for API Gateway to read from DocsBucket (for OpenAPI integration resolveYamlEnvs)
+    Value: !GetAtt ApiGatewayInvokeS3Role.Arn
   DevDatabaseEndpoint:
     Condition: IsDev
     Description: RDS instance endpoint for dev/testing migrations (used by pipeline run-migrations)

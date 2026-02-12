@@ -1,0 +1,34 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: WebScraper HTTP API (OpenAPI from docs bucket)
+
+Parameters:
+  DocsBucketName:
+    Type: String
+    Description: Name of the S3 bucket containing openapiResolved.yaml (output from main stack DocsBucketName)
+
+Resources:
+  WebScraperApi:
+    Type: AWS::ApiGatewayV2::Api
+    Properties:
+      BodyS3Location:
+        Bucket: !Ref DocsBucketName
+        Key: openapiResolved.yaml
+
+  WebScraperApiStage:
+    Type: AWS::ApiGatewayV2::Stage
+    Properties:
+      ApiId: !Ref WebScraperApi
+      StageName: $default
+      AutoDeploy: true
+      Description: Default stage for WebScraper HTTP API
+
+Outputs:
+  WebScraperApiEndpoint:
+    Description: Default endpoint for the WebScraper HTTP API; use as base URL to call the API ($default stage)
+    Value: !GetAtt WebScraperApi.ApiEndpoint
+  WebScraperApiId:
+    Description: API ID for the WebScraper HTTP API
+    Value: !Ref WebScraperApi
+  WebScraperApiStageName:
+    Description: Stage name for the WebScraper HTTP API
+    Value: !Ref WebScraperApiStage

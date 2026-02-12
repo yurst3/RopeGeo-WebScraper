@@ -1,3 +1,4 @@
+# /docs/{file}
 get:
   summary: Serve API documentation
   description: |
@@ -8,6 +9,9 @@ get:
   operationId: getApiDocs
   tags:
     - docs
+  x-amazon-apigateway-request-validator: params-only
+  x-amazon-apigateway-integration:
+    $ref: '../integrations/getApiDocsS3.yaml#/GetApiDocsS3Integration'
   parameters:
     - name: file
       in: path
@@ -29,5 +33,15 @@ get:
           schema: { type: string }
         application/json:
           schema: { type: object }
+    '400':
+      description: Bad request (e.g. missing or invalid path parameter)
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+                description: Validation error message
     '404':
       description: File not found

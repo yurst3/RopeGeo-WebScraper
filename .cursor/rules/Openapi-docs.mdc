@@ -1,0 +1,142 @@
+---
+description: This rule is used for adding to or modifying the openapi docs.
+alwaysApply: false
+---
+# Openapi
+Openapi docs should be contianed within the openapi-docs folder. The openapi-docs folder should have 4 subfolders: components, examples, integrations, and paths. All files with openapi-docs (except for .spectral) need to follow the OpenAPI Specification v3.0.1 as outlined in: https://spec.openapis.org/oas/v3.0.1.html. There should be a top-level index.yaml file that has openapi, info, servers, and paths. No other fields like components, security, or tags should be in the index.yaml file.
+
+```
+openapi: 3.0.1
+info:
+  title: WebScraper API
+  description: REST API for the webscraper database.
+  version: 1.0.0
+
+servers:
+  - url: https://api.example.com
+    description: API Gateway base URL (override at deployment)
+
+paths:
+  /routes:
+    $ref: './paths/getRoutes.yaml'
+  /docs/{file}:
+    $ref: './paths/getApiDocs.yaml'
+```
+
+## Paths
+Paths should be separated into their own files within the openapi-docs/paths folder and referenced by index.yaml. Each path must have a comment at the top of the file with the uri of the route. Each path must contain a summary, description, operationId and responses. The name of the file must match the operationId of the path in the file and the filename/operationId should be in lower camel case. If the path should have a requestBody or response with a complicated schema (like a json object, more than just a simple string), it should reference the schema from the components folder. If a schema in the requestBody or responses references a component, it must also reference an example json. Each path that has parameters (path, query, header) or a requestBody must include a `400` response for failed request validation (e.g. missing required parameter, invalid body).
+
+`opeanapi-docs/paths/getRoutes.yaml`
+```
+# /routes
+get:
+  summary: List all routes
+  description: Returns all routes in the database.
+  operationId: getRoutes
+  tags:
+    - routes
+  x-amazon-apigateway-integration:
+    $ref: '../integrations/getRoutesLambda.yaml#/GetRoutesLambdaIntegration'
+  responses:
+    '200':
+      description: Successful response
+      content:
+        application/json:
+          schema:
+            $ref: '../components/routesResponse.yaml#/RoutesResponse'
+          examples:
+            routesResponse:
+              summary: Sample list of routes
+              value:
+                - $ref: '../examples/routesResponse.json'
+    '500':
+      description: Internal server error
+```
+
+## Components
+Components should be separated into their own files in the openapi-docs/components folder. Each component file should have a primary component that is referenced in paths or integrations, but it may also have secondary components that are referenced by the primary components. The primary component should match the operationId of whichever path is referencing it, along with "Response" or "RequestBody" depending on what type of component it is. Component names should be in upper camel case, and the file should be the name of the primary component in lower camel case. Each property of an object needs a description, as well as the object itself. If a property is required, it should be be in the "required" list at the top of the object and if a property is nullable, it should have nullable: true. 
+
+`openapi-docs/components/getRoutesResponse.yaml`
+```
+GetRoutesResponse:
+  type: array
+  items:
+    $ref: "#/Route"
+
+Route:
+  type: object
+  description: A single route with a set of coordinates for its marker
+  required:
+    - id
+    - name
+    - type
+    - coordinates
+  properties:
+    id:
+      type: string
+      format: uuid
+      description: Unique identifier for the route
+    name:
+      type: string
+      description: Display name of the route
+    type:
+      type: string
+      description: Route type
+      enum:
+        - Unknown
+        - POI
+        - Cave
+        - Canyon
+    coordinates:
+      $ref: "#/Coordinates"
+
+Coordinates:
+  type: object
+  description: The coordinates of the marker for a route
+  required:
+    - lat
+    - lon
+  properties:
+    lat:
+      type: number
+      format: float
+      description: Latitude of the coordinate
+    lon:
+      type: number
+      format: float
+      description: Longitute of the coordinate
+```
+
+## Examples
+Examples should be separated into their own files in the openapi-docs/examples folder. Example files should always be .json and their names should match the name of the schema file they are exampling. Where possible, try to use an actual response that the endpoint would return with real data and not just fake data like "id": "00000000-0000-0000-0000-000000000000" or "name": "Example". If the example is an array, it should have at least 2 items and showcase a variety of possible values, not just repeating the same ones for each item.
+
+`openapi-docs/examples/getRoutesResponse.json`
+```
+[
+  {
+    "id": "fc1abf41-5d4c-44d9-ac73-b0849f8255bb",
+    "name": "Bear Creek Canyon",
+    "type": "Canyon",
+    "coordinates": { "lat": -111.456, "lon": 40.123 }
+  },
+  {
+    "id": "2bf9d566-66d8-4f60-b6eb-ebbbf04f4f19",
+    "name": "Devil Gulch",
+    "type": "Unknown",
+    "coordinates": { "lat": -111.500, "lon": 40.200 }
+  }
+]
+```
+
+## Integrations
+Integrations are for cloudformation to know how to attach each path to a invoke a lambda or get a file from S3. Integrations should be separated into their own files in the openapi-docs/integrations folder. Each integration needs an x-amazon-apigateway-integration object as defined in https://docs.aws.amazon.com/apigateway/latest/developerguide/api-gateway-swagger-extensions-integration.html. The integration object's name should be in upper camel case and match the path's operationId that it belongs to, followed by which service it uses (Lambda/S3) and then "Integration". The file's name should match the integration object's name in lower camel case, without the "Integration" at the end.
+
+`openapi-docs/integrations/getRoutesLambda.yaml`
+```
+GetRoutesLambdaIntegration:
+  type: aws_proxy
+  httpMethod: POST
+  uri: arn:aws:apigateway:$env-REGION:lambda:path/2015-03-31/functions/$env-GET_ROUTES_LAMBDA_ARN/invocations
+  credentials: $env-APIGATEWAY_INVOKE_LAMBDA_ROLE_ARN
+  passthroughBehavior: when_no_match
+```

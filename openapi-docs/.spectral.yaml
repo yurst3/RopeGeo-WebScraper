@@ -1,3 +1,6 @@
 extends:
   - spectral:oas
   - spectral-aws-apigateway-ruleset
+
+rules:
+  operation-tag-defined: off

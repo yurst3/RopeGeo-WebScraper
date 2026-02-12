@@ -1,0 +1,178 @@
+---
+description: How to add new API endpoint Lambdas (handler layout, CloudFormation, outputs, and pipeline env resolution).
+alwaysApply: false
+---
+# API Endpoint Lambdas
+
+Use this rule when creating a new API endpoint backed by a Lambda. It covers handler layout under `src/api`, Lambda definition in the main stack, outputs for OpenAPI env resolution, and updating the upload-api-docs workflow.
+
+## 1. Handler folder structure in `src/api`
+
+Use one folder per endpoint, named after the operation (lower camelCase, e.g. `getRoutes`, `getWidget`). Put the Lambda entrypoint and any DB/helpers under that folder.
+
+```
+src/api/
+  <operationName>/           # e.g. getRoutes, getWidget
+    handler.ts               # Lambda entry; export const handler = async (event, context) => { ... }
+    database/                # optional: DB access for this endpoint
+      <queryOrMutation>.ts    # e.g. getRoutes.ts, getWidgetById.ts
+```
+
+- **handler.ts**: Export a `handler` function. For API Gateway proxy, return `{ statusCode, headers, body }`. Use `getDatabaseConnection()` from `src/helpers/getDatabaseConnection` if the endpoint needs the DB. Release any pooled client in `finally`; do not call `pool.end()` so the pool can be reused across invocations.
+- **database/** (optional): One file per logical DB operation. Functions take a `db.Queryable` (e.g. a pooled client) and return data. Use `zapatos` for queries (e.g. `db.select('Table', { ... }).run(conn)`).
+
+Example handler signature (API Gateway proxy):
+
+```ts
+export const handler = async (
+  _event: unknown,
+  _context: unknown,
+): Promise<{ statusCode: number; headers: Record<string, string>; body: string }> => {
+  // ...
+};
+```
+
+## 2. Define the Lambda in CloudFormation
+
+**New file:** `cloudformation/stacks/main/lambdas/<PascalCaseName>.yaml` (e.g. `GetRoutes.yaml`, `GetWidget.yaml`).
+
+- **Type:** `AWS::Serverless::Function`
+- **CodeUri:** `../../../` (project root relative to template directory)
+- **Handler:** `src/api/<operationName>/handler.handler`
+- **Runtime:** `nodejs22.x`, **Architectures:** `[arm64]`
+- **VpcConfig:** Same as other DB-access Lambdas: `LambdaSecurityGroup`, `PrivateSubnet1`
+- **Environment:** Include `DEV_ENVIRONMENT`, `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASSWORD` if the Lambda uses the DB (use `!If [IsProduction, !GetAtt RDSProxy.Endpoint, !GetAtt Database.Endpoint.Address]` for `DB_HOST`)
+- **Metadata:** `BuildMethod: esbuild`, **EntryPoints:** `[src/api/<operationName>/handler.ts]`
+
+Example (minimal):
+
+```yaml
+Type: AWS::Serverless::Function
+Properties:
+  Description: Lambda for GET /widgets API endpoint
+  Runtime: nodejs22.x
+  Architectures: [arm64]
+  CodeUri: ../../../
+  Handler: src/api/getWidgets/handler.handler
+  MemorySize: 256
+  Timeout: 30
+  VpcConfig:
+    SecurityGroupIds: [!Ref LambdaSecurityGroup]
+    SubnetIds: [!Ref PrivateSubnet1]
+  Environment:
+    Variables:
+      DEV_ENVIRONMENT: !Ref devEnvironment
+      DB_HOST: !If [IsProduction, !GetAtt RDSProxy.Endpoint, !GetAtt Database.Endpoint.Address]
+      DB_PORT: !GetAtt Database.Endpoint.Port
+      DB_NAME: !Sub '${devEnvironment}db'
+      DB_USER: !Ref DatabaseUsername
+      DB_PASSWORD: !Ref DatabasePassword
+Metadata:
+  BuildMethod: esbuild
+  BuildProperties:
+    Minify: true
+    Target: "esnext"
+    Sourcemap: true
+    EntryPoints:
+      - src/api/getWidgets/handler.ts
+```
+
+**Reference in main template:** In `cloudformation/stacks/main/template.yaml`, under `Resources`, add:
+
+```yaml
+  # Lambda for GET /widgets API endpoint
+  GetWidgets:
+    $ref: lambdas/GetWidgets.yaml
+```
+
+## 3. IAM role and permission for API Gateway
+
+- **Invoke role:** There is a shared role `ApiGatewayInvokeLambdaRole` for API Gateway to invoke Lambdas. Add the **new Lambda ARN** to that role’s policy so it can invoke the new function:
+  - In `ApiGatewayInvokeLambdaRole` → `Policies` → `InvokeGetRoutesLambda` (or a similarly named policy), add a second `Statement` (or add the new ARN to the existing `Resource` list):
+  - `Effect: Allow`, `Action: lambda:InvokeFunction`, `Resource: !GetAtt <LogicalId>.Arn`
+- **Lambda permission:** Add an `AWS::Lambda::Permission` so API Gateway can invoke the new function:
+  - `FunctionName: !Ref <LogicalId>`, `Action: lambda:InvokeFunction`, `Principal: apigateway.amazonaws.com`
+
+## 4. Output Lambda ARN (and optional invoke role ARN) from the template
+
+In `cloudformation/stacks/main/template.yaml` **Outputs**, add an output for the new Lambda’s ARN so the pipeline can pass it into `resolveYamlEnvs`:
+
+```yaml
+  <LogicalId>LambdaArn:
+    Description: ARN of the <LogicalId> Lambda (for OpenAPI integration resolveYamlEnvs)
+    Value: !GetAtt <LogicalId>.Arn
+```
+
+The invoke role ARN is already output as **ApiGatewayInvokeLambdaRoleArn**. Reuse it for all Lambda integrations; no new role output is needed unless you introduce a separate role.
+
+## 5. Update upload-api-docs to resolve the new Lambda in openapiResolved.yaml
+
+**5.1 Get the new stack output**  
+In `.github/workflows/pipeline.yaml`, in the job **upload-api-docs**, step **“Get main stack outputs for OpenAPI env resolution”**:
+
+- Add a query for the new output, e.g.:
+  - `MY_NEW_ARN=$(aws cloudformation describe-stacks ... --query "Stacks[0].Outputs[?OutputKey=='<LogicalId>LambdaArn'].OutputValue" --output text)`
+- Append to `GITHUB_OUTPUT`: `echo "my_new_arn=${MY_NEW_ARN}" >> $GITHUB_OUTPUT`
+
+**5.2 Pass the env var into resolveYamlEnvs**  
+In the step **“Resolve OpenAPI $env- placeholders to openapiResolved.yaml”**:
+
+- Add an env var that `resolveYamlEnvs` will substitute for `$env-<VAR_NAME>` in the OpenAPI integrations, e.g.:
+  - `MY_NEW_LAMBDA_ARN=${{ steps.stack-outputs.outputs.my_new_arn }} \`
+- Ensure the OpenAPI integration YAML for this endpoint uses the same name (e.g. `$env-MY_NEW_LAMBDA_ARN` and `$env-APIGATEWAY_INVOKE_LAMBDA_ROLE_ARN`).
+
+Example (conceptual) for a new endpoint `GetWidgets`:
+
+```yaml
+# In "Get main stack outputs for OpenAPI env resolution":
+GET_WIDGETS_ARN=$(aws cloudformation describe-stacks \
+  --stack-name ${PROD_STACK_NAME} \
+  --region ${PROD_REGION} \
+  --query "Stacks[0].Outputs[?OutputKey=='GetWidgetsLambdaArn'].OutputValue" \
+  --output text)
+echo "get_widgets_arn=${GET_WIDGETS_ARN}" >> $GITHUB_OUTPUT
+
+# In "Resolve OpenAPI $env- placeholders to openapiResolved.yaml":
+GET_WIDGETS_LAMBDA_ARN=${{ steps.stack-outputs.outputs.get_widgets_arn }} \
+  # ... other env vars ...
+  npx ts-node --files scripts/resolveYamlEnvs.ts docs-build/openapi.yaml docs-build/openapiResolved.yaml
+```
+
+**5.3 OpenAPI integration**  
+In `openapi-docs/integrations/<operationName>Lambda.yaml` (e.g. `getWidgetsLambda.yaml`), use `$env-<VAR_NAME>` for the Lambda ARN and reuse `$env-APIGATEWAY_INVOKE_LAMBDA_ROLE_ARN` for credentials. The pipeline step above must set every `$env-*` variable that appears in the bundled OpenAPI so `resolveYamlEnvs` can replace them.
+
+## 6. Unit and database tests
+
+**Test layout:** Mirror `src/api/<operationName>/` under `test/api/<operationName>/`:
+- `test/api/<operationName>/handler.test.ts` — unit tests for the Lambda handler (mocked DB)
+- `test/api/<operationName>/database/<queryOrMutation>.test.ts` — database/integration tests (real DB, `TEST_*` env)
+
+**Handler unit test (`handler.test.ts`):**
+- Use `jest.mock()` for `getDatabaseConnection` and for the handler’s database module (e.g. `getRoutes`).
+- Mock pool and client: `mockPool.connect.mockResolvedValue(mockClient)`, `mockClient.release = jest.fn()`.
+- Assert: handler returns 200 and correct JSON when the DB mock returns data; returns 200 and empty array when the DB mock returns `[]`; returns 500 and error body when `getDatabaseConnection` or the DB function rejects; handles non-Error rejections (e.g. string) and still returns 500.
+- Spy on `console.error` in tests that expect error logging.
+- Use `@jest/globals`: `describe`, `it`, `expect`, `beforeEach`, `jest`.
+
+**Database test (`database/<name>.test.ts`):**
+- Create a `Pool` from `TEST_USER`, `TEST_PASS`, `TEST_HOST`, `TEST_PORT`, `TEST_DB` (same as other DB tests).
+- `beforeAll` / `afterEach`: clean the table(s) the function uses (e.g. `db.sql\`DELETE FROM "Route"\`.run(conn)`).
+- `afterAll`: `pool.end()`.
+- Test: function returns expected rows when data exists; returns only non-deleted rows if the query filters on `deletedAt`; returns empty array when table is empty.
+- Run with `npm run test:database` (included via `--testPathPatterns=/test/api/database/*`). Unit tests run with `npm run test:unit` (api database tests excluded via `--testPathIgnorePatterns=/test/api/database/*`).
+
+**package.json:** Ensure `test:unit` includes `--testPathIgnorePatterns=/test/api/database/*` and `test:database` includes `--testPathPatterns=/test/api/database/*` so API handler tests run in unit and API database tests run in database.
+
+## Checklist
+
+- [ ] `src/api/<operationName>/handler.ts` (and optional `database/*.ts`) added
+- [ ] `cloudformation/stacks/main/lambdas/<PascalCaseName>.yaml` created and referenced in `template.yaml`
+- [ ] `ApiGatewayInvokeLambdaRole` policy updated to allow `lambda:InvokeFunction` on the new function ARN
+- [ ] `AWS::Lambda::Permission` added for the new function (Principal `apigateway.amazonaws.com`)
+- [ ] New output `<LogicalId>LambdaArn` in `template.yaml`
+- [ ] upload-api-docs: new output queried and written to step outputs
+- [ ] upload-api-docs: new env var passed into `resolveYamlEnvs`
+- [ ] OpenAPI integration uses `$env-<VAR_NAME>` and is wired in paths (see Openapi-docs rule)
+- [ ] `test/api/<operationName>/handler.test.ts` added (unit tests with mocked getDatabaseConnection and DB module)
+- [ ] `test/api/<operationName>/database/*.test.ts` added for each DB function (integration tests with TEST_* env)
+- [ ] `package.json` test:unit ignores `test/api/database/*`; test:database includes `test/api/database/*`

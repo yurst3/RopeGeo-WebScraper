@@ -1,0 +1,30 @@
+# /routes
+get:
+  summary: List all routes
+  description: Returns all routes in the database.
+  operationId: getRoutes
+  tags:
+    - routes
+  x-amazon-apigateway-integration:
+    $ref: '../integrations/getRoutesLambda.yaml#/GetRoutesLambdaIntegration'
+  responses:
+    '200':
+      description: Successful response
+      content:
+        application/json:
+          schema:
+            $ref: '../components/getRoutesResponse.yaml#/GetRoutesResponse'
+          examples:
+            routesResponse:
+              summary: Sample list of routes
+              value:
+                - id: fc1abf41-5d4c-44d9-ac73-b0849f8255bb
+                  name: Bear Creek Canyon
+                  type: Canyon
+                  coordinates: { lat: -111.456, lon: 40.123 }
+                - id: 2bf9d566-66d8-4f60-b6eb-ebbbf04f4f19
+                  name: Devil Gulch
+                  type: Unknown
+                  coordinates: { lat: -111.5, lon: 40.2 }
+    '500':
+      description: Internal server error

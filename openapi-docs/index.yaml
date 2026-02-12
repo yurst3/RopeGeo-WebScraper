@@ -3,6 +3,7 @@ info:
   title: WebScraper API
   description: REST API for the webscraper database.
   version: 1.0.0
+  contact: {}
 
 servers:
   - url: https://api.example.com
@@ -10,11 +11,16 @@ servers:
 
 paths:
   /routes:
-    $ref: './paths/routes.yaml'
-  /api/docs/{file}:
-    $ref: './paths/api-docs.yaml'
+    $ref: './paths/getRoutes.yaml'
+  /docs/{file}:
+    $ref: './paths/getApiDocs.yaml'
 
-components:
-  schemas:
-    Route:
-      $ref: './components/route.yaml'
+# API Gateway request validators (see https://docs.aws.amazon.com/apigateway/latest/developerguide/api-gateway-request-validation-set-up.html#api-gateway-request-validation-setup-importing-swagger)
+x-amazon-apigateway-request-validators:
+  all:
+    validateRequestParameters: true
+    validateRequestBody: true
+  params-only:
+    validateRequestParameters: true
+    validateRequestBody: false
+x-amazon-apigateway-request-validator: all

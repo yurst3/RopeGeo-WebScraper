@@ -1,0 +1,48 @@
+GetRoutesResponse:
+  type: array
+  description: List of routes
+  items:
+    $ref: "#/Route"
+
+Route:
+  type: object
+  description: A single route with a set of coordinates for its marker
+  required:
+    - id
+    - name
+    - type
+    - coordinates
+  properties:
+    id:
+      type: string
+      format: uuid
+      description: Unique identifier for the route
+    name:
+      type: string
+      description: Display name of the route
+    type:
+      type: string
+      description: Route type
+      enum:
+        - Unknown
+        - POI
+        - Cave
+        - Canyon
+    coordinates:
+      $ref: "#/Coordinates"
+
+Coordinates:
+  type: object
+  description: The coordinates of the marker for a route
+  required:
+    - lat
+    - lon
+  properties:
+    lat:
+      type: number
+      format: float
+      description: Latitude of the coordinate
+    lon:
+      type: number
+      format: float
+      description: Longitute of the coordinate

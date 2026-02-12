@@ -8,7 +8,6 @@ on:
 env:
   PIPELINE_USER_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
   PIPELINE_USER_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-  SAM_TEMPLATE: template.yaml
   TESTING_STACK_NAME: WebScraper
   TESTING_PIPELINE_EXECUTION_ROLE: arn:aws:iam::410170143634:role/aws-sam-cli-managed-dev-pipel-PipelineExecutionRole-H6pcsIlT1GzO
   TESTING_CLOUDFORMATION_EXECUTION_ROLE: arn:aws:iam::410170143634:role/aws-sam-cli-managed-dev-p-CloudFormationExecutionRo-tEPpCOWZDOCO
@@ -27,6 +26,8 @@ env:
   # prod "sam package" and "sam deploy" commands.
   # PROD_IMAGE_REPOSITORY = '0123456789.dkr.ecr.region.amazonaws.com/repository-name'
   PROD_REGION: us-east-1
+  TESTING_API_STACK_NAME: WebScraper-Api
+  PROD_API_STACK_NAME: WebScraper-Api-Prod
   DEV_DATABASE_USERNAME: ${{ secrets.DEV_DATABASE_USERNAME }}
   DEV_DATABASE_PASSWORD: ${{ secrets.DEV_DATABASE_PASSWORD }}
   PROD_DATABASE_USERNAME: ${{ secrets.PROD_DATABASE_USERNAME }}
@@ -78,134 +79,22 @@ jobs:
           TEST_PORT: 5432
           TEST_DB: test
 
-  delete-feature:
-    if: startsWith(github.event.ref, 'feature') && github.event_name == 'delete'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v3
-      - uses: aws-actions/setup-sam@v2
-        with:
-          use-installer: true
-
-      - name: Assume the testing pipeline user role
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          aws-access-key-id: ${{ env.PIPELINE_USER_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ env.PIPELINE_USER_SECRET_ACCESS_KEY }}
-          aws-region: ${{ env.TESTING_REGION }}
-          role-to-assume: ${{ env.TESTING_PIPELINE_EXECUTION_ROLE }}
-          role-session-name: testing-packaging
-          role-duration-seconds: 3600
-          role-skip-session-tagging: true
-
-      - name: Delete feature branch stack
-        env:
-          FEATURE_BRANCH_NAME: ${{ github.event.ref }}
-        run: |
-          sam delete \
-            --stack-name $(echo ${FEATURE_BRANCH_NAME##*/} | tr -cd '[a-zA-Z0-9-]') \
-            --region ${TESTING_REGION} \
-            --no-prompts
-
-  build-and-deploy-feature:
-    # this stage is triggered only for feature branches (feature*),
-    # which will build the stack and deploy to a stack named with branch name.
-    # https://github.com/actions/setup-python
-    # https://github.com/aws-actions/configure-aws-credentials#notice-node12-deprecation-warning
-    if: startsWith(github.ref, 'refs/heads/feature')
-    needs: [test]
-    # Use arm64 runner so MapDataProcessor's arm64 build image runs natively (avoids slow QEMU emulation on x86_64).
-    runs-on: ubuntu-24.04-arm
-    steps:
-      - uses: actions/checkout@v3
-      - uses: aws-actions/setup-sam@v2
-        with:
-          use-installer: true
-      # MapDataProcessor is arm64 and includes a native tippecanoe binary; it must be built in an arm64 container.
-      - run: sam build --template ${SAM_TEMPLATE} --use-container --build-image public.ecr.aws/sam/build-nodejs22.x --build-image MapDataProcessor=public.ecr.aws/sam/build-nodejs22.x:latest-arm64
-
-      - name: Assume the testing pipeline user role
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          aws-access-key-id: ${{ env.PIPELINE_USER_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ env.PIPELINE_USER_SECRET_ACCESS_KEY }}
-          aws-region: ${{ env.TESTING_REGION }}
-          role-to-assume: ${{ env.TESTING_PIPELINE_EXECUTION_ROLE }}
-          role-session-name: feature-deployment
-          role-duration-seconds: 3600
-          role-skip-session-tagging: true
-
-      - name: Deploy to feature stack in the testing account
-        env:
-          DEV_DATABASE_USERNAME: ${{ secrets.DEV_DATABASE_USERNAME }}
-          DEV_DATABASE_PASSWORD: ${{ secrets.DEV_DATABASE_PASSWORD }}
-          PROXY_URL: ${{ secrets.PROXY_URL }}
-        shell: bash
-        run: |
-          if [ -z "$DEV_DATABASE_USERNAME" ] || [ -z "$DEV_DATABASE_PASSWORD" ]; then
-            echo "Error: DEV_DATABASE_USERNAME and DEV_DATABASE_PASSWORD must be set as repository secrets."
-            exit 1
-          fi
-          if [ -z "$PROXY_URL" ]; then
-            echo "Error: PROXY_URL must be set as a repository secret for dev deployment."
-            exit 1
-          fi
-          FCK_NAT_AMI=$(aws ec2 describe-images --owners 568608671756 \
-            --filters "Name=name,Values=fck-nat-al2023-*" "Name=architecture,Values=arm64" \
-            --query "sort_by(Images,&CreationDate)[-1].ImageId" --output text \
-            --region ${TESTING_REGION})
-          sam deploy --config-env ci \
-            --stack-name $(echo ${GITHUB_REF##*/} | tr -cd '[a-zA-Z0-9-]') \
-            --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM \
-            --region ${TESTING_REGION} \
-            --s3-bucket ${TESTING_ARTIFACTS_BUCKET} \
-            --no-fail-on-empty-changeset \
-            --role-arn ${TESTING_CLOUDFORMATION_EXECUTION_ROLE} \
-            --parameter-overrides "devEnvironment=dev DatabaseUsername=$DEV_DATABASE_USERNAME DatabasePassword=$DEV_DATABASE_PASSWORD FckNatAMIId=$FCK_NAT_AMI ProxyUrl=$PROXY_URL"
-
-  delete-feature-stack-on-failure:
-    if: always() && startsWith(github.ref, 'refs/heads/feature') && needs.build-and-deploy-feature.result == 'failure'
-    needs: [build-and-deploy-feature]
-    runs-on: ubuntu-latest
-    steps:
-      - name: Assume the testing pipeline user role
-        uses: aws-actions/configure-aws-credentials@v4
-        with:
-          aws-access-key-id: ${{ env.PIPELINE_USER_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ env.PIPELINE_USER_SECRET_ACCESS_KEY }}
-          aws-region: ${{ env.TESTING_REGION }}
-          role-to-assume: ${{ env.TESTING_PIPELINE_EXECUTION_ROLE }}
-          role-session-name: feature-cleanup
-          role-duration-seconds: 3600
-          role-skip-session-tagging: true
-
-      - name: Delete failed feature stack
-        env:
-          FEATURE_STACK_NAME: $(echo ${GITHUB_REF##*/} | tr -cd '[a-zA-Z0-9-]')
-        run: |
-          STATUS=$(aws cloudformation describe-stacks --stack-name ${FEATURE_STACK_NAME} --region ${TESTING_REGION} --query 'Stacks[0].StackStatus' --output text 2>/dev/null) || true
-          if [ "$STATUS" = "ROLLBACK_COMPLETE" ]; then
-            echo "Stack ${FEATURE_STACK_NAME} is ROLLBACK_COMPLETE; deleting so the next run can create a fresh stack."
-            aws cloudformation delete-stack --stack-name ${FEATURE_STACK_NAME} --region ${TESTING_REGION}
-            echo "Stack delete initiated. Re-run the pipeline to deploy again."
-          else
-            echo "Stack status is '${STATUS:-stack may not exist}'; not deleting (only ROLLBACK_COMPLETE stacks are deleted)."
-          fi
-
-  build-and-package:
+  build-and-package-main:
     if: github.ref == 'refs/heads/master'
     needs: [test]
     # Use arm64 runner so MapDataProcessor's arm64 build image runs natively (avoids slow QEMU emulation on x86_64).
     runs-on: ubuntu-24.04-arm
     steps:
       - uses: actions/checkout@v3
+      - name: Merge main template (inline lambdas from lambdas/*.yaml)
+        run: node scripts/merge-main-template.js
       - uses: aws-actions/setup-sam@v2
         with:
           use-installer: true
 
       # MapDataProcessor is arm64 and includes a native tippecanoe binary; it must be built in an arm64 container.
       - name: Build resources
-        run: sam build --template ${SAM_TEMPLATE} --use-container --build-image public.ecr.aws/sam/build-nodejs22.x --build-image MapDataProcessor=public.ecr.aws/sam/build-nodejs22.x:latest-arm64
+        run: sam build --template cloudformation/stacks/main/template-merged.yaml --use-container --build-image public.ecr.aws/sam/build-nodejs22.x --build-image MapDataProcessor=public.ecr.aws/sam/build-nodejs22.x:latest-arm64
 
       - name: Assume the testing pipeline user role
         uses: aws-actions/configure-aws-credentials@v4
@@ -255,10 +144,10 @@ jobs:
           name: packaged-prod.yaml
           path: packaged-prod.yaml
 
-  deploy-testing:
+  deploy-testing-main:
     # Disabled for now; set to "github.ref == 'refs/heads/master'" to re-enable
     if: false
-    needs: [build-and-package]
+    needs: [build-and-package-main]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
@@ -309,8 +198,8 @@ jobs:
             --parameter-overrides "devEnvironment=dev DatabaseUsername=$DEV_DATABASE_USERNAME DatabasePassword=$DEV_DATABASE_PASSWORD FckNatAMIId=$FCK_NAT_AMI ProxyUrl=$PROXY_URL"
 
   delete-testing-stack-on-failure:
-    if: always() && github.ref == 'refs/heads/master' && needs.deploy-testing.result == 'failure'
-    needs: [deploy-testing]
+    if: always() && github.ref == 'refs/heads/master' && needs.deploy-testing-main.result == 'failure'
+    needs: [deploy-testing-main]
     runs-on: ubuntu-latest
     steps:
       - name: Assume the testing pipeline user role
@@ -335,9 +224,9 @@ jobs:
             echo "Stack status is '${STATUS:-stack may not exist}'; not deleting (only ROLLBACK_COMPLETE stacks are deleted)."
           fi
 
-  deploy-prod:
+  deploy-prod-main:
     if: github.ref == 'refs/heads/master'
-    needs: [build-and-package]
+    needs: [build-and-package-main]
     runs-on: ubuntu-latest
     # Configure GitHub Action Environment to have a manual approval step before deployment to production
     # https://docs.github.com/en/actions/reference/environments
@@ -392,7 +281,7 @@ jobs:
 
   upload-api-docs:
     if: github.ref == 'refs/heads/master'
-    needs: [test]
+    needs: [deploy-prod-main]
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository code
@@ -415,7 +304,107 @@ jobs:
           role-duration-seconds: 3600
           role-skip-session-tagging: true
 
-      - name: Get docs bucket name
+      - name: Get main stack outputs for OpenAPI env resolution
+        id: stack-outputs
+        run: |
+          BUCKET=$(aws cloudformation describe-stacks \
+            --stack-name ${PROD_STACK_NAME} \
+            --region ${PROD_REGION} \
+            --query "Stacks[0].Outputs[?OutputKey=='DocsBucketName'].OutputValue" \
+            --output text)
+          GET_ROUTES_ARN=$(aws cloudformation describe-stacks \
+            --stack-name ${PROD_STACK_NAME} \
+            --region ${PROD_REGION} \
+            --query "Stacks[0].Outputs[?OutputKey=='GetRoutesLambdaArn'].OutputValue" \
+            --output text)
+          INVOKE_LAMBDA_ROLE=$(aws cloudformation describe-stacks \
+            --stack-name ${PROD_STACK_NAME} \
+            --region ${PROD_REGION} \
+            --query "Stacks[0].Outputs[?OutputKey=='ApiGatewayInvokeLambdaRoleArn'].OutputValue" \
+            --output text)
+          INVOKE_S3_ROLE=$(aws cloudformation describe-stacks \
+            --stack-name ${PROD_STACK_NAME} \
+            --region ${PROD_REGION} \
+            --query "Stacks[0].Outputs[?OutputKey=='ApiGatewayInvokeS3RoleArn'].OutputValue" \
+            --output text)
+          echo "bucket=${BUCKET}" >> $GITHUB_OUTPUT
+          echo "get_routes_arn=${GET_ROUTES_ARN}" >> $GITHUB_OUTPUT
+          echo "invoke_lambda_role=${INVOKE_LAMBDA_ROLE}" >> $GITHUB_OUTPUT
+          echo "invoke_s3_role=${INVOKE_S3_ROLE}" >> $GITHUB_OUTPUT
+
+      - name: Resolve OpenAPI $env- placeholders to openapiResolved.yaml
+        run: |
+          REGION=${{ env.PROD_REGION }} \
+          GET_ROUTES_LAMBDA_ARN=${{ steps.stack-outputs.outputs.get_routes_arn }} \
+          APIGATEWAY_INVOKE_LAMBDA_ROLE_ARN=${{ steps.stack-outputs.outputs.invoke_lambda_role }} \
+          APIGATEWAY_INVOKE_S3_ROLE_ARN=${{ steps.stack-outputs.outputs.invoke_s3_role }} \
+          DOCS_BUCKET_NAME=${{ steps.stack-outputs.outputs.bucket }} \
+          npx ts-node --files scripts/resolveYamlEnvs.ts docs-build/openapi.yaml docs-build/openapiResolved.yaml
+          mv docs-build/openapiResolved.yaml docs-build/openapi.yaml
+
+      - name: Upload docs to S3
+        run: |
+          aws s3 sync docs-build s3://${{ steps.stack-outputs.outputs.bucket }} --delete
+
+  deploy-testing-api:
+    # Disabled for now; set to "github.ref == 'refs/heads/master'" to re-enable
+    if: false
+    needs: [upload-api-docs]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v4
+      - name: Resolve API template $ref
+        run: npx ts-node --files scripts/resolveYamlRefs.ts cloudformation/stacks/api/template.yaml cloudformation/stacks/api/template-resolved.yaml
+      - name: Assume the testing pipeline user role
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ env.PIPELINE_USER_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ env.PIPELINE_USER_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.TESTING_REGION }}
+          role-to-assume: ${{ env.TESTING_PIPELINE_EXECUTION_ROLE }}
+          role-session-name: testing-api-deployment
+          role-duration-seconds: 3600
+          role-skip-session-tagging: true
+      - name: Get docs bucket name from main stack
+        id: get-docs-bucket
+        run: |
+          BUCKET=$(aws cloudformation describe-stacks \
+            --stack-name ${TESTING_STACK_NAME} \
+            --region ${TESTING_REGION} \
+            --query "Stacks[0].Outputs[?OutputKey=='DocsBucketName'].OutputValue" \
+            --output text)
+          echo "bucket=${BUCKET}" >> $GITHUB_OUTPUT
+      - name: Deploy API stack to testing
+        run: |
+          aws cloudformation deploy \
+            --template-file cloudformation/stacks/api/template-resolved.yaml \
+            --stack-name ${TESTING_API_STACK_NAME} \
+            --parameter-overrides DocsBucketName=${{ steps.get-docs-bucket.outputs.bucket }} \
+            --capabilities CAPABILITY_IAM \
+            --region ${TESTING_REGION} \
+            --no-fail-on-empty-changeset
+
+  deploy-prod-api:
+    if: github.ref == 'refs/heads/master'
+    needs: [upload-api-docs]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v4
+      - name: Resolve API template $ref
+        run: npx ts-node --files scripts/resolveYamlRefs.ts cloudformation/stacks/api/template.yaml cloudformation/stacks/api/template-resolved.yaml
+      - name: Assume the prod pipeline user role
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ env.PIPELINE_USER_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ env.PIPELINE_USER_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.PROD_REGION }}
+          role-to-assume: ${{ env.PROD_PIPELINE_EXECUTION_ROLE }}
+          role-session-name: prod-api-deployment
+          role-duration-seconds: 3600
+          role-skip-session-tagging: true
+      - name: Get docs bucket name from main stack
         id: get-docs-bucket
         run: |
           BUCKET=$(aws cloudformation describe-stacks \
@@ -424,14 +413,19 @@ jobs:
             --query "Stacks[0].Outputs[?OutputKey=='DocsBucketName'].OutputValue" \
             --output text)
           echo "bucket=${BUCKET}" >> $GITHUB_OUTPUT
-
-      - name: Upload docs to S3
+      - name: Deploy API stack to production
         run: |
-          aws s3 sync docs-build s3://${{ steps.get-docs-bucket.outputs.bucket }} --delete
+          aws cloudformation deploy \
+            --template-file cloudformation/stacks/api/template-resolved.yaml \
+            --stack-name ${PROD_API_STACK_NAME} \
+            --parameter-overrides DocsBucketName=${{ steps.get-docs-bucket.outputs.bucket }} \
+            --capabilities CAPABILITY_IAM \
+            --region ${PROD_REGION} \
+            --no-fail-on-empty-changeset
 
   delete-prod-stack-on-failure:
-    if: always() && github.ref == 'refs/heads/master' && needs.deploy-prod.result == 'failure'
-    needs: [deploy-prod]
+    if: always() && github.ref == 'refs/heads/master' && needs.deploy-prod-main.result == 'failure'
+    needs: [deploy-prod-main]
     runs-on: ubuntu-latest
     steps:
       - name: Assume the prod pipeline user role
@@ -458,14 +452,13 @@ jobs:
 
   run-migrations:
     runs-on: ubuntu-latest
-    needs: 
-      - deploy-prod
-      - deploy-testing
-      - build-and-deploy-feature
+    needs:
+      - deploy-prod-main
+      - deploy-testing-main
     if: |
       always() && (
-        (github.ref == 'refs/heads/master' && (needs.deploy-prod.result == 'success' || needs.deploy-testing.result == 'success')) ||
-        (startsWith(github.ref, 'refs/heads/feature') && needs.build-and-deploy-feature.result == 'success')
+        (github.ref == 'refs/heads/master' && (needs.deploy-prod-main.result == 'success' || needs.deploy-testing-main.result == 'success')) ||
+        (startsWith(github.ref, 'refs/heads/feature'))
       )
     steps:
       - name: Check out repository code
@@ -481,7 +474,7 @@ jobs:
           sudo mv dbmate /usr/local/bin/
 
       - name: Assume the testing pipeline user role
-        if: needs.deploy-testing.result == 'success' || needs.build-and-deploy-feature.result == 'success'
+        if: needs.deploy-testing-main.result == 'success'
         uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id: ${{ env.PIPELINE_USER_ACCESS_KEY_ID }}
@@ -493,14 +486,10 @@ jobs:
           role-skip-session-tagging: true
 
       - name: Get dev database endpoint
-        if: needs.deploy-testing.result == 'success' || needs.build-and-deploy-feature.result == 'success'
+        if: needs.deploy-testing-main.result == 'success'
         id: get-dev-endpoint
         run: |
-          if [ "${{ needs.build-and-deploy-feature.result }}" == "success" ]; then
-            STACK_NAME=$(echo ${GITHUB_REF##*/} | tr -cd '[a-zA-Z0-9-]')
-          else
-            STACK_NAME=${TESTING_STACK_NAME}
-          fi
+          STACK_NAME=${TESTING_STACK_NAME} \
           DB_ENDPOINT=$(aws cloudformation describe-stacks \
             --stack-name ${STACK_NAME} \
             --region ${TESTING_REGION} \
@@ -510,7 +499,7 @@ jobs:
           echo "STACK_NAME=${STACK_NAME}" >> $GITHUB_OUTPUT
 
       - name: Run migrations on dev database
-        if: needs.deploy-testing.result == 'success' || needs.build-and-deploy-feature.result == 'success'
+        if: needs.deploy-testing-main.result == 'success'
         env:
           DEV_DATABASE_USERNAME: ${{ secrets.DEV_DATABASE_USERNAME }}
           DEV_DATABASE_PASSWORD: ${{ secrets.DEV_DATABASE_PASSWORD }}
@@ -521,7 +510,7 @@ jobs:
           dbmate --url "${DB_URL}" up
 
       - name: Assume the prod pipeline user role
-        if: needs.deploy-prod.result == 'success'
+        if: needs.deploy-prod-main.result == 'success'
         uses: aws-actions/configure-aws-credentials@v4
         with:
           aws-access-key-id: ${{ env.PIPELINE_USER_ACCESS_KEY_ID }}
@@ -533,7 +522,7 @@ jobs:
           role-skip-session-tagging: true
 
       - name: Get prod bastion and database endpoint
-        if: needs.deploy-prod.result == 'success'
+        if: needs.deploy-prod-main.result == 'success'
         id: get-prod-bastion
         run: |
           BASTION_IP=$(aws cloudformation describe-stacks \
@@ -556,7 +545,7 @@ jobs:
           echo "KEY_PAIR_ID=${KEY_PAIR_ID}" >> $GITHUB_OUTPUT
 
       - name: Run migrations on prod database (SSH tunnel via bastion)
-        if: needs.deploy-prod.result == 'success'
+        if: needs.deploy-prod-main.result == 'success'
         env:
           PROD_DATABASE_USERNAME: ${{ secrets.PROD_DATABASE_USERNAME }}
           PROD_DATABASE_PASSWORD: ${{ secrets.PROD_DATABASE_PASSWORD }}

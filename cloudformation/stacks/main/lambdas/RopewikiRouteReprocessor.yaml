@@ -1,0 +1,36 @@
+Type: AWS::Serverless::Function
+Properties:
+  Description: A Lambda function that reprocesses Ropewiki routes on demand
+  Runtime: nodejs22.x
+  Architectures:
+    - arm64
+  CodeUri: ../../../
+  Handler: src/ropewiki/lambda-handlers/reprocessRoutesHandler.reprocessRoutesHandler
+  MemorySize: 1024
+  Timeout: 900
+  VpcConfig:
+    SecurityGroupIds:
+      - !Ref LambdaSecurityGroup
+    SubnetIds:
+      - !Ref PrivateSubnet1
+  Environment:
+    Variables:
+      DEV_ENVIRONMENT: !Ref devEnvironment
+      PROXY_URL: !Ref ProxyUrl
+      DB_HOST: !If [IsProduction, !GetAtt RDSProxy.Endpoint, !GetAtt Database.Endpoint.Address]
+      DB_PORT: !GetAtt Database.Endpoint.Port
+      DB_NAME: !Sub '${devEnvironment}db'
+      DB_USER: !Ref DatabaseUsername
+      DB_PASSWORD: !Ref DatabasePassword
+      MAP_DATA_PROCESSING_QUEUE_URL: !Ref MapDataProcessingQueue
+  Policies:
+    - SQSSendMessagePolicy:
+        QueueName: !GetAtt MapDataProcessingQueue.QueueName
+Metadata:
+  BuildMethod: esbuild
+  BuildProperties:
+    Minify: true
+    Target: "esnext"
+    Sourcemap: true
+    EntryPoints:
+    - src/ropewiki/lambda-handlers/reprocessRoutesHandler.ts
