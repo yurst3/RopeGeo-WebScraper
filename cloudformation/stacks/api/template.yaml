@@ -5,6 +5,19 @@ Parameters:
   DocsBucketName:
     Type: String
     Description: Name of the S3 bucket containing openapiResolved.yaml (output from main stack DocsBucketName)
+  CustomDomainName:
+    Type: String
+    Default: api.webscraper.ropegeo.com
+    Description: Custom domain for the API (e.g. api.webscraper.ropegeo.com). Leave blank to skip custom domain.
+  ApiCertificateArn:
+    Type: String
+    Default: ''
+    Description: ACM certificate ARN for CustomDomainName (must be in the same region as the API, e.g. us-east-1). Required if CustomDomainName is set.
+
+Conditions:
+  HasCustomDomain: !Not [!Equals [!Ref CustomDomainName, '']]
+  HasCertificate: !Not [!Equals [!Ref ApiCertificateArn, '']]
+  CreateCustomDomain: !And [!Condition HasCustomDomain, !Condition HasCertificate]
 
 Resources:
   WebScraperApi:
@@ -22,6 +35,26 @@ Resources:
       AutoDeploy: true
       Description: Default stage for WebScraper HTTP API
 
+  # Custom domain (e.g. api.webscraper.ropegeo.com). Create a CNAME in your DNS pointing to RegionalDomainName.
+  WebScraperApiDomainName:
+    Type: AWS::ApiGatewayV2::DomainName
+    Condition: CreateCustomDomain
+    Properties:
+      DomainName: !Ref CustomDomainName
+      DomainNameConfigurations:
+        - EndpointType: REGIONAL
+          CertificateArn: !Ref ApiCertificateArn
+          SecurityPolicy: TLS_1_2
+
+  WebScraperApiMapping:
+    Type: AWS::ApiGatewayV2::ApiMapping
+    Condition: CreateCustomDomain
+    DependsOn: WebScraperApiDomainName
+    Properties:
+      DomainName: !Ref WebScraperApiDomainName
+      ApiId: !Ref WebScraperApi
+      Stage: !Ref WebScraperApiStage
+
 Outputs:
   WebScraperApiEndpoint:
     Description: Default endpoint for the WebScraper HTTP API; use as base URL to call the API ($default stage)
@@ -32,3 +65,15 @@ Outputs:
   WebScraperApiStageName:
     Description: Stage name for the WebScraper HTTP API
     Value: !Ref WebScraperApiStage
+  WebScraperApiCustomDomainName:
+    Condition: CreateCustomDomain
+    Description: Custom domain name for the API (create CNAME to RegionalDomainName)
+    Value: !Ref WebScraperApiDomainName
+  WebScraperApiRegionalDomainName:
+    Condition: CreateCustomDomain
+    Description: API Gateway regional domain; point api.webscraper.ropegeo.com CNAME here
+    Value: !GetAtt WebScraperApiDomainName.RegionalDomainName
+  WebScraperApiRegionalHostedZoneId:
+    Condition: CreateCustomDomain
+    Description: Route 53 hosted zone ID for RegionalDomainName (use for A/AAAA alias)
+    Value: !GetAtt WebScraperApiDomainName.RegionalHostedZoneId

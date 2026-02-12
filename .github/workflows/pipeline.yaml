@@ -399,7 +399,10 @@ jobs:
           aws cloudformation deploy \
             --template-file cloudformation/stacks/api/template-resolved.yaml \
             --stack-name ${PROD_API_STACK_NAME} \
-            --parameter-overrides DocsBucketName=${{ steps.get-docs-bucket.outputs.bucket }} \
+            --parameter-overrides \
+              DocsBucketName=${{ steps.get-docs-bucket.outputs.bucket }} \
+              CustomDomainName=api.webscraper.ropegeo.com \
+              ApiCertificateArn=${{ secrets.PROD_API_CERTIFICATE_ARN }} \
             --capabilities CAPABILITY_IAM \
             --region ${PROD_REGION} \
             --no-fail-on-empty-changeset
