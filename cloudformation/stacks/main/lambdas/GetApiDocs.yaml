@@ -1,0 +1,24 @@
+Type: AWS::Serverless::Function
+Properties:
+  Description: Lambda for GET /docs/{file} API endpoint; returns documentation files from the docs S3 bucket
+  Runtime: nodejs22.x
+  Architectures:
+    - arm64
+  CodeUri: ../../../
+  Handler: src/api/getApiDocs/handler.handler
+  MemorySize: 128
+  Timeout: 10
+  Environment:
+    Variables:
+      DOCS_BUCKET_NAME: !Ref DocsBucket
+  Policies:
+    - S3ReadPolicy:
+        BucketName: !Ref DocsBucket
+Metadata:
+  BuildMethod: esbuild
+  BuildProperties:
+    Minify: true
+    Target: "esnext"
+    Sourcemap: true
+    EntryPoints:
+      - src/api/getApiDocs/handler.ts

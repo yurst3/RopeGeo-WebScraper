@@ -3,3 +3,5 @@ GetRoutesLambdaIntegration:
   httpMethod: POST
   uri: arn:aws:apigateway:$env-REGION:lambda:path/2015-03-31/functions/$env-GET_ROUTES_LAMBDA_ARN/invocations
   credentials: $env-APIGATEWAY_INVOKE_LAMBDA_ROLE_ARN
+  # Required for HTTP APIs (ApiGatewayV2); without it the integration is not attached to the route
+  payloadFormatVersion: "1.0"

@@ -292,6 +292,11 @@ jobs:
             --region ${PROD_REGION} \
             --query "Stacks[0].Outputs[?OutputKey=='GetRoutesLambdaArn'].OutputValue" \
             --output text)
+          GET_API_DOCS_ARN=$(aws cloudformation describe-stacks \
+            --stack-name ${PROD_STACK_NAME} \
+            --region ${PROD_REGION} \
+            --query "Stacks[0].Outputs[?OutputKey=='GetApiDocsLambdaArn'].OutputValue" \
+            --output text)
           INVOKE_LAMBDA_ROLE=$(aws cloudformation describe-stacks \
             --stack-name ${PROD_STACK_NAME} \
             --region ${PROD_REGION} \
@@ -304,6 +309,7 @@ jobs:
             --output text)
           echo "bucket=${BUCKET}" >> $GITHUB_OUTPUT
           echo "get_routes_arn=${GET_ROUTES_ARN}" >> $GITHUB_OUTPUT
+          echo "get_api_docs_arn=${GET_API_DOCS_ARN}" >> $GITHUB_OUTPUT
           echo "invoke_lambda_role=${INVOKE_LAMBDA_ROLE}" >> $GITHUB_OUTPUT
           echo "invoke_s3_role=${INVOKE_S3_ROLE}" >> $GITHUB_OUTPUT
 
@@ -311,6 +317,7 @@ jobs:
         run: |
           REGION=${{ env.PROD_REGION }} \
           GET_ROUTES_LAMBDA_ARN=${{ steps.stack-outputs.outputs.get_routes_arn }} \
+          GET_API_DOCS_LAMBDA_ARN=${{ steps.stack-outputs.outputs.get_api_docs_arn }} \
           APIGATEWAY_INVOKE_LAMBDA_ROLE_ARN=${{ steps.stack-outputs.outputs.invoke_lambda_role }} \
           APIGATEWAY_INVOKE_S3_ROLE_ARN=${{ steps.stack-outputs.outputs.invoke_s3_role }} \
           DOCS_BUCKET_NAME=${{ steps.stack-outputs.outputs.bucket }} \

@@ -11,7 +11,7 @@ get:
     - docs
   x-amazon-apigateway-request-validator: params-only
   x-amazon-apigateway-integration:
-    $ref: '../integrations/getApiDocsS3.yaml#/GetApiDocsS3Integration'
+    $ref: '../integrations/getApiDocsLambda.yaml#/GetApiDocsLambdaIntegration'
   parameters:
     - name: file
       in: path

@@ -730,7 +730,11 @@ Resources:
   GetRoutes:
     $ref: lambdas/GetRoutes.yaml
 
-  # IAM role for API Gateway to invoke Lambda (GetRoutes integration)
+  # Lambda for GET /docs/{file} API endpoint (returns docs from S3; used for HTTP API)
+  GetApiDocs:
+    $ref: lambdas/GetApiDocs.yaml
+
+  # IAM role for API Gateway to invoke Lambda (GetRoutes, GetApiDocs integrations)
   ApiGatewayInvokeLambdaRole:
     Type: AWS::IAM::Role
     Properties:
@@ -742,13 +746,15 @@ Resources:
               Service: apigateway.amazonaws.com
             Action: sts:AssumeRole
       Policies:
-        - PolicyName: InvokeGetRoutesLambda
+        - PolicyName: InvokeApiLambdas
           PolicyDocument:
             Version: '2012-10-17'
             Statement:
               - Effect: Allow
                 Action: lambda:InvokeFunction
-                Resource: !GetAtt GetRoutes.Arn
+                Resource:
+                  - !GetAtt GetRoutes.Arn
+                  - !GetAtt GetApiDocs.Arn
       Tags:
         - Key: Name
           Value: !Sub '${AWS::StackName}-apig-invoke-lambda'
@@ -784,6 +790,14 @@ Resources:
       Action: lambda:InvokeFunction
       Principal: apigateway.amazonaws.com
 
+  # Allow API Gateway to invoke GetApiDocs Lambda (required for HTTP API integration)
+  GetApiDocsApiGatewayPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref GetApiDocs
+      Action: lambda:InvokeFunction
+      Principal: apigateway.amazonaws.com
+
 Outputs:
   DocsBucketName:
     Description: S3 bucket for API documentation (OpenAPI/Redoc)
@@ -791,6 +805,9 @@ Outputs:
   GetRoutesLambdaArn:
     Description: ARN of the GetRoutes Lambda (for OpenAPI integration resolveYamlEnvs)
     Value: !GetAtt GetRoutes.Arn
+  GetApiDocsLambdaArn:
+    Description: ARN of the GetApiDocs Lambda (for OpenAPI integration resolveYamlEnvs)
+    Value: !GetAtt GetApiDocs.Arn
   ApiGatewayInvokeLambdaRoleArn:
     Description: IAM role ARN for API Gateway to invoke Lambda (for OpenAPI integration resolveYamlEnvs)
     Value: !GetAtt ApiGatewayInvokeLambdaRole.Arn
