@@ -45,13 +45,13 @@ get:
           schema:
             $ref: '../components/routesResponse.yaml#/RoutesResponse'
           examples:
-            routesResponse:
-              summary: Sample list of routes
-              value:
-                - $ref: '../examples/routesResponse.json'
+            getRoutesResponse:
+              $ref: '../examples/getRoutesResponse.yaml'
     '500':
       description: Internal server error
 ```
+
+The `$ref` is placed directly under the example name; the ref'd file contains the full [Example Object](https://spec.openapis.org/oas/v3.0.1.html#example-object-example) (summary and value).
 
 ## Components
 Components should be separated into their own files in the openapi-docs/components folder. Each component file should have a primary component that is referenced in paths or integrations, but it may also have secondary components that are referenced by the primary components. The primary component should match the operationId of whichever path is referencing it, along with "Response" or "RequestBody" depending on what type of component it is. Component names should be in upper camel case, and the file should be the name of the primary component in lower camel case. Each property of an object needs a description, as well as the object itself. If a property is required, it should be be in the "required" list at the top of the object and if a property is nullable, it should have nullable: true. 
@@ -108,25 +108,23 @@ Coordinates:
 ```
 
 ## Examples
-Examples should be separated into their own files in the openapi-docs/examples folder. Example files should always be .json and their names should match the name of the schema file they are exampling. Where possible, try to use an actual response that the endpoint would return with real data and not just fake data like "id": "00000000-0000-0000-0000-000000000000" or "name": "Example". If the example is an array, it should have at least 2 items and showcase a variety of possible values, not just repeating the same ones for each item.
+Examples live in the openapi-docs/examples folder as **.yaml** files. Each file is a full [Example Object](https://spec.openapis.org/oas/v3.0.1.html#example-object-example): include `summary` and `value`. The `value` is the example payload (JSON structure; you can write it in YAML). The path references it with the `$ref` directly under the example name (see Paths). File names should match the example key (e.g. getRoutesResponse.yaml). Use real-looking data where possible; for arrays include at least 2 items with variety.
 
-`openapi-docs/examples/getRoutesResponse.json`
+`openapi-docs/examples/getRoutesResponse.yaml`
+```yaml
+summary: Sample GeoJSON Feature Collection of routes
+value:
+  type: FeatureCollection
+  features:
+    - type: Feature
+      geometry: { type: Point, coordinates: [-111.456, 40.123] }
+      properties: { id: "...", name: "Bear Creek Canyon", type: Canyon }
+    - type: Feature
+      ...
 ```
-[
-  {
-    "id": "fc1abf41-5d4c-44d9-ac73-b0849f8255bb",
-    "name": "Bear Creek Canyon",
-    "type": "Canyon",
-    "coordinates": { "lat": -111.456, "lon": 40.123 }
-  },
-  {
-    "id": "2bf9d566-66d8-4f60-b6eb-ebbbf04f4f19",
-    "name": "Devil Gulch",
-    "type": "Unknown",
-    "coordinates": { "lat": -111.500, "lon": 40.200 }
-  }
-]
-```
+
+## Linting
+Run `npm run lint:openapi` after changing openapi-docs and fix any **errors** so the linter exits cleanly.  
 
 ## Integrations
 Integrations are for cloudformation to know how to attach each path to a invoke a lambda or get a file from S3. Integrations should be separated into their own files in the openapi-docs/integrations folder. Each integration needs an x-amazon-apigateway-integration object as defined in https://docs.aws.amazon.com/apigateway/latest/developerguide/api-gateway-swagger-extensions-integration.html. The integration object's name should be in upper camel case and match the path's operationId that it belongs to, followed by which service it uses (Lambda/S3) and then "Integration". The file's name should match the integration object's name in lower camel case, without the "Integration" at the end.

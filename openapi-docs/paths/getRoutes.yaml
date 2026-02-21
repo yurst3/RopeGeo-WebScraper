@@ -16,8 +16,6 @@ get:
             $ref: '../components/getRoutesResponse.yaml#/GetRoutesResponse'
           examples:
             getRoutesResponse:
-              summary: Sample GeoJSON Feature Collection of routes
-              value:
-                $ref: '../examples/getRoutesResponse.json'
+              $ref: '../examples/getRoutesResponse.yaml'
     '500':
       description: Internal server error

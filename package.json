@@ -20,7 +20,7 @@
     "lint:dev": "npx eslint --fix ./src",
     "merge:main-template": "ts-node --files scripts/resolveYamlRefs.ts cloudformation/stacks/main/template.yaml cloudformation/stacks/main/template-merged.yaml",
     "build:openapi": "npx @redocly/cli build-docs openapi-docs/index.yaml --output docs-build/index.html",
-    "lint:openapi": "npx @redocly/cli bundle openapi-docs/index.yaml --output docs-build/openapi-bundled.yaml && spectral lint --verbose -r openapi-docs/.spectral.yaml docs-build/openapi-bundled.yaml",
+    "lint:openapi": "npx @redocly/cli bundle openapi-docs/index.yaml --output docs-build/openapi-bundled.yaml --dereferenced && spectral lint --verbose -r openapi-docs/.spectral.yaml docs-build/openapi-bundled.yaml",
     "migrate:up": "npx dbmate --url postgres://localUser:localPass@127.0.0.1:8081/local?sslmode=disable up; npx zapatos",
     "migrate-test:up": "npx dbmate --url postgres://testUser:testPass@127.0.0.1:8080/test?sslmode=disable up",
     "local-db:start": "docker network create -d bridge my-net; docker run --publish 127.0.0.1:8081:5432/tcp --network=my-net --name local-db -e POSTGRES_PASSWORD=localPass -e POSTGRES_USER=localUser -e POSTGRES_DB=local -d postgres; sleep 1; npm run migrate:up",
