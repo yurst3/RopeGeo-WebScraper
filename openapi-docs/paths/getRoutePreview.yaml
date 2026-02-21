@@ -1,0 +1,33 @@
+# /route/{routeId}/preview
+get:
+  summary: Get route preview
+  description: Returns page previews for the given route (e.g. Ropewiki pages linked to the route). Each preview includes id, source, banner image URL, rating, rating count, title, region names, and difficulty.
+  operationId: getRoutePreview
+  tags:
+    - routes
+  parameters:
+    - name: routeId
+      in: path
+      required: true
+      description: Route UUID
+      schema:
+        type: string
+        format: uuid
+  x-amazon-apigateway-integration:
+    $ref: '../integrations/getRoutePreviewLambda.yaml#/GetRoutePreviewLambdaIntegration'
+  responses:
+    '200':
+      description: Successful response; array of page previews (may be empty)
+      content:
+        application/json:
+          schema:
+            $ref: '../components/getRoutePreviewResponse.yaml#/GetRoutePreviewResponse'
+          examples:
+            getRoutePreviewResponse:
+              $ref: '../examples/getRoutePreviewResponse.yaml'
+    '400':
+      description: Bad Request; missing or invalid routeId
+    '404':
+      description: Not Found; no route exists with the given routeId
+    '500':
+      description: Internal server error

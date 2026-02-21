@@ -14,6 +14,8 @@ paths:
     $ref: './paths/getRootRedirect.yaml'
   /routes:
     $ref: './paths/getRoutes.yaml'
+  /route/{routeId}/preview:
+    $ref: './paths/getRoutePreview.yaml'
   /docs/{file}:
     $ref: './paths/getApiDocs.yaml'
 

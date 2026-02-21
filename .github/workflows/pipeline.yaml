@@ -292,6 +292,11 @@ jobs:
             --region ${PROD_REGION} \
             --query "Stacks[0].Outputs[?OutputKey=='GetRoutesLambdaArn'].OutputValue" \
             --output text)
+          GET_ROUTE_PREVIEW_ARN=$(aws cloudformation describe-stacks \
+            --stack-name ${PROD_STACK_NAME} \
+            --region ${PROD_REGION} \
+            --query "Stacks[0].Outputs[?OutputKey=='GetRoutePreviewLambdaArn'].OutputValue" \
+            --output text)
           GET_API_DOCS_ARN=$(aws cloudformation describe-stacks \
             --stack-name ${PROD_STACK_NAME} \
             --region ${PROD_REGION} \
@@ -314,6 +319,7 @@ jobs:
             --output text)
           echo "bucket=${BUCKET}" >> $GITHUB_OUTPUT
           echo "get_routes_arn=${GET_ROUTES_ARN}" >> $GITHUB_OUTPUT
+          echo "get_route_preview_arn=${GET_ROUTE_PREVIEW_ARN}" >> $GITHUB_OUTPUT
           echo "get_api_docs_arn=${GET_API_DOCS_ARN}" >> $GITHUB_OUTPUT
           echo "get_root_redirect_arn=${GET_ROOT_REDIRECT_ARN}" >> $GITHUB_OUTPUT
           echo "invoke_lambda_role=${INVOKE_LAMBDA_ROLE}" >> $GITHUB_OUTPUT
@@ -323,6 +329,7 @@ jobs:
         run: |
           REGION=${{ env.PROD_REGION }} \
           GET_ROUTES_LAMBDA_ARN=${{ steps.stack-outputs.outputs.get_routes_arn }} \
+          GET_ROUTE_PREVIEW_LAMBDA_ARN=${{ steps.stack-outputs.outputs.get_route_preview_arn }} \
           GET_API_DOCS_LAMBDA_ARN=${{ steps.stack-outputs.outputs.get_api_docs_arn }} \
           GET_ROOT_REDIRECT_LAMBDA_ARN=${{ steps.stack-outputs.outputs.get_root_redirect_arn }} \
           APIGATEWAY_INVOKE_LAMBDA_ROLE_ARN=${{ steps.stack-outputs.outputs.invoke_lambda_role }} \

@@ -1,0 +1,21 @@
+# Example Object for getRoutePreview 200 response
+summary: Sample list of page previews for a route
+value:
+  - id: a1b2c3d4-e5f6-7890-abcd-ef1234567890
+    source: ropewiki
+    imageUrl: https://ropewiki.com/images/thumb/1/2/BearCreek.jpg/400px-BearCreek.jpg
+    rating: 4.5
+    ratingCount: 12
+    title: Bear Creek Canyon
+    regions:
+      - Utah
+    difficulty: "3A II"
+  - id: b2c3d4e5-f6a7-8901-bcde-f12345678901
+    source: ropewiki
+    imageUrl: null
+    rating: null
+    ratingCount: 0
+    title: Devil Gulch
+    regions:
+      - Colorado
+    difficulty: null

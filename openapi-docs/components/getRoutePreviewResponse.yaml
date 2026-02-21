@@ -1,0 +1,50 @@
+GetRoutePreviewResponse:
+  type: array
+  description: List of page previews for the route (e.g. Ropewiki pages linked to the route)
+  items:
+    $ref: "#/PagePreview"
+
+PagePreview:
+  type: object
+  description: Preview of a page linked to a route (id, source, banner image, rating, title, regions, difficulty)
+  required:
+    - id
+    - source
+    - title
+    - regions
+  properties:
+    id:
+      type: string
+      format: uuid
+      description: Page identifier (e.g. RopewikiPage id)
+    source:
+      type: string
+      description: Source of the page (e.g. ropewiki)
+      enum:
+        - ropewiki
+    imageUrl:
+      type: string
+      format: uri
+      nullable: true
+      description: Banner image URL (e.g. first non–beta-section image for Ropewiki)
+    rating:
+      type: number
+      format: float
+      nullable: true
+      description: Numeric rating (e.g. quality for Ropewiki)
+    ratingCount:
+      type: integer
+      nullable: true
+      description: Number of votes (e.g. userVotes for Ropewiki)
+    title:
+      type: string
+      description: Display title of the page
+    regions:
+      type: array
+      description: Region names (not ids) the page belongs to
+      items:
+        type: string
+    difficulty:
+      type: string
+      nullable: true
+      description: Difficulty string (e.g. rating text for Ropewiki)

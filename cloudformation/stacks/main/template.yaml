@@ -730,6 +730,10 @@ Resources:
   GetRoutes:
     $ref: lambdas/GetRoutes.yaml
 
+  # Lambda for GET /route/{routeId}/preview API endpoint
+  GetRoutePreview:
+    $ref: lambdas/GetRoutePreview.yaml
+
   # Lambda for GET /docs/{file} API endpoint (returns docs from S3; used for HTTP API)
   GetApiDocs:
     $ref: lambdas/GetApiDocs.yaml
@@ -738,7 +742,7 @@ Resources:
   GetRootRedirect:
     $ref: lambdas/GetRootRedirect.yaml
 
-  # IAM role for API Gateway to invoke Lambda (GetRoutes, GetApiDocs, GetRootRedirect integrations)
+  # IAM role for API Gateway to invoke Lambda (GetRoutes, GetRoutePreview, GetApiDocs, GetRootRedirect integrations)
   ApiGatewayInvokeLambdaRole:
     Type: AWS::IAM::Role
     Properties:
@@ -758,6 +762,7 @@ Resources:
                 Action: lambda:InvokeFunction
                 Resource:
                   - !GetAtt GetRoutes.Arn
+                  - !GetAtt GetRoutePreview.Arn
                   - !GetAtt GetApiDocs.Arn
                   - !GetAtt GetRootRedirect.Arn
       Tags:
@@ -795,6 +800,14 @@ Resources:
       Action: lambda:InvokeFunction
       Principal: apigateway.amazonaws.com
 
+  # Allow API Gateway to invoke GetRoutePreview Lambda (required for REST API integration)
+  GetRoutePreviewApiGatewayPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref GetRoutePreview
+      Action: lambda:InvokeFunction
+      Principal: apigateway.amazonaws.com
+
   # Allow API Gateway to invoke GetApiDocs Lambda (required for HTTP API integration)
   GetApiDocsApiGatewayPermission:
     Type: AWS::Lambda::Permission
@@ -818,6 +831,9 @@ Outputs:
   GetRoutesLambdaArn:
     Description: ARN of the GetRoutes Lambda (for OpenAPI integration resolveYamlEnvs)
     Value: !GetAtt GetRoutes.Arn
+  GetRoutePreviewLambdaArn:
+    Description: ARN of the GetRoutePreview Lambda (for OpenAPI integration resolveYamlEnvs)
+    Value: !GetAtt GetRoutePreview.Arn
   GetApiDocsLambdaArn:
     Description: ARN of the GetApiDocs Lambda (for OpenAPI integration resolveYamlEnvs)
     Value: !GetAtt GetApiDocs.Arn
