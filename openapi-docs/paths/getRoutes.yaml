@@ -1,7 +1,7 @@
 # /routes
 get:
   summary: List all routes
-  description: Returns all routes in the database.
+  description: Returns all routes in the database as a GeoJSON Feature Collection. Each feature has id, name, and type properties and a Point geometry with the route coordinate.
   operationId: getRoutes
   tags:
     - routes
@@ -9,22 +9,15 @@ get:
     $ref: '../integrations/getRoutesLambda.yaml#/GetRoutesLambdaIntegration'
   responses:
     '200':
-      description: Successful response
+      description: Successful response; GeoJSON Feature Collection of routes
       content:
         application/json:
           schema:
             $ref: '../components/getRoutesResponse.yaml#/GetRoutesResponse'
           examples:
-            routesResponse:
-              summary: Sample list of routes
+            getRoutesResponse:
+              summary: Sample GeoJSON Feature Collection of routes
               value:
-                - id: fc1abf41-5d4c-44d9-ac73-b0849f8255bb
-                  name: Bear Creek Canyon
-                  type: Canyon
-                  coordinates: { lat: -111.456, lon: 40.123 }
-                - id: 2bf9d566-66d8-4f60-b6eb-ebbbf04f4f19
-                  name: Devil Gulch
-                  type: Unknown
-                  coordinates: { lat: -111.5, lon: 40.2 }
+                $ref: '../examples/getRoutesResponse.json'
     '500':
       description: Internal server error

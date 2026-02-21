@@ -1,4 +1,5 @@
 import type { PoolClient } from 'pg';
+import { Route } from '../../types/route';
 import getDatabaseConnection from '../../helpers/getDatabaseConnection';
 import getRoutes from './database/getRoutes';
 
@@ -9,7 +10,7 @@ const CORS_HEADERS = {
 
 /**
  * Lambda handler for GET /routes (API Gateway proxy integration).
- * Returns all non-deleted routes as JSON matching the GetRoutesResponse schema.
+ * Returns all non-deleted routes as a GeoJSON Feature Collection.
  */
 export const handler = async (
     _event: unknown,
@@ -22,12 +23,9 @@ export const handler = async (
         client = await pool.connect();
         const rows = await getRoutes(client);
 
-        const body = rows.map((row) => ({
-            id: row.id,
-            name: row.name,
-            type: row.type,
-            coordinates: row.coordinates as { lat: number; lon: number },
-        }));
+        const routes = rows.map((row) => Route.fromDbRow(row));
+        const features = routes.map((route) => route.toGeoJsonFeature());
+        const body = { type: 'FeatureCollection' as const, features };
 
         return {
             statusCode: 200,

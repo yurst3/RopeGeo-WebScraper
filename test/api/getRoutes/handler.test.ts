@@ -37,7 +37,7 @@ describe('getRoutes handler', () => {
         mockGetRoutes.mockResolvedValue([]);
     });
 
-    it('returns 200 and JSON array of routes with CORS headers', async () => {
+    it('returns 200 and GeoJSON Feature Collection of routes with CORS headers', async () => {
         const mockRows: s.Route.JSONSelectable[] = [
             {
                 id: 'id-1',
@@ -62,18 +62,25 @@ describe('getRoutes handler', () => {
             'Content-Type': 'application/json',
             'Access-Control-Allow-Origin': '*',
         });
-        expect(JSON.parse(result.body)).toEqual([
-            { id: 'id-1', name: 'Route One', type: 'Canyon', coordinates: { lat: 40.1, lon: -111.5 } },
-        ]);
+        expect(JSON.parse(result.body)).toEqual({
+            type: 'FeatureCollection',
+            features: [
+                {
+                    type: 'Feature',
+                    geometry: { type: 'Point', coordinates: [-111.5, 40.1] },
+                    properties: { id: 'id-1', name: 'Route One', type: 'Canyon' },
+                },
+            ],
+        });
     });
 
-    it('returns 200 and empty array when no routes exist', async () => {
+    it('returns 200 and empty Feature Collection when no routes exist', async () => {
         mockGetRoutes.mockResolvedValue([]);
 
         const result = await handler({}, {});
 
         expect(result.statusCode).toBe(200);
-        expect(JSON.parse(result.body)).toEqual([]);
+        expect(JSON.parse(result.body)).toEqual({ type: 'FeatureCollection', features: [] });
     });
 
     it('handles getDatabaseConnection failure and returns 500', async () => {

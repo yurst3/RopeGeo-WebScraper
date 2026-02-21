@@ -1,17 +1,67 @@
 GetRoutesResponse:
-  type: array
-  description: List of routes
-  items:
-    $ref: "#/Route"
-
-Route:
   type: object
-  description: A single route with a set of coordinates for its marker
+  description: GeoJSON Feature Collection of routes; each feature has id, name, and type properties and a Point geometry.
+  required:
+    - type
+    - features
+  properties:
+    type:
+      type: string
+      enum:
+        - FeatureCollection
+      description: GeoJSON type identifier for a Feature Collection
+    features:
+      type: array
+      description: List of GeoJSON Feature objects, one per route
+      items:
+        $ref: "#/GeoJsonFeature"
+
+GeoJsonFeature:
+  type: object
+  description: A single GeoJSON Feature with a Point geometry and route properties
+  required:
+    - type
+    - geometry
+    - properties
+  properties:
+    type:
+      type: string
+      enum:
+        - Feature
+      description: GeoJSON type identifier for a Feature
+    geometry:
+      $ref: "#/GeoJsonPoint"
+    properties:
+      $ref: "#/GeoJsonFeatureProperties"
+
+GeoJsonPoint:
+  type: object
+  description: GeoJSON Point geometry (RFC 7946); coordinates are [longitude, latitude]
+  required:
+    - type
+    - coordinates
+  properties:
+    type:
+      type: string
+      enum:
+        - Point
+      description: GeoJSON geometry type
+    coordinates:
+      type: array
+      minItems: 2
+      maxItems: 2
+      items:
+        type: number
+        format: float
+      description: "[longitude, latitude] in WGS84"
+
+GeoJsonFeatureProperties:
+  type: object
+  description: Properties of a route feature (id, name, type)
   required:
     - id
     - name
     - type
-    - coordinates
   properties:
     id:
       type: string
@@ -28,21 +78,3 @@ Route:
         - POI
         - Cave
         - Canyon
-    coordinates:
-      $ref: "#/Coordinates"
-
-Coordinates:
-  type: object
-  description: The coordinates of the marker for a route
-  required:
-    - lat
-    - lon
-  properties:
-    lat:
-      type: number
-      format: float
-      description: Latitude of the coordinate
-    lon:
-      type: number
-      format: float
-      description: Longitute of the coordinate

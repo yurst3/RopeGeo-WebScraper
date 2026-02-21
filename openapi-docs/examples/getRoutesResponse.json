@@ -1,14 +1,29 @@
-[
-  {
-    "id": "fc1abf41-5d4c-44d9-ac73-b0849f8255bb",
-    "name": "Bear Creek Canyon",
-    "type": "Canyon",
-    "coordinates": { "lat": -111.456, "lon": 40.123 }
-  },
-  {
-    "id": "2bf9d566-66d8-4f60-b6eb-ebbbf04f4f19",
-    "name": "Devil Gulch",
-    "type": "Unknown",
-    "coordinates": { "lat": -111.5, "lon": 40.2 }
-  }
-]
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [-111.456, 40.123]
+      },
+      "properties": {
+        "id": "fc1abf41-5d4c-44d9-ac73-b0849f8255bb",
+        "name": "Bear Creek Canyon",
+        "type": "Canyon"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [-111.5, 40.2]
+      },
+      "properties": {
+        "id": "2bf9d566-66d8-4f60-b6eb-ebbbf04f4f19",
+        "name": "Devil Gulch",
+        "type": "Unknown"
+      }
+    }
+  ]
+}
