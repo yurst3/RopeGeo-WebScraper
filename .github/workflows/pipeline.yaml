@@ -425,6 +425,12 @@ jobs:
               --query "Stacks[0].Outputs[?OutputKey=='CloudFrontDistributionArn'].OutputValue" \
               --output text)
           fi
+          CF_ARN=$(echo "$CF_ARN" | tr -d '\n\r' | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+          if [ -z "$CF_ARN" ] || [ "$CF_ARN" = "None" ]; then
+            echo "::error::CloudFront distribution ARN is empty. Set PROD_CLOUDFRONT_DISTRIBUTION_ARN or ensure API stack output CloudFrontDistributionArn exists."
+            exit 1
+          fi
+          set +e
           aws cloudformation update-stack \
             --stack-name ${PROD_STACK_NAME} \
             --use-previous-template \
@@ -433,12 +439,30 @@ jobs:
               MapDataPublicBaseUrl=https://api.webscraper.ropegeo.com \
             --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM \
             --region ${PROD_REGION} \
-            --role-arn ${PROD_CLOUDFORMATION_EXECUTION_ROLE} || true
-          if [ $? -eq 0 ]; then
+            --role-arn ${PROD_CLOUDFORMATION_EXECUTION_ROLE}
+          UPDATE_EXIT=$?
+          set -e
+          if [ $UPDATE_EXIT -eq 0 ]; then
             aws cloudformation wait stack-update-complete \
               --stack-name ${PROD_STACK_NAME} \
               --region ${PROD_REGION}
+          elif [ $UPDATE_EXIT -ne 255 ]; then
+            echo "::error::Main stack update failed (exit $UPDATE_EXIT). Check that the template has CloudFrontDistributionArn and the role has permission."
+            exit $UPDATE_EXIT
           fi
+      - name: Verify main stack has CloudFront ARN (required for docs/mapdata 403 fix)
+        run: |
+          ARN=$(aws cloudformation describe-stacks \
+            --stack-name ${PROD_STACK_NAME} \
+            --region ${PROD_REGION} \
+            --query "Stacks[0].Parameters[?ParameterKey=='CloudFrontDistributionArn'].ParameterValue" \
+            --output text)
+          ARN=$(echo "$ARN" | tr -d '\n\r' | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
+          if [ -z "$ARN" ] || [ "$ARN" = "None" ]; then
+            echo "::error::Main stack CloudFrontDistributionArn is still empty. Docs and mapdata via CloudFront will return 403. Re-run the pipeline after fixing the update step or set the parameter manually."
+            exit 1
+          fi
+          echo "Main stack has CloudFrontDistributionArn set (docs/mapdata bucket policies allow CloudFront)."
       - name: Re-import API from OpenAPI spec
         run: |
           API_ID=$(aws cloudformation describe-stacks \
