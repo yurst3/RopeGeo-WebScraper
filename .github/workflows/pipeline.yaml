@@ -416,11 +416,15 @@ jobs:
             --no-fail-on-empty-changeset
       - name: Update main stack with CloudFront distribution ARN
         run: |
-          CF_ARN=$(aws cloudformation describe-stacks \
-            --stack-name ${PROD_API_STACK_NAME} \
-            --region ${PROD_REGION} \
-            --query "Stacks[0].Outputs[?OutputKey=='CloudFrontDistributionArn'].OutputValue" \
-            --output text)
+          if [ -n "${{ secrets.PROD_CLOUDFRONT_DISTRIBUTION_ARN }}" ]; then
+            CF_ARN="${{ secrets.PROD_CLOUDFRONT_DISTRIBUTION_ARN }}"
+          else
+            CF_ARN=$(aws cloudformation describe-stacks \
+              --stack-name ${PROD_API_STACK_NAME} \
+              --region ${PROD_REGION} \
+              --query "Stacks[0].Outputs[?OutputKey=='CloudFrontDistributionArn'].OutputValue" \
+              --output text)
+          fi
           aws cloudformation update-stack \
             --stack-name ${PROD_STACK_NAME} \
             --use-previous-template \
