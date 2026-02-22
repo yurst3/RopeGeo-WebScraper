@@ -1,8 +1,9 @@
 # /docs/{file}
+# Served by CloudFront from the docs bucket at /docs/*. This path is documented for OpenAPI; direct API calls return 404.
 get:
   summary: Serve API documentation
   description: |
-    Returns the built API documentation files.
+    Returns the built API documentation files. In production, served by CloudFront from the docs origin.
     - index.html - Redoc HTML documentation
     - openapi.yaml - Bundled OpenAPI spec (YAML)
     - openapi.json - Bundled OpenAPI spec (JSON)
@@ -11,7 +12,7 @@ get:
     - docs
   x-amazon-apigateway-request-validator: params-only
   x-amazon-apigateway-integration:
-    $ref: '../integrations/getApiDocsLambda.yaml#/GetApiDocsLambdaIntegration'
+    $ref: '../integrations/getApiDocsHttpProxy.yaml#/GetApiDocsHttpProxyIntegration'
   parameters:
     - name: file
       in: path

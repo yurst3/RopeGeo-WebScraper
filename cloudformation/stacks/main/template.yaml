@@ -39,9 +39,18 @@ Parameters:
     Type: String
     Description: IAM role ARN allowed to upload docs to the docs bucket (e.g. pipeline execution role for upload-api-docs). Leave blank to skip bucket policy.
     Default: ''
+  CloudFrontDistributionArn:
+    Type: String
+    Description: CloudFront distribution ARN (from API stack CloudFrontDistributionArn output). When set, Docs bucket allows GetObject from CloudFront only in addition to ApiGateway/pipeline. Deploy API stack first, then update main with this value.
+    Default: ''
+  MapDataPublicBaseUrl:
+    Type: String
+    Description: Public base URL for map data (e.g. https://api.webscraper.ropegeo.com). When set, GeoJSON/vector tile URLs use this instead of S3; use the CloudFront URL so traffic goes through CloudFront.
+    Default: ''
 
 Conditions:
   HasDocsBucketPipelineRole: !Not [!Equals [!Ref DocsBucketPipelineRoleArn, '']]
+  HasCloudFrontDistribution: !Not [!Equals [!Ref CloudFrontDistributionArn, '']]
   IsProduction: !Equals [!Ref devEnvironment, production]
   IsDev: !Equals [!Ref devEnvironment, dev]
 
@@ -709,6 +718,18 @@ Resources:
                   - '${BucketArn}/*'
                   - BucketArn: !GetAtt DocsBucket.Arn
             - !Ref AWS::NoValue
+          - !If
+            - HasCloudFrontDistribution
+            - Sid: AllowCloudFrontOAC
+              Effect: Allow
+              Principal:
+                Service: cloudfront.amazonaws.com
+              Action: s3:GetObject
+              Resource: !Sub '${DocsBucket.Arn}/*'
+              Condition:
+                StringEquals:
+                  AWS:SourceArn: !Ref CloudFrontDistributionArn
+            - !Ref AWS::NoValue
 
   # Lambda function that scrapes ALL Ropewiki pages and stores them in the database
   RopewikiScraper:
@@ -734,15 +755,7 @@ Resources:
   GetRoutePreview:
     $ref: lambdas/GetRoutePreview.yaml
 
-  # Lambda for GET /docs/{file} API endpoint (returns docs from S3; used for HTTP API)
-  GetApiDocs:
-    $ref: lambdas/GetApiDocs.yaml
-
-  # Lambda for GET / API endpoint (redirects to /docs/index.html)
-  GetRootRedirect:
-    $ref: lambdas/GetRootRedirect.yaml
-
-  # IAM role for API Gateway to invoke Lambda (GetRoutes, GetRoutePreview, GetApiDocs, GetRootRedirect integrations)
+  # IAM role for API Gateway to invoke Lambda (GetRoutes, GetRoutePreview integrations)
   ApiGatewayInvokeLambdaRole:
     Type: AWS::IAM::Role
     Properties:
@@ -763,34 +776,9 @@ Resources:
                 Resource:
                   - !GetAtt GetRoutes.Arn
                   - !GetAtt GetRoutePreview.Arn
-                  - !GetAtt GetApiDocs.Arn
-                  - !GetAtt GetRootRedirect.Arn
       Tags:
         - Key: Name
           Value: !Sub '${AWS::StackName}-apig-invoke-lambda'
-
-  # IAM role for API Gateway to read from DocsBucket (S3 integration for /docs/{file})
-  ApiGatewayInvokeS3Role:
-    Type: AWS::IAM::Role
-    Properties:
-      AssumeRolePolicyDocument:
-        Version: '2012-10-17'
-        Statement:
-          - Effect: Allow
-            Principal:
-              Service: apigateway.amazonaws.com
-            Action: sts:AssumeRole
-      Policies:
-        - PolicyName: GetObjectFromDocsBucket
-          PolicyDocument:
-            Version: '2012-10-17'
-            Statement:
-              - Effect: Allow
-                Action: s3:GetObject
-                Resource: !Sub '${DocsBucket.Arn}/*'
-      Tags:
-        - Key: Name
-          Value: !Sub '${AWS::StackName}-apig-invoke-s3'
 
   # Allow API Gateway to invoke GetRoutes Lambda (required for REST API integration)
   GetRoutesApiGatewayPermission:
@@ -808,44 +796,25 @@ Resources:
       Action: lambda:InvokeFunction
       Principal: apigateway.amazonaws.com
 
-  # Allow API Gateway to invoke GetApiDocs Lambda (required for HTTP API integration)
-  GetApiDocsApiGatewayPermission:
-    Type: AWS::Lambda::Permission
-    Properties:
-      FunctionName: !Ref GetApiDocs
-      Action: lambda:InvokeFunction
-      Principal: apigateway.amazonaws.com
-
-  # Allow API Gateway to invoke GetRootRedirect Lambda (required for HTTP API integration)
-  GetRootRedirectApiGatewayPermission:
-    Type: AWS::Lambda::Permission
-    Properties:
-      FunctionName: !Ref GetRootRedirect
-      Action: lambda:InvokeFunction
-      Principal: apigateway.amazonaws.com
-
 Outputs:
   DocsBucketName:
     Description: S3 bucket for API documentation (OpenAPI/Redoc)
     Value: !Ref DocsBucket
+  MapDataBucketName:
+    Description: S3 bucket for map data (GeoJSON, vector tiles); pass to API stack for CloudFront
+    Value: !Ref MapDataBucket
+  MapDataBucketArn:
+    Description: ARN of the map data S3 bucket
+    Value: !GetAtt MapDataBucket.Arn
   GetRoutesLambdaArn:
     Description: ARN of the GetRoutes Lambda (for OpenAPI integration resolveYamlEnvs)
     Value: !GetAtt GetRoutes.Arn
   GetRoutePreviewLambdaArn:
     Description: ARN of the GetRoutePreview Lambda (for OpenAPI integration resolveYamlEnvs)
     Value: !GetAtt GetRoutePreview.Arn
-  GetApiDocsLambdaArn:
-    Description: ARN of the GetApiDocs Lambda (for OpenAPI integration resolveYamlEnvs)
-    Value: !GetAtt GetApiDocs.Arn
-  GetRootRedirectLambdaArn:
-    Description: ARN of the GetRootRedirect Lambda (for OpenAPI integration resolveYamlEnvs)
-    Value: !GetAtt GetRootRedirect.Arn
   ApiGatewayInvokeLambdaRoleArn:
     Description: IAM role ARN for API Gateway to invoke Lambda (for OpenAPI integration resolveYamlEnvs)
     Value: !GetAtt ApiGatewayInvokeLambdaRole.Arn
-  ApiGatewayInvokeS3RoleArn:
-    Description: IAM role ARN for API Gateway to read from DocsBucket (for OpenAPI integration resolveYamlEnvs)
-    Value: !GetAtt ApiGatewayInvokeS3Role.Arn
   DevDatabaseEndpoint:
     Condition: IsDev
     Description: RDS instance endpoint for dev/testing migrations (used by pipeline run-migrations)

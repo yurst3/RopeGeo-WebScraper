@@ -1,0 +1,6 @@
+# GET /mapdata/{path} - Served by CloudFront from the map data bucket at /mapdata/*. Documented here; direct API Gateway call returns 404.
+GetMapDataHttpProxyIntegration:
+  type: HTTP_PROXY
+  httpMethod: GET
+  uri: https://httpstat.us/404
+  payloadFormatVersion: "1.0"

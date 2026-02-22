@@ -1,0 +1,7 @@
+# GET / - Served by CloudFront (docs origin at /). Documented here; direct API Gateway call returns 404.
+# No Lambda; use HTTP_PROXY so the path exists in the API for documentation.
+GetRootRedirectHttpProxyIntegration:
+  type: HTTP_PROXY
+  httpMethod: GET
+  uri: https://httpstat.us/404
+  payloadFormatVersion: "1.0"

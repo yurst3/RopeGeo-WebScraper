@@ -18,6 +18,8 @@ paths:
     $ref: './paths/getRoutePreview.yaml'
   /docs/{file}:
     $ref: './paths/getApiDocs.yaml'
+  /mapdata/{path}:
+    $ref: './paths/getMapData.yaml'
 
 # API Gateway request validators (see https://docs.aws.amazon.com/apigateway/latest/developerguide/api-gateway-request-validation-set-up.html#api-gateway-request-validation-setup-importing-swagger)
 x-amazon-apigateway-request-validators:

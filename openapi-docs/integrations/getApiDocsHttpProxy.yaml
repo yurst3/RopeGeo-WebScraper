@@ -1,0 +1,7 @@
+# GET /docs/{file} - Served by CloudFront (docs bucket at /docs/*). Documented here; direct API Gateway call returns 404.
+# No Lambda; use HTTP_PROXY so the path exists in the API for documentation.
+GetApiDocsHttpProxyIntegration:
+  type: HTTP_PROXY
+  httpMethod: GET
+  uri: https://httpstat.us/404
+  payloadFormatVersion: "1.0"

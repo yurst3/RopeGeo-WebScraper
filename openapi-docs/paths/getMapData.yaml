@@ -1,0 +1,38 @@
+# /mapdata/{path}
+# Served by CloudFront from the map data bucket at /mapdata/*. This path is documented for OpenAPI; direct API calls return 404.
+get:
+  summary: Serve map data files
+  description: |
+    Returns map data files (GeoJSON, source files, vector tiles). In production, served by CloudFront from the map data origin.
+    Path segments under /mapdata/:
+    - geojson/{id}.geojson - GeoJSON for a map data record
+    - source/{id}.{kml|gpx} - Source KML/GPX file
+    - vector-tiles/{id}.mbtiles - Vector tiles (MBTiles)
+  operationId: getMapData
+  tags:
+    - mapdata
+  x-amazon-apigateway-request-validator: params-only
+  x-amazon-apigateway-integration:
+    $ref: '../integrations/getMapDataHttpProxy.yaml#/GetMapDataHttpProxyIntegration'
+  parameters:
+    - name: path
+      in: path
+      required: true
+      description: Object path under mapdata (e.g. geojson/550e8400-e29b-41d4-a716-446655440000.geojson)
+      schema:
+        type: string
+        example: geojson/550e8400-e29b-41d4-a716-446655440000.geojson
+  responses:
+    '200':
+      description: The requested map data file
+      content:
+        application/geo+json:
+          schema: { type: string }
+        application/vnd.google-earth.kml+xml:
+          schema: { type: string }
+        application/gpx+xml:
+          schema: { type: string }
+        application/x-protobuf:
+          schema: { type: string }
+    '404':
+      description: File not found

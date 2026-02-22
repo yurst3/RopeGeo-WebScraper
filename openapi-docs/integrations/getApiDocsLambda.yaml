@@ -1,8 +1,0 @@
-# Lambda proxy integration for GET /docs/{file} (HTTP API compatible).
-# Serves index.html, openapi.yaml, openapi.json from the docs S3 bucket via GetApiDocs Lambda.
-GetApiDocsLambdaIntegration:
-  type: aws_proxy
-  httpMethod: POST
-  uri: arn:aws:apigateway:$env-REGION:lambda:path/2015-03-31/functions/$env-GET_API_DOCS_LAMBDA_ARN/invocations
-  credentials: $env-APIGATEWAY_INVOKE_LAMBDA_ROLE_ARN
-  payloadFormatVersion: "1.0"

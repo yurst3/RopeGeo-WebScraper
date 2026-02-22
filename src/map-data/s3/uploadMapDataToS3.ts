@@ -2,9 +2,15 @@ import { readFile } from 'fs/promises';
 import putS3Object from '../../helpers/s3/putS3Object';
 
 /**
- * Builds the S3 URL for an object in the map data bucket.
+ * Builds the public URL for an object in the map data bucket.
+ * When MAP_DATA_PUBLIC_BASE_URL is set (e.g. CloudFront URL), uses that so traffic goes through CloudFront.
  */
-const buildMapDataS3Url = (bucket: string, key: string): string => {
+const buildMapDataPublicUrl = (bucket: string, key: string): string => {
+    const base = process.env.MAP_DATA_PUBLIC_BASE_URL;
+    if (base) {
+        const normalized = base.replace(/\/$/, '');
+        return `${normalized}/mapdata/${key}`;
+    }
     return `https://${bucket}.s3.amazonaws.com/${key}`;
 };
 
@@ -33,11 +39,12 @@ const uploadMapDataToS3 = async (
 
     if (devEnvironment === 'local') {
         console.log(`Skipping S3 upload - would upload ${filePath} to s3://${bucket}/${fileKey} (no bucket configured locally)`);
-        return buildMapDataS3Url(bucket, fileKey);
+        return buildMapDataPublicUrl(bucket, fileKey);
     }
 
     const body = await readFile(filePath);
-    return putS3Object(bucket, fileKey, body, contentType);
+    const _ignored = await putS3Object(bucket, fileKey, body, contentType);
+    return buildMapDataPublicUrl(bucket, fileKey);
 };
 
 export default uploadMapDataToS3;

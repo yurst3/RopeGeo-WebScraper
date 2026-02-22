@@ -31,6 +31,7 @@ Properties:
       MAP_DATA_PROCESSING_QUEUE_URL: !Ref MapDataProcessingQueue
       MAP_DATA_PROCESSOR_TIMEOUT_SECONDS: "900"
       MAP_DATA_BUCKET_NAME: !Ref MapDataBucket
+      MAP_DATA_PUBLIC_BASE_URL: !Ref MapDataPublicBaseUrl
   Policies:
     - S3WritePolicy:
         BucketName: !Ref MapDataBucket

@@ -297,43 +297,22 @@ jobs:
             --region ${PROD_REGION} \
             --query "Stacks[0].Outputs[?OutputKey=='GetRoutePreviewLambdaArn'].OutputValue" \
             --output text)
-          GET_API_DOCS_ARN=$(aws cloudformation describe-stacks \
-            --stack-name ${PROD_STACK_NAME} \
-            --region ${PROD_REGION} \
-            --query "Stacks[0].Outputs[?OutputKey=='GetApiDocsLambdaArn'].OutputValue" \
-            --output text)
-          GET_ROOT_REDIRECT_ARN=$(aws cloudformation describe-stacks \
-            --stack-name ${PROD_STACK_NAME} \
-            --region ${PROD_REGION} \
-            --query "Stacks[0].Outputs[?OutputKey=='GetRootRedirectLambdaArn'].OutputValue" \
-            --output text)
           INVOKE_LAMBDA_ROLE=$(aws cloudformation describe-stacks \
             --stack-name ${PROD_STACK_NAME} \
             --region ${PROD_REGION} \
             --query "Stacks[0].Outputs[?OutputKey=='ApiGatewayInvokeLambdaRoleArn'].OutputValue" \
             --output text)
-          INVOKE_S3_ROLE=$(aws cloudformation describe-stacks \
-            --stack-name ${PROD_STACK_NAME} \
-            --region ${PROD_REGION} \
-            --query "Stacks[0].Outputs[?OutputKey=='ApiGatewayInvokeS3RoleArn'].OutputValue" \
-            --output text)
           echo "bucket=${BUCKET}" >> $GITHUB_OUTPUT
           echo "get_routes_arn=${GET_ROUTES_ARN}" >> $GITHUB_OUTPUT
           echo "get_route_preview_arn=${GET_ROUTE_PREVIEW_ARN}" >> $GITHUB_OUTPUT
-          echo "get_api_docs_arn=${GET_API_DOCS_ARN}" >> $GITHUB_OUTPUT
-          echo "get_root_redirect_arn=${GET_ROOT_REDIRECT_ARN}" >> $GITHUB_OUTPUT
           echo "invoke_lambda_role=${INVOKE_LAMBDA_ROLE}" >> $GITHUB_OUTPUT
-          echo "invoke_s3_role=${INVOKE_S3_ROLE}" >> $GITHUB_OUTPUT
 
       - name: Resolve OpenAPI $env- placeholders to openapiResolved.yaml
         run: |
           REGION=${{ env.PROD_REGION }} \
           GET_ROUTES_LAMBDA_ARN=${{ steps.stack-outputs.outputs.get_routes_arn }} \
           GET_ROUTE_PREVIEW_LAMBDA_ARN=${{ steps.stack-outputs.outputs.get_route_preview_arn }} \
-          GET_API_DOCS_LAMBDA_ARN=${{ steps.stack-outputs.outputs.get_api_docs_arn }} \
-          GET_ROOT_REDIRECT_LAMBDA_ARN=${{ steps.stack-outputs.outputs.get_root_redirect_arn }} \
           APIGATEWAY_INVOKE_LAMBDA_ROLE_ARN=${{ steps.stack-outputs.outputs.invoke_lambda_role }} \
-          APIGATEWAY_INVOKE_S3_ROLE_ARN=${{ steps.stack-outputs.outputs.invoke_s3_role }} \
           DOCS_BUCKET_NAME=${{ steps.stack-outputs.outputs.bucket }} \
           npx ts-node --files scripts/resolveYamlEnvs.ts docs-build/openapi.yaml docs-build/openapiResolved.yaml
 
@@ -361,21 +340,29 @@ jobs:
           role-session-name: testing-api-deployment
           role-duration-seconds: 3600
           role-skip-session-tagging: true
-      - name: Get docs bucket name from main stack
-        id: get-docs-bucket
+      - name: Get main stack outputs for API deployment
+        id: get-buckets
         run: |
-          BUCKET=$(aws cloudformation describe-stacks \
+          DOCS_BUCKET=$(aws cloudformation describe-stacks \
             --stack-name ${TESTING_STACK_NAME} \
             --region ${TESTING_REGION} \
             --query "Stacks[0].Outputs[?OutputKey=='DocsBucketName'].OutputValue" \
             --output text)
-          echo "bucket=${BUCKET}" >> $GITHUB_OUTPUT
+          MAP_DATA_BUCKET=$(aws cloudformation describe-stacks \
+            --stack-name ${TESTING_STACK_NAME} \
+            --region ${TESTING_REGION} \
+            --query "Stacks[0].Outputs[?OutputKey=='MapDataBucketName'].OutputValue" \
+            --output text)
+          echo "docs_bucket=${DOCS_BUCKET}" >> $GITHUB_OUTPUT
+          echo "map_data_bucket=${MAP_DATA_BUCKET}" >> $GITHUB_OUTPUT
       - name: Deploy API stack to testing
         run: |
           aws cloudformation deploy \
             --template-file cloudformation/stacks/api/template-resolved.yaml \
             --stack-name ${TESTING_API_STACK_NAME} \
-            --parameter-overrides DocsBucketName=${{ steps.get-docs-bucket.outputs.bucket }} \
+            --parameter-overrides \
+              DocsBucketName=${{ steps.get-buckets.outputs.docs_bucket }} \
+              MapDataBucketName=${{ steps.get-buckets.outputs.map_data_bucket }} \
             --capabilities CAPABILITY_IAM \
             --region ${TESTING_REGION} \
             --no-fail-on-empty-changeset
@@ -399,27 +386,55 @@ jobs:
           role-session-name: prod-api-deployment
           role-duration-seconds: 3600
           role-skip-session-tagging: true
-      - name: Get docs bucket name from main stack
-        id: get-docs-bucket
+      - name: Get main stack outputs for API deployment
+        id: get-buckets
         run: |
-          BUCKET=$(aws cloudformation describe-stacks \
+          DOCS_BUCKET=$(aws cloudformation describe-stacks \
             --stack-name ${PROD_STACK_NAME} \
             --region ${PROD_REGION} \
             --query "Stacks[0].Outputs[?OutputKey=='DocsBucketName'].OutputValue" \
             --output text)
-          echo "bucket=${BUCKET}" >> $GITHUB_OUTPUT
+          MAP_DATA_BUCKET=$(aws cloudformation describe-stacks \
+            --stack-name ${PROD_STACK_NAME} \
+            --region ${PROD_REGION} \
+            --query "Stacks[0].Outputs[?OutputKey=='MapDataBucketName'].OutputValue" \
+            --output text)
+          echo "docs_bucket=${DOCS_BUCKET}" >> $GITHUB_OUTPUT
+          echo "map_data_bucket=${MAP_DATA_BUCKET}" >> $GITHUB_OUTPUT
       - name: Deploy API stack to production
         run: |
           aws cloudformation deploy \
             --template-file cloudformation/stacks/api/template-resolved.yaml \
             --stack-name ${PROD_API_STACK_NAME} \
             --parameter-overrides \
-              DocsBucketName=${{ steps.get-docs-bucket.outputs.bucket }} \
+              DocsBucketName=${{ steps.get-buckets.outputs.docs_bucket }} \
+              MapDataBucketName=${{ steps.get-buckets.outputs.map_data_bucket }} \
               CustomDomainName=api.webscraper.ropegeo.com \
-              ApiCertificateArn=${{ secrets.PROD_API_CERTIFICATE_ARN }} \
+              CloudFrontCertificateArn=${{ secrets.PROD_CLOUDFRONT_CERTIFICATE_ARN }} \
             --capabilities CAPABILITY_IAM \
             --region ${PROD_REGION} \
             --no-fail-on-empty-changeset
+      - name: Update main stack with CloudFront distribution ARN
+        run: |
+          CF_ARN=$(aws cloudformation describe-stacks \
+            --stack-name ${PROD_API_STACK_NAME} \
+            --region ${PROD_REGION} \
+            --query "Stacks[0].Outputs[?OutputKey=='CloudFrontDistributionArn'].OutputValue" \
+            --output text)
+          aws cloudformation update-stack \
+            --stack-name ${PROD_STACK_NAME} \
+            --use-previous-template \
+            --parameter-overrides \
+              CloudFrontDistributionArn="${CF_ARN}" \
+              MapDataPublicBaseUrl=https://api.webscraper.ropegeo.com \
+            --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM \
+            --region ${PROD_REGION} \
+            --role-arn ${PROD_CLOUDFORMATION_EXECUTION_ROLE} || true
+          if [ $? -eq 0 ]; then
+            aws cloudformation wait stack-update-complete \
+              --stack-name ${PROD_STACK_NAME} \
+              --region ${PROD_REGION}
+          fi
       - name: Re-import API from OpenAPI spec
         run: |
           API_ID=$(aws cloudformation describe-stacks \
@@ -427,7 +442,7 @@ jobs:
             --region ${PROD_REGION} \
             --query "Stacks[0].Outputs[?OutputKey=='WebScraperApiId'].OutputValue" \
             --output text)
-          aws s3 cp s3://${{ steps.get-docs-bucket.outputs.bucket }}/openapiResolved.yaml openapiResolved.yaml
+          aws s3 cp s3://${{ steps.get-buckets.outputs.docs_bucket }}/openapiResolved.yaml openapiResolved.yaml
           aws apigatewayv2 reimport-api \
             --api-id "${API_ID}" \
             --body file://openapiResolved.yaml \
