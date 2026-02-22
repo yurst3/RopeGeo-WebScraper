@@ -369,11 +369,15 @@ jobs:
 
   deploy-prod-api:
     if: always() && github.ref == 'refs/heads/master' && needs.upload-api-docs.result == 'success'
-    needs: [upload-api-docs]
+    needs: [upload-api-docs, build-and-package-main]
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository code
         uses: actions/checkout@v4
+      - name: Download main stack template (for update step; ensures template has CloudFrontDistributionArn)
+        uses: actions/download-artifact@v4
+        with:
+          name: packaged-prod.yaml
       - name: Resolve API template $ref
         run: npx ts-node --files scripts/resolveYamlRefs.ts cloudformation/stacks/api/template.yaml cloudformation/stacks/api/template-resolved.yaml
       - name: Assume the prod pipeline user role
@@ -430,10 +434,14 @@ jobs:
             echo "::error::CloudFront distribution ARN is empty. Set PROD_CLOUDFRONT_DISTRIBUTION_ARN or ensure API stack output CloudFrontDistributionArn exists."
             exit 1
           fi
+          MAIN_TEMPLATE=packaged-prod.yaml
+          if [ -f packaged-prod.yaml/packaged-prod.yaml ]; then
+            MAIN_TEMPLATE=packaged-prod.yaml/packaged-prod.yaml
+          fi
           set +e
           UPDATE_OUTPUT=$(aws cloudformation update-stack \
             --stack-name ${PROD_STACK_NAME} \
-            --use-previous-template \
+            --template-body fileb://${MAIN_TEMPLATE} \
             --parameter-overrides \
               CloudFrontDistributionArn="${CF_ARN}" \
               MapDataPublicBaseUrl=https://api.webscraper.ropegeo.com \
@@ -463,7 +471,7 @@ jobs:
             --output text)
           ARN=$(echo "$ARN" | tr -d '\n\r' | sed 's/^[[:space:]]*//;s/[[:space:]]*$//')
           if [ -z "$ARN" ] || [ "$ARN" = "None" ]; then
-            echo "::error::Main stack CloudFrontDistributionArn is still empty. Docs and mapdata via CloudFront will return 403. Re-run the pipeline after fixing the update step or set the parameter manually."
+            echo "::error::Main stack CloudFrontDistributionArn is still empty. Docs and mapdata via CloudFront will return 403. Ensure PROD_CLOUDFRONT_DISTRIBUTION_ARN secret is set (no spaces/newlines) and the update step succeeded, or set the parameter manually in CloudFormation."
             exit 1
           fi
           echo "Main stack has CloudFrontDistributionArn set (docs/mapdata bucket policies allow CloudFront)."
