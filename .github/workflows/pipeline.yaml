@@ -369,15 +369,11 @@ jobs:
 
   deploy-prod-api:
     if: always() && github.ref == 'refs/heads/master' && needs.upload-api-docs.result == 'success'
-    needs: [upload-api-docs, build-and-package-main]
+    needs: [upload-api-docs]
     runs-on: ubuntu-latest
     steps:
       - name: Check out repository code
         uses: actions/checkout@v4
-      - name: Download main stack template (for update step; ensures template has CloudFrontDistributionArn)
-        uses: actions/download-artifact@v4
-        with:
-          name: packaged-prod.yaml
       - name: Resolve API template $ref
         run: npx ts-node --files scripts/resolveYamlRefs.ts cloudformation/stacks/api/template.yaml cloudformation/stacks/api/template-resolved.yaml
       - name: Assume the prod pipeline user role
@@ -434,14 +430,20 @@ jobs:
             echo "::error::CloudFront distribution ARN is empty. Set PROD_CLOUDFRONT_DISTRIBUTION_ARN or ensure API stack output CloudFrontDistributionArn exists."
             exit 1
           fi
-          MAIN_TEMPLATE=packaged-prod.yaml
-          if [ -f packaged-prod.yaml/packaged-prod.yaml ]; then
-            MAIN_TEMPLATE=packaged-prod.yaml/packaged-prod.yaml
+          echo "Fetching current main stack template for parameter-only update..."
+          aws cloudformation get-template \
+            --stack-name ${PROD_STACK_NAME} \
+            --region ${PROD_REGION} \
+            --query 'TemplateBody' \
+            --output text > main-current-template.yaml
+          if ! grep -q 'CloudFrontDistributionArn' main-current-template.yaml; then
+            echo "::error::Main stack template does not define CloudFrontDistributionArn. Deploy the main stack once with the current code (run the full pipeline so deploy-prod-main runs), then re-run this job."
+            exit 1
           fi
           set +e
           UPDATE_OUTPUT=$(aws cloudformation update-stack \
             --stack-name ${PROD_STACK_NAME} \
-            --template-body fileb://${MAIN_TEMPLATE} \
+            --template-body fileb://main-current-template.yaml \
             --parameter-overrides \
               CloudFrontDistributionArn="${CF_ARN}" \
               MapDataPublicBaseUrl=https://api.webscraper.ropegeo.com \
@@ -455,10 +457,12 @@ jobs:
               --stack-name ${PROD_STACK_NAME} \
               --region ${PROD_REGION}
           elif [ $UPDATE_EXIT -eq 255 ] || [ $UPDATE_EXIT -eq 252 ]; then
-            echo "Update-stack returned $UPDATE_EXIT (often 'No updates are to be performed'). Verifying main stack has CloudFrontDistributionArn..."
+            echo "Update-stack returned $UPDATE_EXIT. Output:"
             echo "$UPDATE_OUTPUT"
+            echo "::error::Main stack update was a no-op. Set CloudFrontDistributionArn manually: AWS Console → CloudFormation → ${PROD_STACK_NAME} → Stack actions → Edit parameters → set CloudFrontDistributionArn to the distribution ARN → Save. Or run a full pipeline so deploy-prod-main deploys the stack with the latest template first."
+            exit 1
           else
-            echo "::error::Main stack update failed (exit $UPDATE_EXIT). Check that the template has CloudFrontDistributionArn and the role has permission."
+            echo "::error::Main stack update failed (exit $UPDATE_EXIT)."
             echo "$UPDATE_OUTPUT"
             exit $UPDATE_EXIT
           fi
