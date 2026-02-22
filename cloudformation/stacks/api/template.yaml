@@ -201,24 +201,6 @@ Resources:
               - EventType: viewer-request
                 FunctionARN: !GetAtt StripDocsPrefixFunction.FunctionARN
 
-  # Allow CloudFront to read from MapDataBucket (only policy on this bucket; no public access)
-  MapDataBucketCloudFrontPolicy:
-    Type: AWS::S3::BucketPolicy
-    Properties:
-      Bucket: !Ref MapDataBucketName
-      PolicyDocument:
-        Version: '2012-10-17'
-        Statement:
-          - Sid: AllowCloudFrontOAC
-            Effect: Allow
-            Principal:
-              Service: cloudfront.amazonaws.com
-            Action: s3:GetObject
-            Resource: !Sub 'arn:aws:s3:::${MapDataBucketName}/*'
-            Condition:
-              StringEquals:
-                AWS:SourceArn: !Sub 'arn:aws:cloudfront::${AWS::AccountId}:distribution/${WebScraperDistribution}'
-
 Outputs:
   WebScraperApiEndpoint:
     Description: Default endpoint for the WebScraper HTTP API (use via CloudFront in production)
