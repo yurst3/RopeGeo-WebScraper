@@ -123,7 +123,6 @@ Resources:
           - AcmCertificateArn: !Ref CloudFrontCertificateArn
             SslSupportMethod: sni-only
             MinimumProtocolVersion: TLSv1.2_2021
-            CloudFrontDefaultCertificate: false
           - CloudFrontDefaultCertificate: true
         Origins:
           - Id: MapDataBucket
