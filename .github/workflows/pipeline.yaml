@@ -431,7 +431,7 @@ jobs:
             exit 1
           fi
           set +e
-          aws cloudformation update-stack \
+          UPDATE_OUTPUT=$(aws cloudformation update-stack \
             --stack-name ${PROD_STACK_NAME} \
             --use-previous-template \
             --parameter-overrides \
@@ -439,15 +439,19 @@ jobs:
               MapDataPublicBaseUrl=https://api.webscraper.ropegeo.com \
             --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM \
             --region ${PROD_REGION} \
-            --role-arn ${PROD_CLOUDFORMATION_EXECUTION_ROLE}
+            --role-arn ${PROD_CLOUDFORMATION_EXECUTION_ROLE} 2>&1)
           UPDATE_EXIT=$?
           set -e
           if [ $UPDATE_EXIT -eq 0 ]; then
             aws cloudformation wait stack-update-complete \
               --stack-name ${PROD_STACK_NAME} \
               --region ${PROD_REGION}
-          elif [ $UPDATE_EXIT -ne 255 ]; then
+          elif [ $UPDATE_EXIT -eq 255 ] || [ $UPDATE_EXIT -eq 252 ]; then
+            echo "Update-stack returned $UPDATE_EXIT (often 'No updates are to be performed'). Verifying main stack has CloudFrontDistributionArn..."
+            echo "$UPDATE_OUTPUT"
+          else
             echo "::error::Main stack update failed (exit $UPDATE_EXIT). Check that the template has CloudFrontDistributionArn and the role has permission."
+            echo "$UPDATE_OUTPUT"
             exit $UPDATE_EXIT
           fi
       - name: Verify main stack has CloudFront ARN (required for docs/mapdata 403 fix)
