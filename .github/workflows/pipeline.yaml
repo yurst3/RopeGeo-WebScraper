@@ -535,10 +535,14 @@ jobs:
             echo "::error::Main stack template does not define CloudFrontDistributionArn. Deploy the main stack once with the current code (run the full pipeline so deploy-prod-main runs), then re-run this job."
             exit 1
           fi
+          # Template exceeds 51,200 bytes inline limit; upload to S3 and use --template-url.
+          echo "Uploading template to S3 (template exceeds inline size limit)..."
+          aws s3 cp main-current-template.yaml "s3://${PROD_ARTIFACTS_BUCKET}/main-stack-template-for-update.yaml" --region ${PROD_REGION}
+          TEMPLATE_URL="https://${PROD_ARTIFACTS_BUCKET}.s3.${PROD_REGION}.amazonaws.com/main-stack-template-for-update.yaml"
           set +e
           UPDATE_OUTPUT=$(aws cloudformation update-stack \
             --stack-name ${PROD_STACK_NAME} \
-            --template-body file://main-current-template.yaml \
+            --template-url "${TEMPLATE_URL}" \
             --parameters \
               ParameterKey=CloudFrontDistributionArn,ParameterValue="${CF_ARN}" \
               ParameterKey=MapDataPublicBaseUrl,ParameterValue=https://api.webscraper.ropegeo.com \
