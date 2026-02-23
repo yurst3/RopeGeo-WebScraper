@@ -513,9 +513,20 @@ jobs:
           aws cloudformation get-template \
             --stack-name ${PROD_STACK_NAME} \
             --region ${PROD_REGION} \
-            --query 'TemplateBody' \
-            --output text > main-current-template.yaml
-          # When the template is large, get-template returns an S3 URL instead of inline body; download it so update-stack gets valid YAML.
+            --output json > get-template-response.json
+          # Extract template body with jq to avoid AWS CLI --output text bug with large templates ('str' has no attribute 'items').
+          jq -r '.TemplateBody // empty' get-template-response.json > main-current-template.yaml
+          if [ ! -s main-current-template.yaml ]; then
+            URL=$(jq -r '.TemplateUrl // empty' get-template-response.json)
+            if [ -n "$URL" ]; then
+              curl -sSfL "${URL}" -o main-current-template.yaml
+            else
+              echo "::error::Could not retrieve main stack template (TemplateBody empty and no TemplateUrl)."
+              rm -f get-template-response.json
+              exit 1
+            fi
+          fi
+          rm -f get-template-response.json
           if head -1 main-current-template.yaml | grep -q '^https\?://'; then
             TEMPLATE_URL=$(cat main-current-template.yaml)
             curl -sSfL "${TEMPLATE_URL}" -o main-current-template.yaml

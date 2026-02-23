@@ -3,6 +3,7 @@
 FROM node:22-alpine
 
 RUN apk add --no-cache \
+    bash \
     git g++ make \
     libgcc libstdc++ \
     sqlite-libs sqlite-dev \
