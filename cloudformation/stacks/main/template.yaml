@@ -872,6 +872,7 @@ Resources:
             Options:
               awslogs-group: !Ref GenerateRouteMarkerTilesLogGroup
               awslogs-region: !Ref AWS::Region
+              awslogs-stream-prefix: ecs
 
   GenerateRouteMarkerTilesEventBridgeRole:
     Type: AWS::IAM::Role
