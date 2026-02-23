@@ -1,0 +1,92 @@
+---
+description: How to create new ECS Fargate scheduled jobs (code layout, CloudFormation, tests).
+alwaysApply: false
+globs: src/fargate-jobs/**/*,test/fargate-jobs/**/*,cloudformation/stacks/main/template.yaml,.github/workflows/pipeline.yaml
+---
+
+# Fargate Jobs
+
+Use this rule when adding a new ECS Fargate scheduled job. It covers file structure, CloudFormation resources, and unit/database testing.
+
+## 1. Code layout under `src/fargate-jobs/<jobName>/`
+
+Use a single folder per job with a **kebab-case** name (e.g. `generateRouteMarkerTiles`). Structure:
+
+```
+src/fargate-jobs/<jobName>/
+  main.ts              # Entrypoint: export async function main(); run only when require.main === module
+  Dockerfile           # FROM node:22-alpine (or other); COPY app; CMD ["npx", "ts-node", "--files", "src/fargate-jobs/<jobName>/main.ts"]
+  README.md            # Build/push image, run locally, env vars
+  database/            # Optional: DB access for this job
+    getX.ts            # Functions that take db.Queryable and return data (use zapatos)
+  util/                # Optional: pure helpers (file I/O, CLI wrappers, AWS calls)
+    makeX.ts
+```
+
+- **main.ts**: Export `export async function main(): Promise<void>`. At the bottom, only run when executed as entrypoint:
+  `if (require.main === module) { main().then(() => process.exit(0), (err) => { console.error(err); process.exit(1); }); }`
+- **Imports**: Use relative paths to shared code (e.g. `../../helpers/getDatabaseConnection`, `../../api/.../database/getRoutes` if reusing, or `./database/getX`).
+- **Database**: One file per logical query; functions accept `db.Queryable` (e.g. pooled client from `getDatabaseConnection()`). Release client and `pool.end()` in a `finally` in `main.ts`.
+- **Util**: Keep functions small and testable (pure or with dependencies injected via parameters/return values). For child processes (e.g. tippecanoe), use `spawn` in a util and return a Promise; for AWS, use the SDK in a util.
+
+## 2. CloudFormation resources (main stack)
+
+Add the following to `cloudformation/stacks/main/template.yaml`. Use a consistent prefix per job (e.g. `GenerateRouteMarkerTiles*`). **Reuse the existing `EcsCluster`**; do not create a second cluster.
+
+| Resource | Type | Purpose |
+|----------|------|---------|
+| `<Prefix>Repository` | AWS::ECR::Repository | Image repo; `RepositoryName: !Sub '${devEnvironment}-<job-name-kebab>'`; optional LifecyclePolicy (e.g. keep last 2 images). |
+| `<Prefix>ExecutionRole` | AWS::IAM::Role | For ECS to pull image and write logs. `Principal: ecs-tasks.amazonaws.com`; attach `AmazonECSTaskExecutionRolePolicy`. |
+| `<Prefix>TaskRole` | AWS::IAM::Role | Permissions for the task (S3, CloudFront, Secrets, etc.). Add Policies as needed (e.g. S3 PutObject, cloudfront:CreateInvalidation). |
+| `<Prefix>LogGroup` | AWS::Logs::LogGroup | e.g. `LogGroupName: !Sub '/ecs/${devEnvironment}-<job-name-kebab}'`, `RetentionInDays: 30`. |
+| `<Prefix>TaskDefinition` | AWS::ECS::TaskDefinition | `NetworkMode: awsvpc`, `RequiresCompatibilities: [FARGATE]`, `Cpu`/`Memory`, ExecutionRoleArn, TaskRoleArn. Container: Image from ECR (`!Sub '${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/${<Prefix>Repository}:latest'`), Environment (DB_*, etc.), LogConfiguration (awslogs to LogGroup). |
+| `<Prefix>EventBridgeRole` | AWS::IAM::Role | For EventBridge to run the task. `Principal: events.amazonaws.com`. Policy: `ecs:RunTask` on the task definition ARN, `iam:PassRole` on ExecutionRole and TaskRole (Condition `iam:PassedToService: ecs-tasks.amazonaws.com`). |
+| `<Prefix>ScheduleRule` | AWS::Events::Rule | `ScheduleExpression: cron(...)` (e.g. `cron(0 12 * * ? *)` for noon UTC daily). Targets: `Arn: !GetAtt EcsCluster.Arn`, `RoleArn: !GetAtt <Prefix>EventBridgeRole.Arn`, EcsParameters (TaskDefinitionArn, TaskCount: 1, LaunchType: FARGATE, NetworkConfiguration with PrivateSubnet1/2, LambdaSecurityGroup, AssignPublicIp: DISABLED). |
+
+**Outputs**: Add an output for the ECR repository URI (e.g. `!Sub '${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/${<Prefix>Repository}:latest'`) so the pipeline or docs can reference the image tag for build/push.
+
+**VPC**: The task runs in the same VPC as Lambdas (PrivateSubnet1, PrivateSubnet2, LambdaSecurityGroup) so it can reach RDS and S3 (and any VPC endpoints).
+
+## 3. Unit tests
+
+- **Location**: Mirror `src/fargate-jobs/<jobName>/` under `test/fargate-jobs/<jobName>/`.
+- **main.test.ts**: Mock all dependencies (`getDatabaseConnection`, database module(s), util modules, `fs`, `putS3Object`, etc.) with `jest.mock('...', () => ({ ... jest.fn() }))`. Import the mocked modules and `main` from the job. In `beforeEach`, set env (e.g. `MAP_DATA_BUCKET_NAME`), set up mock implementations (pool with `connect`/`end`, release). Test: (1) validation (e.g. throws when required env missing), (2) happy path (correct sequence of calls and arguments), (3) optional behavior (e.g. CloudFront invalidation only when env set), (4) cleanup (release + pool.end when a step throws), (5) propagation of rejections from async steps.
+- **util/*.test.ts**: Mock external deps (e.g. `child_process.spawn`, `fs`, `@aws-sdk/client-*`). For `spawn`, return a fake child with `stderr.on('data', cb)`, `on('close', cb)`, `on('error', cb)` and invoke callbacks in tests to simulate success/failure. See `test/map-data/util/convertToVectorTiles.test.ts` and `test/fargate-jobs/generateRouteMarkerTiles/util/makePmtiles.test.ts`. For AWS SDK, mock the client’s `send` and (if needed) the Command constructor to capture input; assert on the captured input and that `send` was called. Use `jest.mocked()` and avoid referencing variables inside `jest.mock()` factories (hoisting); use `jest.fn()` inside the factory and configure in `beforeEach` via the imported module.
+- **database/*.test.ts**: Integration tests against a real DB. Use `TEST_USER`, `TEST_PASS`, `TEST_HOST`, `TEST_PORT`, `TEST_DB`. Create a `Pool`, run `beforeAll`/`afterEach` cleanup (e.g. `db.sql\`DELETE FROM "Table"\`.run(conn)`), `afterAll` `pool.end()`. Test: returns expected rows, filters (e.g. deletedAt), empty result. These tests are **excluded** from `test:unit` and **included** in `test:database` via `package.json` patterns.
+
+## 4. package.json test scripts
+
+- **test:unit**: Must **ignore** fargate database tests: `--testPathIgnorePatterns='/test/fargate-jobs/.*/database/'`.
+- **test:database**: Must **include** fargate database tests: `--testPathPatterns='/test/fargate-jobs/.*/database/'`.
+
+If you add a new top-level fargate job directory, the existing patterns already cover `test/fargate-jobs/.*/database/`; no change needed unless you introduce a different test path convention.
+
+## 5. Dockerfile and README
+
+- **Dockerfile**: Base image (e.g. `node:22-alpine`), install any system binaries (e.g. `apk add tippecanoe`), `WORKDIR /app`, `COPY package.json package-lock.json*`, `RUN npm ci --omit=dev`, `COPY . .`, `CMD ["npx", "ts-node", "--files", "src/fargate-jobs/<jobName>/main.ts"]`.
+- **README**: Optional. The repo README has a general “Fargate jobs (running locally)” section; per-job READMEs can be omitted or kept minimal (job purpose, schedule, extra env or tools). No need to duplicate “how to run locally” or “build and push” in each job.
+
+## 6. GitHub Actions: build and push (single job for all Fargate jobs)
+
+One job **build-push-fargate-jobs** in `.github/workflows/pipeline.yaml` builds and pushes **all** Fargate job images after the main stack is deployed. You do **not** add a new workflow job per Fargate job.
+
+- **Trigger**: `needs: [deploy-prod-main, deploy-testing-main]`; `if: always() && github.ref == 'refs/heads/master' && (deploy-prod-main or deploy-testing-main succeeded)`.
+- **Discovery**: The job queries both stacks (testing and prod) for **all** outputs whose `OutputKey` ends with `RepositoryUri`. For each such output, it derives the job folder: prefix = key with `RepositoryUri` removed, folder = prefix in **camelCase** (first letter lower). Example: `GenerateRouteMarkerTilesRepositoryUri` → folder `generateRouteMarkerTiles`. It only builds when `src/fargate-jobs/<folder>/Dockerfile` exists.
+- **Convention**: CloudFormation output key must be **`<Prefix>RepositoryUri`** (PascalCase prefix + literal `RepositoryUri`). The folder under `src/fargate-jobs/` must be the **camelCase** version of that prefix (e.g. `GenerateRouteMarkerTiles` → `generateRouteMarkerTiles`). Then the pipeline will pick it up automatically.
+- **Steps** (conceptually): Get all `*RepositoryUri` outputs from both stacks; emit lines `folder uri`; group by folder; for each folder, build once and push to all URIs (testing and/or prod).
+- **Pipeline role**: Must have `ecr:GetAuthorizationToken` and ECR push permissions (`ecr:PutImage`, etc.) for the repos. Add a policy for `*RepositoryUri` ECR repos if needed.
+
+For a **new** Fargate job: add the CloudFormation resources and an output **`<Prefix>RepositoryUri`**, and ensure the code lives under **`src/fargate-jobs/<camelCasePrefix>/`** (e.g. `src/fargate-jobs/myNewJob/` if prefix is `MyNewJob`). No change to the workflow file.
+
+## Checklist
+
+- [ ] `src/fargate-jobs/<jobName>/main.ts` (export `main`, guard with `require.main === module`)
+- [ ] `src/fargate-jobs/<jobName>/Dockerfile` (optional: README with job-specific notes only; repo README covers running locally and build/push)
+- [ ] `database/*.ts` and/or `util/*.ts` as needed
+- [ ] CloudFormation: ECR, ExecutionRole, TaskRole, LogGroup, TaskDefinition, EventBridgeRole, ScheduleRule; reuse EcsCluster
+- [ ] Output for ECR repository URI (and optional cluster name)
+- [ ] `test/fargate-jobs/<jobName>/main.test.ts` (all deps mocked, orchestration and errors covered)
+- [ ] `test/fargate-jobs/<jobName>/util/*.test.ts` for each util (mocks for spawn/fs/AWS)
+- [ ] `test/fargate-jobs/<jobName>/database/*.test.ts` for each DB function (real DB, TEST_* env)
+- [ ] `package.json`: test:unit ignores `test/fargate-jobs/.*/database/`, test:database includes it
+- [ ] CloudFormation output **`<Prefix>RepositoryUri`** and folder **`src/fargate-jobs/<camelCasePrefix>/`** so the existing **build-push-fargate-jobs** workflow job discovers and pushes the image (no new job needed)

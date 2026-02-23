@@ -254,6 +254,85 @@ jobs:
             --role-arn ${PROD_CLOUDFORMATION_EXECUTION_ROLE} \
             --parameter-overrides "devEnvironment=production DatabaseUsername=$PROD_DATABASE_USERNAME DatabasePassword=$PROD_DATABASE_PASSWORD FckNatAMIId=$FCK_NAT_AMI ProxyUrl=$PROXY_URL DocsBucketPipelineRoleArn=$PROD_PIPELINE_EXECUTION_ROLE"
 
+  build-push-fargate-jobs:
+    if: always() && github.ref == 'refs/heads/master' && (needs.deploy-prod-main.result == 'success' || needs.deploy-testing-main.result == 'success')
+    needs: [deploy-prod-main, deploy-testing-main]
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out repository code
+        uses: actions/checkout@v4
+
+      - name: Assume the prod pipeline user role
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ env.PIPELINE_USER_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ env.PIPELINE_USER_SECRET_ACCESS_KEY }}
+          aws-region: ${{ env.PROD_REGION }}
+          role-to-assume: ${{ env.PROD_PIPELINE_EXECUTION_ROLE }}
+          role-session-name: build-push-fargate-images
+          role-duration-seconds: 3600
+          role-skip-session-tagging: true
+
+      - name: Get ECR repository URIs from stack outputs (all Fargate jobs)
+        id: ecr-outputs
+        run: |
+          set -e
+          # Output keys must end with "RepositoryUri"; folder = prefix in camelCase (e.g. GenerateRouteMarkerTiles -> generateRouteMarkerTiles)
+          TMPFILE=$(mktemp)
+          if [ "${{ needs.deploy-prod-main.result }}" == "success" ]; then
+            aws cloudformation describe-stacks --stack-name ${PROD_STACK_NAME} --region ${PROD_REGION} \
+              --query 'Stacks[0].Outputs' --output json 2>/dev/null | jq -r '.[] | select(.OutputKey | endswith("RepositoryUri")) | "\(.OutputKey | sub("RepositoryUri$"; "") | (.[0:1] | ascii_downcase) + .[1:]) \(.OutputValue)"' >> "$TMPFILE" || true
+          fi
+          if [ "${{ needs.deploy-testing-main.result }}" == "success" ]; then
+            aws cloudformation describe-stacks --stack-name ${TESTING_STACK_NAME} --region ${TESTING_REGION} \
+              --query 'Stacks[0].Outputs' --output json 2>/dev/null | jq -r '.[] | select(.OutputKey | endswith("RepositoryUri")) | "\(.OutputKey | sub("RepositoryUri$"; "") | (.[0:1] | ascii_downcase) + .[1:]) \(.OutputValue)"' >> "$TMPFILE" || true
+          fi
+          # One line per "folder uri" (same folder can appear twice for testing + prod URIs)
+          echo "entries<<EOF" >> $GITHUB_OUTPUT
+          cat "$TMPFILE" >> $GITHUB_OUTPUT
+          echo "EOF" >> $GITHUB_OUTPUT
+          HAS_ENTRIES=$( [ -s "$TMPFILE" ] && echo "true" || echo "false" )
+          echo "has_entries=${HAS_ENTRIES}" >> $GITHUB_OUTPUT
+          rm -f "$TMPFILE"
+
+      - name: Build and push all Fargate job images
+        if: steps.ecr-outputs.outputs.has_entries == 'true'
+        env:
+          ENTRIES: ${{ steps.ecr-outputs.outputs.entries }}
+          PROD_REGION: ${{ env.PROD_REGION }}
+        run: |
+          set -e
+          declare -A URIS_FOR_FOLDER
+          while IFS= read -r line; do
+            [ -z "$line" ] && continue
+            folder="${line%% *}"
+            uri="${line#* }"
+            [ -z "$folder" ] || [ -z "$uri" ] && continue
+            DOCKERFILE="src/fargate-jobs/${folder}/Dockerfile"
+            [ -f "$DOCKERFILE" ] || { echo "Skipping $folder: no $DOCKERFILE"; continue; }
+            URIS_FOR_FOLDER[$folder]+="${uri} "
+          done << 'ENTRIES_EOF'
+          ${{ steps.ecr-outputs.outputs.entries }}
+          ENTRIES_EOF
+
+          REGISTRY=""
+          for folder in "${!URIS_FOR_FOLDER[@]}"; do
+            DOCKERFILE="src/fargate-jobs/${folder}/Dockerfile"
+            [ -f "$DOCKERFILE" ] || continue
+            first_uri=$(echo ${URIS_FOR_FOLDER[$folder]} | awk '{print $1}')
+            if [ -z "$REGISTRY" ]; then
+              REGISTRY="${first_uri%%/*}"
+              aws ecr get-login-password --region ${PROD_REGION} | docker login --username AWS --password-stdin "${REGISTRY}"
+            fi
+            IMAGE_TAG="${folder}:latest"
+            docker build -f "$DOCKERFILE" -t "${IMAGE_TAG}" .
+            for uri in ${URIS_FOR_FOLDER[$folder]}; do
+              docker tag "${IMAGE_TAG}" "${uri}"
+              docker push "${uri}"
+              echo "Pushed ${folder} to ${uri}"
+            done
+          done
+
   upload-api-docs:
     if: always() && github.ref == 'refs/heads/master' && (needs.deploy-prod-main.result == 'success' || needs.deploy-testing-main.result == 'success')
     needs: [deploy-prod-main, deploy-testing-main]

@@ -774,6 +774,164 @@ Resources:
   GetRoutePreview:
     $ref: lambdas/GetRoutePreview.yaml
 
+  # --- Generate route marker tiles daily job (ECS Fargate + Tippecanoe) ---
+  GenerateRouteMarkerTilesRepository:
+    Type: AWS::ECR::Repository
+    Properties:
+      RepositoryName: !Sub '${devEnvironment}-generate-route-marker-tiles'
+      LifecyclePolicy:
+        LifecyclePolicyText: |
+          {"rules":[{"rulePriority":1,"description":"Keep last 2 images","selection":{"tagStatus":"any"},"maximumNumberOfImages":2}]}
+      ImageTagMutability: MUTABLE
+      EmptyOnDelete: true
+
+  GenerateRouteMarkerTilesExecutionRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: ecs-tasks.amazonaws.com
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy
+
+  GenerateRouteMarkerTilesTaskRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: ecs-tasks.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: S3MapDataWrite
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - s3:PutObject
+                  - s3:PutObjectAcl
+                Resource: !Sub '${MapDataBucket.Arn}/pmtiles/*'
+        - !If
+          - HasCloudFrontDistribution
+          - PolicyName: CloudFrontInvalidation
+            PolicyDocument:
+              Version: '2012-10-17'
+              Statement:
+                - Effect: Allow
+                  Action: cloudfront:CreateInvalidation
+                  Resource: !Ref CloudFrontDistributionArn
+          - !Ref AWS::NoValue
+
+  GenerateRouteMarkerTilesLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: !Sub '/ecs/${devEnvironment}-generate-route-marker-tiles'
+      RetentionInDays: 30
+
+  GenerateRouteMarkerTilesTaskDefinition:
+    Type: AWS::ECS::TaskDefinition
+    Properties:
+      Family: !Sub '${devEnvironment}-generate-route-marker-tiles'
+      NetworkMode: awsvpc
+      RequiresCompatibilities:
+        - FARGATE
+      Cpu: '256'
+      Memory: '512'
+      ExecutionRoleArn: !GetAtt GenerateRouteMarkerTilesExecutionRole.Arn
+      TaskRoleArn: !GetAtt GenerateRouteMarkerTilesTaskRole.Arn
+      ContainerDefinitions:
+        - Name: generate-route-marker-tiles
+          Image: !Sub '${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/${GenerateRouteMarkerTilesRepository}:latest'
+          Essential: true
+          Environment:
+            - Name: DEV_ENVIRONMENT
+              Value: !Ref devEnvironment
+            - Name: DB_HOST
+              Value: !If [IsProduction, !GetAtt RDSProxy.Endpoint, !GetAtt Database.Endpoint.Address]
+            - Name: DB_PORT
+              Value: !GetAtt Database.Endpoint.Port
+            - Name: DB_NAME
+              Value: !Sub '${devEnvironment}db'
+            - Name: DB_USER
+              Value: !Ref DatabaseUsername
+            - Name: DB_PASSWORD
+              Value: !Ref DatabasePassword
+            - Name: MAP_DATA_BUCKET_NAME
+              Value: !Ref MapDataBucket
+            - Name: CLOUDFRONT_DISTRIBUTION_ARN
+              Value: !If [HasCloudFrontDistribution, !Ref CloudFrontDistributionArn, '']
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-group: !Ref GenerateRouteMarkerTilesLogGroup
+              awslogs-region: !Ref AWS::Region
+
+  GenerateRouteMarkerTilesEventBridgeRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: events.amazonaws.com
+            Action: sts:AssumeRole
+      Policies:
+        - PolicyName: RunGenerateRouteMarkerTilesTask
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action: ecs:RunTask
+                Resource: !GetAtt GenerateRouteMarkerTilesTaskDefinition.Arn
+              - Effect: Allow
+                Action: iam:PassRole
+                Resource:
+                  - !GetAtt GenerateRouteMarkerTilesExecutionRole.Arn
+                  - !GetAtt GenerateRouteMarkerTilesTaskRole.Arn
+                Condition:
+                  StringLike:
+                    iam:PassedToService: ecs-tasks.amazonaws.com
+
+  GenerateRouteMarkerTilesScheduleRule:
+    Type: AWS::Events::Rule
+    Properties:
+      Name: !Sub '${devEnvironment}-generate-route-marker-tiles-daily'
+      Description: Run generate route marker tiles job once per day at noon UTC
+      ScheduleExpression: cron(0 12 * * ? *)
+      State: ENABLED
+      Targets:
+        - Id: GenerateRouteMarkerTilesEcsTask
+          Arn: !GetAtt EcsCluster.Arn
+          RoleArn: !GetAtt GenerateRouteMarkerTilesEventBridgeRole.Arn
+          EcsParameters:
+            TaskDefinitionArn: !Ref GenerateRouteMarkerTilesTaskDefinition
+            TaskCount: 1
+            LaunchType: FARGATE
+            NetworkConfiguration:
+              AwsVpcConfiguration:
+                Subnets:
+                  - !Ref PrivateSubnet1
+                  - !Ref PrivateSubnet2
+                SecurityGroups:
+                  - !Ref LambdaSecurityGroup
+                AssignPublicIp: DISABLED
+
+  EcsCluster:
+    Type: AWS::ECS::Cluster
+    Properties:
+      ClusterName: !Sub '${devEnvironment}-webscraper'
+      ClusterSettings:
+        - Name: containerInsights
+          Value: disabled
+
   # IAM role for API Gateway to invoke Lambda (GetRoutes, GetRoutePreview integrations)
   ApiGatewayInvokeLambdaRole:
     Type: AWS::IAM::Role
@@ -850,6 +1008,12 @@ Outputs:
     Condition: IsProduction
     Description: Key pair ID; private key is in SSM at /ec2/keypair/{KeyPairId}
     Value: !GetAtt BastionKeyPair.KeyPairId
+  GenerateRouteMarkerTilesRepositoryUri:
+    Description: ECR repository URI for the generate route marker tiles job image (build and push with this tag)
+    Value: !Sub '${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/${GenerateRouteMarkerTilesRepository}:latest'
+  GenerateRouteMarkerTilesEcsClusterName:
+    Description: ECS cluster name for the generate route marker tiles scheduled task
+    Value: !Ref EcsCluster
 
 # # More info about Globals: https://github.com/awslabs/serverless-application-model/blob/master/docs/globals.rst
 Globals:

@@ -42,6 +42,24 @@ Ropewiki is powered by [MediaWiki](https://www.mediawiki.org/wiki/MediaWiki) and
 
 Note: All of the API queries are done sequentially so we don't hit any API request limits or crash ropewiki's server. We make full use of pagination to get as much data as we can per request, but it still takes roughly 3.5 hours to do a complete scrape of all data from ropewiki. This is far in excess of Lambda's max timeout value of 15 minutes, so if we ever need to populate the production/dev databases from scratch we have to run the scraper locally and manually dump/restore the data to RDS. However, in an ongoing maintenance/sync run 15 minutes should be more than enough time for a Lambda to query, parse, and upsert the few pages with new revisions. 
 
+## Fargate jobs (running locally)
+
+Scheduled ECS Fargate tasks live under `src/fargate-jobs/<jobName>/`. Each job has a `main.ts` entrypoint and can be run locally with the same env vars it gets in AWS (DB, bucket names, etc.).
+
+**Run any Fargate job locally:**
+
+1. Start the local DB if the job needs it: `npm run local-db:start`
+2. Set env vars and run the job’s main module:
+   ```bash
+   DB_HOST=127.0.0.1 DB_PORT=8081 DB_NAME=local DB_USER=localUser DB_PASSWORD=localPass \
+   DEV_ENVIRONMENT=local \
+   npx ts-node --files src/fargate-jobs/<jobFolder>/main.ts
+   ```
+   Add any job-specific vars (e.g. `MAP_DATA_BUCKET_NAME=dev-map-data-bucket` for jobs that upload to S3). With `DEV_ENVIRONMENT=local`, S3 uploads and CloudFront invalidations are typically skipped.
+3. Some jobs use external tools (e.g. Tippecanoe); install them for full behavior, or run without for partial testing.
+
+**Build and push images:** The pipeline builds and pushes all Fargate job images after a main stack deploy. To build/push manually, get the job’s ECR URI from the stack output `<Prefix>RepositoryUri`, then `docker build -f src/fargate-jobs/<jobFolder>/Dockerfile -t <uri> .` and `docker push <uri>`. See `.cursor/rules/fargate-jobs.mdc` for the full convention.
+
 ## Prereqs for local development
 1. Download and install [AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html)
 2. Download and install [AWS SAM CLI](https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/install-sam-cli.html)
