@@ -1,37 +1,32 @@
 import { writeFileSync } from 'fs';
-
-export type TrailGeojsonInput = {
-    id: string;
-    geojsonBody: string;
-};
-
-type GeoJSONFeature = GeoJSON.Feature<GeoJSON.Geometry, Record<string, unknown>>;
-type GeoJSONFeatureCollection = GeoJSON.FeatureCollection<GeoJSON.Geometry, Record<string, unknown>>;
-
-const ALLOWED_GEOMETRY_TYPES = ['LineString', 'Polygon'];
-
-function isAllowedGeometry(geom: GeoJSON.Geometry): boolean {
-    return ALLOWED_GEOMETRY_TYPES.includes(geom.type);
-}
+import ProgressLogger from '../../../helpers/progressLogger';
+import { GeoJSONFeature, GeoJSONFeatureCollection, isAllowedGeometry, isValidFeature } from '../types/geojson';
+import { getS3Geojson } from '../s3/getS3Geojson';
 
 /**
- * Expands one feature into zero or more features: filters out Points, and unpacks
- * GeometryCollections into one feature per allowed sub-geometry (with parent properties).
+ * Recursively expands one feature into zero or more features: returns [] if feature is invalid;
+ * filters out Points; unpacks GeometryCollections (at any nesting depth) into one feature per
+ * allowed sub-geometry (LineString/Polygon), with parent properties applied to each.
  */
 function expandFeature(
-    f: GeoJSONFeature,
+    feature: GeoJSONFeature,
     id: string
 ): GeoJSONFeature[] {
-    const props = { ...(f.properties ?? {}), id };
-    const geom = f.geometry;
+    if (!isValidFeature(feature)) return [];
+
+    const props = { ...(feature.properties ?? {}), id };
+    const geom = feature.geometry!;
 
     if (geom.type === 'GeometryCollection') {
-        const out: GeoJSONFeature[] = [];
-        for (const sub of geom.geometries) {
-            if (!isAllowedGeometry(sub)) continue;
-            out.push({ type: 'Feature', geometry: sub, properties: { ...props } });
-        }
-        return out;
+        const subFeatures: GeoJSONFeature[] = geom.geometries.map((sub) => {
+            const subFeature: GeoJSONFeature = {
+                type: 'Feature',
+                geometry: sub,
+                properties: { ...props },
+            };
+            return expandFeature(subFeature, id);
+        }).flat();
+        return subFeatures;
     }
 
     if (!isAllowedGeometry(geom)) return [];
@@ -39,23 +34,34 @@ function expandFeature(
 }
 
 /**
- * Parses each GeoJSON body, tags every feature with id (mapDataId),
- * filters out Points, unpacks GeometryCollections into their component geometries,
- * then writes a single FeatureCollection to outputPath.
+ * Fetches the GeoJSON for one MapData id from S3 (via getS3Geojson), expands each feature
+ * with expandFeature, logs progress on success or logs and returns [] on error.
  */
-export function combineTrailGeojson(inputs: TrailGeojsonInput[], outputPath: string): void {
-    const allFeatures: GeoJSONFeature[] = [];
-
-    for (const { id, geojsonBody } of inputs) {
-        const parsed = JSON.parse(geojsonBody) as GeoJSONFeatureCollection;
-        if (parsed.type !== 'FeatureCollection' || !Array.isArray(parsed.features)) {
-            continue;
-        }
-        for (const f of parsed.features) {
-            if (f.type !== 'Feature' || !f.geometry) continue;
-            allFeatures.push(...expandFeature(f, id));
-        }
+async function getFeaturesForId(id: string, bucket: string, logger: ProgressLogger): Promise<GeoJSONFeature[]> {
+    try {
+        const parsed = await getS3Geojson(bucket, id);
+        const features = parsed.features
+            .map((f) => expandFeature(f, id))
+            .flat();
+        logger.logProgress(`Processed ${id}`);
+        return features;
+    } catch (err) {
+        const message = err instanceof Error ? err.message : String(err);
+        logger.logError(message);
+        return [];
     }
+}
+
+/**
+ * Fetches each MapData GeoJSON from S3 (via getS3Geojson), expands features
+ * (filters out Points, unpacks GeometryCollections), then writes a single FeatureCollection
+ * to outputPath. Logs progress via ProgressLogger.
+ * On getS3Geojson error (fetch or invalid GeoJSON), logs with logger.logError and continues to the next id.
+ */
+export async function combineTrailGeojson(ids: string[], outputPath: string, bucket: string): Promise<void> {
+    const logger = new ProgressLogger('Combining trail GeoJSON', ids.length);
+
+    const allFeatures = (await Promise.all(ids.map(id => getFeaturesForId(id, bucket, logger)))).flat();
 
     const geojson: GeoJSONFeatureCollection = {
         type: 'FeatureCollection',

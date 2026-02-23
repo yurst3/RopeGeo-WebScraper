@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, jest } from '@jest/globals';
 import {
     createCloudFrontInvalidation,
     PMTILES_CLOUDFRONT_PATH,
-} from '../../../../src/fargate-jobs/generateRouteMarkerTiles/util/createCloudFrontInvalidation';
+} from '../../../../src/fargate-jobs/generateRouteMarkerTiles/cloudfront/createCloudFrontInvalidation';
 
 const mockSend = jest.fn();
 let createInvalidationCommandInput: Record<string, unknown> = {};

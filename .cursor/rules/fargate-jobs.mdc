@@ -19,14 +19,17 @@ src/fargate-jobs/<jobName>/
   README.md            # Build/push image, run locally, env vars
   database/            # Optional: DB access for this job
     getX.ts            # Functions that take db.Queryable and return data (use zapatos)
+  s3/                  # Optional: S3 helpers (getMapDataBucketName, putS3Pmtiles, getS3X, etc.)
+  cloudfront/          # Optional: CloudFront helpers (getCloudfrontDistributionArn, createCloudFrontInvalidation)
   util/                # Optional: pure helpers (file I/O, CLI wrappers, AWS calls)
     makeX.ts
 ```
 
 - **main.ts**: Export `export async function main(): Promise<void>`. At the bottom, only run when executed as entrypoint:
   `if (require.main === module) { main().then(() => process.exit(0), (err) => { console.error(err); process.exit(1); }); }`
+- **Error handling in main**: Use a single **try/catch/finally**. (1) Declare `pool` and `client` outside the try so `finally` can always run. (2) At the **start of try**, resolve required env (e.g. bucket via `getMapDataBucketName()`, distribution ARN via `getCloudfrontDistributionArn()`) so validation fails before acquiring the DB; these helpers throw if the env var is undefined. (3) In **catch**: `console.error(err)` then `throw err` so the promise still rejects and callers/tests see the error. (4) In **finally**: `client?.release()` and `await pool?.end()` so the client and pool are always cleaned up. This ensures errors are logged, rejections propagate, and resources are released whether the job succeeds or fails.
 - **Imports**: Use relative paths to shared code (e.g. `../../helpers/getDatabaseConnection`, `../../api/.../database/getRoutes` if reusing, or `./database/getX`).
-- **Database**: One file per logical query; functions accept `db.Queryable` (e.g. pooled client from `getDatabaseConnection()`). Release client and `pool.end()` in a `finally` in `main.ts`.
+- **Database**: One file per logical query; functions accept `db.Queryable` (e.g. pooled client from `getDatabaseConnection()`). Release client and `pool.end()` in the `finally` in `main.ts` (see Error handling above).
 - **Util**: Keep functions small and testable (pure or with dependencies injected via parameters/return values). For child processes (e.g. tippecanoe), use `spawn` in a util and return a Promise; for AWS, use the SDK in a util.
 
 ## 2. CloudFormation resources (main stack)
@@ -52,7 +55,7 @@ Add the following to `cloudformation/stacks/main/template.yaml`. Use a consisten
 ## 3. Unit tests
 
 - **Location**: Mirror `src/fargate-jobs/<jobName>/` under `test/fargate-jobs/<jobName>/`.
-- **main.test.ts**: Mock all dependencies (`getDatabaseConnection`, database module(s), util modules, `fs`, `putS3Object`, etc.) with `jest.mock('...', () => ({ ... jest.fn() }))`. Import the mocked modules and `main` from the job. In `beforeEach`, set env (e.g. `MAP_DATA_BUCKET_NAME`), set up mock implementations (pool with `connect`/`end`, release). Test: (1) validation (e.g. throws when required env missing), (2) happy path (correct sequence of calls and arguments), (3) optional behavior (e.g. CloudFront invalidation only when env set), (4) cleanup (release + pool.end when a step throws), (5) propagation of rejections from async steps.
+- **main.test.ts**: Mock all dependencies (`getDatabaseConnection`, database module(s), util modules, `fs`, `putS3Object`, cloudfront modules, etc.) with `jest.mock('...', () => ({ ... jest.fn() }))`. Import the mocked modules and `main` from the job. In `beforeEach`, set env (e.g. `MAP_DATA_BUCKET_NAME`, `CLOUDFRONT_DISTRIBUTION_ARN` to `''` when invalidation is optional so `getCloudfrontDistributionArn()` returns a falsy value and does not throw). Set up mock implementations (pool with `connect`/`end`, release). Test: (1) validation (throws when required env missing, before DB is used), (2) happy path (correct sequence of calls and arguments), (3) optional behavior (e.g. CloudFront invalidation only when env set and non-empty), (4) cleanup (release + pool.end when a step throws), (5) propagation of rejections from async steps, (6) **error logging**: when a step throws or rejects, assert that `console.error` was called with that error (e.g. `jest.spyOn(console, 'error').mockImplementation(() => {})`, then `expect(consoleErrorSpy).toHaveBeenCalledWith(err)`, and `consoleErrorSpy.mockRestore()` in the test).
 - **util/*.test.ts**: Mock external deps (e.g. `child_process.spawn`, `fs`, `@aws-sdk/client-*`). For `spawn`, return a fake child with `stderr.on('data', cb)`, `on('close', cb)`, `on('error', cb)` and invoke callbacks in tests to simulate success/failure. See `test/map-data/util/convertToVectorTiles.test.ts` and `test/fargate-jobs/generateRouteMarkerTiles/util/makePmtiles.test.ts`. For AWS SDK, mock the client’s `send` and (if needed) the Command constructor to capture input; assert on the captured input and that `send` was called. Use `jest.mocked()` and avoid referencing variables inside `jest.mock()` factories (hoisting); use `jest.fn()` inside the factory and configure in `beforeEach` via the imported module.
 - **database/*.test.ts**: Integration tests against a real DB. Use `TEST_USER`, `TEST_PASS`, `TEST_HOST`, `TEST_PORT`, `TEST_DB`. Create a `Pool`, run `beforeAll`/`afterEach` cleanup (e.g. `db.sql\`DELETE FROM "Table"\`.run(conn)`), `afterAll` `pool.end()`. Test: returns expected rows, filters (e.g. deletedAt), empty result. These tests are **excluded** from `test:unit` and **included** in `test:database` via `package.json` patterns.
 
@@ -82,13 +85,14 @@ For a **new** Fargate job: add the CloudFormation resources and an output **`<Pr
 
 ## Checklist
 
-- [ ] `src/fargate-jobs/<jobName>/main.ts` (export `main`, guard with `require.main === module`)
+- [ ] `src/fargate-jobs/<jobName>/main.ts` (export `main`, guard with `require.main === module`, try/catch/finally with error log + rethrow and pool/client cleanup)
 - [ ] `src/fargate-jobs/<jobName>/Dockerfile` (optional: README with job-specific notes only; repo README covers running locally and build/push)
-- [ ] `database/*.ts` and/or `util/*.ts` as needed
+- [ ] `database/*.ts`, `s3/*.ts`, `cloudfront/*.ts`, and/or `util/*.ts` as needed
 - [ ] CloudFormation: ECR, ExecutionRole, TaskRole, LogGroup, TaskDefinition, EventBridgeRole, ScheduleRule; reuse EcsCluster
 - [ ] Output for ECR repository URI (and optional cluster name)
-- [ ] `test/fargate-jobs/<jobName>/main.test.ts` (all deps mocked, orchestration and errors covered)
+- [ ] `test/fargate-jobs/<jobName>/main.test.ts` (all deps mocked, orchestration, error logging, and errors covered)
 - [ ] `test/fargate-jobs/<jobName>/util/*.test.ts` for each util (mocks for spawn/fs/AWS)
+- [ ] `test/fargate-jobs/<jobName>/cloudfront/*.test.ts` and `s3/*.test.ts` as needed for those modules
 - [ ] `test/fargate-jobs/<jobName>/database/*.test.ts` for each DB function (real DB, TEST_* env)
 - [ ] `package.json`: test:unit ignores `test/fargate-jobs/.*/database/`, test:database includes it
 - [ ] CloudFormation output **`<Prefix>RepositoryUri`** and folder **`src/fargate-jobs/<camelCasePrefix>/`** so the existing **build-push-fargate-jobs** workflow job discovers and pushes the image (no new job needed)

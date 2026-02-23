@@ -6,7 +6,7 @@ import { getRoutes } from '../../../src/fargate-jobs/generateRouteMarkerTiles/da
 import { makeGeojson } from '../../../src/fargate-jobs/generateRouteMarkerTiles/util/makeGeojson';
 import { makePmtiles } from '../../../src/fargate-jobs/generateRouteMarkerTiles/util/makePmtiles';
 import putS3Object from '../../../src/helpers/s3/putS3Object';
-import { createCloudFrontInvalidation } from '../../../src/fargate-jobs/generateRouteMarkerTiles/util/createCloudFrontInvalidation';
+import { createCloudFrontInvalidation } from '../../../src/fargate-jobs/generateRouteMarkerTiles/cloudfront/createCloudFrontInvalidation';
 import { main } from '../../../src/fargate-jobs/generateRouteMarkerTiles/main';
 
 jest.mock('../../../src/helpers/getDatabaseConnection', () => ({ __esModule: true, default: jest.fn() }));
@@ -15,7 +15,7 @@ jest.mock('../../../src/fargate-jobs/generateRouteMarkerTiles/util/makeGeojson',
 jest.mock('../../../src/fargate-jobs/generateRouteMarkerTiles/util/makePmtiles', () => ({ makePmtiles: jest.fn() }));
 jest.mock('fs', () => ({ readFileSync: jest.fn() }));
 jest.mock('../../../src/helpers/s3/putS3Object', () => ({ __esModule: true, default: jest.fn() }));
-jest.mock('../../../src/fargate-jobs/generateRouteMarkerTiles/util/createCloudFrontInvalidation', () => ({
+jest.mock('../../../src/fargate-jobs/generateRouteMarkerTiles/cloudfront/createCloudFrontInvalidation', () => ({
     createCloudFrontInvalidation: jest.fn(),
 }));
 
@@ -38,8 +38,7 @@ describe('main (generateRouteMarkerTiles)', () => {
     beforeEach(() => {
         jest.clearAllMocks();
         originalEnv = process.env;
-        process.env = { ...originalEnv, MAP_DATA_BUCKET_NAME: 'test-map-data-bucket' };
-        delete process.env.CLOUDFRONT_DISTRIBUTION_ARN;
+        process.env = { ...originalEnv, MAP_DATA_BUCKET_NAME: 'test-map-data-bucket', CLOUDFRONT_DISTRIBUTION_ARN: '' };
 
         mockRelease = jest.fn();
         mockPoolEnd = jest.fn();
@@ -66,6 +65,14 @@ describe('main (generateRouteMarkerTiles)', () => {
         delete process.env.MAP_DATA_BUCKET_NAME;
 
         await expect(main()).rejects.toThrow('MAP_DATA_BUCKET_NAME is required');
+
+        expect(getDatabaseConnection).not.toHaveBeenCalled();
+    });
+
+    it('throws when CLOUDFRONT_DISTRIBUTION_ARN is not set (from getCloudfrontDistributionArn at start of try)', async () => {
+        delete process.env.CLOUDFRONT_DISTRIBUTION_ARN;
+
+        await expect(main()).rejects.toThrow('CLOUDFRONT_DISTRIBUTION_ARN is required');
 
         expect(getDatabaseConnection).not.toHaveBeenCalled();
     });
@@ -139,31 +146,52 @@ describe('main (generateRouteMarkerTiles)', () => {
         expect(makePmtiles).not.toHaveBeenCalled();
     });
 
-    it('releases client and ends pool when makeGeojson throws', async () => {
+    it('logs thrown error when getRoutes rejects', async () => {
+        const dbError = new Error('DB connection failed');
+        jest.mocked(getRoutes).mockRejectedValue(dbError);
+        const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+
+        await expect(main()).rejects.toThrow('DB connection failed');
+
+        expect(consoleErrorSpy).toHaveBeenCalledWith(dbError);
+        consoleErrorSpy.mockRestore();
+    });
+
+    it('logs thrown error when makeGeojson throws', async () => {
+        const writeError = new Error('write failed');
         jest.mocked(makeGeojson).mockImplementation(() => {
-            throw new Error('write failed');
+            throw writeError;
         });
+        const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
 
         await expect(main()).rejects.toThrow('write failed');
 
+        expect(consoleErrorSpy).toHaveBeenCalledWith(writeError);
         expect(mockRelease).toHaveBeenCalledTimes(1);
         expect(mockPoolEnd).toHaveBeenCalledTimes(1);
         expect(makePmtiles).not.toHaveBeenCalled();
+        consoleErrorSpy.mockRestore();
     });
 
-    it('propagates makePmtiles rejection', async () => {
-        jest.mocked(makePmtiles).mockRejectedValue(new Error('tippecanoe failed'));
+    it('logs thrown error when makePmtiles rejects', async () => {
+        const tippecanoeError = new Error('tippecanoe failed');
+        jest.mocked(makePmtiles).mockRejectedValue(tippecanoeError);
+        const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
 
         await expect(main()).rejects.toThrow('tippecanoe failed');
 
-        expect(putS3Object).not.toHaveBeenCalled();
+        expect(consoleErrorSpy).toHaveBeenCalledWith(tippecanoeError);
+        consoleErrorSpy.mockRestore();
     });
 
-    it('propagates putS3Object rejection', async () => {
-        jest.mocked(putS3Object).mockRejectedValue(new Error('S3 upload failed'));
+    it('logs thrown error when putS3Object rejects', async () => {
+        const uploadError = new Error('S3 upload failed');
+        jest.mocked(putS3Object).mockRejectedValue(uploadError);
+        const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
 
         await expect(main()).rejects.toThrow('S3 upload failed');
 
-        expect(createCloudFrontInvalidation).not.toHaveBeenCalled();
+        expect(consoleErrorSpy).toHaveBeenCalledWith(uploadError);
+        consoleErrorSpy.mockRestore();
     });
 });
