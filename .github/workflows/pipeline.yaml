@@ -324,7 +324,7 @@ jobs:
               REGISTRY="${first_uri%%/*}"
               aws ecr get-login-password --region ${PROD_REGION} | docker login --username AWS --password-stdin "${REGISTRY}"
             fi
-            IMAGE_TAG="${folder}:latest"
+            IMAGE_TAG="${folder,,}:latest"
             docker build -f "$DOCKERFILE" -t "${IMAGE_TAG}" .
             for uri in ${URIS_FOR_FOLDER[$folder]}; do
               docker tag "${IMAGE_TAG}" "${uri}"
