@@ -88,6 +88,30 @@ describe('getFeaturesForGeojson', () => {
         expect(features[0].properties).toMatchObject({ id: 'id-1', name: 'Area' });
     });
 
+    it('strips 3D coordinates to 2D for tippecanoe compatibility', async () => {
+        jest.mocked(getS3Geojson).mockResolvedValue({
+            type: 'FeatureCollection',
+            features: [
+                {
+                    type: 'Feature',
+                    geometry: {
+                        type: 'LineString',
+                        coordinates: [[-121.72, 48.85, 0], [-121.73, 48.86, 100]],
+                    },
+                    properties: { name: 'Trail with Z' },
+                },
+            ],
+        } as GeoJSON.FeatureCollection);
+
+        const features = await getFeaturesForGeojson('id-1', bucket);
+
+        expect(features).toHaveLength(1);
+        expect(features[0].geometry).toEqual({
+            type: 'LineString',
+            coordinates: [[-121.72, 48.85], [-121.73, 48.86]],
+        });
+    });
+
     it('returns empty array when all features are Points', async () => {
         jest.mocked(getS3Geojson).mockResolvedValue({
             type: 'FeatureCollection',

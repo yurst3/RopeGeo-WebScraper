@@ -16,6 +16,20 @@ describe('makePmtiles (generateTrailTiles)', () => {
     const geojsonPath = '/tmp/trails.geojson';
     const outputPath = '/tmp/trails.pmtiles';
 
+    const tippecanoeBaseArgs = [
+        '-o', outputPath,
+        '-l', 'trails',
+        '--force',
+        '--maximum-zoom=g',
+        '--detect-longitude-wraparound',
+        '--use-source-polygon-winding',
+        '--reverse-source-polygon-winding',
+        '--drop-densest-as-needed',
+        '--extend-zooms-if-still-dropping',
+        '--no-tile-compression',
+        '--no-tile-size-limit',
+    ];
+
     beforeEach(() => {
         jest.mocked(spawn).mockReset();
         jest.mocked(statSync).mockImplementation((path: string) => ({
@@ -41,7 +55,7 @@ describe('makePmtiles (generateTrailTiles)', () => {
         expect(spawn).toHaveBeenCalledTimes(1);
         expect(spawn).toHaveBeenCalledWith(
             'tippecanoe',
-            ['-o', outputPath, '-l', 'trails', '--force', '--no-tile-compression', geojsonPath],
+            [...tippecanoeBaseArgs, geojsonPath],
             { stdio: ['ignore', 'pipe', 'pipe'] }
         );
     });
@@ -65,7 +79,7 @@ describe('makePmtiles (generateTrailTiles)', () => {
         expect(readdirSync).toHaveBeenCalledWith(dirPath);
         expect(spawn).toHaveBeenCalledWith(
             'tippecanoe',
-            ['-o', outputPath, '-l', 'trails', '--force', '--no-tile-compression', join(dirPath, 'a.geojson'), join(dirPath, 'b.geojson')],
+            [...tippecanoeBaseArgs, join(dirPath, 'a.geojson'), join(dirPath, 'b.geojson')],
             { stdio: ['ignore', 'pipe', 'pipe'] }
         );
     });
