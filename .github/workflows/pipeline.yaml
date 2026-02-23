@@ -515,6 +515,11 @@ jobs:
             --region ${PROD_REGION} \
             --query 'TemplateBody' \
             --output text > main-current-template.yaml
+          # When the template is large, get-template returns an S3 URL instead of inline body; download it so update-stack gets valid YAML.
+          if head -1 main-current-template.yaml | grep -q '^https\?://'; then
+            TEMPLATE_URL=$(cat main-current-template.yaml)
+            curl -sSfL "${TEMPLATE_URL}" -o main-current-template.yaml
+          fi
           if ! grep -q 'CloudFrontDistributionArn' main-current-template.yaml; then
             echo "::error::Main stack template does not define CloudFrontDistributionArn. Deploy the main stack once with the current code (run the full pipeline so deploy-prod-main runs), then re-run this job."
             exit 1
