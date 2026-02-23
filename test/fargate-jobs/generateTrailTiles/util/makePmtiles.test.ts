@@ -1,9 +1,15 @@
 import { describe, it, expect, beforeEach, jest } from '@jest/globals';
 import { makePmtiles } from '../../../../src/fargate-jobs/generateTrailTiles/util/makePmtiles';
 import { spawn } from 'child_process';
+import { readdirSync, statSync } from 'fs';
+import { join } from 'path';
 
 jest.mock('child_process', () => ({
     spawn: jest.fn(),
+}));
+jest.mock('fs', () => ({
+    readdirSync: jest.fn(),
+    statSync: jest.fn(),
 }));
 
 describe('makePmtiles (generateTrailTiles)', () => {
@@ -12,6 +18,10 @@ describe('makePmtiles (generateTrailTiles)', () => {
 
     beforeEach(() => {
         jest.mocked(spawn).mockReset();
+        jest.mocked(statSync).mockImplementation((path: string) => ({
+            isDirectory: () => false,
+        })) as typeof statSync;
+        jest.mocked(readdirSync).mockClear();
     });
 
     it('spawns tippecanoe with trails layer and resolves when process exits 0', async () => {
@@ -34,6 +44,38 @@ describe('makePmtiles (generateTrailTiles)', () => {
             ['-o', outputPath, '-l', 'trails', '--force', '--no-tile-compression', geojsonPath],
             { stdio: ['ignore', 'pipe', 'pipe'] }
         );
+    });
+
+    it('when inputPath is a directory, passes all .geojson files to tippecanoe', async () => {
+        const dirPath = '/tmp/trails';
+        jest.mocked(statSync).mockReturnValue({ isDirectory: () => true } as ReturnType<typeof statSync>);
+        jest.mocked(readdirSync).mockReturnValue(['b.geojson', 'a.geojson', 'other.txt'] as unknown as ReturnType<typeof readdirSync>);
+
+        const mockOn = jest.fn();
+        jest.mocked(spawn).mockReturnValue({
+            stderr: { on: jest.fn() },
+            on: mockOn,
+        } as ReturnType<typeof spawn>);
+
+        const promise = makePmtiles(dirPath, outputPath);
+        const closeCb = mockOn.mock.calls.find((c: [string, (code: number) => void]) => c[0] === 'close')?.[1];
+        closeCb!(0);
+        await promise;
+
+        expect(readdirSync).toHaveBeenCalledWith(dirPath);
+        expect(spawn).toHaveBeenCalledWith(
+            'tippecanoe',
+            ['-o', outputPath, '-l', 'trails', '--force', '--no-tile-compression', join(dirPath, 'a.geojson'), join(dirPath, 'b.geojson')],
+            { stdio: ['ignore', 'pipe', 'pipe'] }
+        );
+    });
+
+    it('rejects when directory has no .geojson files', async () => {
+        jest.mocked(statSync).mockReturnValue({ isDirectory: () => true } as ReturnType<typeof statSync>);
+        jest.mocked(readdirSync).mockReturnValue(['file.txt'] as unknown as ReturnType<typeof readdirSync>);
+
+        await expect(makePmtiles('/tmp/empty', outputPath)).rejects.toThrow('No .geojson files found');
+        expect(spawn).not.toHaveBeenCalled();
     });
 
     it('rejects with stderr when process exits non-zero', async () => {

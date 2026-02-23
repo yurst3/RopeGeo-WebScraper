@@ -31,6 +31,10 @@ export async function main(): Promise<void> {
         pool = await getDatabaseConnection();
         client = await pool.connect();
         const rows = await getRoutes(client);
+        if (rows.length === 0) {
+            console.error('No routes from database; skipping route marker tile generation.');
+            return;
+        }
         makeGeojson(rows, GEOJSON_PATH);
 
         await makePmtiles(GEOJSON_PATH, PMTILES_PATH);

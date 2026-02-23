@@ -127,6 +127,19 @@ describe('main (generateRouteMarkerTiles)', () => {
         expect(createCloudFrontInvalidation).not.toHaveBeenCalled();
     });
 
+    it('logs error and returns without processing when no routes from database', async () => {
+        jest.mocked(getRoutes).mockResolvedValue([]);
+        const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+
+        await main();
+
+        expect(consoleErrorSpy).toHaveBeenCalledWith('No routes from database; skipping route marker tile generation.');
+        expect(makeGeojson).not.toHaveBeenCalled();
+        expect(makePmtiles).not.toHaveBeenCalled();
+        expect(putS3Object).not.toHaveBeenCalled();
+        consoleErrorSpy.mockRestore();
+    });
+
     it('does not call createCloudFrontInvalidation when CLOUDFRONT_DISTRIBUTION_ARN is whitespace only', async () => {
         process.env.CLOUDFRONT_DISTRIBUTION_ARN = '   ';
 

@@ -1,8 +1,8 @@
 /**
  * Daily job: read all GeoJSON files from MapData (where errorMessage and deletedAt are null),
- * combine features into one GeoJSON with id (mapDataId) on each feature,
- * run Tippecanoe to generate trails.pmtiles, upload to the map data S3 bucket,
- * and optionally invalidate the CloudFront cache for that path.
+ * process each into trail features (filter Points, expand GeometryCollections) and write one GeoJSON
+ * per id to a directory, run Tippecanoe on that directory to generate trails.pmtiles, upload to the
+ * map data S3 bucket, and optionally invalidate the CloudFront cache for that path.
  *
  * Intended to run on ECS Fargate on a schedule (noon daily).
  * Requires: DB_* env (or RDS Proxy), MAP_DATA_BUCKET_NAME, DEV_ENVIRONMENT.
@@ -13,13 +13,13 @@ import { readFileSync } from 'fs';
 import getDatabaseConnection from '../../helpers/getDatabaseConnection';
 import { getMapDataIds } from './database/getMapDataIds';
 import { getMapDataBucketName } from './s3/getMapDataBucketName';
-import { combineTrailGeojson } from './util/combineTrailGeojson';
+import { processGeojsons } from './processors/processGeojsons';
 import { makePmtiles } from './util/makePmtiles';
 import { createCloudFrontInvalidation } from './cloudfront/createCloudFrontInvalidation';
 import { getCloudfrontDistributionArn } from './cloudfront/getCloudfrontDistributionArn';
 import { putS3Pmtiles } from './s3/putS3Pmtiles';
 
-const GEOJSON_PATH = '/tmp/trails.geojson';
+const GEOJSON_DIR = '/tmp/trails';
 const PMTILES_PATH = '/tmp/trails.pmtiles';
 
 export async function main(): Promise<void> {
@@ -33,12 +33,13 @@ export async function main(): Promise<void> {
         client = await pool.connect();
         const ids = await getMapDataIds(client);
         if (ids.length === 0) {
-            console.log('No MapData rows with valid GeoJSON; writing empty FeatureCollection.');
+            console.error('No MapData rows with valid GeoJSON; skipping trail tile generation.');
+            return;
         }
 
-        await combineTrailGeojson(ids, GEOJSON_PATH, bucket);
+        await processGeojsons(ids, GEOJSON_DIR, bucket);
 
-        await makePmtiles(GEOJSON_PATH, PMTILES_PATH);
+        await makePmtiles(GEOJSON_DIR, PMTILES_PATH);
         const body = readFileSync(PMTILES_PATH);
         await putS3Pmtiles(body, bucket);
 

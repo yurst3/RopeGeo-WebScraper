@@ -1,10 +1,31 @@
+import { readdirSync, statSync } from 'fs';
+import { join } from 'path';
 import { spawn } from 'child_process';
 
 /**
- * Runs Tippecanoe to convert a GeoJSON file to a .pmtiles tileset (trails layer).
+ * Runs Tippecanoe to convert GeoJSON file(s) in inputPath to a single .pmtiles tileset (trails layer).
+ * inputPath can be a directory (all .geojson files inside) or a single .geojson file path.
  * Requires tippecanoe 2.17+ for .pmtiles output.
  */
-export function makePmtiles(geojsonPath: string, outputPath: string): Promise<void> {
+export function makePmtiles(inputPath: string, outputPath: string): Promise<void> {
+    const geojsonFiles: string[] = (() => {
+        try {
+            if (statSync(inputPath).isDirectory()) {
+                return readdirSync(inputPath)
+                    .filter((f) => f.endsWith('.geojson'))
+                    .map((f) => join(inputPath, f))
+                    .sort();
+            }
+        } catch {
+            // not a directory or missing
+        }
+        return [inputPath];
+    })();
+
+    if (geojsonFiles.length === 0) {
+        return Promise.reject(new Error(`No .geojson files found in ${inputPath}`));
+    }
+
     return new Promise((resolve, reject) => {
         const proc = spawn(
             'tippecanoe',
@@ -13,7 +34,7 @@ export function makePmtiles(geojsonPath: string, outputPath: string): Promise<vo
                 '-l', 'trails',
                 '--force',
                 '--no-tile-compression',
-                geojsonPath,
+                ...geojsonFiles,
             ],
             { stdio: ['ignore', 'pipe', 'pipe'] }
         );
