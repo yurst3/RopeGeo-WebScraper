@@ -539,13 +539,24 @@ jobs:
           echo "Uploading template to S3 (template exceeds inline size limit)..."
           aws s3 cp main-current-template.yaml "s3://${PROD_ARTIFACTS_BUCKET}/main-stack-template-for-update.yaml" --region ${PROD_REGION}
           TEMPLATE_URL="https://${PROD_ARTIFACTS_BUCKET}.s3.${PROD_REGION}.amazonaws.com/main-stack-template-for-update.yaml"
+          # UpdateStack requires all parameters; use UsePreviousValue=true for ones we are not changing (avoids needing sensitive values).
+          PARAM_KEYS=$(aws cloudformation describe-stacks --stack-name ${PROD_STACK_NAME} --region ${PROD_REGION} \
+            --query 'Stacks[0].Parameters[*].ParameterKey' --output text)
+          PARAM_ARGS=()
+          for key in $PARAM_KEYS; do
+            if [ "$key" = "CloudFrontDistributionArn" ]; then
+              PARAM_ARGS+=( "ParameterKey=${key},ParameterValue=${CF_ARN}" )
+            elif [ "$key" = "MapDataPublicBaseUrl" ]; then
+              PARAM_ARGS+=( "ParameterKey=${key},ParameterValue=https://api.webscraper.ropegeo.com" )
+            else
+              PARAM_ARGS+=( "ParameterKey=${key},UsePreviousValue=true" )
+            fi
+          done
           set +e
           UPDATE_OUTPUT=$(aws cloudformation update-stack \
             --stack-name ${PROD_STACK_NAME} \
             --template-url "${TEMPLATE_URL}" \
-            --parameters \
-              ParameterKey=CloudFrontDistributionArn,ParameterValue="${CF_ARN}" \
-              ParameterKey=MapDataPublicBaseUrl,ParameterValue=https://api.webscraper.ropegeo.com \
+            --parameters "${PARAM_ARGS[@]}" \
             --capabilities CAPABILITY_IAM CAPABILITY_NAMED_IAM \
             --region ${PROD_REGION} \
             --role-arn ${PROD_CLOUDFORMATION_EXECUTION_ROLE} 2>&1)
