@@ -1048,7 +1048,7 @@ Outputs:
     Description: ECR repository URI for the generate route marker tiles job image (build and push with this tag)
     Value: !Sub '${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/${GenerateRouteMarkerTilesRepository}:latest'
   FargateJobsECRPushPolicyArn:
-    Description: ARN of the managed policy that allows ECR login and push to Fargate job repos. If PipelineExecutionRoleName is not set, attach this policy to the role used by build-push-fargate-jobs. Example: aws iam attach-role-policy --role-name <PipelineExecutionRoleName> --policy-arn <this-value>
+    Description: "ARN of the managed policy that allows ECR login and push to Fargate job repos. If PipelineExecutionRoleName is not set, attach this policy to the role used by build-push-fargate-jobs. Example: aws iam attach-role-policy --role-name <PipelineExecutionRoleName> --policy-arn <this-value>"
     Value: !Ref FargateJobsECRPushPolicy
   GenerateRouteMarkerTilesEcsClusterName:
     Description: ECS cluster name for the generate route marker tiles scheduled task
