@@ -39,6 +39,10 @@ Parameters:
     Type: String
     Description: IAM role ARN allowed to upload docs to the docs bucket (e.g. pipeline execution role for upload-api-docs). Leave blank to skip bucket policy.
     Default: ''
+  PipelineExecutionRoleName:
+    Type: String
+    Description: IAM role name (not ARN) of the pipeline execution role; used to attach the ECR push policy so build-push-fargate-jobs can push images. Leave blank to skip attachment (attach FargateJobsECRPushPolicyArn manually if needed).
+    Default: ''
   CloudFrontDistributionArn:
     Type: String
     Description: CloudFront distribution ARN (from API stack CloudFrontDistributionArn output). When set, Docs bucket allows GetObject from CloudFront only in addition to ApiGateway/pipeline. Deploy API stack first, then update main with this value.
@@ -50,6 +54,7 @@ Parameters:
 
 Conditions:
   HasDocsBucketPipelineRole: !Not [!Equals [!Ref DocsBucketPipelineRoleArn, '']]
+  HasPipelineExecutionRoleName: !Not [!Equals [!Ref PipelineExecutionRoleName, '']]
   HasCloudFrontDistribution: !Not [!Equals [!Ref CloudFrontDistributionArn, '']]
   IsProduction: !Equals [!Ref devEnvironment, production]
   IsDev: !Equals [!Ref devEnvironment, dev]
@@ -925,6 +930,36 @@ Resources:
                   - !Ref LambdaSecurityGroup
                 AssignPublicIp: DISABLED
 
+  # Policy granting ECR login and push to Fargate job repos; attached to pipeline execution role so build-push-fargate-jobs can push images.
+  FargateJobsECRPushPolicy:
+    Type: AWS::IAM::ManagedPolicy
+    Properties:
+      ManagedPolicyName: !Sub '${AWS::StackName}-fargate-ecr-push'
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Action: ecr:GetAuthorizationToken
+            Resource: '*'
+          - Effect: Allow
+            Action:
+              - ecr:BatchCheckLayerAvailability
+              - ecr:GetDownloadUrlForLayer
+              - ecr:BatchGetImage
+              - ecr:PutImage
+              - ecr:InitiateLayerUpload
+              - ecr:UploadLayerPart
+              - ecr:CompleteLayerUpload
+            Resource: !Sub 'arn:aws:ecr:${AWS::Region}:${AWS::AccountId}:repository/${GenerateRouteMarkerTilesRepository}'
+
+  # Attach ECR push policy to pipeline execution role when role name is provided (so build-push-fargate-jobs can push images).
+  FargateECRPushPolicyAttachment:
+    Type: AWS::IAM::RolePolicyAttachment
+    Condition: HasPipelineExecutionRoleName
+    Properties:
+      RoleName: !Ref PipelineExecutionRoleName
+      PolicyArn: !Ref FargateJobsECRPushPolicy
+
   EcsCluster:
     Type: AWS::ECS::Cluster
     Properties:
@@ -1012,6 +1047,9 @@ Outputs:
   GenerateRouteMarkerTilesRepositoryUri:
     Description: ECR repository URI for the generate route marker tiles job image (build and push with this tag)
     Value: !Sub '${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/${GenerateRouteMarkerTilesRepository}:latest'
+  FargateJobsECRPushPolicyArn:
+    Description: ARN of the managed policy that allows ECR login and push to Fargate job repos. If PipelineExecutionRoleName is not set, attach this policy to the role used by build-push-fargate-jobs. Example: aws iam attach-role-policy --role-name <PipelineExecutionRoleName> --policy-arn <this-value>
+    Value: !Ref FargateJobsECRPushPolicy
   GenerateRouteMarkerTilesEcsClusterName:
     Description: ECS cluster name for the generate route marker tiles scheduled task
     Value: !Ref EcsCluster

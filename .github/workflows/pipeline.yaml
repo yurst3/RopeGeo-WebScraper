@@ -197,7 +197,7 @@ jobs:
             --s3-bucket ${TESTING_ARTIFACTS_BUCKET} \
             --no-fail-on-empty-changeset \
             --role-arn ${TESTING_CLOUDFORMATION_EXECUTION_ROLE} \
-            --parameter-overrides "devEnvironment=dev DatabaseUsername=$DEV_DATABASE_USERNAME DatabasePassword=$DEV_DATABASE_PASSWORD FckNatAMIId=$FCK_NAT_AMI ProxyUrl=$PROXY_URL"
+            --parameter-overrides "devEnvironment=dev DatabaseUsername=$DEV_DATABASE_USERNAME DatabasePassword=$DEV_DATABASE_PASSWORD FckNatAMIId=$FCK_NAT_AMI ProxyUrl=$PROXY_URL DocsBucketPipelineRoleArn=$TESTING_PIPELINE_EXECUTION_ROLE PipelineExecutionRoleName=${TESTING_PIPELINE_EXECUTION_ROLE##*/}"
 
   deploy-prod-main:
     if: github.ref == 'refs/heads/master'
@@ -252,7 +252,7 @@ jobs:
             --s3-bucket ${PROD_ARTIFACTS_BUCKET} \
             --no-fail-on-empty-changeset \
             --role-arn ${PROD_CLOUDFORMATION_EXECUTION_ROLE} \
-            --parameter-overrides "devEnvironment=production DatabaseUsername=$PROD_DATABASE_USERNAME DatabasePassword=$PROD_DATABASE_PASSWORD FckNatAMIId=$FCK_NAT_AMI ProxyUrl=$PROXY_URL DocsBucketPipelineRoleArn=$PROD_PIPELINE_EXECUTION_ROLE"
+            --parameter-overrides "devEnvironment=production DatabaseUsername=$PROD_DATABASE_USERNAME DatabasePassword=$PROD_DATABASE_PASSWORD FckNatAMIId=$FCK_NAT_AMI ProxyUrl=$PROXY_URL DocsBucketPipelineRoleArn=$PROD_PIPELINE_EXECUTION_ROLE PipelineExecutionRoleName=${PROD_PIPELINE_EXECUTION_ROLE##*/}"
 
   build-push-fargate-jobs:
     if: always() && github.ref == 'refs/heads/master' && (needs.deploy-prod-main.result == 'success' || needs.deploy-testing-main.result == 'success')
