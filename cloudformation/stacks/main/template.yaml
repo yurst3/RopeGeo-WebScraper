@@ -891,7 +891,7 @@ Resources:
             Statement:
               - Effect: Allow
                 Action: ecs:RunTask
-                Resource: !GetAtt GenerateRouteMarkerTilesTaskDefinition.Arn
+                Resource: !GetAtt GenerateRouteMarkerTilesTaskDefinition.TaskDefinitionArn
               - Effect: Allow
                 Action: iam:PassRole
                 Resource:
