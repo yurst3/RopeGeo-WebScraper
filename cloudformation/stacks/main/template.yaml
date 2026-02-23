@@ -781,7 +781,7 @@ Resources:
       RepositoryName: !Sub '${devEnvironment}-generate-route-marker-tiles'
       LifecyclePolicy:
         LifecyclePolicyText: |
-          {"rules":[{"rulePriority":1,"description":"Keep last 2 images","selection":{"tagStatus":"any"},"maximumNumberOfImages":2}]}
+          {"rules":[{"rulePriority":1,"description":"Keep last 2 images","selection":{"tagStatus":"any","countType":"imageCountMoreThan","countNumber":2},"action":{"type":"expire"}}]}
       ImageTagMutability: MUTABLE
       EmptyOnDelete: true
 
