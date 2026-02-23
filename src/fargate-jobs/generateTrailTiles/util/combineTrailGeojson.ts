@@ -18,7 +18,7 @@ function expandFeature(
     const geom = feature.geometry!;
 
     if (geom.type === 'GeometryCollection') {
-        const subFeatures: GeoJSONFeature[] = geom.geometries.map((sub) => {
+        const subFeatures: GeoJSONFeature[] = geom.geometries.map((sub: GeoJSON.Geometry) => {
             const subFeature: GeoJSONFeature = {
                 type: 'Feature',
                 geometry: sub,
@@ -41,7 +41,7 @@ async function getFeaturesForId(id: string, bucket: string, logger: ProgressLogg
     try {
         const parsed = await getS3Geojson(bucket, id);
         const features = parsed.features
-            .map((f) => expandFeature(f, id))
+            .map((f: GeoJSONFeature) => expandFeature(f, id))
             .flat();
         logger.logProgress(`Processed ${id}`);
         return features;
