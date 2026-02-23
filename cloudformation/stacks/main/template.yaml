@@ -930,7 +930,7 @@ Resources:
                   - !Ref LambdaSecurityGroup
                 AssignPublicIp: DISABLED
 
-  # Policy granting ECR login and push to Fargate job repos; attached to pipeline execution role so build-push-fargate-jobs can push images.
+  # Policy granting ECR login and push to Fargate job repos; attached to pipeline execution role (when PipelineExecutionRoleName set) so build-push-fargate-jobs can push images.
   FargateJobsECRPushPolicy:
     Type: AWS::IAM::ManagedPolicy
     Properties:
@@ -951,14 +951,11 @@ Resources:
               - ecr:UploadLayerPart
               - ecr:CompleteLayerUpload
             Resource: !Sub 'arn:aws:ecr:${AWS::Region}:${AWS::AccountId}:repository/${GenerateRouteMarkerTilesRepository}'
-
-  # Attach ECR push policy to pipeline execution role when role name is provided (so build-push-fargate-jobs can push images).
-  FargateECRPushPolicyAttachment:
-    Type: AWS::IAM::RolePolicyAttachment
-    Condition: HasPipelineExecutionRoleName
-    Properties:
-      RoleName: !Ref PipelineExecutionRoleName
-      PolicyArn: !Ref FargateJobsECRPushPolicy
+      Roles:
+        !If
+          - HasPipelineExecutionRoleName
+          - [ !Ref PipelineExecutionRoleName ]
+          - !Ref AWS::NoValue
 
   EcsCluster:
     Type: AWS::ECS::Cluster
