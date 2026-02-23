@@ -538,7 +538,7 @@ jobs:
           set +e
           UPDATE_OUTPUT=$(aws cloudformation update-stack \
             --stack-name ${PROD_STACK_NAME} \
-            --template-body fileb://main-current-template.yaml \
+            --template-body file://main-current-template.yaml \
             --parameters \
               ParameterKey=CloudFrontDistributionArn,ParameterValue="${CF_ARN}" \
               ParameterKey=MapDataPublicBaseUrl,ParameterValue=https://api.webscraper.ropegeo.com \
