@@ -1,4 +1,5 @@
 import { writeFileSync } from 'fs';
+import type { Geometry } from 'geojson';
 import ProgressLogger from '../../../helpers/progressLogger';
 import { GeoJSONFeature, GeoJSONFeatureCollection, isAllowedGeometry, isValidFeature } from '../types/geojson';
 import { getS3Geojson } from '../s3/getS3Geojson';
@@ -18,7 +19,7 @@ function expandFeature(
     const geom = feature.geometry!;
 
     if (geom.type === 'GeometryCollection') {
-        const subFeatures: GeoJSONFeature[] = geom.geometries.map((sub: GeoJSON.Geometry) => {
+        const subFeatures: GeoJSONFeature[] = geom.geometries.map((sub: Geometry) => {
             const subFeature: GeoJSONFeature = {
                 type: 'Feature',
                 geometry: sub,

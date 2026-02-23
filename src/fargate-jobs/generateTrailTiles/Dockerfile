@@ -16,7 +16,8 @@ RUN apk add --no-cache \
 WORKDIR /app
 
 COPY package.json package-lock.json* ./
-RUN npm ci --omit=dev
+# Install all deps (including dev) so ts-node can compile TypeScript with the same tsconfig as local
+RUN npm ci
 
 COPY . .
-CMD ["npx", "ts-node", "--files", "src/fargate-jobs/generateTrailTiles/main.ts"]
+CMD ["npx", "ts-node", "--project", "tsconfig.json", "--files", "src/fargate-jobs/generateTrailTiles/main.ts"]
