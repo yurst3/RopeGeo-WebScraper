@@ -33,7 +33,7 @@ describe('makeTiles (generateRouteMarkerTiles)', () => {
         expect(spawn).toHaveBeenCalledTimes(1);
         expect(spawn).toHaveBeenCalledWith(
             'tippecanoe',
-            ['-e', localTilesDir, '-l', 'routes', '--force', '--no-tile-compression', localGeojsonPath],
+            ['-e', localTilesDir, '-l', 'routes', '--force', '-Z', '0', '-zg', '-r1', '--no-tile-compression', localGeojsonPath],
             { stdio: ['ignore', 'pipe', 'pipe'] }
         );
     });

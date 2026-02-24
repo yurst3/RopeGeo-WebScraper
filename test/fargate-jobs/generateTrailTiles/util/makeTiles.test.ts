@@ -22,12 +22,11 @@ describe('makeTiles (generateTrailTiles)', () => {
         '-e', localTilesDir,
         '-l', 'trails',
         '--force',
+        '-Z', '0',
         '--maximum-zoom=g',
         '--detect-longitude-wraparound',
         '--use-source-polygon-winding',
         '--reverse-source-polygon-winding',
-        '--drop-densest-as-needed',
-        '--extend-zooms-if-still-dropping',
         '--no-tile-compression',
         '--no-tile-size-limit',
     ];

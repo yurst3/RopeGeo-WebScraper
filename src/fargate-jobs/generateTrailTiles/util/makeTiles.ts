@@ -6,6 +6,8 @@ import { spawn } from 'child_process';
  * Runs Tippecanoe to convert GeoJSON file(s) in /tmp/{geojsonDir} to a directory of
  * {z}/{x}/{y}.pbf tiles under /tmp/{tilesDir}. geojsonDir/tilesDir are names; /tmp/ is prepended internally.
  * Progress is written to stderr by default and forwarded to the process so it appears in logs.
+ * We do not use -X, -x, or -y so all feature properties are retained in the vector tiles.
+ * Features are visible at all zoom levels: minzoom 0, no dropping (no --drop-densest-as-needed).
  */
 export function makeTiles(geojsonDir: string, tilesDir: string): Promise<void> {
     const localGeojsonDir = '/tmp/' + geojsonDir;
@@ -35,12 +37,11 @@ export function makeTiles(geojsonDir: string, tilesDir: string): Promise<void> {
                 '-e', localTilesDir,
                 '-l', 'trails',
                 '--force',
+                '-Z', '0',
                 '--maximum-zoom=g',
                 '--detect-longitude-wraparound',
                 '--use-source-polygon-winding',
                 '--reverse-source-polygon-winding',
-                '--drop-densest-as-needed',
-                '--extend-zooms-if-still-dropping',
                 '--no-tile-compression',
                 '--no-tile-size-limit',
                 ...geojsonFiles,
