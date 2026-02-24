@@ -25,8 +25,9 @@ jest.mock('../../../../src/helpers/progressLogger', () => ({
 import { mkdirSync } from 'fs';
 
 describe('processGeojsons', () => {
-    const outputDir = '/tmp/trails';
+    const geojsonDir = 'geojson';
     const bucket = 'test-bucket';
+    const localGeojsonDir = '/tmp/' + geojsonDir;
 
     beforeEach(() => {
         jest.mocked(mkdirSync).mockClear();
@@ -47,15 +48,15 @@ describe('processGeojsons', () => {
                 { type: 'Feature', geometry: { type: 'LineString', coordinates: [[1, 1], [2, 2]] }, properties: { id: 'id-2' } },
             ]);
 
-        await processGeojsons(ids, outputDir, bucket);
+        await processGeojsons(ids, geojsonDir, bucket);
 
-        expect(mkdirSync).toHaveBeenCalledWith(outputDir, { recursive: true });
+        expect(mkdirSync).toHaveBeenCalledWith(localGeojsonDir, { recursive: true });
         expect(getFeaturesForGeojson).toHaveBeenCalledTimes(2);
         expect(getFeaturesForGeojson).toHaveBeenNthCalledWith(1, 'id-1', bucket);
         expect(getFeaturesForGeojson).toHaveBeenNthCalledWith(2, 'id-2', bucket);
         expect(writeGeojsonFile).toHaveBeenCalledTimes(2);
-        expect(writeGeojsonFile).toHaveBeenNthCalledWith(1, 'id-1', expect.any(Array), outputDir);
-        expect(writeGeojsonFile).toHaveBeenNthCalledWith(2, 'id-2', expect.any(Array), outputDir);
+        expect(writeGeojsonFile).toHaveBeenNthCalledWith(1, 'id-1', expect.any(Array), localGeojsonDir);
+        expect(writeGeojsonFile).toHaveBeenNthCalledWith(2, 'id-2', expect.any(Array), localGeojsonDir);
         expect(mockLogProgress).toHaveBeenCalledTimes(2);
         expect(mockGetResults).toHaveBeenCalled();
     });
@@ -68,10 +69,10 @@ describe('processGeojsons', () => {
             ])
             .mockResolvedValueOnce([]);
 
-        await processGeojsons(ids, outputDir, bucket);
+        await processGeojsons(ids, geojsonDir, bucket);
 
         expect(writeGeojsonFile).toHaveBeenCalledTimes(1);
-        expect(writeGeojsonFile).toHaveBeenCalledWith('id-with-features', expect.any(Array), outputDir);
+        expect(writeGeojsonFile).toHaveBeenCalledWith('id-with-features', expect.any(Array), localGeojsonDir);
         expect(mockLogProgress).toHaveBeenCalledTimes(2);
     });
 
@@ -83,10 +84,10 @@ describe('processGeojsons', () => {
             ])
             .mockRejectedValueOnce(new Error('MapData id-fail: invalid GeoJSON'));
 
-        await processGeojsons(ids, outputDir, bucket);
+        await processGeojsons(ids, geojsonDir, bucket);
 
         expect(writeGeojsonFile).toHaveBeenCalledTimes(1);
-        expect(writeGeojsonFile).toHaveBeenCalledWith('id-ok', expect.any(Array), outputDir);
+        expect(writeGeojsonFile).toHaveBeenCalledWith('id-ok', expect.any(Array), localGeojsonDir);
         expect(mockLogError).toHaveBeenCalledWith('MapData id-fail: invalid GeoJSON');
         expect(mockLogProgress).toHaveBeenCalledTimes(1);
     });
@@ -96,7 +97,7 @@ describe('processGeojsons', () => {
         jest.mocked(getFeaturesForGeojson).mockResolvedValue([]);
         const consoleSpy = jest.spyOn(console, 'log').mockImplementation(() => {});
 
-        await processGeojsons(['a', 'b'], outputDir, bucket);
+        await processGeojsons(['a', 'b'], geojsonDir, bucket);
 
         expect(mockGetResults).toHaveBeenCalled();
         expect(consoleSpy).toHaveBeenCalledWith('Processing complete: 2 success(es), 0 error(s).');
@@ -104,9 +105,9 @@ describe('processGeojsons', () => {
     });
 
     it('writes no files and calls no getFeaturesForGeojson when ids is empty', async () => {
-        await processGeojsons([], outputDir, bucket);
+        await processGeojsons([], geojsonDir, bucket);
 
-        expect(mkdirSync).toHaveBeenCalledWith(outputDir, { recursive: true });
+        expect(mkdirSync).toHaveBeenCalledWith(localGeojsonDir, { recursive: true });
         expect(getFeaturesForGeojson).not.toHaveBeenCalled();
         expect(writeGeojsonFile).not.toHaveBeenCalled();
     });

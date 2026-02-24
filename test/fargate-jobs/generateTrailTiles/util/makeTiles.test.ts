@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, jest } from '@jest/globals';
-import { makePmtiles } from '../../../../src/fargate-jobs/generateTrailTiles/util/makePmtiles';
+import { makeTiles } from '../../../../src/fargate-jobs/generateTrailTiles/util/makeTiles';
 import { spawn } from 'child_process';
 import { readdirSync, statSync } from 'fs';
 import { join } from 'path';
@@ -12,12 +12,14 @@ jest.mock('fs', () => ({
     statSync: jest.fn(),
 }));
 
-describe('makePmtiles (generateTrailTiles)', () => {
-    const geojsonPath = '/tmp/trails.geojson';
-    const outputPath = '/tmp/trails.pmtiles';
+describe('makeTiles (generateTrailTiles)', () => {
+    const geojsonDir = 'geojson';
+    const tilesDir = 'trails';
+    const localGeojsonDir = '/tmp/' + geojsonDir;
+    const localTilesDir = '/tmp/' + tilesDir;
 
     const tippecanoeBaseArgs = [
-        '-o', outputPath,
+        '-e', localTilesDir,
         '-l', 'trails',
         '--force',
         '--maximum-zoom=g',
@@ -38,7 +40,7 @@ describe('makePmtiles (generateTrailTiles)', () => {
         jest.mocked(readdirSync).mockClear();
     });
 
-    it('spawns tippecanoe with trails layer and resolves when process exits 0', async () => {
+    it('spawns tippecanoe with -e output dir and resolves when process exits 0', async () => {
         const mockOn = jest.fn();
         const mockStderrOn = jest.fn();
         jest.mocked(spawn).mockReturnValue({
@@ -46,7 +48,7 @@ describe('makePmtiles (generateTrailTiles)', () => {
             on: mockOn,
         } as ReturnType<typeof spawn>);
 
-        const promise = makePmtiles(geojsonPath, outputPath);
+        const promise = makeTiles(geojsonDir, tilesDir);
         const closeCb = mockOn.mock.calls.find((c: [string, (code: number) => void]) => c[0] === 'close')?.[1];
         expect(closeCb).toBeDefined();
         closeCb!(0);
@@ -55,13 +57,12 @@ describe('makePmtiles (generateTrailTiles)', () => {
         expect(spawn).toHaveBeenCalledTimes(1);
         expect(spawn).toHaveBeenCalledWith(
             'tippecanoe',
-            [...tippecanoeBaseArgs, geojsonPath],
+            [...tippecanoeBaseArgs, localGeojsonDir],
             { stdio: ['ignore', 'pipe', 'pipe'] }
         );
     });
 
     it('when inputPath is a directory, passes all .geojson files to tippecanoe', async () => {
-        const dirPath = '/tmp/trails';
         jest.mocked(statSync).mockReturnValue({ isDirectory: () => true } as ReturnType<typeof statSync>);
         jest.mocked(readdirSync).mockReturnValue(['b.geojson', 'a.geojson', 'other.txt'] as unknown as ReturnType<typeof readdirSync>);
 
@@ -71,15 +72,15 @@ describe('makePmtiles (generateTrailTiles)', () => {
             on: mockOn,
         } as ReturnType<typeof spawn>);
 
-        const promise = makePmtiles(dirPath, outputPath);
+        const promise = makeTiles(geojsonDir, tilesDir);
         const closeCb = mockOn.mock.calls.find((c: [string, (code: number) => void]) => c[0] === 'close')?.[1];
         closeCb!(0);
         await promise;
 
-        expect(readdirSync).toHaveBeenCalledWith(dirPath);
+        expect(readdirSync).toHaveBeenCalledWith(localGeojsonDir);
         expect(spawn).toHaveBeenCalledWith(
             'tippecanoe',
-            [...tippecanoeBaseArgs, join(dirPath, 'a.geojson'), join(dirPath, 'b.geojson')],
+            [...tippecanoeBaseArgs, join(localGeojsonDir, 'a.geojson'), join(localGeojsonDir, 'b.geojson')],
             { stdio: ['ignore', 'pipe', 'pipe'] }
         );
     });
@@ -88,7 +89,7 @@ describe('makePmtiles (generateTrailTiles)', () => {
         jest.mocked(statSync).mockReturnValue({ isDirectory: () => true } as ReturnType<typeof statSync>);
         jest.mocked(readdirSync).mockReturnValue(['file.txt'] as unknown as ReturnType<typeof readdirSync>);
 
-        await expect(makePmtiles('/tmp/empty', outputPath)).rejects.toThrow('No .geojson files found');
+        await expect(makeTiles('empty', tilesDir)).rejects.toThrow('No .geojson files found in /tmp/empty');
         expect(spawn).not.toHaveBeenCalled();
     });
 
@@ -102,7 +103,7 @@ describe('makePmtiles (generateTrailTiles)', () => {
             on: mockOn,
         } as ReturnType<typeof spawn>);
 
-        const promise = makePmtiles(geojsonPath, outputPath);
+        const promise = makeTiles(geojsonDir, tilesDir);
         const closeCb = mockOn.mock.calls.find((c: [string, (code: number) => void]) => c[0] === 'close')?.[1];
         closeCb!(1);
 

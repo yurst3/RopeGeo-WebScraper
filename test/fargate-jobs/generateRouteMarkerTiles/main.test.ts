@@ -1,22 +1,20 @@
 import { describe, it, expect, beforeEach, afterEach, jest } from '@jest/globals';
 import type * as s from 'zapatos/schema';
-import { readFileSync } from 'fs';
 import getDatabaseConnection from '../../../src/helpers/getDatabaseConnection';
 import { getRoutes } from '../../../src/fargate-jobs/generateRouteMarkerTiles/database/getRoutes';
 import { makeGeojson } from '../../../src/fargate-jobs/generateRouteMarkerTiles/util/makeGeojson';
-import { makePmtiles } from '../../../src/fargate-jobs/generateRouteMarkerTiles/util/makePmtiles';
-import putS3Object from '../../../src/helpers/s3/putS3Object';
-import { createCloudFrontInvalidation } from '../../../src/fargate-jobs/generateRouteMarkerTiles/cloudfront/createCloudFrontInvalidation';
+import { makeTiles } from '../../../src/fargate-jobs/generateRouteMarkerTiles/util/makeTiles';
+import { uploadTilesToS3 } from '../../../src/fargate-jobs/generateRouteMarkerTiles/s3/uploadTilesToS3';
+import { invalidateCloudFrontCache } from '../../../src/fargate-jobs/generateRouteMarkerTiles/cloudfront/invalidateCloudFrontCache';
 import { main } from '../../../src/fargate-jobs/generateRouteMarkerTiles/main';
 
 jest.mock('../../../src/helpers/getDatabaseConnection', () => ({ __esModule: true, default: jest.fn() }));
 jest.mock('../../../src/fargate-jobs/generateRouteMarkerTiles/database/getRoutes', () => ({ getRoutes: jest.fn() }));
 jest.mock('../../../src/fargate-jobs/generateRouteMarkerTiles/util/makeGeojson', () => ({ makeGeojson: jest.fn() }));
-jest.mock('../../../src/fargate-jobs/generateRouteMarkerTiles/util/makePmtiles', () => ({ makePmtiles: jest.fn() }));
-jest.mock('fs', () => ({ readFileSync: jest.fn() }));
-jest.mock('../../../src/helpers/s3/putS3Object', () => ({ __esModule: true, default: jest.fn() }));
-jest.mock('../../../src/fargate-jobs/generateRouteMarkerTiles/cloudfront/createCloudFrontInvalidation', () => ({
-    createCloudFrontInvalidation: jest.fn(),
+jest.mock('../../../src/fargate-jobs/generateRouteMarkerTiles/util/makeTiles', () => ({ makeTiles: jest.fn() }));
+jest.mock('../../../src/fargate-jobs/generateRouteMarkerTiles/s3/uploadTilesToS3', () => ({ uploadTilesToS3: jest.fn() }));
+jest.mock('../../../src/fargate-jobs/generateRouteMarkerTiles/cloudfront/invalidateCloudFrontCache', () => ({
+    invalidateCloudFrontCache: jest.fn(),
 }));
 
 describe('main (generateRouteMarkerTiles)', () => {
@@ -38,7 +36,11 @@ describe('main (generateRouteMarkerTiles)', () => {
     beforeEach(() => {
         jest.clearAllMocks();
         originalEnv = process.env;
-        process.env = { ...originalEnv, MAP_DATA_BUCKET_NAME: 'test-map-data-bucket', CLOUDFRONT_DISTRIBUTION_ARN: '' };
+        process.env = {
+            ...originalEnv,
+            MAP_DATA_BUCKET_NAME: 'test-map-data-bucket',
+            CLOUDFRONT_DISTRIBUTION_ARN: 'arn:aws:cloudfront::123:distribution/E2',
+        };
 
         mockRelease = jest.fn();
         mockPoolEnd = jest.fn();
@@ -51,10 +53,9 @@ describe('main (generateRouteMarkerTiles)', () => {
         (mockPool.connect as jest.Mock).mockResolvedValue({ release: mockRelease });
         jest.mocked(getDatabaseConnection).mockResolvedValue(mockPool as unknown as Awaited<ReturnType<typeof getDatabaseConnection>>);
         jest.mocked(getRoutes).mockResolvedValue(mockRouteRows);
-        jest.mocked(makePmtiles).mockResolvedValue(undefined);
-        jest.mocked(readFileSync).mockReturnValue(Buffer.from('fake-pmtiles-bytes'));
-        jest.mocked(putS3Object).mockResolvedValue('https://bucket.s3.amazonaws.com/pmtiles/routes.pmtiles');
-        jest.mocked(createCloudFrontInvalidation).mockResolvedValue(undefined);
+        jest.mocked(makeTiles).mockResolvedValue(undefined);
+        jest.mocked(uploadTilesToS3).mockResolvedValue(undefined);
+        jest.mocked(invalidateCloudFrontCache).mockResolvedValue(undefined);
     });
 
     afterEach(() => {
@@ -69,15 +70,14 @@ describe('main (generateRouteMarkerTiles)', () => {
         expect(getDatabaseConnection).not.toHaveBeenCalled();
     });
 
-    it('throws when CLOUDFRONT_DISTRIBUTION_ARN is not set (from getCloudfrontDistributionArn at start of try)', async () => {
+    it('throws when CLOUDFRONT_DISTRIBUTION_ARN is not set', async () => {
         delete process.env.CLOUDFRONT_DISTRIBUTION_ARN;
 
         await expect(main()).rejects.toThrow('CLOUDFRONT_DISTRIBUTION_ARN is required');
-
-        expect(getDatabaseConnection).not.toHaveBeenCalled();
+        expect(invalidateCloudFrontCache).not.toHaveBeenCalled();
     });
 
-    it('gets routes, writes GeoJSON, runs tippecanoe, uploads to S3', async () => {
+    it('gets routes, writes GeoJSON, runs makeTiles, uploads tiles to S3', async () => {
         await main();
 
         expect(getDatabaseConnection).toHaveBeenCalledTimes(1);
@@ -87,44 +87,44 @@ describe('main (generateRouteMarkerTiles)', () => {
         const makeGeojsonFirstArg = jest.mocked(makeGeojson).mock.calls[0]?.[0];
         expect(makeGeojsonFirstArg).toHaveLength(1);
         expect(makeGeojsonFirstArg?.[0]).toMatchObject({ name: 'Route A' });
-        expect(makePmtiles).toHaveBeenCalledWith('/tmp/routes.geojson', '/tmp/routes.pmtiles');
-        expect(readFileSync).toHaveBeenCalledWith('/tmp/routes.pmtiles');
-        expect(putS3Object).toHaveBeenCalledWith(
-            'test-map-data-bucket',
-            'pmtiles/routes.pmtiles',
-            expect.any(Buffer),
-            'application/vnd.pmtiles'
-        );
+        expect(makeTiles).toHaveBeenCalledWith('routes.geojson', 'routeMarkers');
+        expect(uploadTilesToS3).toHaveBeenCalledWith('routeMarkers', 'test-map-data-bucket');
         expect(mockRelease).toHaveBeenCalledTimes(1);
         expect(mockPoolEnd).toHaveBeenCalledTimes(1);
-        expect(createCloudFrontInvalidation).not.toHaveBeenCalled();
+        expect(invalidateCloudFrontCache).toHaveBeenCalledWith(
+            'arn:aws:cloudfront::123:distribution/E2',
+            'routeMarkers'
+        );
     });
 
-    it('calls createCloudFrontInvalidation when CLOUDFRONT_DISTRIBUTION_ARN is set', async () => {
+    it('calls invalidateCloudFrontCache when CLOUDFRONT_DISTRIBUTION_ARN is set', async () => {
         process.env.CLOUDFRONT_DISTRIBUTION_ARN = 'arn:aws:cloudfront::123456789012:distribution/E2ABC123';
 
         await main();
 
-        expect(createCloudFrontInvalidation).toHaveBeenCalledTimes(1);
-        expect(createCloudFrontInvalidation).toHaveBeenCalledWith(
-            'arn:aws:cloudfront::123456789012:distribution/E2ABC123'
+        expect(invalidateCloudFrontCache).toHaveBeenCalledTimes(1);
+        expect(invalidateCloudFrontCache).toHaveBeenCalledWith(
+            'arn:aws:cloudfront::123456789012:distribution/E2ABC123',
+            'routeMarkers'
         );
     });
 
-    it('trims CLOUDFRONT_DISTRIBUTION_ARN when calling createCloudFrontInvalidation', async () => {
+    it('trims CLOUDFRONT_DISTRIBUTION_ARN when calling invalidateCloudFrontCache', async () => {
         process.env.CLOUDFRONT_DISTRIBUTION_ARN = '  arn:aws:cloudfront::123:distribution/E2  ';
 
         await main();
 
-        expect(createCloudFrontInvalidation).toHaveBeenCalledWith('arn:aws:cloudfront::123:distribution/E2');
+        expect(invalidateCloudFrontCache).toHaveBeenCalledWith(
+            'arn:aws:cloudfront::123:distribution/E2',
+            'routeMarkers'
+        );
     });
 
-    it('does not call createCloudFrontInvalidation when CLOUDFRONT_DISTRIBUTION_ARN is empty string', async () => {
+    it('throws when CLOUDFRONT_DISTRIBUTION_ARN is empty string', async () => {
         process.env.CLOUDFRONT_DISTRIBUTION_ARN = '';
 
-        await main();
-
-        expect(createCloudFrontInvalidation).not.toHaveBeenCalled();
+        await expect(main()).rejects.toThrow('CLOUDFRONT_DISTRIBUTION_ARN is required');
+        expect(invalidateCloudFrontCache).not.toHaveBeenCalled();
     });
 
     it('logs error and returns without processing when no routes from database', async () => {
@@ -135,17 +135,16 @@ describe('main (generateRouteMarkerTiles)', () => {
 
         expect(consoleErrorSpy).toHaveBeenCalledWith('No routes from database; skipping route marker tile generation.');
         expect(makeGeojson).not.toHaveBeenCalled();
-        expect(makePmtiles).not.toHaveBeenCalled();
-        expect(putS3Object).not.toHaveBeenCalled();
+        expect(makeTiles).not.toHaveBeenCalled();
+        expect(uploadTilesToS3).not.toHaveBeenCalled();
         consoleErrorSpy.mockRestore();
     });
 
-    it('does not call createCloudFrontInvalidation when CLOUDFRONT_DISTRIBUTION_ARN is whitespace only', async () => {
+    it('throws when CLOUDFRONT_DISTRIBUTION_ARN is whitespace only', async () => {
         process.env.CLOUDFRONT_DISTRIBUTION_ARN = '   ';
 
-        await main();
-
-        expect(createCloudFrontInvalidation).not.toHaveBeenCalled();
+        await expect(main()).rejects.toThrow('CLOUDFRONT_DISTRIBUTION_ARN is required');
+        expect(invalidateCloudFrontCache).not.toHaveBeenCalled();
     });
 
     it('releases client and ends pool when getRoutes throws', async () => {
@@ -156,7 +155,7 @@ describe('main (generateRouteMarkerTiles)', () => {
         expect(mockRelease).toHaveBeenCalledTimes(1);
         expect(mockPoolEnd).toHaveBeenCalledTimes(1);
         expect(makeGeojson).not.toHaveBeenCalled();
-        expect(makePmtiles).not.toHaveBeenCalled();
+        expect(makeTiles).not.toHaveBeenCalled();
     });
 
     it('logs thrown error when getRoutes rejects', async () => {
@@ -182,13 +181,13 @@ describe('main (generateRouteMarkerTiles)', () => {
         expect(consoleErrorSpy).toHaveBeenCalledWith(writeError);
         expect(mockRelease).toHaveBeenCalledTimes(1);
         expect(mockPoolEnd).toHaveBeenCalledTimes(1);
-        expect(makePmtiles).not.toHaveBeenCalled();
+        expect(makeTiles).not.toHaveBeenCalled();
         consoleErrorSpy.mockRestore();
     });
 
-    it('logs thrown error when makePmtiles rejects', async () => {
+    it('logs thrown error when makeTiles rejects', async () => {
         const tippecanoeError = new Error('tippecanoe failed');
-        jest.mocked(makePmtiles).mockRejectedValue(tippecanoeError);
+        jest.mocked(makeTiles).mockRejectedValue(tippecanoeError);
         const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
 
         await expect(main()).rejects.toThrow('tippecanoe failed');
@@ -197,9 +196,9 @@ describe('main (generateRouteMarkerTiles)', () => {
         consoleErrorSpy.mockRestore();
     });
 
-    it('logs thrown error when putS3Object rejects', async () => {
+    it('logs thrown error when uploadTilesToS3 rejects', async () => {
         const uploadError = new Error('S3 upload failed');
-        jest.mocked(putS3Object).mockRejectedValue(uploadError);
+        jest.mocked(uploadTilesToS3).mockRejectedValue(uploadError);
         const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
 
         await expect(main()).rejects.toThrow('S3 upload failed');

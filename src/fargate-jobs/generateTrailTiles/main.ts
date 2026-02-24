@@ -1,7 +1,7 @@
 /**
  * Daily job: read all GeoJSON files from MapData (where errorMessage and deletedAt are null),
  * process each into trail features (filter Points, expand GeometryCollections) and write one GeoJSON
- * per id to a directory, run Tippecanoe on that directory to generate trails.pmtiles, upload to the
+ * per id to a directory, run Tippecanoe to generate trails/{z}/{x}/{y}.pbf tiles, upload them to the
  * map data S3 bucket, and optionally invalidate the CloudFront cache for that path.
  *
  * Intended to run on ECS Fargate on a schedule (noon daily).
@@ -9,18 +9,17 @@
  * Optional: CLOUDFRONT_DISTRIBUTION_ARN to run a CloudFront invalidation after upload.
  */
 
-import { readFileSync } from 'fs';
 import getDatabaseConnection from '../../helpers/getDatabaseConnection';
 import { getMapDataIds } from './database/getMapDataIds';
 import { getMapDataBucketName } from './s3/getMapDataBucketName';
 import { processGeojsons } from './processors/processGeojsons';
-import { makePmtiles } from './util/makePmtiles';
-import { createCloudFrontInvalidation } from './cloudfront/createCloudFrontInvalidation';
+import { makeTiles } from './util/makeTiles';
+import { invalidateCloudFrontCache } from './cloudfront/invalidateCloudFrontCache';
 import { getCloudfrontDistributionArn } from './cloudfront/getCloudfrontDistributionArn';
-import { putS3Pmtiles } from './s3/putS3Pmtiles';
+import { uploadTilesToS3 } from './s3/uploadTilesToS3';
 
-const GEOJSON_DIR = '/tmp/trails';
-const PMTILES_PATH = '/tmp/trails.pmtiles';
+const GEOJSON_DIR = 'geojson';
+const TILES_DIR = 'trails';
 
 export async function main(): Promise<void> {
     let pool;
@@ -39,13 +38,10 @@ export async function main(): Promise<void> {
 
         await processGeojsons(ids, GEOJSON_DIR, bucket);
 
-        await makePmtiles(GEOJSON_DIR, PMTILES_PATH);
-        const body = readFileSync(PMTILES_PATH);
-        await putS3Pmtiles(body, bucket);
+        await makeTiles(GEOJSON_DIR, TILES_DIR);
+        await uploadTilesToS3(TILES_DIR, bucket);
 
-        if (distributionArn) {
-            await createCloudFrontInvalidation(distributionArn);
-        }
+        await invalidateCloudFrontCache(distributionArn, TILES_DIR);
     } catch (err) {
         console.error(err);
         throw err;

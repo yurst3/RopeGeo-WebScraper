@@ -23,4 +23,12 @@ describe('getCloudfrontDistributionArn (generateRouteMarkerTiles)', () => {
 
         expect(() => getCloudfrontDistributionArn()).toThrow('CLOUDFRONT_DISTRIBUTION_ARN is required');
     });
+
+    it('throws when CLOUDFRONT_DISTRIBUTION_ARN is empty or whitespace only', () => {
+        process.env.CLOUDFRONT_DISTRIBUTION_ARN = '';
+        expect(() => getCloudfrontDistributionArn()).toThrow('CLOUDFRONT_DISTRIBUTION_ARN is required');
+
+        process.env.CLOUDFRONT_DISTRIBUTION_ARN = '   ';
+        expect(() => getCloudfrontDistributionArn()).toThrow('CLOUDFRONT_DISTRIBUTION_ARN is required');
+    });
 });

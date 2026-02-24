@@ -1,19 +1,21 @@
 import { spawn } from 'child_process';
 
 /**
- * Runs Tippecanoe to convert a GeoJSON file to a .pmtiles tileset.
- * Requires tippecanoe 2.17+ for .pmtiles output.
+ * Runs Tippecanoe to convert a GeoJSON file at /tmp/{geojsonFile} to a directory of
+ * {z}/{x}/{y}.pbf tiles under /tmp/{tilesDir}. geojsonFile/tilesDir are names; /tmp/ is prepended internally.
  */
-export function makePmtiles(geojsonPath: string, outputPath: string): Promise<void> {
+export function makeTiles(geojsonFile: string, tilesDir: string): Promise<void> {
+    const localGeojsonPath = '/tmp/' + geojsonFile;
+    const localTilesDir = '/tmp/' + tilesDir;
     return new Promise((resolve, reject) => {
         const proc = spawn(
             'tippecanoe',
             [
-                '-o', outputPath,
+                '-e', localTilesDir,
                 '-l', 'routes',
                 '--force',
                 '--no-tile-compression',
-                geojsonPath,
+                localGeojsonPath,
             ],
             { stdio: ['ignore', 'pipe', 'pipe'] }
         );
