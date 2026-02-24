@@ -60,6 +60,7 @@ const getRopewikiPagePreview = async (
         title: row.title,
         regions: [row.regionName],
         difficulty: row.rating ?? null,
+        mapData: ropewikiRoute.mapData ?? null,
     };
 };
 

@@ -6,7 +6,7 @@ GetRoutePreviewResponse:
 
 PagePreview:
   type: object
-  description: Preview of a page linked to a route (id, source, banner image, rating, title, regions, difficulty)
+  description: Preview of a page linked to a route (id, source, banner image, rating, title, regions, difficulty, mapData)
   required:
     - id
     - source
@@ -48,3 +48,8 @@ PagePreview:
       type: string
       nullable: true
       description: Difficulty string (e.g. rating text for Ropewiki)
+    mapData:
+      type: string
+      format: uuid
+      nullable: true
+      description: Map data id for the page route, or null if none

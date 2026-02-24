@@ -21,4 +21,6 @@ export interface PagePreview {
     regions: string[];
     /** Difficulty string (e.g. rating text for Ropewiki) */
     difficulty: string | null;
+    /** Map data id for the page route, or null if none */
+    mapData: string | null;
 }

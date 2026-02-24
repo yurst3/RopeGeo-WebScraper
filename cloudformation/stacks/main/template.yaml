@@ -56,6 +56,9 @@ Conditions:
   HasDocsBucketPipelineRole: !Not [!Equals [!Ref DocsBucketPipelineRoleArn, '']]
   HasPipelineExecutionRoleName: !Not [!Equals [!Ref PipelineExecutionRoleName, '']]
   HasCloudFrontDistribution: !Not [!Equals [!Ref CloudFrontDistributionArn, '']]
+  HasPipelineExecutionRoleAndCloudFront: !And
+    - !Condition HasPipelineExecutionRoleName
+    - !Condition HasCloudFrontDistribution
   IsProduction: !Equals [!Ref devEnvironment, production]
   IsDev: !Equals [!Ref devEnvironment, dev]
 
@@ -1136,6 +1139,21 @@ Resources:
           - [ !Ref PipelineExecutionRoleName ]
           - !Ref AWS::NoValue
 
+  # Policy allowing CloudFront cache invalidation for the API distribution; attached to pipeline execution role so invalidate-prod-api-cloudfront can run after deploy-prod-api.
+  PipelineCloudFrontInvalidationPolicy:
+    Type: AWS::IAM::ManagedPolicy
+    Condition: HasPipelineExecutionRoleAndCloudFront
+    Properties:
+      ManagedPolicyName: !Sub '${AWS::StackName}-pipeline-cloudfront-invalidation'
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Action: cloudfront:CreateInvalidation
+            Resource: !Ref CloudFrontDistributionArn
+      Roles:
+        - !Ref PipelineExecutionRoleName
+
   EcsCluster:
     Type: AWS::ECS::Cluster
     Properties:
@@ -1229,6 +1247,10 @@ Outputs:
   FargateJobsECRPushPolicyArn:
     Description: "ARN of the managed policy that allows ECR login and push to Fargate job repos. If PipelineExecutionRoleName is not set, attach this policy to the role used by build-push-fargate-jobs. Example: aws iam attach-role-policy --role-name <PipelineExecutionRoleName> --policy-arn <this-value>"
     Value: !Ref FargateJobsECRPushPolicy
+  PipelineCloudFrontInvalidationPolicyArn:
+    Condition: HasPipelineExecutionRoleAndCloudFront
+    Description: "ARN of the managed policy that allows CloudFront cache invalidation for the API distribution (used by invalidate-prod-api-cloudfront). If PipelineExecutionRoleName or CloudFrontDistributionArn is not set, attach this policy to the pipeline role manually when needed."
+    Value: !Ref PipelineCloudFrontInvalidationPolicy
   GenerateRouteMarkerTilesEcsClusterName:
     Description: ECS cluster name for the generate route marker tiles scheduled task
     Value: !Ref EcsCluster
