@@ -822,7 +822,7 @@ Resources:
                 Action:
                   - s3:PutObject
                   - s3:PutObjectAcl
-                Resource: !Sub '${MapDataBucket.Arn}/pmtiles/*'
+                Resource: !Sub '${MapDataBucket.Arn}/routeMarkers/*'
         - !If
           - HasCloudFrontDistribution
           - PolicyName: CloudFrontInvalidation
@@ -977,7 +977,7 @@ Resources:
                 Action:
                   - s3:PutObject
                   - s3:PutObjectAcl
-                Resource: !Sub '${MapDataBucket.Arn}/pmtiles/*'
+                Resource: !Sub '${MapDataBucket.Arn}/trails/*'
         - !If
           - HasCloudFrontDistribution
           - PolicyName: CloudFrontInvalidation
