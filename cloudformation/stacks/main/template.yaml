@@ -677,6 +677,7 @@ Resources:
         RestrictPublicBuckets: true
 
   # Allow CloudFront to read from MapDataBucket when CloudFront distribution ARN is set (avoids API stack needing S3 permissions)
+  # s3:ListBucket allows S3 to return 404 for missing objects instead of 403 (NoSuchKey vs AccessDenied).
   MapDataBucketCloudFrontPolicy:
     Type: AWS::S3::BucketPolicy
     Condition: HasCloudFrontDistribution
@@ -685,12 +686,21 @@ Resources:
       PolicyDocument:
         Version: '2012-10-17'
         Statement:
-          - Sid: AllowCloudFrontOAC
+          - Sid: AllowCloudFrontOACGetObject
             Effect: Allow
             Principal:
               Service: cloudfront.amazonaws.com
             Action: s3:GetObject
             Resource: !Sub '${MapDataBucket.Arn}/*'
+            Condition:
+              StringEquals:
+                AWS:SourceArn: !Ref CloudFrontDistributionArn
+          - Sid: AllowCloudFrontOACListBucket
+            Effect: Allow
+            Principal:
+              Service: cloudfront.amazonaws.com
+            Action: s3:ListBucket
+            Resource: !GetAtt MapDataBucket.Arn
             Condition:
               StringEquals:
                 AWS:SourceArn: !Ref CloudFrontDistributionArn
@@ -748,8 +758,12 @@ Resources:
               Effect: Allow
               Principal:
                 Service: cloudfront.amazonaws.com
-              Action: s3:GetObject
-              Resource: !Sub '${DocsBucket.Arn}/*'
+              Action:
+                - s3:GetObject
+                - s3:ListBucket
+              Resource:
+                - !GetAtt DocsBucket.Arn
+                - !Sub '${DocsBucket.Arn}/*'
               Condition:
                 StringEquals:
                   AWS:SourceArn: !Ref CloudFrontDistributionArn
