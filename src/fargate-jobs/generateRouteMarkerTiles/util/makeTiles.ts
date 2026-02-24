@@ -3,6 +3,7 @@ import { spawn } from 'child_process';
 /**
  * Runs Tippecanoe to convert a GeoJSON file at /tmp/{geojsonFile} to a directory of
  * {z}/{x}/{y}.pbf tiles under /tmp/{tilesDir}. geojsonFile/tilesDir are names; /tmp/ is prepended internally.
+ * Progress is written to stderr by default and forwarded to the process so it appears in logs.
  */
 export function makeTiles(geojsonFile: string, tilesDir: string): Promise<void> {
     const localGeojsonPath = '/tmp/' + geojsonFile;
@@ -20,7 +21,10 @@ export function makeTiles(geojsonFile: string, tilesDir: string): Promise<void> 
             { stdio: ['ignore', 'pipe', 'pipe'] }
         );
         let stderr = '';
-        proc.stderr?.on('data', (chunk) => { stderr += chunk; });
+        proc.stderr?.on('data', (chunk) => {
+            stderr += chunk;
+            process.stderr.write(chunk);
+        });
         proc.on('close', (code) => {
             if (code === 0) resolve();
             else reject(new Error(`tippecanoe exited ${code}: ${stderr}`));

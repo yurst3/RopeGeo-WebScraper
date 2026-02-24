@@ -847,8 +847,8 @@ Resources:
       NetworkMode: awsvpc
       RequiresCompatibilities:
         - FARGATE
-      Cpu: '256'
-      Memory: '512'
+      Cpu: '512'
+      Memory: '2048'
       ExecutionRoleArn: !GetAtt GenerateRouteMarkerTilesExecutionRole.Arn
       TaskRoleArn: !GetAtt GenerateRouteMarkerTilesTaskRole.Arn
       ContainerDefinitions:

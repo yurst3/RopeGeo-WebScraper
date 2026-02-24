@@ -60,6 +60,19 @@ Scheduled ECS Fargate tasks live under `src/fargate-jobs/<jobName>/`. Each job h
 
 **Build and push images:** The pipeline builds and pushes all Fargate job images after a main stack deploy. To build/push manually, get the job’s ECR URI from the stack output `<Prefix>RepositoryUri`, then `docker build -f src/fargate-jobs/<jobFolder>/Dockerfile -t <uri> .` and `docker push <uri>`. See `.cursor/rules/fargate-jobs.mdc` for the full convention.
 
+### Running Fargate jobs from the AWS console
+
+You can run a Fargate task once from the ECS console (e.g. to re-run a tile job without waiting for the schedule):
+
+1. In **AWS Console** go to **ECS** → **Clusters** → select the cluster that hosts the job (e.g. the one created by the WebScraper stack).
+2. Open the **Tasks** tab, click **Run new task**.
+3. Choose **Fargate**, the correct **Task definition** (e.g. `generateTrailTiles` or `generateRouteMarkerTiles`), the right **Cluster**, and **Launch type** Fargate.
+4. Under **Networking** (or **VPC and security groups**), set:
+   - **VPC:** `WebScraperVPC`
+   - **Security group:** `WebScraper-Prod-LambdaSecurityGroup`  
+   Without these, the task may not reach RDS or S3.
+5. Run the task. Check **Logs** in the task detail for progress and errors.
+
 ## Prereqs for local development
 1. Download and install [AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html)
 2. Download and install [AWS SAM CLI](https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/install-sam-cli.html)
