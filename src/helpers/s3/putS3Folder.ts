@@ -1,5 +1,6 @@
 import { readdirSync, readFileSync } from 'fs';
 import { join, relative } from 'path';
+import ProgressLogger from '../progressLogger';
 import putS3Object from './putS3Object';
 
 function getFilePaths(dir: string, baseDir: string = dir): string[] {
@@ -19,7 +20,7 @@ function getFilePaths(dir: string, baseDir: string = dir): string[] {
 
 /**
  * Uploads all files from inFolder to S3 under keyPrefix, preserving directory structure.
- * Each file is uploaded with the given contentType.
+ * Each file is uploaded with the given contentType. Logs progress and errors via ProgressLogger.
  *
  * @param inFolder - Local directory to upload (e.g. /tmp/trails-tiles)
  * @param keyPrefix - S3 key prefix (e.g. trails or routeMarkers). No trailing slash.
@@ -34,12 +35,22 @@ export async function putS3Folder(
 ): Promise<void> {
     const prefix = keyPrefix.replace(/\/$/, '');
     const paths = getFilePaths(inFolder);
+    const logger = new ProgressLogger('Uploading to S3', paths.length);
+
     await Promise.all(
         paths.map(async (relPath) => {
-            const body = readFileSync(join(inFolder, relPath));
-            const key = `${prefix}/${relPath}`;
-            await putS3Object(bucket, key, body, contentType);
+            try {
+                const body = readFileSync(join(inFolder, relPath));
+                const key = `${prefix}/${relPath}`;
+                await putS3Object(bucket, key, body, contentType);
+                logger.logProgress(relPath);
+            } catch (err) {
+                const message = err instanceof Error ? err.message : String(err);
+                logger.logError(`${relPath}: ${message}`);
+            }
         })
     );
-    console.log(`Uploaded ${paths.length} file(s) to s3://${bucket}/${prefix}/`);
+
+    const { successes, errors } = logger.getResults();
+    console.log(`Upload complete: ${successes} success(es), ${errors} error(s) to s3://${bucket}/${prefix}/`);
 }
