@@ -52,11 +52,14 @@ describe('putS3Folder', () => {
         const consoleSpy = jest.spyOn(console, 'log').mockImplementation(() => {});
         mockGetResults.mockReturnValue({ successes: 2, errors: 0, remaining: 0 });
 
-        await putS3Folder(inFolder, keyPrefix, bucket, contentType);
+        const result = await putS3Folder(inFolder, keyPrefix, bucket, contentType);
 
         expect(putS3Object).toHaveBeenCalledTimes(2);
         expect(putS3Object).toHaveBeenCalledWith(bucket, 'trails/0/0/0.pbf', Buffer.from('pbf-content'), contentType);
         expect(putS3Object).toHaveBeenCalledWith(bucket, 'trails/1/0/0.pbf', Buffer.from('pbf-content'), contentType);
+        expect(result).toHaveLength(2);
+        expect(result).toContain('trails/0/0/0.pbf');
+        expect(result).toContain('trails/1/0/0.pbf');
         expect(mockLogProgress).toHaveBeenCalledTimes(2);
         expect(mockLogProgress).toHaveBeenCalledWith('0/0/0.pbf');
         expect(mockLogProgress).toHaveBeenCalledWith('1/0/0.pbf');
@@ -72,9 +75,10 @@ describe('putS3Folder', () => {
         mockGetResults.mockReturnValue({ successes: 1, errors: 0, remaining: 0 });
         const consoleSpy = jest.spyOn(console, 'log').mockImplementation(() => {});
 
-        await putS3Folder(inFolder, 'trails/', bucket, contentType);
+        const result = await putS3Folder(inFolder, 'trails/', bucket, contentType);
 
         expect(putS3Object).toHaveBeenCalledWith(bucket, 'trails/file.pbf', expect.any(Buffer), contentType);
+        expect(result).toEqual(['trails/file.pbf']);
         expect(mockLogProgress).toHaveBeenCalledWith('file.pbf');
         consoleSpy.mockRestore();
     });
@@ -85,15 +89,16 @@ describe('putS3Folder', () => {
         mockGetResults.mockReturnValue({ successes: 1, errors: 0, remaining: 0 });
         const consoleSpy = jest.spyOn(console, 'log').mockImplementation(() => {});
 
-        await putS3Folder(inFolder, 'myPrefix', bucket, 'text/plain');
+        const result = await putS3Folder(inFolder, 'myPrefix', bucket, 'text/plain');
 
         expect(readFileSync).toHaveBeenCalledWith(join(inFolder, 'root.txt'));
         expect(putS3Object).toHaveBeenCalledWith(bucket, 'myPrefix/root.txt', Buffer.from('content'), 'text/plain');
+        expect(result).toEqual(['myPrefix/root.txt']);
         expect(mockLogProgress).toHaveBeenCalledWith('root.txt');
         consoleSpy.mockRestore();
     });
 
-    it('logs errors via ProgressLogger when putS3Object rejects', async () => {
+    it('logs errors via ProgressLogger when putS3Object rejects but returns all file paths', async () => {
         jest.mocked(readdirSync).mockReturnValueOnce([{ name: 'a.pbf', isDirectory: () => false }, { name: 'b.pbf', isDirectory: () => false }] as unknown as ReturnType<typeof readdirSync>);
         jest.mocked(readFileSync).mockReturnValue(Buffer.from('x'));
         jest.mocked(putS3Object)
@@ -102,12 +107,13 @@ describe('putS3Folder', () => {
         mockGetResults.mockReturnValue({ successes: 1, errors: 1, remaining: 0 });
         const consoleSpy = jest.spyOn(console, 'log').mockImplementation(() => {});
 
-        await putS3Folder(inFolder, keyPrefix, bucket, contentType);
+        const result = await putS3Folder(inFolder, keyPrefix, bucket, contentType);
 
         expect(mockLogProgress).toHaveBeenCalledTimes(1);
         expect(mockLogProgress).toHaveBeenCalledWith('b.pbf');
         expect(mockLogError).toHaveBeenCalledTimes(1);
         expect(mockLogError).toHaveBeenCalledWith('a.pbf: S3 throttled');
+        expect(result).toEqual(['trails/a.pbf', 'trails/b.pbf']);
         expect(consoleSpy).toHaveBeenCalledWith('Upload complete: 1 success(es), 1 error(s) to s3://my-bucket/trails/');
         consoleSpy.mockRestore();
     });

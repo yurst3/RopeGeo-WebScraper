@@ -26,13 +26,15 @@ function getFilePaths(dir: string, baseDir: string = dir): string[] {
  * @param keyPrefix - S3 key prefix (e.g. trails or routeMarkers). No trailing slash.
  * @param bucket - S3 bucket name
  * @param contentType - Content-Type header for every uploaded file
+ * @returns Array of all S3 keys that correspond to the local files (whether or not each upload succeeded).
+ *          Used by replaceS3Folder so we only delete existing keys not in this set—failed overwrites are not removed.
  */
 export async function putS3Folder(
     inFolder: string,
     keyPrefix: string,
     bucket: string,
     contentType: string
-): Promise<void> {
+): Promise<string[]> {
     const prefix = keyPrefix.replace(/\/$/, '');
     const paths = getFilePaths(inFolder);
     const logger = new ProgressLogger('Uploading to S3', paths.length);
@@ -53,4 +55,5 @@ export async function putS3Folder(
 
     const { successes, errors } = logger.getResults();
     console.log(`Upload complete: ${successes} success(es), ${errors} error(s) to s3://${bucket}/${prefix}/`);
+    return paths.map((relPath) => `${prefix}/${relPath}`);
 }

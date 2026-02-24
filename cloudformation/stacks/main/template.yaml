@@ -819,9 +819,13 @@ Resources:
             Version: '2012-10-17'
             Statement:
               - Effect: Allow
+                Action: s3:ListBucket
+                Resource: !GetAtt MapDataBucket.Arn
+              - Effect: Allow
                 Action:
                   - s3:PutObject
                   - s3:PutObjectAcl
+                  - s3:DeleteObject
                 Resource: !Sub '${MapDataBucket.Arn}/routeMarkers/*'
         - !If
           - HasCloudFrontDistribution
@@ -970,6 +974,9 @@ Resources:
             Version: '2012-10-17'
             Statement:
               - Effect: Allow
+                Action: s3:ListBucket
+                Resource: !GetAtt MapDataBucket.Arn
+              - Effect: Allow
                 Action:
                   - s3:GetObject
                 Resource: !Sub '${MapDataBucket.Arn}/geojson/*'
@@ -977,6 +984,7 @@ Resources:
                 Action:
                   - s3:PutObject
                   - s3:PutObjectAcl
+                  - s3:DeleteObject
                 Resource: !Sub '${MapDataBucket.Arn}/trails/*'
         - !If
           - HasCloudFrontDistribution
