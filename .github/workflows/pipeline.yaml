@@ -603,7 +603,7 @@ jobs:
             --region ${PROD_REGION}
 
   invalidate-prod-api-cloudfront:
-    if: github.ref == 'refs/heads/master' && needs.deploy-prod-api.result == 'success'
+    if: always() && github.ref == 'refs/heads/master' && needs.deploy-prod-api.result == 'success'
     needs: [deploy-prod-api]
     runs-on: ubuntu-latest
     steps:
