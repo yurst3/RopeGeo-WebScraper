@@ -12,6 +12,7 @@ PagePreview:
     - source
     - title
     - regions
+    - difficulty
   properties:
     id:
       type: string
@@ -45,11 +46,66 @@ PagePreview:
       items:
         type: string
     difficulty:
-      type: string
-      nullable: true
-      description: Difficulty string (e.g. rating text for Ropewiki)
+      $ref: "#/Difficulty"
     mapData:
       type: string
       format: uuid
       nullable: true
       description: Map data id for the page route, or null if none
+
+Difficulty:
+  type: object
+  description: Difficulty ratings (technical, water, time, risk); each property nullable
+  required:
+    - technical
+    - water
+    - time
+    - risk
+  properties:
+    technical:
+      type: string
+      nullable: true
+      description: Technical difficulty (1-4)
+      enum:
+        - "1"
+        - "2"
+        - "3"
+        - "4"
+        - null
+    water:
+      type: string
+      nullable: true
+      description: Water difficulty (A, B, C, C1-C4)
+      enum:
+        - A
+        - B
+        - C
+        - C1
+        - C2
+        - C3
+        - C4
+        - null
+    time:
+      type: string
+      nullable: true
+      description: Time difficulty (I-VI, Roman numerals)
+      enum:
+        - I
+        - II
+        - III
+        - IV
+        - V
+        - VI
+        - null
+    risk:
+      type: string
+      nullable: true
+      description: Risk rating (G, PG, PG13, R, X, XX)
+      enum:
+        - G
+        - PG
+        - PG13
+        - R
+        - X
+        - XX
+        - null

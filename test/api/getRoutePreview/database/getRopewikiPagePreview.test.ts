@@ -74,7 +74,10 @@ describe('getRopewikiPagePreview (integration)', () => {
                 latestRevisionDate: '2025-01-01T00:00:00' as db.TimestampString,
                 quality: 4.5,
                 userVotes: 12,
-                rating: '3A II',
+                technicalRating: '3',
+                waterRating: 'A',
+                timeRating: 'II',
+                riskRating: null,
             })
             .run(conn);
 
@@ -88,7 +91,7 @@ describe('getRopewikiPagePreview (integration)', () => {
             regions: ['Utah'],
             rating: 4.5,
             ratingCount: 12,
-            difficulty: '3A II',
+            difficulty: { technical: '3', water: 'A', time: 'II', risk: null },
         });
         expect(result.imageUrl).toBeNull();
     });

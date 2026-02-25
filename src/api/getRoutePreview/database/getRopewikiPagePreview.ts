@@ -1,17 +1,23 @@
 import * as db from 'zapatos/db';
-import { PageDataSource } from '../../../types/pageRoute';
-import type { PagePreview } from '../../../types/pagePreview';
+import { PagePreview } from '../../../types/pagePreview';
 import type { RopewikiRoute } from '../../../types/pageRoute';
 
-type Row = {
+/**
+ * Row shape returned by the getRopewikiPagePreview query.
+ * Used as the parameter type for PagePreview.fromDbRow when building from Ropewiki data.
+ */
+export interface GetRopewikiPagePreviewRow {
     pageId: string;
     title: string;
     quality: number | null;
     userVotes: number | null;
-    rating: string | null;
+    technicalRating: string | null;
+    timeRating: string | null;
+    waterRating: string | null;
+    riskRating: string | null;
     regionName: string;
     bannerFileUrl: string | null;
-};
+}
 
 /**
  * Returns a single PagePreview for the given RopewikiRoute (uses its ropewikiPage id).
@@ -23,13 +29,16 @@ const getRopewikiPagePreview = async (
 ): Promise<PagePreview> => {
     const pageId = ropewikiRoute.page;
 
-    const rows = await db.sql<db.SQL, Row[]>`
+    const rows = await db.sql<db.SQL, GetRopewikiPagePreviewRow[]>`
         SELECT
             p.id AS "pageId",
             p.name AS title,
             p.quality,
             p."userVotes",
-            p.rating,
+            p."technicalRating",
+            p."timeRating",
+            p."waterRating",
+            p."riskRating",
             r.name AS "regionName",
             (
                 SELECT i."fileUrl"
@@ -51,17 +60,7 @@ const getRopewikiPagePreview = async (
         throw new Error(`RopewikiPage not found for id: ${pageId}`);
     }
 
-    return {
-        id: row.pageId,
-        source: PageDataSource.Ropewiki,
-        imageUrl: row.bannerFileUrl ?? null,
-        rating: row.quality != null ? Number(row.quality) : null,
-        ratingCount: row.userVotes ?? null,
-        title: row.title,
-        regions: [row.regionName],
-        difficulty: row.rating ?? null,
-        mapData: ropewikiRoute.mapData ?? null,
-    };
+    return PagePreview.fromDbRow(row, ropewikiRoute.mapData ?? null);
 };
 
 export default getRopewikiPagePreview;

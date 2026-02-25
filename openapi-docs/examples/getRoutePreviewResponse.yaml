@@ -9,7 +9,11 @@ value:
     title: Bear Creek Canyon
     regions:
       - Utah
-    difficulty: "3A II"
+    difficulty:
+      technical: "3"
+      water: A
+      time: II
+      risk: PG
     mapData: c3d4e5f6-a7b8-9012-cdef-123456789012
   - id: b2c3d4e5-f6a7-8901-bcde-f12345678901
     source: ropewiki
@@ -19,5 +23,9 @@ value:
     title: Devil Gulch
     regions:
       - Colorado
-    difficulty: null
+    difficulty:
+      technical: null
+      water: null
+      time: null
+      risk: null
     mapData: null

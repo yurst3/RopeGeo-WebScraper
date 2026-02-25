@@ -43,7 +43,8 @@ describe('getPagePreviews', () => {
             ratingCount: 12,
             title: 'First Page',
             regions: ['Utah'],
-            difficulty: '3A II',
+            difficulty: { technical: '3', water: 'A', time: 'II', risk: null },
+            mapData: null,
         };
         const preview2: PagePreview = {
             id: pageId2,
@@ -53,7 +54,8 @@ describe('getPagePreviews', () => {
             ratingCount: 5,
             title: 'Second Page',
             regions: ['Nevada'],
-            difficulty: '2B I',
+            difficulty: { technical: '2', water: 'B', time: 'I', risk: null },
+            mapData: null,
         };
         mockGetRopewikiPagePreview.mockResolvedValueOnce(preview1).mockResolvedValueOnce(preview2);
 
