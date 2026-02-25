@@ -15,7 +15,8 @@ import RopewikiPage from "../types/page";
 /**
  * Processes a single Ropewiki page.
  * Fetches HTML, parses it, and upserts beta sections and images.
- * 
+ * HTTP and parse steps are limited by timeouts so a single page cannot hang the processor.
+ *
  * @param client - Database client (should be a PoolClient in a transaction)
  * @param page - Page data to process
  * @param logger - Progress logger for tracking progress
@@ -30,7 +31,7 @@ const processPage = async (
     // client should be a PoolClient that's already in a transaction
     const poolClient = client as PoolClient;
 
-    // HTTP errors will propagate up the stack (not caught here)
+    // HTTP errors will propagate up the stack (not caught here). httpRequest has its own timeout.
     const pageHTML: string = await getRopewikiPageHtml(page.pageid);
 
     // Create a savepoint
@@ -42,7 +43,7 @@ const processPage = async (
             throw new Error(`Page must have an id to process: ${page.pageid}`);
         }
 
-        // Parse the page into its beta sections and images
+        // Parse the page into its beta sections and images (parseRopewikiPage uses timeoutAfter internally)
         const { beta, images } = await parseRopewikiPage(pageHTML);
 
         // Soft-delete all existing beta sections, images, and page-site links for this page

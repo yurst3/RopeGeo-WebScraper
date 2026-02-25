@@ -22,6 +22,22 @@ export const mainHandler = async (event: SqsEvent, context: any) => {
             throw new Error('Invalid SQS event: missing Records array or empty Records');
         }
 
+        const timeoutSecondsRaw = process.env.MAP_DATA_PROCESSOR_TIMEOUT_SECONDS;
+        const timeoutSeconds = timeoutSecondsRaw != null ? parseInt(timeoutSecondsRaw, 10) : NaN;
+        if (!Number.isFinite(timeoutSeconds) || timeoutSeconds <= 0) {
+            throw new Error(
+                `Invalid MAP_DATA_PROCESSOR_TIMEOUT_SECONDS: must be a positive number, got ${JSON.stringify(timeoutSecondsRaw)}`,
+            );
+        }
+        const lambdaTimeoutMs = timeoutSeconds * 1000;
+
+        const getRemainingTimeInMillis = context?.getRemainingTimeInMillis != null
+            ? () => context.getRemainingTimeInMillis()
+            : undefined;
+        if (getRemainingTimeInMillis == null) {
+            throw new Error('getRemainingTimeInMillis is required (Lambda context.getRemainingTimeInMillis)');
+        }
+
         console.log(`Processing map data for ${event.Records.length} page routes...`);
 
         /*
@@ -34,7 +50,7 @@ export const mainHandler = async (event: SqsEvent, context: any) => {
             await setMapDataSQSMessageVisibilityTimeout(record.receiptHandle);
         }
 
-        const results = await handleMapDataSQSMessages(event.Records, client);
+        const results = await handleMapDataSQSMessages(event.Records, client, lambdaTimeoutMs, getRemainingTimeInMillis);
         const totalRecords = event.Records.length;
 
         return {

@@ -11,6 +11,8 @@ const mockGetDatabaseConnection = require('../../../src/helpers/getDatabaseConne
 const mockHandleProcessPageSQSMessages = require('../../../src/ropewiki/sqs/handleProcessPageSQSMessages').default as jest.MockedFunction<typeof import('../../../src/ropewiki/sqs/handleProcessPageSQSMessages').default>;
 const mockSetProcessPageSQSMessageVisibilityTimeout = require('../../../src/ropewiki/sqs/setProcessPageSQSMessageVisibilityTimeout').default as jest.MockedFunction<typeof import('../../../src/ropewiki/sqs/setProcessPageSQSMessageVisibilityTimeout').default>;
 
+const mockContext = { getRemainingTimeInMillis: () => 900_000 };
+
 describe('processPageHandler', () => {
     let mockPool: any;
     let mockClient: any;
@@ -51,6 +53,7 @@ describe('processPageHandler', () => {
 
     beforeEach(() => {
         jest.clearAllMocks();
+        process.env.ROPEWIKI_PAGE_PROCESSOR_TIMEOUT_SECONDS = '900';
 
         consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
 
@@ -82,14 +85,14 @@ describe('processPageHandler', () => {
             remaining: 0,
         });
 
-        const result = await processPageHandler(event, {});
+        const result = await processPageHandler(event, mockContext);
 
         expect(mockGetDatabaseConnection).toHaveBeenCalledTimes(1);
         expect(mockPool.connect).toHaveBeenCalledTimes(1);
         expect(mockSetProcessPageSQSMessageVisibilityTimeout).toHaveBeenCalledTimes(1);
         expect(mockSetProcessPageSQSMessageVisibilityTimeout).toHaveBeenCalledWith('receipt-0');
         expect(mockHandleProcessPageSQSMessages).toHaveBeenCalledTimes(1);
-        expect(mockHandleProcessPageSQSMessages).toHaveBeenCalledWith(event.Records, mockClient);
+        expect(mockHandleProcessPageSQSMessages).toHaveBeenCalledWith(event.Records, mockClient, 900_000, expect.any(Function));
         expect(mockClient.release).toHaveBeenCalledTimes(1);
         expect(mockPool.end).toHaveBeenCalledTimes(1);
 
@@ -115,13 +118,13 @@ describe('processPageHandler', () => {
             remaining: 0,
         });
 
-        const result = await processPageHandler(event, {});
+        const result = await processPageHandler(event, mockContext);
 
         expect(mockSetProcessPageSQSMessageVisibilityTimeout).toHaveBeenCalledTimes(3);
         expect(mockSetProcessPageSQSMessageVisibilityTimeout).toHaveBeenNthCalledWith(1, 'receipt-0');
         expect(mockSetProcessPageSQSMessageVisibilityTimeout).toHaveBeenNthCalledWith(2, 'receipt-1');
         expect(mockSetProcessPageSQSMessageVisibilityTimeout).toHaveBeenNthCalledWith(3, 'receipt-2');
-        expect(mockHandleProcessPageSQSMessages).toHaveBeenCalledWith(event.Records, mockClient);
+        expect(mockHandleProcessPageSQSMessages).toHaveBeenCalledWith(event.Records, mockClient, 900_000, expect.any(Function));
         expect(result.statusCode).toBe(200);
         const body = JSON.parse(result.body);
         expect(body.message).toBe('Processed 3 pages');
@@ -144,7 +147,7 @@ describe('processPageHandler', () => {
             remaining: 0,
         });
 
-        const result = await processPageHandler(event, {});
+        const result = await processPageHandler(event, mockContext);
 
         expect(mockSetProcessPageSQSMessageVisibilityTimeout).toHaveBeenCalledTimes(2);
         expect(result.statusCode).toBe(200);
@@ -186,6 +189,31 @@ describe('processPageHandler', () => {
         expect(body.results).toBeUndefined();
     });
 
+    it('returns 500 and skips handleProcessPageSQSMessages when ROPEWIKI_PAGE_PROCESSOR_TIMEOUT_SECONDS is invalid', async () => {
+        delete process.env.ROPEWIKI_PAGE_PROCESSOR_TIMEOUT_SECONDS;
+        const event = createSqsEvent([createPageData('123', 'Test Page')]);
+
+        const result = await processPageHandler(event, {});
+
+        expect(mockHandleProcessPageSQSMessages).not.toHaveBeenCalled();
+        expect(result.statusCode).toBe(500);
+        const body = JSON.parse(result.body);
+        expect(body.message).toBe('Failed to process pages');
+        expect(body.error).toContain('Invalid ROPEWIKI_PAGE_PROCESSOR_TIMEOUT_SECONDS');
+    });
+
+    it('returns 500 and skips handleProcessPageSQSMessages when getRemainingTimeInMillis is null', async () => {
+        const event = createSqsEvent([createPageData('123', 'Test Page')]);
+
+        const result = await processPageHandler(event, {});
+
+        expect(mockHandleProcessPageSQSMessages).not.toHaveBeenCalled();
+        expect(result.statusCode).toBe(500);
+        const body = JSON.parse(result.body);
+        expect(body.message).toBe('Failed to process pages');
+        expect(body.error).toContain('getRemainingTimeInMillis is required');
+    });
+
     it('calls setProcessPageSQSMessageVisibilityTimeout before handleProcessPageSQSMessages', async () => {
         const event = createSqsEvent([createPageData('123', 'Test Page')]);
         const callOrder: string[] = [];
@@ -197,7 +225,7 @@ describe('processPageHandler', () => {
             return { successes: 1, errors: 0, remaining: 0 };
         });
 
-        await processPageHandler(event, {});
+        await processPageHandler(event, mockContext);
 
         expect(callOrder).toEqual(['visibility', 'handle']);
     });
@@ -206,7 +234,7 @@ describe('processPageHandler', () => {
         const event = createSqsEvent([createPageData('123', 'Test Page')]);
         mockSetProcessPageSQSMessageVisibilityTimeout.mockRejectedValue(new Error('Visibility timeout failed'));
 
-        const result = await processPageHandler(event, {});
+        const result = await processPageHandler(event, mockContext);
 
         expect(mockSetProcessPageSQSMessageVisibilityTimeout).toHaveBeenCalledWith('receipt-0');
         expect(mockHandleProcessPageSQSMessages).not.toHaveBeenCalled();
@@ -224,10 +252,10 @@ describe('processPageHandler', () => {
         ]);
         mockHandleProcessPageSQSMessages.mockRejectedValue(new Error('HTTP error: Failed to fetch'));
 
-        const result = await processPageHandler(event, {});
+        const result = await processPageHandler(event, mockContext);
 
         expect(mockSetProcessPageSQSMessageVisibilityTimeout).toHaveBeenCalledTimes(2);
-        expect(mockHandleProcessPageSQSMessages).toHaveBeenCalledWith(event.Records, mockClient);
+        expect(mockHandleProcessPageSQSMessages).toHaveBeenCalledWith(event.Records, mockClient, 900_000, expect.any(Function));
         expect(consoleErrorSpy).toHaveBeenCalled();
         expect(result.statusCode).toBe(500);
         const body = JSON.parse(result.body);
@@ -277,7 +305,7 @@ describe('processPageHandler', () => {
         const event = createSqsEvent([createPageData('123', 'Test Page')]);
         mockHandleProcessPageSQSMessages.mockRejectedValue('String error');
 
-        const result = await processPageHandler(event, {});
+        const result = await processPageHandler(event, mockContext);
 
         expect(result.statusCode).toBe(500);
         const body = JSON.parse(result.body);

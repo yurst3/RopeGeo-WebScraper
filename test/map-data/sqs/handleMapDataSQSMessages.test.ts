@@ -13,6 +13,8 @@ const MapDataEvent = require('../../../src/map-data/types/lambdaEvent').MapDataE
 const ProgressLogger = require('../../../src/helpers/progressLogger').default;
 const mockDeleteMapDataSQSMessage = require('../../../src/map-data/sqs/deleteMapDataSQSMessage').default as jest.MockedFunction<typeof import('../../../src/map-data/sqs/deleteMapDataSQSMessage').default>;
 
+const LAMBDA_TIMEOUT_MS = 900_000;
+
 describe('handleMapDataSQSMessages', () => {
     let mockClient: any;
     let mockLogger: any;
@@ -93,7 +95,7 @@ describe('handleMapDataSQSMessages', () => {
             remaining: 0,
         });
 
-        const result = await handleMapDataSQSMessages([record], mockClient);
+        const result = await handleMapDataSQSMessages([record], mockClient, LAMBDA_TIMEOUT_MS, () => LAMBDA_TIMEOUT_MS);
 
         expect(MapDataEvent.fromSQSEventRecord).toHaveBeenCalledTimes(1);
         expect(mockMain).toHaveBeenCalledTimes(1);
@@ -118,7 +120,7 @@ describe('handleMapDataSQSMessages', () => {
             remaining: 0,
         });
 
-        const result = await handleMapDataSQSMessages(records, mockClient);
+        const result = await handleMapDataSQSMessages(records, mockClient, LAMBDA_TIMEOUT_MS, () => LAMBDA_TIMEOUT_MS);
 
         expect(mockMain).toHaveBeenCalledTimes(3);
         expect(mockDeleteMapDataSQSMessage).toHaveBeenCalledTimes(3);
@@ -157,7 +159,7 @@ describe('handleMapDataSQSMessages', () => {
             remaining: 0,
         });
 
-        const result = await handleMapDataSQSMessages(records, mockClient);
+        const result = await handleMapDataSQSMessages(records, mockClient, LAMBDA_TIMEOUT_MS, () => LAMBDA_TIMEOUT_MS);
 
         expect(mockLogger.logError).toHaveBeenCalledWith('Error parsing MapDataEvent from SQSEventRecord: Invalid event data');
         expect(mockDeleteMapDataSQSMessage).toHaveBeenCalledWith('receipt-1');
@@ -187,7 +189,7 @@ describe('handleMapDataSQSMessages', () => {
             remaining: 0,
         });
 
-        const result = await handleMapDataSQSMessages(records, mockClient);
+        const result = await handleMapDataSQSMessages(records, mockClient, LAMBDA_TIMEOUT_MS, () => LAMBDA_TIMEOUT_MS);
 
         expect(mockMain).toHaveBeenCalledTimes(3);
         expect(mockDeleteMapDataSQSMessage).toHaveBeenCalledTimes(2); // First and third deleted
@@ -218,7 +220,7 @@ describe('handleMapDataSQSMessages', () => {
             remaining: 0,
         });
 
-        const result = await handleMapDataSQSMessages(records, mockClient);
+        const result = await handleMapDataSQSMessages(records, mockClient, LAMBDA_TIMEOUT_MS, () => LAMBDA_TIMEOUT_MS);
 
         expect(mockMain).toHaveBeenCalledTimes(2);
         expect(mockDeleteMapDataSQSMessage).toHaveBeenCalledTimes(1); // Only second deleted
@@ -237,7 +239,7 @@ describe('handleMapDataSQSMessages', () => {
             remaining: 0,
         });
 
-        const result = await handleMapDataSQSMessages([], mockClient);
+        const result = await handleMapDataSQSMessages([], mockClient, LAMBDA_TIMEOUT_MS, () => LAMBDA_TIMEOUT_MS);
 
         expect(mockMain).not.toHaveBeenCalled();
         expect(mockDeleteMapDataSQSMessage).not.toHaveBeenCalled();
@@ -260,7 +262,7 @@ describe('handleMapDataSQSMessages', () => {
             remaining: 0,
         });
 
-        const result = await handleMapDataSQSMessages(records, mockClient);
+        const result = await handleMapDataSQSMessages(records, mockClient, LAMBDA_TIMEOUT_MS, () => LAMBDA_TIMEOUT_MS);
 
         expect(result).toEqual({
             successes: 1,

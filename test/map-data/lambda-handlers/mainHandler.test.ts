@@ -63,15 +63,17 @@ jest.mock('../../../src/map-data/types/lambdaEvent', () => {
     };
 });
 
+const mockContext = { getRemainingTimeInMillis: () => 900_000 };
+
 describe('mainHandler', () => {
-    const mockContext = {} as any;
     const routeId = '11111111-1111-1111-1111-111111111111';
     const pageId = 'd1d9139d-38db-433c-b7cd-a28f79331667';
     const source = PageDataSource.Ropewiki;
 
     beforeEach(() => {
         jest.clearAllMocks();
-        
+        process.env.MAP_DATA_PROCESSOR_TIMEOUT_SECONDS = '900';
+
         // Set DEV_ENVIRONMENT to 'local' to skip SQS calls
         process.env.DEV_ENVIRONMENT = 'local';
         
@@ -106,7 +108,9 @@ describe('mainHandler', () => {
 
         expect(mockHandleMapDataSQSMessages).toHaveBeenCalledWith(
             sqsEvent.Records,
-            expect.any(Object), // client
+            expect.any(Object),
+            900_000,
+            expect.any(Function),
         );
         expect(result).toEqual({
             statusCode: 200,
@@ -164,6 +168,47 @@ describe('mainHandler', () => {
         expect(body.error).toBe('Invalid SQS event: missing Records array or empty Records');
     });
 
+    it('returns 500 and skips handleMapDataSQSMessages when MAP_DATA_PROCESSOR_TIMEOUT_SECONDS is invalid', async () => {
+        const previous = process.env.MAP_DATA_PROCESSOR_TIMEOUT_SECONDS;
+        delete process.env.MAP_DATA_PROCESSOR_TIMEOUT_SECONDS;
+        const sqsEvent: SqsEvent = {
+            Records: [
+                {
+                    body: JSON.stringify({ source, routeId, pageId }),
+                    receiptHandle: 'test-receipt-handle',
+                } as SqsRecord,
+            ],
+        };
+
+        const result = await mainHandler(sqsEvent, mockContext);
+
+        expect(mockHandleMapDataSQSMessages).not.toHaveBeenCalled();
+        expect(result.statusCode).toBe(500);
+        const body = JSON.parse(result.body);
+        expect(body.message).toBe('Failed to process map data');
+        expect(body.error).toContain('Invalid MAP_DATA_PROCESSOR_TIMEOUT_SECONDS');
+        if (previous !== undefined) process.env.MAP_DATA_PROCESSOR_TIMEOUT_SECONDS = previous;
+    });
+
+    it('returns 500 and skips handleMapDataSQSMessages when getRemainingTimeInMillis is null', async () => {
+        const sqsEvent: SqsEvent = {
+            Records: [
+                {
+                    body: JSON.stringify({ source, routeId, pageId }),
+                    receiptHandle: 'test-receipt-handle',
+                } as SqsRecord,
+            ],
+        };
+
+        const result = await mainHandler(sqsEvent, {});
+
+        expect(mockHandleMapDataSQSMessages).not.toHaveBeenCalled();
+        expect(result.statusCode).toBe(500);
+        const body = JSON.parse(result.body);
+        expect(body.message).toBe('Failed to process map data');
+        expect(body.error).toContain('getRemainingTimeInMillis is required');
+    });
+
     it('returns error when handleMapDataSQSMessages throws', async () => {
         const error = new Error('SQS record missing body');
         const sqsEvent: SqsEvent = {
@@ -185,7 +230,9 @@ describe('mainHandler', () => {
 
         expect(mockHandleMapDataSQSMessages).toHaveBeenCalledWith(
             sqsEvent.Records,
-            expect.any(Object), // client
+            expect.any(Object),
+            900_000,
+            expect.any(Function),
         );
         expect(result.statusCode).toBe(500);
         const body = JSON.parse(result.body);
@@ -215,7 +262,9 @@ describe('mainHandler', () => {
 
         expect(mockHandleMapDataSQSMessages).toHaveBeenCalledWith(
             sqsEvent.Records,
-            expect.any(Object), // client
+            expect.any(Object),
+            900_000,
+            expect.any(Function),
         );
         expect(result.statusCode).toBe(500);
         const body = JSON.parse(result.body);
@@ -284,7 +333,9 @@ describe('mainHandler', () => {
         expect(mockHandleMapDataSQSMessages).toHaveBeenCalledTimes(1);
         expect(mockHandleMapDataSQSMessages).toHaveBeenCalledWith(
             sqsEvent.Records,
-            expect.any(Object), // client
+            expect.any(Object),
+            900_000,
+            expect.any(Function),
         );
         expect(result.statusCode).toBe(200);
         const body = JSON.parse(result.body);
@@ -337,7 +388,9 @@ describe('mainHandler', () => {
 
         expect(mockHandleMapDataSQSMessages).toHaveBeenCalledWith(
             sqsEvent.Records,
-            expect.any(Object), // client
+            expect.any(Object),
+            900_000,
+            expect.any(Function),
         );
     });
 });

@@ -1,6 +1,7 @@
 import { RopewikiBetaSection, RopewikiImage } from '../types/page';
 import uniqBy from 'lodash/uniqBy';
 import { launchBrowser } from '../../helpers/browserLauncher';
+import { timeoutAfter } from '../../helpers/timeoutAfter';
 
 const evalPage = (): { beta: RopewikiBetaSection[], images: RopewikiImage[] } => {
     // Functions have to be defined inside evalPage() because it is being run in a browser context and can't reference other functions
@@ -205,19 +206,31 @@ const removeEmptyBetaSectionsWithoutImages = (
     return { beta, images: result.images };
 }
 
-const parseRopewikiPage = async (html: string) => {
-    const browser = await launchBrowser();
-    const page = await browser.newPage();
-    await page.setContent(html);
+/** Max time for Chromium parse; prevents one stuck page from hanging the Lambda. */
+const PARSE_TIMEOUT_MS = 30_000;
 
-    let result = await page.evaluate(evalPage);
-
-    await browser.close();
+const parseRopewikiPage = async (html: string): Promise<{ beta: RopewikiBetaSection[]; images: RopewikiImage[] }> => {
+    let result = await timeoutAfter(PARSE_TIMEOUT_MS, async (signal) => {
+        let browserRef: Awaited<ReturnType<typeof launchBrowser>> | null = null;
+        signal.addEventListener('abort', () => {
+            browserRef?.close().catch(() => {});
+        });
+        const browser = await launchBrowser();
+        browserRef = browser;
+        try {
+            const page = await browser.newPage();
+            await page.setContent(html);
+            return await page.evaluate(evalPage);
+        } finally {
+            await browser.close();
+            browserRef = null;
+        }
+    });
 
     result = removeEmptyBetaSectionsWithoutImages(result);
     result = removeDuplicates(result);
 
     return result;
-}
+};
 
 export default parseRopewikiPage;

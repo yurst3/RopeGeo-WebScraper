@@ -13,6 +13,8 @@ const RopewikiPage = require('../../../src/ropewiki/types/page').default;
 const ProgressLogger = require('../../../src/helpers/progressLogger').default;
 const mockDeleteProcessPageSQSMessage = require('../../../src/ropewiki/sqs/deleteProcessPageSQSMessage').default as jest.MockedFunction<typeof import('../../../src/ropewiki/sqs/deleteProcessPageSQSMessage').default>;
 
+const LAMBDA_TIMEOUT_MS = 900_000;
+
 describe('handleProcessPageSQSMessages', () => {
     let mockClient: any;
     let mockLogger: any;
@@ -95,7 +97,7 @@ describe('handleProcessPageSQSMessages', () => {
             remaining: 0,
         });
 
-        const result = await handleProcessPageSQSMessages([record], mockClient);
+        const result = await handleProcessPageSQSMessages([record], mockClient, LAMBDA_TIMEOUT_MS, () => LAMBDA_TIMEOUT_MS);
 
         expect(mockClient.query).toHaveBeenCalledWith('BEGIN');
         expect(mockClient.query).toHaveBeenCalledWith('COMMIT');
@@ -123,7 +125,7 @@ describe('handleProcessPageSQSMessages', () => {
             remaining: 0,
         });
 
-        const result = await handleProcessPageSQSMessages(records, mockClient);
+        const result = await handleProcessPageSQSMessages(records, mockClient, LAMBDA_TIMEOUT_MS, () => LAMBDA_TIMEOUT_MS);
 
         expect(mockProcessPage).toHaveBeenCalledTimes(3);
         expect(mockDeleteProcessPageSQSMessage).toHaveBeenCalledTimes(3);
@@ -161,7 +163,7 @@ describe('handleProcessPageSQSMessages', () => {
             remaining: 0,
         });
 
-        const result = await handleProcessPageSQSMessages(records, mockClient);
+        const result = await handleProcessPageSQSMessages(records, mockClient, LAMBDA_TIMEOUT_MS, () => LAMBDA_TIMEOUT_MS);
 
         expect(mockLogger.logError).toHaveBeenCalledWith('Error parsing Ropewiki Page from SQSEventRecord: Invalid page data');
         expect(mockDeleteProcessPageSQSMessage).toHaveBeenCalledWith('receipt-1');
@@ -191,7 +193,7 @@ describe('handleProcessPageSQSMessages', () => {
             remaining: 0,
         });
 
-        const result = await handleProcessPageSQSMessages(records, mockClient);
+        const result = await handleProcessPageSQSMessages(records, mockClient, LAMBDA_TIMEOUT_MS, () => LAMBDA_TIMEOUT_MS);
 
         expect(mockClient.query).toHaveBeenCalledWith('COMMIT');
         expect(mockClient.query).not.toHaveBeenCalledWith('ROLLBACK');
@@ -222,7 +224,7 @@ describe('handleProcessPageSQSMessages', () => {
             remaining: 0,
         });
 
-        const result = await handleProcessPageSQSMessages(records, mockClient);
+        const result = await handleProcessPageSQSMessages(records, mockClient, LAMBDA_TIMEOUT_MS, () => LAMBDA_TIMEOUT_MS);
 
         expect(mockClient.query).toHaveBeenCalledWith('COMMIT');
         expect(mockClient.query).not.toHaveBeenCalledWith('ROLLBACK');
@@ -246,7 +248,7 @@ describe('handleProcessPageSQSMessages', () => {
             return Promise.resolve({});
         });
 
-        await expect(handleProcessPageSQSMessages(records, mockClient)).rejects.toThrow(
+        await expect(handleProcessPageSQSMessages(records, mockClient, LAMBDA_TIMEOUT_MS, () => LAMBDA_TIMEOUT_MS)).rejects.toThrow(
             'Transaction begin failed',
         );
 
@@ -262,7 +264,7 @@ describe('handleProcessPageSQSMessages', () => {
             return Promise.resolve({});
         });
 
-        await expect(handleProcessPageSQSMessages(records, mockClient)).rejects.toThrow(
+        await expect(handleProcessPageSQSMessages(records, mockClient, LAMBDA_TIMEOUT_MS, () => LAMBDA_TIMEOUT_MS)).rejects.toThrow(
             'Transaction commit failed',
         );
 
@@ -279,7 +281,7 @@ describe('handleProcessPageSQSMessages', () => {
             remaining: 0,
         });
 
-        const result = await handleProcessPageSQSMessages(records, mockClient);
+        const result = await handleProcessPageSQSMessages(records, mockClient, LAMBDA_TIMEOUT_MS, () => LAMBDA_TIMEOUT_MS);
 
         expect(mockClient.query).toHaveBeenCalledWith('COMMIT');
         expect(mockClient.query).not.toHaveBeenCalledWith('ROLLBACK');
@@ -299,7 +301,7 @@ describe('handleProcessPageSQSMessages', () => {
             remaining: 0,
         });
 
-        const result = await handleProcessPageSQSMessages([], mockClient);
+        const result = await handleProcessPageSQSMessages([], mockClient, LAMBDA_TIMEOUT_MS, () => LAMBDA_TIMEOUT_MS);
 
         expect(mockClient.query).toHaveBeenCalledWith('BEGIN');
         expect(mockClient.query).toHaveBeenCalledWith('COMMIT');
@@ -324,7 +326,7 @@ describe('handleProcessPageSQSMessages', () => {
             remaining: 0,
         });
 
-        const result = await handleProcessPageSQSMessages(records, mockClient);
+        const result = await handleProcessPageSQSMessages(records, mockClient, LAMBDA_TIMEOUT_MS, () => LAMBDA_TIMEOUT_MS);
 
         expect(result).toEqual({
             successes: 1,

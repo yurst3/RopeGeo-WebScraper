@@ -24,6 +24,22 @@ export const processPageHandler = async (event: SqsEvent, context: any) => {
             throw new Error('Invalid SQS event: missing Records array or empty Records');
         }
 
+        const timeoutSecondsRaw = process.env.ROPEWIKI_PAGE_PROCESSOR_TIMEOUT_SECONDS;
+        const timeoutSeconds = timeoutSecondsRaw != null ? parseInt(timeoutSecondsRaw, 10) : NaN;
+        if (!Number.isFinite(timeoutSeconds) || timeoutSeconds <= 0) {
+            throw new Error(
+                `Invalid ROPEWIKI_PAGE_PROCESSOR_TIMEOUT_SECONDS: must be a positive number, got ${JSON.stringify(timeoutSecondsRaw)}`,
+            );
+        }
+        const lambdaTimeoutMs = timeoutSeconds * 1000;
+
+        const getRemainingTimeInMillis = context?.getRemainingTimeInMillis != null
+            ? () => context.getRemainingTimeInMillis()
+            : undefined;
+        if (getRemainingTimeInMillis == null) {
+            throw new Error('getRemainingTimeInMillis is required (Lambda context.getRemainingTimeInMillis)');
+        }
+
         console.log(`Processing ${event.Records.length} messages...`);
 
         /*
@@ -36,7 +52,7 @@ export const processPageHandler = async (event: SqsEvent, context: any) => {
             await setProcessPageSQSMessageVisibilityTimeout(record.receiptHandle);
         }
 
-        const results = await handleProcessPageSQSMessages(event.Records, client);
+        const results = await handleProcessPageSQSMessages(event.Records, client, lambdaTimeoutMs, getRemainingTimeInMillis);
         const totalRecords = event.Records.length;
 
         return {
