@@ -38,7 +38,7 @@ export function makeTiles(geojsonDir: string, tilesDir: string): Promise<void> {
                 '-l', 'trails',
                 '--force',
                 '-Z', '0',
-                '-z', '22',
+                '-z', '16',
                 '--detect-longitude-wraparound',
                 '--use-source-polygon-winding',
                 '--reverse-source-polygon-winding',

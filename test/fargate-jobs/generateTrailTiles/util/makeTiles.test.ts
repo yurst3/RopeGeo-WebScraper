@@ -23,7 +23,7 @@ describe('makeTiles (generateTrailTiles)', () => {
         '-l', 'trails',
         '--force',
         '-Z', '0',
-        '--maximum-zoom=g',
+        '-z', '16',
         '--detect-longitude-wraparound',
         '--use-source-polygon-winding',
         '--reverse-source-polygon-winding',

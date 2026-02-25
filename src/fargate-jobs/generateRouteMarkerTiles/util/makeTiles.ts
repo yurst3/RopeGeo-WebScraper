@@ -18,7 +18,7 @@ export function makeTiles(geojsonFile: string, tilesDir: string): Promise<void> 
                 '-l', 'routes',
                 '--force',
                 '-Z', '0',
-                '-z', '22',
+                '-z', '16',
                 '-r1',
                 '--no-tile-compression',
                 localGeojsonPath,
