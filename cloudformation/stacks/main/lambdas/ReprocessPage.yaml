@@ -1,0 +1,36 @@
+Type: AWS::Serverless::Function
+Properties:
+  Description: Lambda to reprocess a single Ropewiki page (manually triggered for testing)
+  Runtime: nodejs22.x
+  Architectures:
+    - *chromiumArch
+  CodeUri: ../../../
+  Layers:
+    - !Ref ChromiumLayer
+  Handler: src/ropewiki/lambda-handlers/reprocessPageHandler.reprocessPageHandler
+  MemorySize: 1024
+  Timeout: 900
+  VpcConfig:
+    SecurityGroupIds:
+      - !Ref LambdaSecurityGroup
+    SubnetIds:
+      - !Ref PrivateSubnet1
+  Environment:
+    Variables:
+      DEV_ENVIRONMENT: !Ref devEnvironment
+      PROXY_URL: !Ref ProxyUrl
+      DB_HOST: !If [IsProduction, !GetAtt RDSProxy.Endpoint, !GetAtt Database.Endpoint.Address]
+      DB_PORT: !GetAtt Database.Endpoint.Port
+      DB_NAME: !Sub '${devEnvironment}db'
+      DB_USER: !Ref DatabaseUsername
+      DB_PASSWORD: !Ref DatabasePassword
+Metadata:
+  BuildMethod: esbuild
+  BuildProperties:
+    Minify: true
+    Target: "esnext"
+    Sourcemap: true
+    EntryPoints:
+      - src/ropewiki/lambda-handlers/reprocessPageHandler.ts
+    External:
+      - "@sparticuz/chromium"
