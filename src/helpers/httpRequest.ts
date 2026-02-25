@@ -45,24 +45,29 @@ const buildNonOkMessage = async (
     );
 };
 
+/** Request timeout in ms when using proxy (avoids Lambda hanging until 900s timeout). */
+const REQUEST_TIMEOUT_MS = 30_000;
+
 /**
  * Send an HTTP request with default headers and optional proxy (Lambda + dev/prod only).
  * Throws an Error with detailed message on non-OK response or failed request.
  * Retries on fetch errors or 5XX (except 502) / 403 responses up to retryCount times (default 5).
+ * When using the proxy, each attempt is limited to REQUEST_TIMEOUT_MS so the Lambda does not hang.
  */
 export async function httpRequest(url: string | URL, retryCount = 5): Promise<Response> {
     const requestUrl = typeof url === 'string' ? url : url.toString();
     const dispatcher = shouldUseProxy() ? getProxyDispatcher() : undefined;
 
-    const requestOptions = {
-        headers: DEFAULT_HEADERS,
-        ...(dispatcher ? { dispatcher } : {}),
-    };
-
     let lastError: Error | null = null;
     const maxAttempts = retryCount + 1;
 
     for (let attempt = 0; attempt < maxAttempts; attempt++) {
+        const requestOptions = {
+            headers: DEFAULT_HEADERS,
+            ...(dispatcher ? { dispatcher } : {}),
+            ...(dispatcher ? { signal: AbortSignal.timeout(REQUEST_TIMEOUT_MS) } : {}),
+        };
+
         let response: Response;
         try {
             response = (await undiciFetch(requestUrl, requestOptions as Parameters<typeof undiciFetch>[1])) as Response;
