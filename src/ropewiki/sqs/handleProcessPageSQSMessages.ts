@@ -35,7 +35,7 @@ const handleProcessPageSQSMessages = async (
 
     for (let i = 0; i < records.length; i++) {
         const remainingMs = getRemainingTimeInMillis();
-        if (remainingMs < processPageTimeoutMs) {
+        if (totalRecords > 1 && remainingMs < processPageTimeoutMs) {
             console.warn(
                 `Stopping before message ${i + 1}/${totalRecords}: only ${remainingMs}ms remaining (need ${processPageTimeoutMs}ms to start a page). Unprocessed messages will retry.`,
             );

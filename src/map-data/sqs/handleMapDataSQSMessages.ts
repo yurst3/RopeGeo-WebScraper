@@ -34,7 +34,7 @@ const handleMapDataSQSMessages = async (
 
     for (let i = 0; i < records.length; i++) {
         const remainingMs = getRemainingTimeInMillis();
-        if (remainingMs < processMessageTimeoutMs) {
+        if (totalRecords > 1 && remainingMs < processMessageTimeoutMs) {
             console.warn(
                 `Stopping before message ${i + 1}/${totalRecords}: only ${remainingMs}ms remaining (need ${processMessageTimeoutMs}ms to start a message). Unprocessed messages will retry.`,
             );

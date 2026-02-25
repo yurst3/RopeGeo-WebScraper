@@ -270,4 +270,61 @@ describe('handleMapDataSQSMessages', () => {
             remaining: 0,
         });
     });
+
+    it('processes single record even when remaining time is less than processMessageTimeoutMs', async () => {
+        const record = createSqsRecord(createMapDataEventBody('route-1', 'page-1'), 'receipt-1');
+        const lowRemainingMs = 100;
+        mockLogger.getResults.mockReturnValue({
+            successes: 1,
+            errors: 0,
+            remaining: 0,
+        });
+
+        const result = await handleMapDataSQSMessages(
+            [record],
+            mockClient,
+            LAMBDA_TIMEOUT_MS,
+            () => lowRemainingMs,
+        );
+
+        expect(mockMain).toHaveBeenCalledTimes(1);
+        expect(mockDeleteMapDataSQSMessage).toHaveBeenCalledWith('receipt-1');
+        expect(result).toEqual({ successes: 1, errors: 0, remaining: 0 });
+    });
+
+    it('stops starting new work when multiple records and remaining time below processMessageTimeoutMs', async () => {
+        const records = [
+            createSqsRecord(createMapDataEventBody('route-1', 'page-1'), 'receipt-1'),
+            createSqsRecord(createMapDataEventBody('route-2', 'page-2'), 'receipt-2'),
+        ];
+        const processMessageTimeoutMs = Math.floor(LAMBDA_TIMEOUT_MS / 2);
+        let callCount = 0;
+        const getRemainingTimeInMillis = () => {
+            callCount++;
+            return callCount === 1 ? processMessageTimeoutMs + 1000 : processMessageTimeoutMs - 100;
+        };
+        mockLogger.getResults.mockReturnValue({
+            successes: 1,
+            errors: 0,
+            remaining: 1,
+        });
+
+        const consoleWarnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+
+        const result = await handleMapDataSQSMessages(
+            records,
+            mockClient,
+            LAMBDA_TIMEOUT_MS,
+            getRemainingTimeInMillis,
+        );
+
+        expect(mockMain).toHaveBeenCalledTimes(1);
+        expect(mockDeleteMapDataSQSMessage).toHaveBeenCalledTimes(1);
+        expect(mockDeleteMapDataSQSMessage).toHaveBeenCalledWith('receipt-1');
+        expect(consoleWarnSpy).toHaveBeenCalledWith(
+            expect.stringContaining('Stopping before message 2/2'),
+        );
+        expect(result).toEqual({ successes: 1, errors: 0, remaining: 1 });
+        consoleWarnSpy.mockRestore();
+    });
 });
