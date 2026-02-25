@@ -868,8 +868,8 @@ Resources:
       NetworkMode: awsvpc
       RequiresCompatibilities:
         - FARGATE
-      Cpu: '512'
-      Memory: '2048'
+      Cpu: '1024'
+      Memory: '8192'
       ExecutionRoleArn: !GetAtt GenerateRouteMarkerTilesExecutionRole.Arn
       TaskRoleArn: !GetAtt GenerateRouteMarkerTilesTaskRole.Arn
       ContainerDefinitions:
@@ -1027,8 +1027,8 @@ Resources:
       NetworkMode: awsvpc
       RequiresCompatibilities:
         - FARGATE
-      Cpu: '512'
-      Memory: '2048'
+      Cpu: '1024'
+      Memory: '8192'
       ExecutionRoleArn: !GetAtt GenerateTrailTilesExecutionRole.Arn
       TaskRoleArn: !GetAtt GenerateTrailTilesTaskRole.Arn
       ContainerDefinitions:
