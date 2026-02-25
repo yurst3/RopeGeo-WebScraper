@@ -780,10 +780,6 @@ Resources:
   RopewikiPageProcessor:
     $ref: lambdas/RopewikiPageProcessor.yaml
 
-  # Lambda to reprocess a single Ropewiki page (manually triggered for testing)
-  ReprocessPage:
-    $ref: lambdas/ReprocessPage.yaml
-
   # Lambda function that processes map data (KML to MBTiles conversion)
   MapDataProcessor:
     $ref: lambdas/MapDataProcessor.yaml
