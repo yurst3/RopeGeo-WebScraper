@@ -21,6 +21,7 @@ describe('getRopewikiRegionLineage (integration)', () => {
 
     const conn: db.Queryable = pool;
 
+    /** parentRegion is the parent region's name (not id), matching DB column semantics. */
     const insertRegion = async (
         id: string,
         name: string,
@@ -68,8 +69,8 @@ describe('getRopewikiRegionLineage (integration)', () => {
         const grandchildId = 'dddddddd-dddd-dddd-dddd-dddddddddddd';
 
         await insertRegion(rootId, 'United States', null);
-        await insertRegion(childId, 'Utah', rootId);
-        await insertRegion(grandchildId, 'Bear Creek', childId);
+        await insertRegion(childId, 'Utah', 'United States');
+        await insertRegion(grandchildId, 'Bear Creek', 'Utah');
 
         const result = await getRopewikiRegionLineage(conn, grandchildId);
 
@@ -81,7 +82,7 @@ describe('getRopewikiRegionLineage (integration)', () => {
         const childId = 'ffffffff-ffff-ffff-ffff-ffffffffffff';
 
         await insertRegion(parentId, 'Nevada', null);
-        await insertRegion(childId, 'Red Rock', parentId);
+        await insertRegion(childId, 'Red Rock', 'Nevada');
 
         const result = await getRopewikiRegionLineage(conn, childId);
 
