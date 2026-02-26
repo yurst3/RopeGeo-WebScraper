@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, jest } from '@jest/globals';
 import { main } from '../../src/map-data/main';
-import { PageDataSource } from '../../src/types/pageRoute';
+import { PageDataSource } from 'ropegeo-common';
 import { PageRoute, RopewikiRoute } from '../../src/types/pageRoute';
 import MapData from '../../src/map-data/types/mapData';
 import type { SaveMapDataHookFn } from '../../src/map-data/hook-functions/saveMapData';

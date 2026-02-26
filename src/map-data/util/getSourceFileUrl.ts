@@ -1,6 +1,6 @@
 import * as db from 'zapatos/db';
 import { default as getRopewikiPageKmlUrl } from '../../ropewiki/database/getPageKmlUrl';
-import { PageDataSource } from '../../types/pageRoute';
+import { PageDataSource } from 'ropegeo-common';
 
 /**
  * Gets the source file URL (e.g., KML URL) for a page based on the data source.

@@ -1,6 +1,6 @@
 import * as fs from 'fs';
 import * as path from 'path';
-import { PageDataSource } from '../src/types/pageRoute';
+import { PageDataSource } from 'ropegeo-common';
 import httpRequest from '../src/helpers/httpRequest';
 import parseRopewikiPage from '../src/ropewiki/parsers/parseRopewikiPage';
 

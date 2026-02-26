@@ -1,26 +1,10 @@
 import * as db from 'zapatos/db';
-import { PagePreview } from '../../../types/pagePreview';
+import type { GetRopewikiPagePreviewRow } from 'ropegeo-common';
+import { PagePreview } from 'ropegeo-common';
 import type { RopewikiRoute } from '../../../types/pageRoute';
 import getRopewikiRegionLineage from './getRopewikiRegionLineage';
 
-/**
- * Row shape returned by the getRopewikiPagePreview query.
- * Used as the parameter type for PagePreview.fromDbRow when building from Ropewiki data.
- */
-export interface GetRopewikiPagePreviewRow {
-    pageId: string;
-    title: string;
-    quality: number | null;
-    userVotes: number | null;
-    technicalRating: string | null;
-    timeRating: string | null;
-    waterRating: string | null;
-    riskRating: string | null;
-    regionId: string;
-    regionName: string;
-    bannerFileUrl: string | null;
-    url: string | null;
-}
+export type { GetRopewikiPagePreviewRow };
 
 /**
  * Returns a single PagePreview for the given RopewikiRoute (uses its ropewikiPage id).

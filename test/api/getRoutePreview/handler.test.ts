@@ -1,8 +1,9 @@
 import { describe, it, expect, beforeEach, jest } from '@jest/globals';
 import type { PoolClient } from 'pg';
 import { handler } from '../../../src/api/getRoutePreview/handler';
-import type { PagePreview } from '../../../src/types/pagePreview';
-import { PageDataSource, RopewikiRoute } from '../../../src/types/pageRoute';
+import type { PagePreview } from 'ropegeo-common';
+import { PageDataSource } from 'ropegeo-common';
+import { RopewikiRoute } from '../../../src/types/pageRoute';
 
 let mockGetDatabaseConnection: jest.MockedFunction<typeof import('../../../src/helpers/getDatabaseConnection').default>;
 let mockRouteExists: jest.MockedFunction<typeof import('../../../src/api/getRoutePreview/database/routeExists').default>;

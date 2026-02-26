@@ -1,7 +1,8 @@
 import * as db from 'zapatos/db';
 import type * as s from 'zapatos/schema';
 import getDatabaseConnection from '../src/helpers/getDatabaseConnection';
-import { RopewikiRoute, PageDataSource } from '../src/types/pageRoute';
+import { PageDataSource } from 'ropegeo-common';
+import { RopewikiRoute } from '../src/types/pageRoute';
 import { readFileSync, writeFileSync } from 'fs';
 import { join } from 'path';
 import { randomUUID } from 'crypto';

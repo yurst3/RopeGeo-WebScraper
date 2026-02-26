@@ -37,6 +37,7 @@
     "test:deploy": "NODE_OPTIONS=\"$NODE_OPTIONS --experimental-vm-modules\" jest -i"
   },
   "dependencies": {
+    "ropegeo-common": "^1.0.3",
     "@aws-lambda-powertools/parser": "^2.30.2",
     "@aws-sdk/client-cloudfront": "^3.971.0",
     "@aws-sdk/client-s3": "^3.971.0",
