@@ -1,6 +1,7 @@
 import * as db from 'zapatos/db';
 import { PagePreview } from '../../../types/pagePreview';
 import type { RopewikiRoute } from '../../../types/pageRoute';
+import getRopewikiRegionLineage from './getRopewikiRegionLineage';
 
 /**
  * Row shape returned by the getRopewikiPagePreview query.
@@ -15,8 +16,10 @@ export interface GetRopewikiPagePreviewRow {
     timeRating: string | null;
     waterRating: string | null;
     riskRating: string | null;
+    regionId: string;
     regionName: string;
     bannerFileUrl: string | null;
+    url: string | null;
 }
 
 /**
@@ -39,7 +42,9 @@ const getRopewikiPagePreview = async (
             p."timeRating",
             p."waterRating",
             p."riskRating",
+            p.region AS "regionId",
             r.name AS "regionName",
+            p.url,
             (
                 SELECT i."fileUrl"
                 FROM "RopewikiImage" i
@@ -60,7 +65,9 @@ const getRopewikiPagePreview = async (
         throw new Error(`RopewikiPage not found for id: ${pageId}`);
     }
 
-    return PagePreview.fromDbRow(row, ropewikiRoute.mapData ?? null);
+    const regionLineage = await getRopewikiRegionLineage(conn, row.regionId);
+    const regions = regionLineage.length > 0 ? regionLineage : [row.regionName];
+    return PagePreview.fromDbRow(row, ropewikiRoute.mapData ?? null, regions);
 };
 
 export default getRopewikiPagePreview;

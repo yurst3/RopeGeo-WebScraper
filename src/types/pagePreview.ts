@@ -118,6 +118,8 @@ export class PagePreview {
     difficulty: Difficulty;
     /** Map data id for the page route, or null if none */
     mapData: string | null;
+    /** External link to the page (e.g. Ropewiki page URL) */
+    externalLink: string | null;
 
     constructor(
         id: string,
@@ -129,6 +131,7 @@ export class PagePreview {
         regions: string[],
         difficulty: Difficulty,
         mapData: string | null,
+        externalLink: string | null,
     ) {
         this.id = id;
         this.source = source;
@@ -139,14 +142,17 @@ export class PagePreview {
         this.regions = regions;
         this.difficulty = difficulty;
         this.mapData = mapData;
+        this.externalLink = externalLink;
     }
 
     /**
      * Builds a PagePreview from a getRopewikiPagePreview query row (Ropewiki source).
+     * @param regions - Optional region lineage (root to leaf). When provided, used instead of [row.regionName].
      */
     static fromDbRow(
         row: GetRopewikiPagePreviewRow,
         mapData: string | null,
+        regions?: string[],
     ): PagePreview {
         return new PagePreview(
             row.pageId,
@@ -155,7 +161,7 @@ export class PagePreview {
             row.quality != null ? Number(row.quality) : null,
             row.userVotes ?? null,
             row.title,
-            [row.regionName],
+            regions ?? [row.regionName],
             new Difficulty(
                 row.technicalRating,
                 row.waterRating,
@@ -163,6 +169,7 @@ export class PagePreview {
                 row.riskRating,
             ),
             mapData,
+            row.url ?? null,
         );
     }
 }

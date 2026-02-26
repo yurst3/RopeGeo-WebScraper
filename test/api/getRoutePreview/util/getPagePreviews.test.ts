@@ -45,6 +45,7 @@ describe('getPagePreviews', () => {
             regions: ['Utah'],
             difficulty: { technical: '3', water: 'A', time: 'II', risk: null },
             mapData: null,
+            externalLink: 'https://ropewiki.com/First_Page',
         };
         const preview2: PagePreview = {
             id: pageId2,
@@ -56,6 +57,7 @@ describe('getPagePreviews', () => {
             regions: ['Nevada'],
             difficulty: { technical: '2', water: 'B', time: 'I', risk: null },
             mapData: null,
+            externalLink: 'https://ropewiki.com/Second_Page',
         };
         mockGetRopewikiPagePreview.mockResolvedValueOnce(preview1).mockResolvedValueOnce(preview2);
 

@@ -92,8 +92,62 @@ describe('getRopewikiPagePreview (integration)', () => {
             rating: 4.5,
             ratingCount: 12,
             difficulty: { technical: '3', water: 'A', time: 'II', risk: null },
+            externalLink: 'https://ropewiki.com/Bear_Creek_Canyon',
         });
         expect(result.imageUrl).toBeNull();
+    });
+
+    it('returns full region lineage (root to leaf) when region has parent', async () => {
+        const parentRegionId = '55555555-5555-5555-5555-555555555555';
+        const childRegionId = '66666666-6666-6666-6666-666666666666';
+        const routeId = '33333333-3333-3333-3333-333333333333';
+        const pageId = 'e5f6a7b8-c9d0-1234-5678-ef9012345678';
+
+        await db
+            .insert('RopewikiRegion', {
+                id: parentRegionId,
+                parentRegion: null,
+                name: 'United States',
+                latestRevisionDate: '2025-01-01T00:00:00' as db.TimestampString,
+                pageCount: 0,
+                level: 0,
+                bestMonths: JSON.stringify([]),
+                url: 'https://ropewiki.com/United_States',
+            })
+            .run(conn);
+        await db
+            .insert('RopewikiRegion', {
+                id: childRegionId,
+                parentRegion: parentRegionId,
+                name: 'Utah',
+                latestRevisionDate: '2025-01-01T00:00:00' as db.TimestampString,
+                pageCount: 0,
+                level: 0,
+                bestMonths: JSON.stringify([]),
+                url: 'https://ropewiki.com/Utah',
+            })
+            .run(conn);
+        await db
+            .insert('RopewikiPage', {
+                id: pageId,
+                pageId: '829',
+                name: 'Devil Gulch',
+                region: childRegionId,
+                url: 'https://ropewiki.com/Devil_Gulch',
+                latestRevisionDate: '2025-01-01T00:00:00' as db.TimestampString,
+                technicalRating: '2',
+                waterRating: 'B',
+                timeRating: 'I',
+                riskRating: null,
+            })
+            .run(conn);
+
+        const ropewikiRoute = new RopewikiRoute(routeId, pageId);
+        const result = await getRopewikiPagePreview(conn, ropewikiRoute);
+
+        expect(result.regions).toEqual(['United States', 'Utah']);
+        expect(result.title).toBe('Devil Gulch');
+        expect(result.externalLink).toBe('https://ropewiki.com/Devil_Gulch');
     });
 
     it('uses first image without betaSection as banner when present', async () => {

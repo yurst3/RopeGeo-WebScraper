@@ -97,6 +97,7 @@ describe('getRoutePreview handler', () => {
                 regions: ['Utah'],
                 difficulty: { technical: '3', water: 'A', time: 'II', risk: null },
                 mapData: null,
+                externalLink: 'https://ropewiki.com/Bear_Creek_Canyon',
             },
         ];
         const ropewikiRoute = new RopewikiRoute(routeId, pageId);
