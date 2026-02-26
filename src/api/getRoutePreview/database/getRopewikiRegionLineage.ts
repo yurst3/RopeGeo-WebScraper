@@ -27,7 +27,7 @@ const getRopewikiRegionLineage = async (
             INNER JOIN lineage l ON r.name = l."parentRegion"
               AND r."deletedAt" IS NULL
         )
-        SELECT name, depth FROM lineage ORDER BY depth ASC
+        SELECT name, depth FROM lineage ORDER BY depth DESC
     `.run(conn);
 
     return rows.map((row) => row.name);
