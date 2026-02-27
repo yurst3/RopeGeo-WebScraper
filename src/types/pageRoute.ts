@@ -1,6 +1,6 @@
 import type * as s from 'zapatos/schema';
 import { PageDataSource } from 'ropegeo-common';
-import { Route } from './route';
+import { Route } from 'ropegeo-common';
 import RopewikiPage from '../ropewiki/types/page';
 import { MapDataEvent } from '../map-data/types/lambdaEvent';
 

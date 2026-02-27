@@ -1,7 +1,6 @@
 import { Pool } from 'pg';
 import { describe, it, expect, beforeAll, afterAll, afterEach } from '@jest/globals';
 import * as db from 'zapatos/db';
-import type * as s from 'zapatos/schema';
 import getRoutes from '../../../../src/api/getRoutes/database/getRoutes';
 
 describe('getRoutes (integration)', () => {
@@ -49,7 +48,8 @@ describe('getRoutes (integration)', () => {
         expect(result.length).toBe(1);
         expect(result[0].name).toBe('Active Route');
         expect(result[0].type).toBe('Canyon');
-        expect(result[0].deletedAt).toBeNull();
+        expect(result[0].id).toBeDefined();
+        expect(result[0].coordinates).toEqual({ lat: 40.1, lon: -111.5 });
     });
 
     it('returns all non-deleted routes with correct shape', async () => {
@@ -63,14 +63,13 @@ describe('getRoutes (integration)', () => {
         const result = await getRoutes(conn);
 
         expect(result.length).toBe(2);
-        const names = result.map((r: s.Route.JSONSelectable) => r.name).sort();
+        const names = result.map((r) => r.name).sort();
         expect(names).toEqual(['Route A', 'Route B']);
-        result.forEach((row: s.Route.JSONSelectable) => {
-            expect(row).toHaveProperty('id');
-            expect(row).toHaveProperty('name');
-            expect(row).toHaveProperty('type');
-            expect(row).toHaveProperty('coordinates');
-            expect(row.deletedAt).toBeNull();
+        result.forEach((route) => {
+            expect(route).toHaveProperty('id');
+            expect(route).toHaveProperty('name');
+            expect(route).toHaveProperty('type');
+            expect(route).toHaveProperty('coordinates');
         });
     });
 

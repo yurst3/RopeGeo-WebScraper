@@ -2,7 +2,7 @@ import { Queryable } from "zapatos/db";
 import updateRouteForPage from "../database/updateRouteForPage";
 import filterUpsertedPages from "../util/filterUpsertedPages";
 import RopewikiPage from "../types/page";
-import { Route } from "../../types/route";
+import { Route } from "ropegeo-common";
 import getRoutesForPages from "../database/getRoutesForPages";
 import correlateExistingRoutes from "../util/correlateExistingRoutes";
 import insertMissingRoutes from "../database/insertMissingRoutes";

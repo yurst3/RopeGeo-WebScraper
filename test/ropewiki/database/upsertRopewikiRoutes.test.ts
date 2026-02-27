@@ -3,7 +3,8 @@ import { describe, it, expect, beforeAll, afterAll, afterEach } from '@jest/glob
 import * as db from 'zapatos/db';
 import upsertRopewikiRoutes from '../../../src/ropewiki/database/upsertRopewikiRoutes';
 import { RopewikiRoute } from '../../../src/types/pageRoute';
-import { Route, RouteType } from '../../../src/types/route';
+import { Route, RouteType } from 'ropegeo-common';
+import { routeFromDbRow, routeToDbRow } from '../../../src/converters/route';
 import RopewikiPage from '../../../src/ropewiki/types/page';
 
 describe('upsertRopewikiRoutes (integration)', () => {
@@ -110,10 +111,10 @@ describe('upsertRopewikiRoutes (integration)', () => {
 
     const createTestRoute = async (routeId: string, name: string): Promise<Route> => {
         const route = new Route(routeId, name, RouteType.Canyon, { lat: 40.123, lon: -111.456 });
-        const dbRow = route.toDbRow();
+        const dbRow = routeToDbRow(route);
         await db.insert('Route', dbRow).run(conn);
         const dbRoute = await db.selectOne('Route', { id: routeId }).run(conn);
-        return Route.fromDbRow(dbRoute!);
+        return routeFromDbRow(dbRoute!);
     };
 
     it('returns empty array when routesAndPages is empty', async () => {

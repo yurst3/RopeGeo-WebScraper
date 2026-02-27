@@ -1,6 +1,6 @@
 import * as db from 'zapatos/db';
 import RopewikiPage from '../types/page';
-import { Route, RouteType } from '../../types/route';
+import { Route, RouteType } from 'ropegeo-common';
 
 type ResultRow = {
     ropewikiPage: string;

@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, jest } from '@jest/globals';
+import { Route, RouteType } from 'ropegeo-common';
 import { handler } from '../../../src/api/getRoutes/handler';
-import type * as s from 'zapatos/schema';
 
 let mockGetDatabaseConnection: jest.MockedFunction<typeof import('../../../src/helpers/getDatabaseConnection').default>;
 let mockGetRoutes: jest.MockedFunction<typeof import('../../../src/api/getRoutes/database/getRoutes').default>;
@@ -38,18 +38,10 @@ describe('getRoutes handler', () => {
     });
 
     it('returns 200 and GeoJSON Feature Collection of routes with CORS headers', async () => {
-        const mockRows: s.Route.JSONSelectable[] = [
-            {
-                id: 'id-1',
-                name: 'Route One',
-                type: 'Canyon',
-                coordinates: { lat: 40.1, lon: -111.5 },
-                createdAt: '2025-01-01T00:00:00Z',
-                updatedAt: '2025-01-01T00:00:00Z',
-                deletedAt: null,
-            } as s.Route.JSONSelectable,
+        const mockRoutes: Route[] = [
+            new Route('id-1', 'Route One', RouteType.Canyon, { lat: 40.1, lon: -111.5 }),
         ];
-        mockGetRoutes.mockResolvedValue(mockRows);
+        mockGetRoutes.mockResolvedValue(mockRoutes);
 
         const result = await handler({}, {});
 

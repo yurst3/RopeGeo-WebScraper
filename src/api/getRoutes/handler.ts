@@ -1,5 +1,5 @@
 import type { PoolClient } from 'pg';
-import { Route } from '../../types/route';
+import { RoutesGeojson } from 'ropegeo-common';
 import getDatabaseConnection from '../../helpers/getDatabaseConnection';
 import getRoutes from './database/getRoutes';
 
@@ -21,16 +21,12 @@ export const handler = async (
     try {
         const pool = await getDatabaseConnection();
         client = await pool.connect();
-        const rows = await getRoutes(client);
-
-        const routes = rows.map((row) => Route.fromDbRow(row));
-        const features = routes.map((route) => route.toGeoJsonFeature());
-        const body = { type: 'FeatureCollection' as const, features };
-
+        const routes = await getRoutes(client);
+        const geojson = RoutesGeojson.fromRoutes(routes);
         return {
             statusCode: 200,
             headers: CORS_HEADERS,
-            body: JSON.stringify(body),
+            body: JSON.stringify(geojson),
         };
     } catch (error) {
         console.error('Error in getRoutes handler:', error);

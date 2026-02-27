@@ -3,7 +3,7 @@ import * as db from 'zapatos/db';
 import { describe, it, expect, afterEach, beforeAll, afterAll } from '@jest/globals';
 import insertMissingRoutes from '../../../src/ropewiki/database/insertMissingRoutes';
 import RopewikiPage from '../../../src/ropewiki/types/page';
-import { Route, RouteType } from '../../../src/types/route';
+import { Route, RouteType } from 'ropegeo-common';
 
 describe('insertMissingRoutes (integration)', () => {
     const pool = new Pool({
