@@ -89,6 +89,7 @@ describe('getRopewikiPageView handler', () => {
             hike: 3.2,
             months: ['Jun', 'Jul'],
             latestRevisionDate: new Date('2025-01-01T00:00:00.000Z'),
+            regions: [{ id: 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee', name: 'Utah' }],
             bannerImage: null,
             betaSections: [],
         };

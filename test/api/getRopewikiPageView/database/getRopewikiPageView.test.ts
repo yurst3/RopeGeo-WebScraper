@@ -96,6 +96,7 @@ describe('getRopewikiPageView (integration)', () => {
         expect(result!.hike).toBeNull();
         expect(result!.rappelCount).toBeNull();
         expect(result!.jumps).toBeNull();
+        expect(result!.regions).toEqual([{ id: testRegionId, name: 'Utah' }]);
         expect(result!.bannerImage).toBeNull();
         expect(result!.betaSections).toEqual([]);
     });

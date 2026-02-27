@@ -28,6 +28,13 @@ value:
     - Aug
     - Sep
     - Oct
+  regions:
+    - id: dddddddd-dddd-dddd-dddd-dddddddddddd
+      name: Bear Creek
+    - id: cccccccc-cccc-cccc-cccc-cccccccccccc
+      name: Utah
+    - id: bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb
+      name: United States
   latestRevisionDate: "2025-01-01T00:00:00.000Z"
   bannerImage:
     order: 0

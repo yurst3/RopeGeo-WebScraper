@@ -2,7 +2,7 @@ import * as db from 'zapatos/db';
 import type { GetRopewikiPagePreviewRow } from 'ropegeo-common';
 import { PagePreview } from 'ropegeo-common';
 import type { RopewikiRoute } from '../../../types/pageRoute';
-import getRopewikiRegionLineage from './getRopewikiRegionLineage';
+import getRopewikiRegionLineage from '../../../ropewiki/database/getRopewikiRegionLineage';
 
 export type { GetRopewikiPagePreviewRow };
 
@@ -51,7 +51,8 @@ const getRopewikiPagePreview = async (
     }
 
     const regionLineage = await getRopewikiRegionLineage(conn, row.regionId);
-    const regions = regionLineage.length > 0 ? regionLineage : [row.regionName];
+    const regions =
+        regionLineage.length > 0 ? regionLineage.map((r) => r.name) : [row.regionName];
     return PagePreview.fromDbRow(row, ropewikiRoute.mapData ?? null, regions);
 };
 

@@ -12,6 +12,7 @@ RopewikiPageView:
     - quality
     - userVotes
     - difficulty
+    - regions
     - latestRevisionDate
     - betaSections
   properties:
@@ -95,6 +96,22 @@ RopewikiPageView:
         type: string
       nullable: true
       description: Best months
+    regions:
+      type: array
+      description: Region lineage (leaf to root), with id and name for each region
+      items:
+        type: object
+        required:
+          - id
+          - name
+        properties:
+          id:
+            type: string
+            format: uuid
+            description: RopewikiRegion id
+          name:
+            type: string
+            description: Region name
     latestRevisionDate:
       type: string
       format: date-time

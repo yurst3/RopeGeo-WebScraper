@@ -8,7 +8,7 @@ import {
     afterEach,
 } from '@jest/globals';
 import * as db from 'zapatos/db';
-import getRopewikiRegionLineage from '../../../../src/api/getRoutePreview/database/getRopewikiRegionLineage';
+import getRopewikiRegionLineage from '../../../src/ropewiki/database/getRopewikiRegionLineage';
 
 describe('getRopewikiRegionLineage (integration)', () => {
     const pool = new Pool({
@@ -54,13 +54,13 @@ describe('getRopewikiRegionLineage (integration)', () => {
         await pool.end();
     });
 
-    it('returns single name when region has no parent', async () => {
+    it('returns single entry when region has no parent', async () => {
         const regionId = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa';
         await insertRegion(regionId, 'Utah', null);
 
         const result = await getRopewikiRegionLineage(conn, regionId);
 
-        expect(result).toEqual(['Utah']);
+        expect(result).toEqual([{ id: regionId, name: 'Utah' }]);
     });
 
     it('returns lineage leaf to root when region has parent and grandparent', async () => {
@@ -74,10 +74,14 @@ describe('getRopewikiRegionLineage (integration)', () => {
 
         const result = await getRopewikiRegionLineage(conn, grandchildId);
 
-        expect(result).toEqual(['Bear Creek', 'Utah', 'United States']);
+        expect(result).toEqual([
+            { id: grandchildId, name: 'Bear Creek' },
+            { id: childId, name: 'Utah' },
+            { id: rootId, name: 'United States' },
+        ]);
     });
 
-    it('returns two names when region has one parent', async () => {
+    it('returns two entries when region has one parent', async () => {
         const parentId = 'eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee';
         const childId = 'ffffffff-ffff-ffff-ffff-ffffffffffff';
 
@@ -86,7 +90,10 @@ describe('getRopewikiRegionLineage (integration)', () => {
 
         const result = await getRopewikiRegionLineage(conn, childId);
 
-        expect(result).toEqual(['Red Rock', 'Nevada']);
+        expect(result).toEqual([
+            { id: childId, name: 'Red Rock' },
+            { id: parentId, name: 'Nevada' },
+        ]);
     });
 
     it('returns empty array when region id does not exist', async () => {

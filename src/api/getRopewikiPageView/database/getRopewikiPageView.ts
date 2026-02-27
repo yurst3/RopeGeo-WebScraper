@@ -1,6 +1,7 @@
 import * as db from 'zapatos/db';
 import type { RopewikiPageView } from 'ropegeo-common';
 import { Difficulty } from 'ropegeo-common';
+import getRopewikiRegionLineage from '../../../ropewiki/database/getRopewikiRegionLineage';
 import numericValue from '../util/numericValue';
 import parsePermit from '../util/parsePermit';
 import parseRappelInfo from '../util/parseRappelInfo';
@@ -15,7 +16,7 @@ const getRopewikiPageView = async (
     pageId: string,
 ): Promise<RopewikiPageView | null> => {
     const [page] = await db
-        .select('RopewikiPage', { id: pageId }, { columns: ['id', 'pageId', 'name', 'aka', 'url', 'quality', 'userVotes', 'technicalRating', 'waterRating', 'timeRating', 'riskRating', 'permits', 'rappelInfo', 'rappelCount', 'rappelLongest', 'vehicle', 'shuttle', 'minTime', 'maxTime', 'hike', 'months', 'latestRevisionDate', 'deletedAt'] })
+        .select('RopewikiPage', { id: pageId }, { columns: ['id', 'pageId', 'name', 'aka', 'url', 'quality', 'userVotes', 'technicalRating', 'waterRating', 'timeRating', 'riskRating', 'permits', 'rappelInfo', 'rappelCount', 'rappelLongest', 'vehicle', 'shuttle', 'minTime', 'maxTime', 'hike', 'months', 'latestRevisionDate', 'deletedAt', 'region'] })
         .run(conn);
 
     if (!page || page.deletedAt != null) return null;
@@ -76,6 +77,8 @@ const getRopewikiPageView = async (
 
     const { rappelCount, jumps } = parseRappelInfo(page.rappelInfo, page.rappelCount);
 
+    const regions = await getRopewikiRegionLineage(conn, page.region);
+
     const view = {
         pageId: page.id,
         name: page.name,
@@ -95,6 +98,7 @@ const getRopewikiPageView = async (
         hike: page.hike == null ? null : numericValue(page.hike),
         months: page.months == null ? null : stringArray(page.months),
         latestRevisionDate: new Date(page.latestRevisionDate),
+        regions,
         bannerImage,
         betaSections: betaSectionsView,
     };
