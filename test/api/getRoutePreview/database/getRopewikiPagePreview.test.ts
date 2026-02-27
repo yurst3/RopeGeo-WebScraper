@@ -78,6 +78,7 @@ describe('getRopewikiPagePreview (integration)', () => {
                 waterRating: 'A',
                 timeRating: 'II',
                 riskRating: null,
+                permits: 'No',
             })
             .run(conn);
 
@@ -92,6 +93,7 @@ describe('getRopewikiPagePreview (integration)', () => {
             rating: 4.5,
             ratingCount: 12,
             difficulty: { technical: '3', water: 'A', time: 'II', risk: 'PG13' },
+            permit: 'No',
             externalLink: 'https://ropewiki.com/Bear_Creek_Canyon',
         });
         expect(result.imageUrl).toBeNull();
@@ -139,6 +141,7 @@ describe('getRopewikiPagePreview (integration)', () => {
                 waterRating: 'B',
                 timeRating: 'I',
                 riskRating: null,
+                permits: 'Yes',
             })
             .run(conn);
 
@@ -147,6 +150,7 @@ describe('getRopewikiPagePreview (integration)', () => {
 
         expect(result.regions).toEqual(['Utah', 'United States']);
         expect(result.title).toBe('Devil Gulch');
+        expect(result.permit).toBe('Yes');
         expect(result.externalLink).toBe('https://ropewiki.com/Devil_Gulch');
     });
 
@@ -161,6 +165,7 @@ describe('getRopewikiPagePreview (integration)', () => {
                 region: testRegionId,
                 url: 'https://ropewiki.com/Page_With_Banner',
                 latestRevisionDate: '2025-01-01T00:00:00' as db.TimestampString,
+                permits: 'Restricted',
             })
             .run(conn);
 
@@ -179,6 +184,7 @@ describe('getRopewikiPagePreview (integration)', () => {
         const result = await getRopewikiPagePreview(conn, ropewikiRoute);
 
         expect(result.imageUrl).toBe(bannerUrl);
+        expect(result.permit).toBe('Restricted');
     });
 
     it('throws when RopewikiPage does not exist for page id', async () => {

@@ -29,6 +29,7 @@ const getRopewikiPagePreview = async (
             p.region AS "regionId",
             r.name AS "regionName",
             p.url,
+            p.permits,
             (
                 SELECT i."fileUrl"
                 FROM "RopewikiImage" i
