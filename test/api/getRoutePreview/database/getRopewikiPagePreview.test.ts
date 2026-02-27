@@ -145,7 +145,7 @@ describe('getRopewikiPagePreview (integration)', () => {
         const ropewikiRoute = new RopewikiRoute(routeId, pageId);
         const result = await getRopewikiPagePreview(conn, ropewikiRoute);
 
-        expect(result.regions).toEqual(['United States', 'Utah']);
+        expect(result.regions).toEqual(['Utah', 'United States']);
         expect(result.title).toBe('Devil Gulch');
         expect(result.externalLink).toBe('https://ropewiki.com/Devil_Gulch');
     });

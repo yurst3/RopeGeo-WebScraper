@@ -4,12 +4,12 @@ type LineageRow = { name: string; depth: number };
 
 /**
  * Returns the name of the given region and the names of all its ancestors (parent, grandparent, etc.),
- * ordered from root (top-level) to the given region (leaf).
+ * ordered from the given region (leaf) to root (ascending depth).
  * Uses a recursive CTE walking up the parentRegion chain.
  *
  * @param conn - Database connection
  * @param regionId - RopewikiRegion id (uuid)
- * @returns Array of region names, root first, or empty if region not found
+ * @returns Array of region names, leaf first, or empty if region not found
  */
 const getRopewikiRegionLineage = async (
     conn: db.Queryable,

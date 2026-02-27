@@ -42,7 +42,7 @@ PagePreview:
       description: Display title of the page
     regions:
       type: array
-      description: Region names (not ids) the page belongs to
+      description: Region names (not ids) the page belongs to, in ascending order of depth (smallest to largest regions; e.g. specific area first, then parent region, then root)
       items:
         type: string
     difficulty:

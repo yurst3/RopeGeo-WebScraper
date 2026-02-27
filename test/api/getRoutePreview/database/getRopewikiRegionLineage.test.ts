@@ -63,7 +63,7 @@ describe('getRopewikiRegionLineage (integration)', () => {
         expect(result).toEqual(['Utah']);
     });
 
-    it('returns lineage root to leaf when region has parent and grandparent', async () => {
+    it('returns lineage leaf to root when region has parent and grandparent', async () => {
         const rootId = 'bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb';
         const childId = 'cccccccc-cccc-cccc-cccc-cccccccccccc';
         const grandchildId = 'dddddddd-dddd-dddd-dddd-dddddddddddd';
@@ -74,7 +74,7 @@ describe('getRopewikiRegionLineage (integration)', () => {
 
         const result = await getRopewikiRegionLineage(conn, grandchildId);
 
-        expect(result).toEqual(['United States', 'Utah', 'Bear Creek']);
+        expect(result).toEqual(['Bear Creek', 'Utah', 'United States']);
     });
 
     it('returns two names when region has one parent', async () => {
@@ -86,7 +86,7 @@ describe('getRopewikiRegionLineage (integration)', () => {
 
         const result = await getRopewikiRegionLineage(conn, childId);
 
-        expect(result).toEqual(['Nevada', 'Red Rock']);
+        expect(result).toEqual(['Red Rock', 'Nevada']);
     });
 
     it('returns empty array when region id does not exist', async () => {
