@@ -69,9 +69,9 @@ describe('getRopewikiPageView handler', () => {
     });
 
     it('returns 200 and RopewikiPageView with CORS headers', async () => {
-        const pageId = 'a1b2c3d4-e5f6-7890-abcd-ef1234567890';
+        const id = 'a1b2c3d4-e5f6-7890-abcd-ef1234567890';
         const mockView: RopewikiPageView = {
-            pageId,
+            pageId: 'Bear_Creek_Canyon',
             name: 'Bear Creek Canyon',
             aka: [],
             url: 'https://ropewiki.com/Bear_Creek_Canyon',
@@ -95,11 +95,11 @@ describe('getRopewikiPageView handler', () => {
         };
         mockGetRopewikiPageView.mockResolvedValue(mockView);
 
-        const result = await handler({ pathParameters: { id: pageId } }, {});
+        const result = await handler({ pathParameters: { id } }, {});
 
         expect(mockGetDatabaseConnection).toHaveBeenCalledTimes(1);
         expect(mockPool.connect).toHaveBeenCalledTimes(1);
-        expect(mockGetRopewikiPageView).toHaveBeenCalledWith(mockClient, pageId);
+        expect(mockGetRopewikiPageView).toHaveBeenCalledWith(mockClient, id);
         expect(mockClient.release).toHaveBeenCalledTimes(1);
         expect(result.statusCode).toBe(200);
         expect(result.headers).toEqual({
@@ -107,7 +107,7 @@ describe('getRopewikiPageView handler', () => {
             'Access-Control-Allow-Origin': '*',
         });
         const body = JSON.parse(result.body);
-        expect(body.pageId).toBe(pageId);
+        expect(body.pageId).toBe('Bear_Creek_Canyon');
         expect(body.name).toBe('Bear Creek Canyon');
         expect(body.permit).toBe('No');
     });

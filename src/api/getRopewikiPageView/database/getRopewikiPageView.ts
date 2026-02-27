@@ -80,7 +80,7 @@ const getRopewikiPageView = async (
     const regions = await getRopewikiRegionLineage(conn, page.region);
 
     const view = {
-        pageId: page.id,
+        pageId: page.pageId,
         name: page.name,
         aka: stringArray(page.aka),
         url: page.url,

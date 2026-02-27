@@ -79,7 +79,7 @@ describe('getRopewikiPageView (integration)', () => {
         const result = await getRopewikiPageView(conn, pageId);
 
         expect(result).not.toBeNull();
-        expect(result!.pageId).toBe(pageId);
+        expect(result!.pageId).toBe('728');
         expect(result!.name).toBe('Bear Creek Canyon');
         expect(result!.url).toBe('https://ropewiki.com/Bear_Creek_Canyon');
         expect(result!.quality).toBe(4.5);

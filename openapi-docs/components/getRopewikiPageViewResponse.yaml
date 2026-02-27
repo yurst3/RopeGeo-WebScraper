@@ -18,8 +18,7 @@ RopewikiPageView:
   properties:
     pageId:
       type: string
-      format: uuid
-      description: RopewikiPage id
+      description: Ropewiki page identifier (e.g. ropewiki page path/slug)
     name:
       type: string
       description: Page name

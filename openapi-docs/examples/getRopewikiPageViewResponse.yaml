@@ -1,7 +1,7 @@
 # Example Object for getRopewikiPageView 200 response
 summary: Sample RopewikiPageView (with optional fields populated)
 value:
-  pageId: a1b2c3d4-e5f6-7890-abcd-ef1234567890
+  pageId: Bear_Creek_Canyon
   name: Bear Creek Canyon
   aka:
     - Bear Creek
