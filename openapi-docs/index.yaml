@@ -16,6 +16,8 @@ paths:
     $ref: './paths/getRoutes.yaml'
   /route/{routeId}/preview:
     $ref: './paths/getRoutePreview.yaml'
+  /ropewiki/page/{id}:
+    $ref: './paths/getRopewikiPageView.yaml'
   /docs/{file}:
     $ref: './paths/getApiDocs.yaml'
   /mapdata/{path}:

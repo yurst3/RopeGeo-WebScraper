@@ -796,6 +796,10 @@ Resources:
   GetRoutePreview:
     $ref: lambdas/GetRoutePreview.yaml
 
+  # Lambda for GET /ropewiki/page/{id} API endpoint
+  GetRopewikiPageView:
+    $ref: lambdas/GetRopewikiPageView.yaml
+
   # --- Generate route marker tiles daily job (ECS Fargate + Tippecanoe) ---
   GenerateRouteMarkerTilesRepository:
     Type: AWS::ECR::Repository
@@ -1162,7 +1166,7 @@ Resources:
         - Name: containerInsights
           Value: disabled
 
-  # IAM role for API Gateway to invoke Lambda (GetRoutes, GetRoutePreview integrations)
+  # IAM role for API Gateway to invoke Lambda (GetRoutes, GetRoutePreview, GetRopewikiPageView integrations)
   ApiGatewayInvokeLambdaRole:
     Type: AWS::IAM::Role
     Properties:
@@ -1183,6 +1187,7 @@ Resources:
                 Resource:
                   - !GetAtt GetRoutes.Arn
                   - !GetAtt GetRoutePreview.Arn
+                  - !GetAtt GetRopewikiPageView.Arn
       Tags:
         - Key: Name
           Value: !Sub '${AWS::StackName}-apig-invoke-lambda'
@@ -1203,6 +1208,14 @@ Resources:
       Action: lambda:InvokeFunction
       Principal: apigateway.amazonaws.com
 
+  # Allow API Gateway to invoke GetRopewikiPageView Lambda (required for REST API integration)
+  GetRopewikiPageViewApiGatewayPermission:
+    Type: AWS::Lambda::Permission
+    Properties:
+      FunctionName: !Ref GetRopewikiPageView
+      Action: lambda:InvokeFunction
+      Principal: apigateway.amazonaws.com
+
 Outputs:
   DocsBucketName:
     Description: S3 bucket for API documentation (OpenAPI/Redoc)
@@ -1219,6 +1232,9 @@ Outputs:
   GetRoutePreviewLambdaArn:
     Description: ARN of the GetRoutePreview Lambda (for OpenAPI integration resolveYamlEnvs)
     Value: !GetAtt GetRoutePreview.Arn
+  GetRopewikiPageViewLambdaArn:
+    Description: ARN of the GetRopewikiPageView Lambda (for OpenAPI integration resolveYamlEnvs)
+    Value: !GetAtt GetRopewikiPageView.Arn
   ApiGatewayInvokeLambdaRoleArn:
     Description: IAM role ARN for API Gateway to invoke Lambda (for OpenAPI integration resolveYamlEnvs)
     Value: !GetAtt ApiGatewayInvokeLambdaRole.Arn

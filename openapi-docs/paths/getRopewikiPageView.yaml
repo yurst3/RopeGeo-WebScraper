@@ -1,0 +1,33 @@
+# /ropewiki/page/{id}
+get:
+  summary: Get Ropewiki page view
+  description: Returns the full RopewikiPageView for the given RopewikiPage id (uuid), including banner image and beta sections.
+  operationId: getRopewikiPageView
+  tags:
+    - ropewiki
+  parameters:
+    - name: id
+      in: path
+      required: true
+      description: RopewikiPage uuid
+      schema:
+        type: string
+        format: uuid
+  x-amazon-apigateway-integration:
+    $ref: '../integrations/getRopewikiPageViewLambda.yaml#/GetRopewikiPageViewLambdaIntegration'
+  responses:
+    '200':
+      description: Successful response; RopewikiPageView object
+      content:
+        application/json:
+          schema:
+            $ref: '../components/getRopewikiPageViewResponse.yaml#/GetRopewikiPageViewResponse'
+          examples:
+            getRopewikiPageViewResponse:
+              $ref: '../examples/getRopewikiPageViewResponse.yaml'
+    '400':
+      description: Bad Request; missing or invalid id
+    '404':
+      description: Not Found; no Ropewiki page exists with the given id
+    '500':
+      description: Internal server error

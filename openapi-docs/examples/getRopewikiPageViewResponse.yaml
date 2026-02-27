@@ -1,0 +1,38 @@
+# Example Object for getRopewikiPageView 200 response
+summary: Sample RopewikiPageView (with optional fields populated)
+value:
+  pageId: a1b2c3d4-e5f6-7890-abcd-ef1234567890
+  name: Bear Creek Canyon
+  aka:
+    - Bear Creek
+  url: https://ropewiki.com/Bear_Creek_Canyon
+  quality: 4.5
+  userVotes: 12
+  difficulty:
+    technical: "3"
+    water: A
+    time: II
+    risk: PG13
+  permit: No
+  rappelCount: 5
+  jumps: null
+  vehicle: Passenger
+  rappelLongest: 195
+  shuttle: 0
+  minTime: 3.75
+  maxTime: 4.9
+  hike: 3.2
+  months:
+    - Jun
+    - Jul
+    - Aug
+    - Sep
+    - Oct
+  latestRevisionDate: "2025-01-01T00:00:00.000Z"
+  bannerImage:
+    order: 0
+    url: https://ropewiki.com/images/thumb/1/2/BearCreek.jpg/400px-BearCreek.jpg
+    linkUrl: https://ropewiki.com/File:BearCreek.jpg
+    caption: ""
+    latestRevisionDate: "2025-01-01T00:00:00.000Z"
+  betaSections: []

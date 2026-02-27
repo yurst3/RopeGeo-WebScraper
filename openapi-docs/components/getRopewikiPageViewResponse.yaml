@@ -1,0 +1,160 @@
+GetRopewikiPageViewResponse:
+  $ref: "#/RopewikiPageView"
+
+RopewikiPageView:
+  type: object
+  description: Full view of a Ropewiki page (GET /ropewiki/page/{id})
+  required:
+    - pageId
+    - name
+    - aka
+    - url
+    - quality
+    - userVotes
+    - difficulty
+    - latestRevisionDate
+    - betaSections
+  properties:
+    pageId:
+      type: string
+      format: uuid
+      description: RopewikiPage id
+    name:
+      type: string
+      description: Page name
+    aka:
+      type: array
+      items:
+        type: string
+      description: Also-known-as names
+    url:
+      type: string
+      format: uri
+      description: Page URL
+    quality:
+      type: number
+      format: float
+      description: Quality rating
+    userVotes:
+      type: integer
+      description: Number of votes
+    difficulty:
+      $ref: "./getRoutePreviewResponse.yaml#/Difficulty"
+    permit:
+      type: string
+      nullable: true
+      description: Permit status (Yes, No, Restricted, Closed, or null)
+      enum:
+        - Yes
+        - No
+        - Restricted
+        - Closed
+        - null
+    rappelCount:
+      description: Rappel count; either a single number, or min/max object when parsed from rappelInfo (e.g. "4-6r")
+      oneOf:
+        - type: integer
+        - type: object
+          properties:
+            min:
+              type: integer
+            max:
+              type: integer
+        - enum: [null]
+    jumps:
+      type: integer
+      nullable: true
+      description: Number of jumps parsed from rappelInfo (e.g. "+j" = 1, "+2j" = 2)
+    vehicle:
+      type: string
+      nullable: true
+      description: Vehicle requirement
+    rappelLongest:
+      type: number
+      nullable: true
+      description: Longest rappel (numeric value)
+    shuttle:
+      type: number
+      nullable: true
+      description: Shuttle time (numeric value)
+    minTime:
+      type: number
+      nullable: true
+      description: Minimum time (numeric value)
+    maxTime:
+      type: number
+      nullable: true
+      description: Maximum time (numeric value)
+    hike:
+      type: number
+      nullable: true
+      description: Hike distance/time (numeric value)
+    months:
+      type: array
+      items:
+        type: string
+      nullable: true
+      description: Best months
+    latestRevisionDate:
+      type: string
+      format: date-time
+      description: Last revision date
+    bannerImage:
+      $ref: "#/RopewikiImageView"
+      nullable: true
+      description: Banner image (first non–beta-section image)
+    betaSections:
+      type: array
+      items:
+        $ref: "#/RopewikiBetaSectionView"
+      description: Beta sections with text and images
+
+RopewikiImageView:
+  type: object
+  description: Image view (banner or beta-section image)
+  required:
+    - order
+    - url
+    - linkUrl
+    - caption
+    - latestRevisionDate
+  properties:
+    order:
+      type: integer
+    url:
+      type: string
+      format: uri
+      description: Image file URL
+    linkUrl:
+      type: string
+      format: uri
+      description: Link URL
+    caption:
+      type: string
+    latestRevisionDate:
+      type: string
+      format: date-time
+
+RopewikiBetaSectionView:
+  type: object
+  description: Beta section with title, text, and images
+  required:
+    - order
+    - title
+    - text
+    - images
+    - latestRevisionDate
+  properties:
+    order:
+      type: integer
+    title:
+      type: string
+    text:
+      type: string
+    images:
+      type: array
+      items:
+        $ref: "#/RopewikiImageView"
+    latestRevisionDate:
+      type: string
+      format: date-time
