@@ -11,13 +11,42 @@ export interface LengthAndElevGain {
     exitElevGain: number | null;
 }
 
-/** Parses a string to a number; returns null if not parseable. Handles values like "6.8", "4miles", "-600ft". */
-function parseNumericValue(str: string): number | null {
+const MILES_PER_METER = 0.000621371;
+const MILES_PER_KM = 0.621371;
+const FEET_PER_METER = 3.28084;
+const FEET_PER_MILE = 5280;
+
+/** Parses "6.8", "4miles", "1720m", "-600ft", "0.6 mi" into numeric value and optional unit (lowercase). */
+function parseValueAndUnit(str: string): { value: number; unit?: string } | null {
     const trimmed = str.trim();
     if (!trimmed) return null;
-    const n = parseFloat(trimmed);
-    return Number.isNaN(n) ? null : n;
+    const match = trimmed.match(/^(-?[\d.]+)\s*([a-zA-Z]*)\s*$/);
+    if (!match) return null;
+    const value = parseFloat(match[1]!);
+    if (Number.isNaN(value)) return null;
+    const rawUnit = match[2]?.toLowerCase();
+    const unit = rawUnit && rawUnit !== '' ? rawUnit : undefined;
+    return unit !== undefined ? { value, unit } : { value };
 }
+
+/** Converts a length to miles. Assumes miles if no unit. */
+function lengthToMiles(value: number, unit?: string): number {
+    if (!unit || unit === 'mi' || unit === 'miles') return value;
+    if (unit === 'm' || unit === 'meter' || unit === 'meters') return value * MILES_PER_METER;
+    if (unit === 'km' || unit === 'kilometer' || unit === 'kilometers') return value * MILES_PER_KM;
+    if (unit === 'ft' || unit === 'feet') return value / FEET_PER_MILE;
+    return value; // unknown unit, treat as miles
+}
+
+/** Converts an elevation gain to feet. Assumes feet if no unit. */
+function elevToFeet(value: number, unit?: string): number {
+    if (!unit || unit === 'ft' || unit === 'feet') return value;
+    if (unit === 'm' || unit === 'meter' || unit === 'meters') return value * FEET_PER_METER;
+    return value; // unknown unit, treat as feet
+}
+
+const LENGTH_KEYS: (keyof LengthAndElevGain)[] = ['overallLength', 'approachLength', 'descentLength', 'exitLength'];
+const ELEV_KEYS: (keyof LengthAndElevGain)[] = ['approachElevGain', 'descentElevGain', 'exitElevGain'];
 
 /** Property label in wiki template -> our key */
 const WIKI_PROPERTIES: Array<{ wikiLabel: string; key: keyof LengthAndElevGain }> = [
@@ -32,7 +61,8 @@ const WIKI_PROPERTIES: Array<{ wikiLabel: string; key: keyof LengthAndElevGain }
 
 /**
  * Parses raw wiki template text for length/elevation properties.
- * Matches lines like |Hike length=6.8 or |Approach length=4miles
+ * All lengths are converted to miles; all elevation gains to feet.
+ * Matches lines like |Hike length=6.8 or |Approach length=1720m
  */
 function parseLengthAndElevGainFromWikitext(wikitext: string): LengthAndElevGain {
     const result: LengthAndElevGain = {
@@ -50,8 +80,13 @@ function parseLengthAndElevGainFromWikitext(wikitext: string): LengthAndElevGain
         const re = new RegExp(`\\|${escaped}=([^\\n|]*)`, 'i');
         const match = wikitext.match(re);
         if (match) {
-            const parsed = parseNumericValue(match[1]!);
-            if (parsed !== null) result[key] = parsed;
+            const parsed = parseValueAndUnit(match[1]!);
+            if (parsed !== null) {
+                const isLength = LENGTH_KEYS.includes(key);
+                result[key] = isLength
+                    ? lengthToMiles(parsed.value, parsed.unit)
+                    : elevToFeet(parsed.value, parsed.unit);
+            }
         }
     }
 

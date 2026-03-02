@@ -25,8 +25,10 @@ const hogwartsFixturePath = path.join(
     'hogwartsCanyon',
     'hogwartsCanyonWikitextResponse.json',
 );
+const birksFixturePath = path.join(__dirname, '..', 'data', 'birks', 'birksWikitextResponse.json');
 const behuninFixture = JSON.parse(fs.readFileSync(behuninFixturePath, 'utf-8'));
 const hogwartsFixture = JSON.parse(fs.readFileSync(hogwartsFixturePath, 'utf-8'));
+const birksFixture = JSON.parse(fs.readFileSync(birksFixturePath, 'utf-8'));
 
 function getUrlStr(): string {
     const urlArg = mockHttpRequest.mock.calls[0]![0];
@@ -178,5 +180,25 @@ describe('getLengthAndElevGains', () => {
         mockHttpRequest.mockRejectedValue(new Error('Network error'));
 
         await expect(getLengthAndElevGains(['336'])).rejects.toThrow('Network error');
+    });
+
+    it('converts metric units to miles and feet (Birks fixture)', async () => {
+        mockHttpRequest.mockResolvedValue({
+            ok: true,
+            status: 200,
+            json: async () => birksFixture,
+        } as Response);
+
+        const result = await getLengthAndElevGains(['34206']);
+
+        expect(Object.keys(result)).toHaveLength(1);
+        // Birks: Approach length=1720m, Approach elevation gain=200m, Length=1000m, Exit length=830m, Exit elevation gain=0m
+        expect(result['34206']?.overallLength).toBeNull();
+        expect(result['34206']?.approachLength).toBeCloseTo(1.069, 2); // 1720m -> mi
+        expect(result['34206']?.approachElevGain).toBeCloseTo(656.168, 2); // 200m -> ft
+        expect(result['34206']?.descentLength).toBeCloseTo(0.621, 2); // 1000m -> mi
+        expect(result['34206']?.descentElevGain).toBeNull(); // Birks has no Depth=
+        expect(result['34206']?.exitLength).toBeCloseTo(0.516, 2); // 830m -> mi
+        expect(result['34206']?.exitElevGain).toBe(0); // 0m -> 0 ft
     });
 });
