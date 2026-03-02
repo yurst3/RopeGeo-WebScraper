@@ -166,7 +166,7 @@ describe('upsertPages (integration)', () => {
 
         // Insert a page with deletedAt set
         const initialResults = await upsertPages(conn, [pageInfo]);
-        const pageId = initialResults[0]!.id;
+        const pageId = initialResults[0]!.id as string;
         await db
             .update('RopewikiPage', { deletedAt: '2025-01-01T00:00:00' as db.TimestampString }, { id: pageId })
             .run(conn);
@@ -193,6 +193,45 @@ describe('upsertPages (integration)', () => {
         const page = afterRows[0] as s.RopewikiPage.JSONSelectable;
         expect(page.deletedAt).toBeNull();
         expect(page.name).toBe('Restored Page');
+    });
+
+    it('upserts 2000 pages in batch (chunked internally)', async () => {
+        const latestRevisionDate = new Date('2025-01-02T12:00:00Z');
+        const timestampStr = String(Math.floor(latestRevisionDate.getTime() / 1000));
+        const rawStr = latestRevisionDate.toISOString();
+
+        const pages = Array.from({ length: 2000 }, (_, i) => {
+            const pageId = String(i + 1);
+            return RopewikiPage.fromResponseBody(
+                {
+                    printouts: {
+                        pageid: [pageId],
+                        name: [`Page ${pageId}`],
+                        region: [{ fulltext: 'Test Region' }],
+                        url: [`https://ropewiki.com/Page_${pageId}`],
+                        latestRevisionDate: [{ timestamp: timestampStr, raw: rawStr }],
+                    },
+                },
+                regionNameIds,
+            );
+        });
+
+        const results = await upsertPages(conn, pages);
+
+        expect(results).toHaveLength(2000);
+        const ids = new Set(results.map((r) => r.id));
+        expect(ids.size).toBe(2000);
+
+        const countResult = await pool.query('SELECT COUNT(*)::int AS count FROM "RopewikiPage"');
+        expect(countResult.rows[0]?.count).toBe(2000);
+
+        const first = await db.select('RopewikiPage', { pageId: '1' }).run(conn);
+        expect(first).toHaveLength(1);
+        expect((first[0] as s.RopewikiPage.JSONSelectable).name).toBe('Page 1');
+
+        const last = await db.select('RopewikiPage', { pageId: '2000' }).run(conn);
+        expect(last).toHaveLength(1);
+        expect((last[0] as s.RopewikiPage.JSONSelectable).name).toBe('Page 2000');
     });
 
     it('propagates errors from the database layer', async () => {
