@@ -2,6 +2,7 @@ import { Pool, PoolClient } from 'pg';
 import { Queryable } from "zapatos/db";
 import getRopewikiPageForRegion from "../http/getRopewikiPageForRegion";
 import RopewikiPage from "../types/page";
+import updateLengthsForPages from "../util/updateLengthsForPages";
 import getUpdatedDatesForPages from "../database/getUpdatedDatesForPages";
 import upsertPages from "../database/upsertPages";
 import setPagesDeletedAtForRegion from "../database/setPagesDeletedAtForRegion";
@@ -88,7 +89,11 @@ export const getProcessPagesForRegionFn = (
                 // We only want to store valid pages (must have a pageid, name, region, url, and latestRevisionDate)
                 const validPages: RopewikiPage[] = pages.filter(page => page.isValid);
                 const invalidPagesCount = pages.length - validPages.length;
-                if (invalidPagesCount > 0) console.log(`Skipping ${invalidPagesCount} invalid pages...`)
+                if (invalidPagesCount > 0) console.log(`Skipping ${invalidPagesCount} invalid pages...`);
+
+                // Ropewiki's semantic media wiki properties for length and elevation gain are bad (they strip the negative sign from elev gains, weird names for length properties)
+                // We need to make a separate call to get the raw wiki text for each page and parse the length and elev gains from there
+                await updateLengthsForPages(validPages);
 
                 // Get updated dates BEFORE we upsert the new pages
                 const pageUpdateDates: {[pageId: string]: Date | null} = await getUpdatedDatesForPages(conn, validPages.map(page => page.pageid));

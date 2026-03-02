@@ -93,10 +93,7 @@
             "value": 6,
             "unit": "h"
         },
-        "hikeLength": {
-            "value": 9,
-            "unit": "mi"
-        },
+        "overallLength": 9,
         "url": "https://ropewiki.com/12.2-Mile_Wash",
         "aka": [],
         "betaSites": [
@@ -213,10 +210,7 @@
             "value": 96,
             "unit": "h"
         },
-        "hikeLength": {
-            "value": 13.5,
-            "unit": "mi"
-        },
+        "overallLength": 13.5,
         "url": "https://ropewiki.com/150_Mile_Canyon",
         "aka": [
             "150-Mile Canyon"
@@ -293,10 +287,7 @@
             "value": 3,
             "unit": "h"
         },
-        "hikeLength": {
-            "value": 3.7,
-            "unit": "mi"
-        },
+        "overallLength": 3.7,
         "url": "https://ropewiki.com/2.8-Mile_Wash",
         "aka": [],
         "betaSites": [
@@ -586,10 +577,7 @@
             "value": 3,
             "unit": "h"
         },
-        "hikeLength": {
-            "value": 4,
-            "unit": "mi"
-        },
+        "overallLength": 4,
         "url": "https://ropewiki.com/3.7-Mile_Wash",
         "aka": [],
         "betaSites": [
@@ -634,10 +622,7 @@
             "value": 96,
             "unit": "h"
         },
-        "hikeLength": {
-            "value": 18.5,
-            "unit": "mi"
-        },
+        "overallLength": 18.5,
         "url": "https://ropewiki.com/35_Mile_Wash",
         "aka": [
             "35-Mile Canyon"
@@ -684,10 +669,7 @@
             "value": 96,
             "unit": "h"
         },
-        "hikeLength": {
-            "value": 16.4,
-            "unit": "mi"
-        },
+        "overallLength": 16.4,
         "url": "https://ropewiki.com/36_Mile_Canyon",
         "aka": [
             "36-Mile Canyon"
@@ -734,10 +716,7 @@
             "value": 72,
             "unit": "h"
         },
-        "hikeLength": {
-            "value": 12,
-            "unit": "mi"
-        },
+        "overallLength": 12,
         "url": "https://ropewiki.com/36.7_Mile_Canyon",
         "aka": [
             "36.7-Mile Canyon"
@@ -787,10 +766,7 @@
             "value": 3,
             "unit": "h"
         },
-        "hikeLength": {
-            "value": 4,
-            "unit": "mi"
-        },
+        "overallLength": 4,
         "url": "https://ropewiki.com/4.4-Mile_Wash",
         "aka": [],
         "betaSites": [

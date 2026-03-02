@@ -1006,10 +1006,16 @@ declare module 'zapatos/schema' {
       aka: db.JSONValue | null;
       /**
       * **RopewikiPage.approachElevGain**
-      * - `jsonb` in database
+      * - `numeric` in database
       * - Nullable, no default
       */
-      approachElevGain: db.JSONValue | null;
+      approachElevGain: db.NumericString | null;
+      /**
+      * **RopewikiPage.approachLength**
+      * - `numeric` in database
+      * - Nullable, no default
+      */
+      approachLength: db.NumericString | null;
       /**
       * **RopewikiPage.coordinates**
       * - `jsonb` in database
@@ -1029,17 +1035,29 @@ declare module 'zapatos/schema' {
       */
       deletedAt: Date | null;
       /**
-      * **RopewikiPage.exitElevGain**
-      * - `jsonb` in database
+      * **RopewikiPage.descentElevGain**
+      * - `numeric` in database
       * - Nullable, no default
       */
-      exitElevGain: db.JSONValue | null;
+      descentElevGain: db.NumericString | null;
       /**
-      * **RopewikiPage.hikeLength**
-      * - `jsonb` in database
+      * **RopewikiPage.descentLength**
+      * - `numeric` in database
       * - Nullable, no default
       */
-      hikeLength: db.JSONValue | null;
+      descentLength: db.NumericString | null;
+      /**
+      * **RopewikiPage.exitElevGain**
+      * - `numeric` in database
+      * - Nullable, no default
+      */
+      exitElevGain: db.NumericString | null;
+      /**
+      * **RopewikiPage.exitLength**
+      * - `numeric` in database
+      * - Nullable, no default
+      */
+      exitLength: db.NumericString | null;
       /**
       * **RopewikiPage.id**
       * - `uuid` in database
@@ -1120,10 +1138,10 @@ declare module 'zapatos/schema' {
       name: string;
       /**
       * **RopewikiPage.overallLength**
-      * - `jsonb` in database
+      * - `numeric` in database
       * - Nullable, no default
       */
-      overallLength: db.JSONValue | null;
+      overallLength: db.NumericString | null;
       /**
       * **RopewikiPage.pageId**
       * - `text` in database
@@ -1236,10 +1254,16 @@ declare module 'zapatos/schema' {
       aka: db.JSONValue | null;
       /**
       * **RopewikiPage.approachElevGain**
-      * - `jsonb` in database
+      * - `numeric` in database
       * - Nullable, no default
       */
-      approachElevGain: db.JSONValue | null;
+      approachElevGain: number | null;
+      /**
+      * **RopewikiPage.approachLength**
+      * - `numeric` in database
+      * - Nullable, no default
+      */
+      approachLength: number | null;
       /**
       * **RopewikiPage.coordinates**
       * - `jsonb` in database
@@ -1259,17 +1283,29 @@ declare module 'zapatos/schema' {
       */
       deletedAt: db.TimestampString | null;
       /**
-      * **RopewikiPage.exitElevGain**
-      * - `jsonb` in database
+      * **RopewikiPage.descentElevGain**
+      * - `numeric` in database
       * - Nullable, no default
       */
-      exitElevGain: db.JSONValue | null;
+      descentElevGain: number | null;
       /**
-      * **RopewikiPage.hikeLength**
-      * - `jsonb` in database
+      * **RopewikiPage.descentLength**
+      * - `numeric` in database
       * - Nullable, no default
       */
-      hikeLength: db.JSONValue | null;
+      descentLength: number | null;
+      /**
+      * **RopewikiPage.exitElevGain**
+      * - `numeric` in database
+      * - Nullable, no default
+      */
+      exitElevGain: number | null;
+      /**
+      * **RopewikiPage.exitLength**
+      * - `numeric` in database
+      * - Nullable, no default
+      */
+      exitLength: number | null;
       /**
       * **RopewikiPage.id**
       * - `uuid` in database
@@ -1350,10 +1386,10 @@ declare module 'zapatos/schema' {
       name: string;
       /**
       * **RopewikiPage.overallLength**
-      * - `jsonb` in database
+      * - `numeric` in database
       * - Nullable, no default
       */
-      overallLength: db.JSONValue | null;
+      overallLength: number | null;
       /**
       * **RopewikiPage.pageId**
       * - `text` in database
@@ -1466,10 +1502,16 @@ declare module 'zapatos/schema' {
       aka?: db.JSONValue | db.Parameter<db.JSONValue> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, db.JSONValue | db.Parameter<db.JSONValue> | db.SQLFragment | db.ParentColumn>;
       /**
       * **RopewikiPage.approachElevGain**
-      * - `jsonb` in database
+      * - `numeric` in database
       * - Nullable, no default
       */
-      approachElevGain?: db.JSONValue | db.Parameter<db.JSONValue> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, db.JSONValue | db.Parameter<db.JSONValue> | db.SQLFragment | db.ParentColumn>;
+      approachElevGain?: (number | db.NumericString) | db.Parameter<(number | db.NumericString)> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, (number | db.NumericString) | db.Parameter<(number | db.NumericString)> | db.SQLFragment | db.ParentColumn>;
+      /**
+      * **RopewikiPage.approachLength**
+      * - `numeric` in database
+      * - Nullable, no default
+      */
+      approachLength?: (number | db.NumericString) | db.Parameter<(number | db.NumericString)> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, (number | db.NumericString) | db.Parameter<(number | db.NumericString)> | db.SQLFragment | db.ParentColumn>;
       /**
       * **RopewikiPage.coordinates**
       * - `jsonb` in database
@@ -1489,17 +1531,29 @@ declare module 'zapatos/schema' {
       */
       deletedAt?: (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.SQLFragment | db.ParentColumn>;
       /**
-      * **RopewikiPage.exitElevGain**
-      * - `jsonb` in database
+      * **RopewikiPage.descentElevGain**
+      * - `numeric` in database
       * - Nullable, no default
       */
-      exitElevGain?: db.JSONValue | db.Parameter<db.JSONValue> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, db.JSONValue | db.Parameter<db.JSONValue> | db.SQLFragment | db.ParentColumn>;
+      descentElevGain?: (number | db.NumericString) | db.Parameter<(number | db.NumericString)> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, (number | db.NumericString) | db.Parameter<(number | db.NumericString)> | db.SQLFragment | db.ParentColumn>;
       /**
-      * **RopewikiPage.hikeLength**
-      * - `jsonb` in database
+      * **RopewikiPage.descentLength**
+      * - `numeric` in database
       * - Nullable, no default
       */
-      hikeLength?: db.JSONValue | db.Parameter<db.JSONValue> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, db.JSONValue | db.Parameter<db.JSONValue> | db.SQLFragment | db.ParentColumn>;
+      descentLength?: (number | db.NumericString) | db.Parameter<(number | db.NumericString)> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, (number | db.NumericString) | db.Parameter<(number | db.NumericString)> | db.SQLFragment | db.ParentColumn>;
+      /**
+      * **RopewikiPage.exitElevGain**
+      * - `numeric` in database
+      * - Nullable, no default
+      */
+      exitElevGain?: (number | db.NumericString) | db.Parameter<(number | db.NumericString)> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, (number | db.NumericString) | db.Parameter<(number | db.NumericString)> | db.SQLFragment | db.ParentColumn>;
+      /**
+      * **RopewikiPage.exitLength**
+      * - `numeric` in database
+      * - Nullable, no default
+      */
+      exitLength?: (number | db.NumericString) | db.Parameter<(number | db.NumericString)> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, (number | db.NumericString) | db.Parameter<(number | db.NumericString)> | db.SQLFragment | db.ParentColumn>;
       /**
       * **RopewikiPage.id**
       * - `uuid` in database
@@ -1580,10 +1634,10 @@ declare module 'zapatos/schema' {
       name?: string | db.Parameter<string> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, string | db.Parameter<string> | db.SQLFragment | db.ParentColumn>;
       /**
       * **RopewikiPage.overallLength**
-      * - `jsonb` in database
+      * - `numeric` in database
       * - Nullable, no default
       */
-      overallLength?: db.JSONValue | db.Parameter<db.JSONValue> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, db.JSONValue | db.Parameter<db.JSONValue> | db.SQLFragment | db.ParentColumn>;
+      overallLength?: (number | db.NumericString) | db.Parameter<(number | db.NumericString)> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, (number | db.NumericString) | db.Parameter<(number | db.NumericString)> | db.SQLFragment | db.ParentColumn>;
       /**
       * **RopewikiPage.pageId**
       * - `text` in database
@@ -1696,10 +1750,16 @@ declare module 'zapatos/schema' {
       aka?: db.JSONValue | db.Parameter<db.JSONValue> | null | db.DefaultType | db.SQLFragment;
       /**
       * **RopewikiPage.approachElevGain**
-      * - `jsonb` in database
+      * - `numeric` in database
       * - Nullable, no default
       */
-      approachElevGain?: db.JSONValue | db.Parameter<db.JSONValue> | null | db.DefaultType | db.SQLFragment;
+      approachElevGain?: (number | db.NumericString) | db.Parameter<(number | db.NumericString)> | null | db.DefaultType | db.SQLFragment;
+      /**
+      * **RopewikiPage.approachLength**
+      * - `numeric` in database
+      * - Nullable, no default
+      */
+      approachLength?: (number | db.NumericString) | db.Parameter<(number | db.NumericString)> | null | db.DefaultType | db.SQLFragment;
       /**
       * **RopewikiPage.coordinates**
       * - `jsonb` in database
@@ -1719,17 +1779,29 @@ declare module 'zapatos/schema' {
       */
       deletedAt?: (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | null | db.DefaultType | db.SQLFragment;
       /**
-      * **RopewikiPage.exitElevGain**
-      * - `jsonb` in database
+      * **RopewikiPage.descentElevGain**
+      * - `numeric` in database
       * - Nullable, no default
       */
-      exitElevGain?: db.JSONValue | db.Parameter<db.JSONValue> | null | db.DefaultType | db.SQLFragment;
+      descentElevGain?: (number | db.NumericString) | db.Parameter<(number | db.NumericString)> | null | db.DefaultType | db.SQLFragment;
       /**
-      * **RopewikiPage.hikeLength**
-      * - `jsonb` in database
+      * **RopewikiPage.descentLength**
+      * - `numeric` in database
       * - Nullable, no default
       */
-      hikeLength?: db.JSONValue | db.Parameter<db.JSONValue> | null | db.DefaultType | db.SQLFragment;
+      descentLength?: (number | db.NumericString) | db.Parameter<(number | db.NumericString)> | null | db.DefaultType | db.SQLFragment;
+      /**
+      * **RopewikiPage.exitElevGain**
+      * - `numeric` in database
+      * - Nullable, no default
+      */
+      exitElevGain?: (number | db.NumericString) | db.Parameter<(number | db.NumericString)> | null | db.DefaultType | db.SQLFragment;
+      /**
+      * **RopewikiPage.exitLength**
+      * - `numeric` in database
+      * - Nullable, no default
+      */
+      exitLength?: (number | db.NumericString) | db.Parameter<(number | db.NumericString)> | null | db.DefaultType | db.SQLFragment;
       /**
       * **RopewikiPage.id**
       * - `uuid` in database
@@ -1810,10 +1882,10 @@ declare module 'zapatos/schema' {
       name: string | db.Parameter<string> | db.SQLFragment;
       /**
       * **RopewikiPage.overallLength**
-      * - `jsonb` in database
+      * - `numeric` in database
       * - Nullable, no default
       */
-      overallLength?: db.JSONValue | db.Parameter<db.JSONValue> | null | db.DefaultType | db.SQLFragment;
+      overallLength?: (number | db.NumericString) | db.Parameter<(number | db.NumericString)> | null | db.DefaultType | db.SQLFragment;
       /**
       * **RopewikiPage.pageId**
       * - `text` in database
@@ -1926,10 +1998,16 @@ declare module 'zapatos/schema' {
       aka?: db.JSONValue | db.Parameter<db.JSONValue> | null | db.DefaultType | db.SQLFragment | db.SQLFragment<any, db.JSONValue | db.Parameter<db.JSONValue> | null | db.DefaultType | db.SQLFragment>;
       /**
       * **RopewikiPage.approachElevGain**
-      * - `jsonb` in database
+      * - `numeric` in database
       * - Nullable, no default
       */
-      approachElevGain?: db.JSONValue | db.Parameter<db.JSONValue> | null | db.DefaultType | db.SQLFragment | db.SQLFragment<any, db.JSONValue | db.Parameter<db.JSONValue> | null | db.DefaultType | db.SQLFragment>;
+      approachElevGain?: (number | db.NumericString) | db.Parameter<(number | db.NumericString)> | null | db.DefaultType | db.SQLFragment | db.SQLFragment<any, (number | db.NumericString) | db.Parameter<(number | db.NumericString)> | null | db.DefaultType | db.SQLFragment>;
+      /**
+      * **RopewikiPage.approachLength**
+      * - `numeric` in database
+      * - Nullable, no default
+      */
+      approachLength?: (number | db.NumericString) | db.Parameter<(number | db.NumericString)> | null | db.DefaultType | db.SQLFragment | db.SQLFragment<any, (number | db.NumericString) | db.Parameter<(number | db.NumericString)> | null | db.DefaultType | db.SQLFragment>;
       /**
       * **RopewikiPage.coordinates**
       * - `jsonb` in database
@@ -1949,17 +2027,29 @@ declare module 'zapatos/schema' {
       */
       deletedAt?: (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | null | db.DefaultType | db.SQLFragment | db.SQLFragment<any, (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | null | db.DefaultType | db.SQLFragment>;
       /**
-      * **RopewikiPage.exitElevGain**
-      * - `jsonb` in database
+      * **RopewikiPage.descentElevGain**
+      * - `numeric` in database
       * - Nullable, no default
       */
-      exitElevGain?: db.JSONValue | db.Parameter<db.JSONValue> | null | db.DefaultType | db.SQLFragment | db.SQLFragment<any, db.JSONValue | db.Parameter<db.JSONValue> | null | db.DefaultType | db.SQLFragment>;
+      descentElevGain?: (number | db.NumericString) | db.Parameter<(number | db.NumericString)> | null | db.DefaultType | db.SQLFragment | db.SQLFragment<any, (number | db.NumericString) | db.Parameter<(number | db.NumericString)> | null | db.DefaultType | db.SQLFragment>;
       /**
-      * **RopewikiPage.hikeLength**
-      * - `jsonb` in database
+      * **RopewikiPage.descentLength**
+      * - `numeric` in database
       * - Nullable, no default
       */
-      hikeLength?: db.JSONValue | db.Parameter<db.JSONValue> | null | db.DefaultType | db.SQLFragment | db.SQLFragment<any, db.JSONValue | db.Parameter<db.JSONValue> | null | db.DefaultType | db.SQLFragment>;
+      descentLength?: (number | db.NumericString) | db.Parameter<(number | db.NumericString)> | null | db.DefaultType | db.SQLFragment | db.SQLFragment<any, (number | db.NumericString) | db.Parameter<(number | db.NumericString)> | null | db.DefaultType | db.SQLFragment>;
+      /**
+      * **RopewikiPage.exitElevGain**
+      * - `numeric` in database
+      * - Nullable, no default
+      */
+      exitElevGain?: (number | db.NumericString) | db.Parameter<(number | db.NumericString)> | null | db.DefaultType | db.SQLFragment | db.SQLFragment<any, (number | db.NumericString) | db.Parameter<(number | db.NumericString)> | null | db.DefaultType | db.SQLFragment>;
+      /**
+      * **RopewikiPage.exitLength**
+      * - `numeric` in database
+      * - Nullable, no default
+      */
+      exitLength?: (number | db.NumericString) | db.Parameter<(number | db.NumericString)> | null | db.DefaultType | db.SQLFragment | db.SQLFragment<any, (number | db.NumericString) | db.Parameter<(number | db.NumericString)> | null | db.DefaultType | db.SQLFragment>;
       /**
       * **RopewikiPage.id**
       * - `uuid` in database
@@ -2040,10 +2130,10 @@ declare module 'zapatos/schema' {
       name?: string | db.Parameter<string> | db.SQLFragment | db.SQLFragment<any, string | db.Parameter<string> | db.SQLFragment>;
       /**
       * **RopewikiPage.overallLength**
-      * - `jsonb` in database
+      * - `numeric` in database
       * - Nullable, no default
       */
-      overallLength?: db.JSONValue | db.Parameter<db.JSONValue> | null | db.DefaultType | db.SQLFragment | db.SQLFragment<any, db.JSONValue | db.Parameter<db.JSONValue> | null | db.DefaultType | db.SQLFragment>;
+      overallLength?: (number | db.NumericString) | db.Parameter<(number | db.NumericString)> | null | db.DefaultType | db.SQLFragment | db.SQLFragment<any, (number | db.NumericString) | db.Parameter<(number | db.NumericString)> | null | db.DefaultType | db.SQLFragment>;
       /**
       * **RopewikiPage.pageId**
       * - `text` in database

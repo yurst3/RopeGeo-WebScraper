@@ -22,8 +22,14 @@ value:
   overallTime:
     min: 3.75
     max: 4.9
-  hikeLength: 3.2
   overallLength: 5.1
+  approachLength: 1.2
+  approachElevGain: 800
+  descentLength: 2.8
+  descentElevGain: -600
+  exitLength: 0.5
+  exitElevGain: 200
+  hikeLength: 5.1
   approachTime:
     min: 1.5
     max: 2
@@ -33,8 +39,6 @@ value:
   exitTime:
     min: 0.25
     max: 0.5
-  approachElevGain: 800
-  exitElevGain: 200
   months:
     - Jun
     - Jul

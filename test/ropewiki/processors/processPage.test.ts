@@ -68,16 +68,19 @@ describe('processPage', () => {
             undefined, // vehicle
             undefined, // minOverallTime
             undefined, // maxOverallTime
-            undefined, // hikeLength
             undefined, // overallLength
+            undefined, // approachLength
+            undefined, // approachElevGain
+            undefined, // descentLength
+            undefined, // descentElevGain
+            undefined, // exitLength
+            undefined, // exitElevGain
             undefined, // minApproachTime
             undefined, // maxApproachTime
             undefined, // minDescentTime
             undefined, // maxDescentTime
             undefined, // minExitTime
             undefined, // maxExitTime
-            undefined, // approachElevGain
-            undefined, // exitElevGain
             [], // aka
             [], // betaSites
             undefined, // userVotes

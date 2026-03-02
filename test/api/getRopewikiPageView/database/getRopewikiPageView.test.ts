@@ -92,8 +92,14 @@ describe('getRopewikiPageView (integration)', () => {
         expect(result!.rappelLongest).toBeNull();
         expect(result!.shuttleTime).toBeNull();
         expect(result!.overallTime).toBeNull();
-        expect(result!.hikeLength).toBeNull();
         expect(result!.overallLength).toBeNull();
+        expect(result!.approachLength).toBeNull();
+        expect(result!.approachElevGain).toBeNull();
+        expect(result!.descentLength).toBeNull();
+        expect(result!.descentElevGain).toBeNull();
+        expect(result!.exitLength).toBeNull();
+        expect(result!.exitElevGain).toBeNull();
+        expect(result!.hikeLength).toBeNull();
         expect(result!.approachTime).toBeNull();
         expect(result!.descentTime).toBeNull();
         expect(result!.exitTime).toBeNull();
@@ -225,5 +231,38 @@ describe('getRopewikiPageView (integration)', () => {
         expect(result).not.toBeNull();
         expect(result!.rappelCount).toBe(3);
         expect(result!.jumps).toBeNull();
+    });
+
+    it('returns length and elevation gain from DB numeric columns', async () => {
+        const pageId = 'b2b3c3d4-e5f6-7890-abcd-ef1234567890';
+        await db
+            .insert('RopewikiPage', {
+                id: pageId,
+                pageId: '104',
+                name: 'Page With Lengths',
+                region: testRegionId,
+                url: 'https://ropewiki.com/Page_With_Lengths',
+                latestRevisionDate: '2025-01-01T00:00:00' as db.TimestampString,
+                overallLength: 6.8,
+                approachLength: 4,
+                approachElevGain: 2700,
+                descentLength: 1.8,
+                descentElevGain: -1800,
+                exitLength: 0.9,
+                exitElevGain: -600,
+            })
+            .run(conn);
+
+        const result = await getRopewikiPageView(conn, pageId);
+
+        expect(result).not.toBeNull();
+        expect(result!.overallLength).toBe(6.8);
+        expect(result!.approachLength).toBe(4);
+        expect(result!.approachElevGain).toBe(2700);
+        expect(result!.descentLength).toBe(1.8);
+        expect(result!.descentElevGain).toBe(-1800);
+        expect(result!.exitLength).toBe(0.9);
+        expect(result!.exitElevGain).toBe(-600);
+        expect(result!.hikeLength).toBe(6.8);
     });
 });

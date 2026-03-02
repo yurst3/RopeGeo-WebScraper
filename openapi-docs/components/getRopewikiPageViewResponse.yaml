@@ -89,14 +89,38 @@ RopewikiPageView:
             max:
               type: number
         - enum: [null]
-    hikeLength:
-      type: number
-      nullable: true
-      description: Hike length (numeric value)
     overallLength:
       type: number
       nullable: true
-      description: Overall length (numeric value)
+      description: Total canyon/hike length (numeric value, e.g. miles)
+    approachLength:
+      type: number
+      nullable: true
+      description: Approach segment length (numeric value)
+    approachElevGain:
+      type: number
+      nullable: true
+      description: Approach elevation gain (numeric value)
+    descentLength:
+      type: number
+      nullable: true
+      description: Descent segment length (numeric value)
+    descentElevGain:
+      type: number
+      nullable: true
+      description: Descent elevation gain (numeric value, typically negative)
+    exitLength:
+      type: number
+      nullable: true
+      description: Exit segment length (numeric value)
+    exitElevGain:
+      type: number
+      nullable: true
+      description: Exit elevation gain (numeric value)
+    hikeLength:
+      type: number
+      nullable: true
+      description: Deprecated; use overallLength. Total hike length (numeric value).
     approachTime:
       description: Approach time; either a single number, or min/max object
       oneOf:
@@ -130,14 +154,6 @@ RopewikiPageView:
             max:
               type: number
         - enum: [null]
-    approachElevGain:
-      type: number
-      nullable: true
-      description: Approach elevation gain (numeric value)
-    exitElevGain:
-      type: number
-      nullable: true
-      description: Exit elevation gain (numeric value)
     months:
       type: array
       items:

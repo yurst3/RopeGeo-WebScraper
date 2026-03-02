@@ -1,5 +1,6 @@
 import type * as s from 'zapatos/schema';
 import type { SqsRecord } from '@aws-lambda-powertools/parser/types';
+import type { LengthAndElevGain } from '../http/getLengthAndElevGains';
 
 export interface RopewikiBetaSection {
     title: string;
@@ -37,16 +38,19 @@ class RopewikiPage {
     vehicle: string | undefined
     minOverallTime: { value: number, unit: string } | undefined
     maxOverallTime: { value: number, unit: string } | undefined
-    hikeLength: { value: number, unit: string } | undefined
-    overallLength: { value: number, unit: string } | undefined
+    overallLength: number | undefined
+    approachLength: number | undefined
+    approachElevGain: number | undefined
+    descentLength: number | undefined
+    descentElevGain: number | undefined
+    exitLength: number | undefined
+    exitElevGain: number | undefined
     minApproachTime: { value: number, unit: string } | undefined
     maxApproachTime: { value: number, unit: string } | undefined
     minDescentTime: { value: number, unit: string } | undefined
     maxDescentTime: { value: number, unit: string } | undefined
     minExitTime: { value: number, unit: string } | undefined
     maxExitTime: { value: number, unit: string } | undefined
-    approachElevGain: { value: number, unit: string } | undefined
-    exitElevGain: { value: number, unit: string } | undefined
     url: string
     aka: string[]
     betaSites: string[]
@@ -77,16 +81,19 @@ class RopewikiPage {
         vehicle?: string,
         minOverallTime?: { value: number, unit: string },
         maxOverallTime?: { value: number, unit: string },
-        hikeLength?: { value: number, unit: string },
-        overallLength?: { value: number, unit: string },
+        overallLength?: number,
+        approachLength?: number,
+        approachElevGain?: number,
+        descentLength?: number,
+        descentElevGain?: number,
+        exitLength?: number,
+        exitElevGain?: number,
         minApproachTime?: { value: number, unit: string },
         maxApproachTime?: { value: number, unit: string },
         minDescentTime?: { value: number, unit: string },
         maxDescentTime?: { value: number, unit: string },
         minExitTime?: { value: number, unit: string },
         maxExitTime?: { value: number, unit: string },
-        approachElevGain?: { value: number, unit: string },
-        exitElevGain?: { value: number, unit: string },
         aka?: string[],
         betaSites?: string[],
         userVotes?: number,
@@ -114,16 +121,19 @@ class RopewikiPage {
         this.vehicle = vehicle;
         this.minOverallTime = minOverallTime;
         this.maxOverallTime = maxOverallTime;
-        this.hikeLength = hikeLength;
         this.overallLength = overallLength;
+        this.approachLength = approachLength;
+        this.approachElevGain = approachElevGain;
+        this.descentLength = descentLength;
+        this.descentElevGain = descentElevGain;
+        this.exitLength = exitLength;
+        this.exitElevGain = exitElevGain;
         this.minApproachTime = minApproachTime;
         this.maxApproachTime = maxApproachTime;
         this.minDescentTime = minDescentTime;
         this.maxDescentTime = maxDescentTime;
         this.minExitTime = minExitTime;
         this.maxExitTime = maxExitTime;
-        this.approachElevGain = approachElevGain;
-        this.exitElevGain = exitElevGain;
         this.aka = aka ?? [];
         this.betaSites = betaSites ?? [];
         this.userVotes = userVotes;
@@ -234,16 +244,16 @@ class RopewikiPage {
         const shuttleTime = RopewikiPage.parseOptionalValueUnit(printouts, 'shuttleTime');
         const minOverallTime = RopewikiPage.parseOptionalValueUnit(printouts, 'minOverallTime');
         const maxOverallTime = RopewikiPage.parseOptionalValueUnit(printouts, 'maxOverallTime');
-        const hikeLength = RopewikiPage.parseOptionalValueUnit(printouts, 'hikeLength');
-        const overallLength = RopewikiPage.parseOptionalValueUnit(printouts, 'overallLength');
+        const hikeLengthVu = RopewikiPage.parseOptionalValueUnit(printouts, 'hikeLength');
+        const overallLengthVu = RopewikiPage.parseOptionalValueUnit(printouts, 'overallLength');
+        const approachElevGainVu = RopewikiPage.parseOptionalValueUnit(printouts, 'approachElevGain');
+        const exitElevGainVu = RopewikiPage.parseOptionalValueUnit(printouts, 'exitElevGain');
         const minApproachTime = RopewikiPage.parseOptionalValueUnit(printouts, 'minApproachTime');
         const maxApproachTime = RopewikiPage.parseOptionalValueUnit(printouts, 'maxApproachTime');
         const minDescentTime = RopewikiPage.parseOptionalValueUnit(printouts, 'minDescentTime');
         const maxDescentTime = RopewikiPage.parseOptionalValueUnit(printouts, 'maxDescentTime');
         const minExitTime = RopewikiPage.parseOptionalValueUnit(printouts, 'minExitTime');
         const maxExitTime = RopewikiPage.parseOptionalValueUnit(printouts, 'maxExitTime');
-        const approachElevGain = RopewikiPage.parseOptionalValueUnit(printouts, 'approachElevGain');
-        const exitElevGain = RopewikiPage.parseOptionalValueUnit(printouts, 'exitElevGain');
 
         // Months is always an array of strings; fall back to []
         const months = Array.isArray(printouts.months)
@@ -288,16 +298,19 @@ class RopewikiPage {
             vehicle,
             minOverallTime,
             maxOverallTime,
-            hikeLength,
-            overallLength,
+            hikeLengthVu?.value,
+            undefined,
+            approachElevGainVu?.value,
+            overallLengthVu?.value,
+            undefined,
+            undefined,
+            exitElevGainVu?.value,
             minApproachTime,
             maxApproachTime,
             minDescentTime,
             maxDescentTime,
             minExitTime,
             maxExitTime,
-            approachElevGain,
-            exitElevGain,
             aka,
             betaSites,
             userVotes
@@ -327,16 +340,19 @@ class RopewikiPage {
             shuttleTime: this.shuttleTime ? JSON.stringify(this.shuttleTime) : null,
             minOverallTime: this.minOverallTime ? JSON.stringify(this.minOverallTime) : null,
             maxOverallTime: this.maxOverallTime ? JSON.stringify(this.maxOverallTime) : null,
-            hikeLength: this.hikeLength ? JSON.stringify(this.hikeLength) : null,
-            overallLength: this.overallLength ? JSON.stringify(this.overallLength) : null,
+            overallLength: this.overallLength ?? null,
+            approachLength: this.approachLength ?? null,
+            approachElevGain: this.approachElevGain ?? null,
+            descentLength: this.descentLength ?? null,
+            descentElevGain: this.descentElevGain ?? null,
+            exitLength: this.exitLength ?? null,
+            exitElevGain: this.exitElevGain ?? null,
             minApproachTime: this.minApproachTime ? JSON.stringify(this.minApproachTime) : null,
             maxApproachTime: this.maxApproachTime ? JSON.stringify(this.maxApproachTime) : null,
             minDescentTime: this.minDescentTime ? JSON.stringify(this.minDescentTime) : null,
             maxDescentTime: this.maxDescentTime ? JSON.stringify(this.maxDescentTime) : null,
             minExitTime: this.minExitTime ? JSON.stringify(this.minExitTime) : null,
             maxExitTime: this.maxExitTime ? JSON.stringify(this.maxExitTime) : null,
-            approachElevGain: this.approachElevGain ? JSON.stringify(this.approachElevGain) : null,
-            exitElevGain: this.exitElevGain ? JSON.stringify(this.exitElevGain) : null,
             months: this.months && this.months.length > 0 ? JSON.stringify(this.months) : null,
             aka: this.aka && this.aka.length > 0 ? JSON.stringify(this.aka) : null,
             userVotes: this.userVotes ?? null,
@@ -353,16 +369,14 @@ class RopewikiPage {
         const shuttleTime = row.shuttleTime as { value: number; unit: string } | null;
         const minOverallTime = row.minOverallTime as { value: number; unit: string } | null;
         const maxOverallTime = row.maxOverallTime as { value: number; unit: string } | null;
-        const hikeLength = row.hikeLength as { value: number; unit: string } | null;
-        const overallLength = row.overallLength as { value: number; unit: string } | null;
+        const parseNum = (v: string | null | undefined): number | undefined =>
+            v != null && v !== '' ? Number(v) : undefined;
         const minApproachTime = row.minApproachTime as { value: number; unit: string } | null;
         const maxApproachTime = row.maxApproachTime as { value: number; unit: string } | null;
         const minDescentTime = row.minDescentTime as { value: number; unit: string } | null;
         const maxDescentTime = row.maxDescentTime as { value: number; unit: string } | null;
         const minExitTime = row.minExitTime as { value: number; unit: string } | null;
         const maxExitTime = row.maxExitTime as { value: number; unit: string } | null;
-        const approachElevGain = row.approachElevGain as { value: number; unit: string } | null;
-        const exitElevGain = row.exitElevGain as { value: number; unit: string } | null;
         const months = row.months as string[] | null;
         const aka = row.aka as string[] | null;
 
@@ -390,16 +404,19 @@ class RopewikiPage {
             row.vehicle ?? undefined,
             minOverallTime ?? undefined,
             maxOverallTime ?? undefined,
-            hikeLength ?? undefined,
-            overallLength ?? undefined,
+            parseNum(row.overallLength as string | null),
+            parseNum(row.approachLength as string | null),
+            parseNum(row.approachElevGain as string | null),
+            parseNum(row.descentLength as string | null),
+            parseNum(row.descentElevGain as string | null),
+            parseNum(row.exitLength as string | null),
+            parseNum(row.exitElevGain as string | null),
             minApproachTime ?? undefined,
             maxApproachTime ?? undefined,
             minDescentTime ?? undefined,
             maxDescentTime ?? undefined,
             minExitTime ?? undefined,
             maxExitTime ?? undefined,
-            approachElevGain ?? undefined,
-            exitElevGain ?? undefined,
             aka ?? [],
             [], // betaSites migrated to RopewikiPageSiteLink; not read from DB
             row.userVotes ?? undefined,
@@ -421,16 +438,14 @@ class RopewikiPage {
         const shuttleTime = pageData.shuttleTime as { value: number; unit: string } | undefined;
         const minOverallTime = pageData.minOverallTime as { value: number; unit: string } | undefined;
         const maxOverallTime = pageData.maxOverallTime as { value: number; unit: string } | undefined;
-        const hikeLength = pageData.hikeLength as { value: number; unit: string } | undefined;
-        const overallLength = pageData.overallLength as { value: number; unit: string } | undefined;
         const minApproachTime = pageData.minApproachTime as { value: number; unit: string } | undefined;
         const maxApproachTime = pageData.maxApproachTime as { value: number; unit: string } | undefined;
         const minDescentTime = pageData.minDescentTime as { value: number; unit: string } | undefined;
         const maxDescentTime = pageData.maxDescentTime as { value: number; unit: string } | undefined;
         const minExitTime = pageData.minExitTime as { value: number; unit: string } | undefined;
         const maxExitTime = pageData.maxExitTime as { value: number; unit: string } | undefined;
-        const approachElevGain = pageData.approachElevGain as { value: number; unit: string } | undefined;
-        const exitElevGain = pageData.exitElevGain as { value: number; unit: string } | undefined;
+        const num = (v: unknown): number | undefined =>
+            typeof v === 'number' && !Number.isNaN(v) ? v : undefined;
         const months = pageData.months as string[] | undefined;
         const aka = pageData.aka as string[] | undefined;
         const betaSites = pageData.betaSites as string[] | undefined;
@@ -464,16 +479,19 @@ class RopewikiPage {
             pageData.vehicle as string | undefined,
             minOverallTime,
             maxOverallTime,
-            hikeLength,
-            overallLength,
+            num(pageData.overallLength),
+            num(pageData.approachLength),
+            num(pageData.approachElevGain),
+            num(pageData.descentLength),
+            num(pageData.descentElevGain),
+            num(pageData.exitLength),
+            num(pageData.exitElevGain),
             minApproachTime,
             maxApproachTime,
             minDescentTime,
             maxDescentTime,
             minExitTime,
             maxExitTime,
-            approachElevGain,
-            exitElevGain,
             aka || [],
             betaSites || [],
             pageData.userVotes as number | undefined,
@@ -505,8 +523,8 @@ class RopewikiPage {
             vehicle: 'Has vehicle type',
             minOverallTime: 'Has fastest typical time',
             maxOverallTime: 'Has slowest typical time',
-            hikeLength: 'Has length of hike',
-            overallLength: 'Has length',
+            hikeLength: 'Has length of hike',  // → overallLength (numeric)
+            overallLength: 'Has length',       // → descentLength (numeric)
             minApproachTime: 'Has fastest approach time',
             maxApproachTime: 'Has slowest approach time',
             minDescentTime: 'Has fastest descent time',
@@ -521,6 +539,31 @@ class RopewikiPage {
             userVotes: 'Has total counter',
             latestRevisionDate: 'Modification date'
         };
+    }
+
+    /** Returns true if any length or elev gain property is defined and has a non-zero value. */
+    needsLengthUpdates(): boolean {
+        const values = [
+            this.overallLength,
+            this.approachLength,
+            this.approachElevGain,
+            this.descentLength,
+            this.descentElevGain,
+            this.exitLength,
+            this.exitElevGain,
+        ];
+        return values.some((v) => v != null && v !== 0);
+    }
+
+    /** Sets all length and elev gain properties from the given LengthAndElevGain. */
+    setLengthsAndElevGains(data: LengthAndElevGain): void {
+        this.overallLength = data.overallLength ?? undefined;
+        this.approachLength = data.approachLength ?? undefined;
+        this.approachElevGain = data.approachElevGain ?? undefined;
+        this.descentLength = data.descentLength ?? undefined;
+        this.descentElevGain = data.descentElevGain ?? undefined;
+        this.exitLength = data.exitLength ?? undefined;
+        this.exitElevGain = data.exitElevGain ?? undefined;
     }
 }
 

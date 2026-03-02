@@ -10,6 +10,7 @@ jest.mock('../../../src/ropewiki/http/getRopewikiPageForRegion');
 jest.mock('../../../src/ropewiki/database/getUpdatedDatesForPages');
 jest.mock('../../../src/ropewiki/database/upsertPages');
 jest.mock('../../../src/ropewiki/database/setPagesDeletedAtForRegion');
+jest.mock('../../../src/ropewiki/util/updateLengthsForPages', () => ({ __esModule: true, default: jest.fn().mockResolvedValue(undefined) }));
 jest.mock('../../../src/helpers/progressLogger');
 
 import getRopewikiPageForRegion from '../../../src/ropewiki/http/getRopewikiPageForRegion';
@@ -579,6 +580,8 @@ describe('processPagesForRegion', () => {
             
             // Clear module cache and re-import to pick up environment variable change
             jest.resetModules();
+            const updateLengthsForPagesMock = require('../../../src/ropewiki/util/updateLengthsForPages');
+            (updateLengthsForPagesMock.default || updateLengthsForPagesMock).mockResolvedValue(undefined);
             const { getProcessPagesForRegionFn } = require('../../../src/ropewiki/processors/processPagesForRegion');
             // Re-import mocks after resetModules
             const getRopewikiPageForRegionMock = require('../../../src/ropewiki/http/getRopewikiPageForRegion');

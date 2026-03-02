@@ -24,12 +24,14 @@ function minMaxOrNumber(
 
 const ROPEWIKI_PAGE_VIEW_COLUMNS: (keyof s.RopewikiPage.Selectable)[] = [
     'id', 'pageId', 'name', 'aka', 'url', 'quality', 'userVotes', 'technicalRating', 'waterRating', 'timeRating', 'riskRating', 'permits', 'rappelInfo', 'rappelCount', 'rappelLongest', 'vehicle',
-    'shuttleTime', 'minOverallTime', 'maxOverallTime', 'hikeLength', 'overallLength', 'minApproachTime', 'maxApproachTime', 'minDescentTime', 'maxDescentTime', 'minExitTime', 'maxExitTime', 'approachElevGain', 'exitElevGain',
+    'shuttleTime', 'minOverallTime', 'maxOverallTime', 'overallLength', 'approachLength', 'approachElevGain', 'descentLength', 'descentElevGain', 'exitLength', 'exitElevGain',
+    'minApproachTime', 'maxApproachTime', 'minDescentTime', 'maxDescentTime', 'minExitTime', 'maxExitTime',
     'months', 'latestRevisionDate', 'deletedAt', 'region',
 ];
 
 /**
  * Fetches a single RopewikiPage by id and builds a RopewikiPageView (with banner image and beta sections).
+ * Maps DB length/elev columns (overallLength, approachLength, approachElevGain, descentLength, descentElevGain, exitLength, exitElevGain) to the view.
  * Returns null if the page does not exist or is deleted.
  */
 const getRopewikiPageView = async (
@@ -116,13 +118,17 @@ const getRopewikiPageView = async (
         rappelLongest: page.rappelLongest == null ? null : numericValue(page.rappelLongest),
         shuttleTime: page.shuttleTime == null ? null : numericValue(page.shuttleTime),
         overallTime: minMaxOrNumber(page.minOverallTime, page.maxOverallTime),
-        hikeLength: page.hikeLength == null ? null : numericValue(page.hikeLength),
-        overallLength: page.overallLength == null ? null : numericValue(page.overallLength),
+        overallLength: page.overallLength != null ? Number(page.overallLength) : null,
+        approachLength: page.approachLength != null ? Number(page.approachLength) : null,
+        approachElevGain: page.approachElevGain != null ? Number(page.approachElevGain) : null,
+        descentLength: page.descentLength != null ? Number(page.descentLength) : null,
+        descentElevGain: page.descentElevGain != null ? Number(page.descentElevGain) : null,
+        exitLength: page.exitLength != null ? Number(page.exitLength) : null,
+        exitElevGain: page.exitElevGain != null ? Number(page.exitElevGain) : null,
+        hikeLength: page.overallLength != null ? Number(page.overallLength) : null, // backward compat, same as overallLength
         approachTime: minMaxOrNumber(page.minApproachTime, page.maxApproachTime),
         descentTime: minMaxOrNumber(page.minDescentTime, page.maxDescentTime),
         exitTime: minMaxOrNumber(page.minExitTime, page.maxExitTime),
-        approachElevGain: page.approachElevGain == null ? null : numericValue(page.approachElevGain),
-        exitElevGain: page.exitElevGain == null ? null : numericValue(page.exitElevGain),
         months: page.months == null ? [] : stringArray(page.months),
         latestRevisionDate: new Date(page.latestRevisionDate),
         regions,
