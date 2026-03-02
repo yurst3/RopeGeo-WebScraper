@@ -78,14 +78,17 @@ RopewikiPageView:
       type: number
       nullable: true
       description: Shuttle time (numeric value)
-    minOverallTime:
-      type: number
-      nullable: true
-      description: Minimum overall time (numeric value)
-    maxOverallTime:
-      type: number
-      nullable: true
-      description: Maximum overall time (numeric value)
+    overallTime:
+      description: Overall time; either a single number, or min/max object
+      oneOf:
+        - type: number
+        - type: object
+          properties:
+            min:
+              type: number
+            max:
+              type: number
+        - enum: [null]
     hikeLength:
       type: number
       nullable: true
@@ -94,30 +97,39 @@ RopewikiPageView:
       type: number
       nullable: true
       description: Overall length (numeric value)
-    minApproachTime:
-      type: number
-      nullable: true
-      description: Minimum approach time (numeric value)
-    maxApproachTime:
-      type: number
-      nullable: true
-      description: Maximum approach time (numeric value)
-    minDescentTime:
-      type: number
-      nullable: true
-      description: Minimum descent time (numeric value)
-    maxDescentTime:
-      type: number
-      nullable: true
-      description: Maximum descent time (numeric value)
-    minExitTime:
-      type: number
-      nullable: true
-      description: Minimum exit time (numeric value)
-    maxExitTime:
-      type: number
-      nullable: true
-      description: Maximum exit time (numeric value)
+    approachTime:
+      description: Approach time; either a single number, or min/max object
+      oneOf:
+        - type: number
+        - type: object
+          properties:
+            min:
+              type: number
+            max:
+              type: number
+        - enum: [null]
+    descentTime:
+      description: Descent time; either a single number, or min/max object
+      oneOf:
+        - type: number
+        - type: object
+          properties:
+            min:
+              type: number
+            max:
+              type: number
+        - enum: [null]
+    exitTime:
+      description: Exit time; either a single number, or min/max object
+      oneOf:
+        - type: number
+        - type: object
+          properties:
+            min:
+              type: number
+            max:
+              type: number
+        - enum: [null]
     approachElevGain:
       type: number
       nullable: true

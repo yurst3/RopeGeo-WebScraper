@@ -8,6 +8,20 @@ import parsePermit from '../util/parsePermit';
 import parseRappelInfo from '../util/parseRappelInfo';
 import stringArray from '../util/stringArray';
 
+/** Builds combined min/max time or single number from two DB jsonb columns. */
+function minMaxOrNumber(
+    minRaw: db.JSONValue | null,
+    maxRaw: db.JSONValue | null,
+): { min: number; max: number } | number | null {
+    const minVal = minRaw == null ? null : numericValue(minRaw);
+    const maxVal = maxRaw == null ? null : numericValue(maxRaw);
+    if (minVal == null && maxVal == null) return null;
+    if (minVal == null) return maxVal;
+    if (maxVal == null) return minVal;
+    if (minVal === maxVal) return minVal;
+    return { min: Math.min(minVal, maxVal), max: Math.max(minVal, maxVal) };
+}
+
 const ROPEWIKI_PAGE_VIEW_COLUMNS: (keyof s.RopewikiPage.Selectable)[] = [
     'id', 'pageId', 'name', 'aka', 'url', 'quality', 'userVotes', 'technicalRating', 'waterRating', 'timeRating', 'riskRating', 'permits', 'rappelInfo', 'rappelCount', 'rappelLongest', 'vehicle',
     'shuttleTime', 'minOverallTime', 'maxOverallTime', 'hikeLength', 'overallLength', 'minApproachTime', 'maxApproachTime', 'minDescentTime', 'maxDescentTime', 'minExitTime', 'maxExitTime', 'approachElevGain', 'exitElevGain',
@@ -101,16 +115,12 @@ const getRopewikiPageView = async (
         vehicle: page.vehicle ?? null,
         rappelLongest: page.rappelLongest == null ? null : numericValue(page.rappelLongest),
         shuttleTime: page.shuttleTime == null ? null : numericValue(page.shuttleTime),
-        minOverallTime: page.minOverallTime == null ? null : numericValue(page.minOverallTime),
-        maxOverallTime: page.maxOverallTime == null ? null : numericValue(page.maxOverallTime),
+        overallTime: minMaxOrNumber(page.minOverallTime, page.maxOverallTime),
         hikeLength: page.hikeLength == null ? null : numericValue(page.hikeLength),
         overallLength: page.overallLength == null ? null : numericValue(page.overallLength),
-        minApproachTime: page.minApproachTime == null ? null : numericValue(page.minApproachTime),
-        maxApproachTime: page.maxApproachTime == null ? null : numericValue(page.maxApproachTime),
-        minDescentTime: page.minDescentTime == null ? null : numericValue(page.minDescentTime),
-        maxDescentTime: page.maxDescentTime == null ? null : numericValue(page.maxDescentTime),
-        minExitTime: page.minExitTime == null ? null : numericValue(page.minExitTime),
-        maxExitTime: page.maxExitTime == null ? null : numericValue(page.maxExitTime),
+        approachTime: minMaxOrNumber(page.minApproachTime, page.maxApproachTime),
+        descentTime: minMaxOrNumber(page.minDescentTime, page.maxDescentTime),
+        exitTime: minMaxOrNumber(page.minExitTime, page.maxExitTime),
         approachElevGain: page.approachElevGain == null ? null : numericValue(page.approachElevGain),
         exitElevGain: page.exitElevGain == null ? null : numericValue(page.exitElevGain),
         months: page.months == null ? [] : stringArray(page.months),

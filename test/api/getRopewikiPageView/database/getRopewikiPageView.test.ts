@@ -91,9 +91,12 @@ describe('getRopewikiPageView (integration)', () => {
         expect(result!.vehicle).toBeNull();
         expect(result!.rappelLongest).toBeNull();
         expect(result!.shuttleTime).toBeNull();
-        expect(result!.minOverallTime).toBeNull();
-        expect(result!.maxOverallTime).toBeNull();
+        expect(result!.overallTime).toBeNull();
         expect(result!.hikeLength).toBeNull();
+        expect(result!.overallLength).toBeNull();
+        expect(result!.approachTime).toBeNull();
+        expect(result!.descentTime).toBeNull();
+        expect(result!.exitTime).toBeNull();
         expect(result!.rappelCount).toBeNull();
         expect(result!.jumps).toBeNull();
         expect(result!.regions).toEqual([{ id: testRegionId, name: 'Utah' }]);

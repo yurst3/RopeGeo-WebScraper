@@ -19,16 +19,20 @@ value:
   vehicle: Passenger
   rappelLongest: 195
   shuttleTime: 0
-  minOverallTime: 3.75
-  maxOverallTime: 4.9
+  overallTime:
+    min: 3.75
+    max: 4.9
   hikeLength: 3.2
   overallLength: 5.1
-  minApproachTime: 1.5
-  maxApproachTime: 2
-  minDescentTime: 2
-  maxDescentTime: 2.5
-  minExitTime: 0.25
-  maxExitTime: 0.5
+  approachTime:
+    min: 1.5
+    max: 2
+  descentTime:
+    min: 2
+    max: 2.5
+  exitTime:
+    min: 0.25
+    max: 0.5
   approachElevGain: 800
   exitElevGain: 200
   months:
