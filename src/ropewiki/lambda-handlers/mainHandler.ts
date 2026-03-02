@@ -1,11 +1,21 @@
 import { main } from '../main';
 import { lambdaProcessPagesChunk } from '../hook-functions/processPagesChunk';
 import { lambdaProcessRopewikiRoutes } from '../hook-functions/processRopewikiRoutes';
+import { isMainEvent } from '../types/mainEvent';
 
-export const mainHandler = async () => {
+export const mainHandler = async (event: unknown) => {
+    if (!isMainEvent(event)) {
+        return {
+            statusCode: 400,
+            body: JSON.stringify({
+                message: 'Invalid event: expected MainEvent with processPages and processRoutes boolean properties',
+            }),
+        };
+    }
+
     try {
         // Use the lambda hook functions which will send SQS messages instead of invoking the processors directly
-        const elapsedTimeSeconds = await main(lambdaProcessPagesChunk, lambdaProcessRopewikiRoutes);
+        const elapsedTimeSeconds = await main(event, lambdaProcessPagesChunk, lambdaProcessRopewikiRoutes);
         
         // Format elapsed time
         const totalTimeHours = Math.floor(elapsedTimeSeconds / 3600);

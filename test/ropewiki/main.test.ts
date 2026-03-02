@@ -3,8 +3,11 @@ import { Pool } from 'pg';
 import { main } from '../../src/ropewiki/main';
 import type { ProcessPagesChunkHookFn } from '../../src/ropewiki/hook-functions/processPagesChunk';
 import type { ProcessRopewikiRoutesHookFn } from '../../src/ropewiki/hook-functions/processRopewikiRoutes';
+import type { MainEvent } from '../../src/ropewiki/types/mainEvent';
 import RopewikiPage from '../../src/ropewiki/types/page';
 import { RopewikiRegion } from '../../src/ropewiki/types/region';
+
+const defaultMainEvent: MainEvent = { processPages: true, processRoutes: true };
 
 // Mock all dependencies
 jest.mock('../../src/helpers/getDatabaseConnection');
@@ -127,7 +130,7 @@ describe('main', () => {
         const startTime = new Date('2024-01-01T00:00:00Z');
         jest.setSystemTime(startTime);
 
-        const promise = main(mockProcessPagesChunkHookFn, mockProcessRopewikiRoutesHookFn);
+        const promise = main(defaultMainEvent, mockProcessPagesChunkHookFn, mockProcessRopewikiRoutesHookFn);
 
         // Advance time by 5 seconds
         jest.advanceTimersByTime(5000);
@@ -139,7 +142,7 @@ describe('main', () => {
         expect(mockProcessRegions).toHaveBeenCalledWith(mockPool);
         expect(mockGetRegionCountsUnderLimit).toHaveBeenCalledWith(mockPool, 'World', 6000);
         expect(consoleLogSpy).toHaveBeenCalledWith('Getting pages from 2 regions: Region 1, Region 2');
-        expect(mockGetProcessPagesForRegionFn).toHaveBeenCalledWith(mockPool, mockProcessPagesChunkHookFn);
+        expect(mockGetProcessPagesForRegionFn).toHaveBeenCalledWith(mockPool, mockProcessPagesChunkHookFn, true);
         expect(mockProcessPagesForRegion).toHaveBeenCalledTimes(2);
         expect(mockProcessPagesForRegion).toHaveBeenNthCalledWith(1, 'Region 1', 100, { 'Region 1': 'region-id-1', 'Region 2': 'region-id-2' });
         expect(mockProcessPagesForRegion).toHaveBeenNthCalledWith(2, 'Region 2', 200, { 'Region 1': 'region-id-1', 'Region 2': 'region-id-2' });
@@ -153,7 +156,7 @@ describe('main', () => {
         const startTime = new Date('2024-01-01T00:00:00Z');
         jest.setSystemTime(startTime);
 
-        const promise = main(mockProcessPagesChunkHookFn, mockProcessRopewikiRoutesHookFn);
+        const promise = main(defaultMainEvent, mockProcessPagesChunkHookFn, mockProcessRopewikiRoutesHookFn);
 
         jest.advanceTimersByTime(1000);
 
@@ -176,7 +179,7 @@ describe('main', () => {
         const startTime = new Date('2024-01-01T00:00:00Z');
         jest.setSystemTime(startTime);
 
-        const promise = main(mockProcessPagesChunkHookFn, mockProcessRopewikiRoutesHookFn);
+        const promise = main(defaultMainEvent, mockProcessPagesChunkHookFn, mockProcessRopewikiRoutesHookFn);
 
         jest.advanceTimersByTime(2000);
 
@@ -207,7 +210,7 @@ describe('main', () => {
         const startTime = new Date('2024-01-01T00:00:00Z');
         jest.setSystemTime(startTime);
 
-        const promise = main(mockProcessPagesChunkHookFn, mockProcessRopewikiRoutesHookFn);
+        const promise = main(defaultMainEvent, mockProcessPagesChunkHookFn, mockProcessRopewikiRoutesHookFn);
 
         jest.advanceTimersByTime(3000);
 
@@ -223,7 +226,7 @@ describe('main', () => {
         const startTime = new Date('2024-01-01T00:00:00Z');
         jest.setSystemTime(startTime);
 
-        const promise = main(mockProcessPagesChunkHookFn, mockProcessRopewikiRoutesHookFn);
+        const promise = main(defaultMainEvent, mockProcessPagesChunkHookFn, mockProcessRopewikiRoutesHookFn);
 
         jest.advanceTimersByTime(1000);
 
@@ -239,7 +242,7 @@ describe('main', () => {
         const startTime = new Date('2024-01-01T00:00:00Z');
         jest.setSystemTime(startTime);
 
-        const promise = main(mockProcessPagesChunkHookFn, mockProcessRopewikiRoutesHookFn);
+        const promise = main(defaultMainEvent, mockProcessPagesChunkHookFn, mockProcessRopewikiRoutesHookFn);
 
         jest.advanceTimersByTime(1000);
 
@@ -259,7 +262,7 @@ describe('main', () => {
         const startTime = new Date('2024-01-01T00:00:00Z');
         jest.setSystemTime(startTime);
 
-        const promise = main(mockProcessPagesChunkHookFn, mockProcessRopewikiRoutesHookFn);
+        const promise = main(defaultMainEvent, mockProcessPagesChunkHookFn, mockProcessRopewikiRoutesHookFn);
 
         jest.advanceTimersByTime(1000);
 
@@ -280,7 +283,7 @@ describe('main', () => {
         const startTime = new Date('2024-01-01T00:00:00Z');
         jest.setSystemTime(startTime);
 
-        const promise = main(mockProcessPagesChunkHookFn, mockProcessRopewikiRoutesHookFn);
+        const promise = main(defaultMainEvent, mockProcessPagesChunkHookFn, mockProcessRopewikiRoutesHookFn);
 
         jest.advanceTimersByTime(1000);
 
@@ -298,7 +301,7 @@ describe('main', () => {
         const startTime = new Date('2024-01-01T00:00:00Z');
         jest.setSystemTime(startTime);
 
-        const promise = main(mockProcessPagesChunkHookFn, mockProcessRopewikiRoutesHookFn);
+        const promise = main(defaultMainEvent, mockProcessPagesChunkHookFn, mockProcessRopewikiRoutesHookFn);
 
         jest.advanceTimersByTime(1000);
 
@@ -318,7 +321,7 @@ describe('main', () => {
         const startTime = new Date('2024-01-01T00:00:00Z');
         jest.setSystemTime(startTime);
 
-        const promise = main(mockProcessPagesChunkHookFn, mockProcessRopewikiRoutesHookFn);
+        const promise = main(defaultMainEvent, mockProcessPagesChunkHookFn, mockProcessRopewikiRoutesHookFn);
 
         // Advance time by 7.5 seconds (should round down to 7)
         jest.advanceTimersByTime(7500);
@@ -338,13 +341,54 @@ describe('main', () => {
         const startTime = new Date('2024-01-01T00:00:00Z');
         jest.setSystemTime(startTime);
 
-        const promise = main(mockProcessPagesChunkHookFn, mockProcessRopewikiRoutesHookFn);
+        const promise = main(defaultMainEvent, mockProcessPagesChunkHookFn, mockProcessRopewikiRoutesHookFn);
 
         jest.advanceTimersByTime(1000);
 
         await promise;
 
         expect(mockProcessPagesForRegion).toHaveBeenCalledWith('Region 1', 0, { 'Region 1': 'region-id-1', 'Region 2': 'region-id-2' });
+        expect(mockProcessRoutes).toHaveBeenCalledWith(mockPool, [], mockProcessRopewikiRoutesHookFn);
+    });
+
+    it('does not call processRoutes when processRoutes is false', async () => {
+        const region1 = createTestRegion('Region 1', 100);
+        const page1 = createTestPage('page-1', 'Page 1');
+        const event: MainEvent = { processPages: true, processRoutes: false };
+
+        mockGetRegionCountsUnderLimit.mockResolvedValue([region1]);
+        mockProcessPagesForRegion.mockResolvedValueOnce([page1]);
+
+        const startTime = new Date('2024-01-01T00:00:00Z');
+        jest.setSystemTime(startTime);
+
+        const promise = main(event, mockProcessPagesChunkHookFn, mockProcessRopewikiRoutesHookFn);
+
+        jest.advanceTimersByTime(2000);
+
+        await promise;
+
+        expect(mockProcessPagesForRegion).toHaveBeenCalledTimes(1);
+        expect(mockProcessRoutes).not.toHaveBeenCalled();
+    });
+
+    it('passes processPages to getProcessPagesForRegionFn when processPages is false', async () => {
+        const region1 = createTestRegion('Region 1', 100);
+        const event: MainEvent = { processPages: false, processRoutes: true };
+
+        mockGetRegionCountsUnderLimit.mockResolvedValue([region1]);
+        mockProcessPagesForRegion.mockResolvedValueOnce([]);
+
+        const startTime = new Date('2024-01-01T00:00:00Z');
+        jest.setSystemTime(startTime);
+
+        const promise = main(event, mockProcessPagesChunkHookFn, mockProcessRopewikiRoutesHookFn);
+
+        jest.advanceTimersByTime(1000);
+
+        await promise;
+
+        expect(mockGetProcessPagesForRegionFn).toHaveBeenCalledWith(mockPool, mockProcessPagesChunkHookFn, false);
         expect(mockProcessRoutes).toHaveBeenCalledWith(mockPool, [], mockProcessRopewikiRoutesHookFn);
     });
 });

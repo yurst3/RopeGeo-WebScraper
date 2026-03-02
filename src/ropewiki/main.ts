@@ -8,6 +8,7 @@ import processRoutes from "./processors/processRoutes";
 import { nodeProcessPagesChunk } from "./hook-functions/processPagesChunk";
 import { nodeProcessRopewikiRoutes } from "./hook-functions/processRopewikiRoutes";
 import RopewikiPage from "./types/page";
+import type { MainEvent } from "./types/mainEvent";
 
 /*
 From testing, if the query for getting ropewiki pages ever has an offset above 5000 it treats it as an offset of 0.
@@ -18,6 +19,7 @@ Since 7000 isn't a multiple of 2000, we'll go with 6000 to make the code a littl
 const REGION_COUNT_LIMIT = 6000;
 
 export const main = async (
+    event: MainEvent,
     processPagesChunkHookFn: ProcessPagesChunkHookFn,
     processRopewikiRoutesHookFn: ProcessRopewikiRoutesHookFn,
 ): Promise<number> => {
@@ -35,7 +37,7 @@ export const main = async (
         const updatedPages: Array<RopewikiPage> = [];
 
         // Get the processPagesForRegion function that uses the provided pool and hook function.
-        const processPagesForRegion = getProcessPagesForRegionFn(pool, processPagesChunkHookFn);
+        const processPagesForRegion = getProcessPagesForRegionFn(pool, processPagesChunkHookFn, event.processPages);
 
         // Everything has to be done sequentially so we don't DDOS Ropewiki
         for (const region of regionsUnderLimit) {
@@ -45,7 +47,9 @@ export const main = async (
         }
 
         // Generate/update routes for pages that were updated
-        await processRoutes(pool, updatedPages, processRopewikiRoutesHookFn);
+        if (event.processRoutes) {
+            await processRoutes(pool, updatedPages, processRopewikiRoutesHookFn);
+        }
 
         const elapsedTimeMs = new Date().getTime() - beginTime.getTime();
         const elapsedTimeSeconds = Math.floor(elapsedTimeMs / 1000);
@@ -62,7 +66,8 @@ const processRopewikiRoutesHookFn = nodeProcessRopewikiRoutes;
 
 // Allow running as a Node.js script
 if (require.main === module) {
-    main(processPagesChunkHookFn, processRopewikiRoutesHookFn).then(() => {
+    const defaultEvent: MainEvent = { processPages: true, processRoutes: true };
+    main(defaultEvent, processPagesChunkHookFn, processRopewikiRoutesHookFn).then(() => {
         process.exit(0);
     }).catch((error) => {
         console.error('Error:', error);

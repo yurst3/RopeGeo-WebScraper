@@ -77,7 +77,7 @@ describe('processPagesForRegion', () => {
         // Get the processPagesForRegion function using getProcessPagesForRegionFn
         // Note: For Lambda detection tests, we'll reset modules and re-import
         const { getProcessPagesForRegionFn } = require('../../../src/ropewiki/processors/processPagesForRegion');
-        processPagesForRegion = getProcessPagesForRegionFn(mockPool, mockProcessPagesChunkHookFn);
+        processPagesForRegion = getProcessPagesForRegionFn(mockPool, mockProcessPagesChunkHookFn, true);
     });
 
     afterEach(() => {
@@ -474,6 +474,36 @@ describe('processPagesForRegion', () => {
         await expect(processPagesForRegion(regionName, regionPageCount, regionNameIds)).rejects.toThrow('Process pages error');
     });
 
+    it('skips parsing when processPages is false', async () => {
+        const { getProcessPagesForRegionFn } = require('../../../src/ropewiki/processors/processPagesForRegion');
+        const processPagesForRegionWithProcessPagesFalse = getProcessPagesForRegionFn(mockPool, mockProcessPagesChunkHookFn, false);
+
+        const regionName = 'Test Region';
+        const regionPageCount = 100;
+        const regionNameIds = { 'Test Region': 'region-id-123' };
+
+        const page1 = createValidPage('728', 'Page 1', regionName, regionNameIds, new Date('2024-01-01T00:00:00Z'));
+        const page2 = createValidPage('5597', 'Page 2', regionName, regionNameIds, new Date('2024-01-02T00:00:00Z'));
+        const pages = [page1, page2];
+
+        mockGetRopewikiPageForRegion.mockResolvedValue(pages);
+        mockGetUpdatedDatesForPages.mockResolvedValue({
+            '728': null,
+            '5597': null,
+        });
+        const upsertedPage1 = createUpsertedPage('728', 'Page 1', regionName, regionNameIds, 'page-uuid-1', new Date('2024-01-01T00:00:00Z'));
+        const upsertedPage2 = createUpsertedPage('5597', 'Page 2', regionName, regionNameIds, 'page-uuid-2', new Date('2024-01-02T00:00:00Z'));
+        mockUpsertPages.mockResolvedValueOnce([upsertedPage1, upsertedPage2]);
+
+        const result = await processPagesForRegionWithProcessPagesFalse(regionName, regionPageCount, regionNameIds);
+
+        expect(result).toEqual([]);
+        expect(mockSetPagesDeletedAtForRegion).toHaveBeenCalledTimes(1);
+        expect(mockGetRopewikiPageForRegion).toHaveBeenCalledTimes(1);
+        expect(mockUpsertPages).toHaveBeenCalledTimes(1);
+        expect(mockProcessPagesChunkHookFn).not.toHaveBeenCalled();
+    });
+
     it('does not call processPage when no pages need processing', async () => {
         const regionName = 'Test Region';
         const regionPageCount = 1;
@@ -558,7 +588,7 @@ describe('processPagesForRegion', () => {
             (setPagesDeletedAtForRegionMock.default || setPagesDeletedAtForRegionMock).mockResolvedValue(undefined);
 
             return {
-                processPagesForRegionFn: getProcessPagesForRegionFn(mockPool, mockProcessPagesChunkHookFn),
+                processPagesForRegionFn: getProcessPagesForRegionFn(mockPool, mockProcessPagesChunkHookFn, true),
                 getRopewikiPageForRegion: getRopewikiPageForRegionMock.default || getRopewikiPageForRegionMock,
                 getUpdatedDatesForPages: getUpdatedDatesForPagesMock.default || getUpdatedDatesForPagesMock,
                 upsertPages: upsertPagesMock.default || upsertPagesMock,
@@ -623,7 +653,7 @@ describe('processPagesForRegion', () => {
             const getRopewikiPageForRegionMock = require('../../../src/ropewiki/http/getRopewikiPageForRegion');
             const getUpdatedDatesForPagesMock = require('../../../src/ropewiki/database/getUpdatedDatesForPages');
             const upsertPagesMock = require('../../../src/ropewiki/database/upsertPages');
-            const processPagesForRegionFn = getProcessPagesForRegionFn(mockPool, mockProcessPagesChunkHookFn);
+            const processPagesForRegionFn = getProcessPagesForRegionFn(mockPool, mockProcessPagesChunkHookFn, true);
             
             const regionName = 'Test Region';
             const regionPageCount = 1;

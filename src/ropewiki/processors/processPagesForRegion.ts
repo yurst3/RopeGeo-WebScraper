@@ -1,4 +1,4 @@
-import { Pool } from 'pg';
+import { Pool, PoolClient } from 'pg';
 import { Queryable } from "zapatos/db";
 import getRopewikiPageForRegion from "../http/getRopewikiPageForRegion";
 import RopewikiPage from "../types/page";
@@ -14,12 +14,53 @@ const isLambda = !!process.env.AWS_LAMBDA_FUNCTION_NAME || !!process.env.LAMBDA_
 
 type ProcessPagesForRegionFn = (regionName: string, regionPageCount: number, regionNameIds: {[name: string]: string}) => Promise<RopewikiPage[]>;
 
+async function processUpdatedPages(
+    client: PoolClient,
+    processPagesChunkHookFn: ProcessPagesChunkHookFn,
+    upsertedPages: RopewikiPage[],
+    pageUpdateDates: { [pageId: string]: Date | null },
+    validPagesLength: number,
+    invalidPagesCount: number,
+    offset: number,
+    logger: ProgressLogger,
+    parsedPages: RopewikiPage[],
+): Promise<void> {
+    const validPagesToParse = upsertedPages.filter(upsertPage => {
+        const updatedDate = pageUpdateDates[upsertPage.pageid];
+
+        if (!updatedDate) return true; // Always parse and save when we don't have an updated date
+        return updatedDate < upsertPage.latestRevisionDate; // Otherwise only parse if there has been a revision since the last update
+    });
+
+    const skippedPagesCount = validPagesLength - validPagesToParse.length;
+    if (skippedPagesCount > 0) console.log(`Skipping parsing for ${skippedPagesCount} pages...`);
+
+    // Calculate chunk boundaries: start at offset + number of skipped pages in this chunk
+    const skippedInChunk = invalidPagesCount + skippedPagesCount;
+
+    if (validPagesToParse.length) {
+        const chunkStart = offset + skippedInChunk;
+        const chunkEnd = chunkStart + validPagesToParse.length - 1;
+        logger.setChunk(chunkStart, chunkEnd);
+
+        // Parse pages (beta sections and images) - uses savepoints internally
+        await processPagesChunkHookFn(client, validPagesToParse, logger);
+
+        // Track the full page objects that were parsed
+        parsedPages.push(...validPagesToParse);
+    }
+}
+
 /* 
 We want a more generic function that takes in a hook so we can either send SQS messages if we're running in a lambda or
 directly invoke processPagesChunk if we're running as a node script. Remember that lambdas can only run for 900 seconds before they time
 out and if we have to do a full scrape from scratch it will take roughly 3.5 hours. Europe alone takes about 2 hours.
 */
-export const getProcessPagesForRegionFn = (conn: Queryable, processPagesChunkHookFn: ProcessPagesChunkHookFn): ProcessPagesForRegionFn => {
+export const getProcessPagesForRegionFn = (
+    conn: Queryable,
+    processPagesChunkHookFn: ProcessPagesChunkHookFn,
+    processPages: boolean,
+): ProcessPagesForRegionFn => {
     return async (
         regionName: string,
         regionPageCount: number,
@@ -54,29 +95,18 @@ export const getProcessPagesForRegionFn = (conn: Queryable, processPagesChunkHoo
 
                 const upsertedPages = await upsertPages(client, validPages);
 
-                const validPagesToParse = upsertedPages.filter(upsertPage => {
-                    const updatedDate = pageUpdateDates[upsertPage.pageid];
-
-                    if (!updatedDate) return true; // Always parse and save when we don't have an updated date
-                    return updatedDate < upsertPage.latestRevisionDate; // Otherwise only parse if there has been a revision since the last update
-                });
-
-                const skippedPagesCount = validPages.length - validPagesToParse.length;
-                if (skippedPagesCount > 0) console.log(`Skipping parsing for ${skippedPagesCount} pages...`);
-
-                // Calculate chunk boundaries: start at offset + number of skipped pages in this chunk
-                const skippedInChunk = invalidPagesCount + skippedPagesCount;
-
-                if (validPagesToParse.length) {
-                    const chunkStart = offset + skippedInChunk;
-                    const chunkEnd = chunkStart + validPagesToParse.length - 1;
-                    logger.setChunk(chunkStart, chunkEnd);
-
-                    // Parse pages (beta sections and images) - uses savepoints internally
-                    await processPagesChunkHookFn(client, validPagesToParse, logger);
-
-                    // Track the full page objects that were parsed
-                    parsedPages.push(...validPagesToParse);
+                if (processPages) {
+                    await processUpdatedPages(
+                        client,
+                        processPagesChunkHookFn,
+                        upsertedPages,
+                        pageUpdateDates,
+                        validPages.length,
+                        invalidPagesCount,
+                        offset,
+                        logger,
+                        parsedPages,
+                    );
                 }
             }
 

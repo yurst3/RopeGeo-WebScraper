@@ -116,7 +116,7 @@ describe('processPagesForRegion (integration)', () => {
             createValidPage('1002', 'Page B', pageBRevision),
         ]);
 
-        const processPagesForRegion = getProcessPagesForRegionFn(pool, mockProcessPagesChunkHookFn);
+        const processPagesForRegion = getProcessPagesForRegionFn(pool, mockProcessPagesChunkHookFn, true);
         await processPagesForRegion(regionName, 1, regionNameIds);
 
         const pageARows = await db.select('RopewikiPage', { pageId: '1001' }).run(conn);
@@ -161,7 +161,7 @@ describe('processPagesForRegion (integration)', () => {
             createValidPage('2003', 'Stale Page', stalePageRevision),
         ]);
 
-        const processPagesForRegion = getProcessPagesForRegionFn(pool, mockProcessPagesChunkHookFn);
+        const processPagesForRegion = getProcessPagesForRegionFn(pool, mockProcessPagesChunkHookFn, true);
         await processPagesForRegion(regionName, 3, regionNameIds);
 
         expect(mockProcessPagesChunkHookFn).toHaveBeenCalledTimes(1);
