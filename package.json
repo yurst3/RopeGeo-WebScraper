@@ -18,6 +18,7 @@
     "update-event:map-data-processor": "DB_HOST=127.0.0.1 DB_PORT=8081 DB_NAME=local DB_USER=localUser DB_PASSWORD=localPass ts-node --files scripts/updateMapDataProcessorSQSEvent.ts",
     "test:proxy": "ts-node --files scripts/testProxy.ts",
     "test:page-parse": "ts-node --files scripts/testPageParse.ts",
+    "test:get-ropewiki-page-for-region": "DB_HOST=127.0.0.1 DB_PORT=8081 DB_NAME=local DB_USER=localUser DB_PASSWORD=localPass ts-node --files scripts/testGetRopewikiPageForRegion.ts",
     "typecheck": "tsc --noEmit -p tsconfig.typecheck.json",
     "run:generateTrailTiles": "npx ts-node --project tsconfig.json --files src/fargate-jobs/generateTrailTiles/main.ts",
     "run:generateRouteMarkerTiles": "npx ts-node --project tsconfig.json --files src/fargate-jobs/generateRouteMarkerTiles/main.ts",
@@ -51,7 +52,7 @@
     "lodash": "^4.17.21",
     "pg": "^8.16.3",
     "puppeteer": "^22.5.0",
-    "ropegeo-common": "^1.0.12",
+    "ropegeo-common": "^1.0.14",
     "undici": "^7.11.0",
     "uuid": "^13.0.0",
     "zapatos": "^6.6.1"

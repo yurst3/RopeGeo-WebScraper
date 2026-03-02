@@ -1,4 +1,5 @@
 import * as db from 'zapatos/db';
+import type * as s from 'zapatos/schema';
 import type { RopewikiPageView } from 'ropegeo-common';
 import { Difficulty } from 'ropegeo-common';
 import getRopewikiRegionLineage from '../../../ropewiki/database/getRopewikiRegionLineage';
@@ -6,6 +7,12 @@ import numericValue from '../util/numericValue';
 import parsePermit from '../util/parsePermit';
 import parseRappelInfo from '../util/parseRappelInfo';
 import stringArray from '../util/stringArray';
+
+const ROPEWIKI_PAGE_VIEW_COLUMNS: (keyof s.RopewikiPage.Selectable)[] = [
+    'id', 'pageId', 'name', 'aka', 'url', 'quality', 'userVotes', 'technicalRating', 'waterRating', 'timeRating', 'riskRating', 'permits', 'rappelInfo', 'rappelCount', 'rappelLongest', 'vehicle',
+    'shuttleTime', 'minOverallTime', 'maxOverallTime', 'hikeLength', 'overallLength', 'minApproachTime', 'maxApproachTime', 'minDescentTime', 'maxDescentTime', 'minExitTime', 'maxExitTime', 'approachElevGain', 'exitElevGain',
+    'months', 'latestRevisionDate', 'deletedAt', 'region',
+];
 
 /**
  * Fetches a single RopewikiPage by id and builds a RopewikiPageView (with banner image and beta sections).
@@ -15,9 +22,10 @@ const getRopewikiPageView = async (
     conn: db.Queryable,
     pageId: string,
 ): Promise<RopewikiPageView | null> => {
-    const [page] = await db
-        .select('RopewikiPage', { id: pageId }, { columns: ['id', 'pageId', 'name', 'aka', 'url', 'quality', 'userVotes', 'technicalRating', 'waterRating', 'timeRating', 'riskRating', 'permits', 'rappelInfo', 'rappelCount', 'rappelLongest', 'vehicle', 'shuttle', 'minTime', 'maxTime', 'hike', 'months', 'latestRevisionDate', 'deletedAt', 'region'] })
+    const rows = await db
+        .select('RopewikiPage', { id: pageId }, { columns: ROPEWIKI_PAGE_VIEW_COLUMNS })
         .run(conn);
+    const page = rows[0] as s.RopewikiPage.Selectable | undefined;
 
     if (!page || page.deletedAt != null) return null;
 
@@ -92,11 +100,20 @@ const getRopewikiPageView = async (
         jumps,
         vehicle: page.vehicle ?? null,
         rappelLongest: page.rappelLongest == null ? null : numericValue(page.rappelLongest),
-        shuttle: page.shuttle == null ? null : numericValue(page.shuttle),
-        minTime: page.minTime == null ? null : numericValue(page.minTime),
-        maxTime: page.maxTime == null ? null : numericValue(page.maxTime),
-        hike: page.hike == null ? null : numericValue(page.hike),
-        months: page.months == null ? null : stringArray(page.months),
+        shuttleTime: page.shuttleTime == null ? null : numericValue(page.shuttleTime),
+        minOverallTime: page.minOverallTime == null ? null : numericValue(page.minOverallTime),
+        maxOverallTime: page.maxOverallTime == null ? null : numericValue(page.maxOverallTime),
+        hikeLength: page.hikeLength == null ? null : numericValue(page.hikeLength),
+        overallLength: page.overallLength == null ? null : numericValue(page.overallLength),
+        minApproachTime: page.minApproachTime == null ? null : numericValue(page.minApproachTime),
+        maxApproachTime: page.maxApproachTime == null ? null : numericValue(page.maxApproachTime),
+        minDescentTime: page.minDescentTime == null ? null : numericValue(page.minDescentTime),
+        maxDescentTime: page.maxDescentTime == null ? null : numericValue(page.maxDescentTime),
+        minExitTime: page.minExitTime == null ? null : numericValue(page.minExitTime),
+        maxExitTime: page.maxExitTime == null ? null : numericValue(page.maxExitTime),
+        approachElevGain: page.approachElevGain == null ? null : numericValue(page.approachElevGain),
+        exitElevGain: page.exitElevGain == null ? null : numericValue(page.exitElevGain),
+        months: page.months == null ? [] : stringArray(page.months),
         latestRevisionDate: new Date(page.latestRevisionDate),
         regions,
         bannerImage,

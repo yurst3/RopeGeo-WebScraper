@@ -137,7 +137,7 @@
             "format": ""
         },
         {
-            "label": "shuttle",
+            "label": "shuttleTime",
             "key": "Has_shuttle_length",
             "redi": "",
             "typeid": "_qty",
@@ -153,7 +153,7 @@
             "format": ""
         },
         {
-            "label": "minTime",
+            "label": "minOverallTime",
             "key": "Has_fastest_typical_time",
             "redi": "",
             "typeid": "_qty",
@@ -161,7 +161,7 @@
             "format": ""
         },
         {
-            "label": "maxTime",
+            "label": "maxOverallTime",
             "key": "Has_slowest_typical_time",
             "redi": "",
             "typeid": "_qty",
@@ -169,7 +169,7 @@
             "format": ""
         },
         {
-            "label": "hike",
+            "label": "hikeLength",
             "key": "Has_length_of_hike",
             "redi": "",
             "typeid": "_qty",
@@ -257,11 +257,11 @@
                 "rappelCount": [],
                 "rappelLongest": [],
                 "months": [],
-                "shuttle": [],
+                "shuttleTime": [],
                 "vehicle": [],
-                "minTime": [],
-                "maxTime": [],
-                "hike": [],
+                "minOverallTime": [],
+                "maxOverallTime": [],
+                "hikeLength": [],
                 "url": [
                     "https://ropewiki.com/...must_be_on_dope"
                 ],
@@ -349,11 +349,11 @@
                     "Feb",
                     "Mar"
                 ],
-                "shuttle": [],
+                "shuttleTime": [],
                 "vehicle": [],
-                "minTime": [],
-                "maxTime": [],
-                "hike": [],
+                "minOverallTime": [],
+                "maxOverallTime": [],
+                "hikeLength": [],
                 "url": [
                     "https://ropewiki.com/12_Mile_Delta"
                 ],
@@ -439,21 +439,21 @@
                     "Apr",
                     "May"
                 ],
-                "shuttle": [],
+                "shuttleTime": [],
                 "vehicle": [],
-                "minTime": [
+                "minOverallTime": [
                     {
                         "value": 4,
                         "unit": "h"
                     }
                 ],
-                "maxTime": [
+                "maxOverallTime": [
                     {
                         "value": 6,
                         "unit": "h"
                     }
                 ],
-                "hike": [
+                "hikeLength": [
                     {
                         "value": 9,
                         "unit": "mi"
@@ -536,26 +536,26 @@
                     }
                 ],
                 "months": [],
-                "shuttle": [
+                "shuttleTime": [
                     {
                         "value": 0,
                         "unit": "minutes"
                     }
                 ],
                 "vehicle": [],
-                "minTime": [
+                "minOverallTime": [
                     {
                         "value": 2,
                         "unit": "h"
                     }
                 ],
-                "maxTime": [
+                "maxOverallTime": [
                     {
                         "value": 2.25,
                         "unit": "h"
                     }
                 ],
-                "hike": [],
+                "hikeLength": [],
                 "url": [
                     "https://ropewiki.com/14_Juillet"
                 ],
@@ -626,11 +626,11 @@
                 "rappelCount": [],
                 "rappelLongest": [],
                 "months": [],
-                "shuttle": [],
+                "shuttleTime": [],
                 "vehicle": [],
-                "minTime": [],
-                "maxTime": [],
-                "hike": [],
+                "minOverallTime": [],
+                "maxOverallTime": [],
+                "hikeLength": [],
                 "url": [
                     "https://ropewiki.com/140_Mile"
                 ],
@@ -720,21 +720,21 @@
                     "Oct",
                     "Nov"
                 ],
-                "shuttle": [],
+                "shuttleTime": [],
                 "vehicle": [],
-                "minTime": [
+                "minOverallTime": [
                     {
                         "value": 48,
                         "unit": "h"
                     }
                 ],
-                "maxTime": [
+                "maxOverallTime": [
                     {
                         "value": 96,
                         "unit": "h"
                     }
                 ],
-                "hike": [
+                "hikeLength": [
                     {
                         "value": 13.5,
                         "unit": "mi"
@@ -804,11 +804,11 @@
                 "rappelCount": [],
                 "rappelLongest": [],
                 "months": [],
-                "shuttle": [],
+                "shuttleTime": [],
                 "vehicle": [],
-                "minTime": [],
-                "maxTime": [],
-                "hike": [],
+                "minOverallTime": [],
+                "maxOverallTime": [],
+                "hikeLength": [],
                 "url": [
                     "https://ropewiki.com/1601_SE_Canyon"
                 ],
@@ -898,7 +898,7 @@
                     "Apr",
                     "May"
                 ],
-                "shuttle": [
+                "shuttleTime": [
                     {
                         "value": 0.5,
                         "unit": "minutes"
@@ -907,19 +907,19 @@
                 "vehicle": [
                     "Passenger"
                 ],
-                "minTime": [
+                "minOverallTime": [
                     {
                         "value": 2,
                         "unit": "h"
                     }
                 ],
-                "maxTime": [
+                "maxOverallTime": [
                     {
                         "value": 3,
                         "unit": "h"
                     }
                 ],
-                "hike": [
+                "hikeLength": [
                     {
                         "value": 3.7,
                         "unit": "mi"
@@ -1017,7 +1017,7 @@
                     "Oct",
                     "Nov"
                 ],
-                "shuttle": [
+                "shuttleTime": [
                     {
                         "value": 0,
                         "unit": "minutes"
@@ -1026,19 +1026,19 @@
                 "vehicle": [
                     "High Clearance"
                 ],
-                "minTime": [
+                "minOverallTime": [
                     {
                         "value": 3,
                         "unit": "h"
                     }
                 ],
-                "maxTime": [
+                "maxOverallTime": [
                     {
                         "value": 5,
                         "unit": "h"
                     }
                 ],
-                "hike": [],
+                "hikeLength": [],
                 "url": [
                     "https://ropewiki.com/20000_Steps"
                 ],
@@ -1114,11 +1114,11 @@
                     }
                 ],
                 "months": [],
-                "shuttle": [],
+                "shuttleTime": [],
                 "vehicle": [],
-                "minTime": [],
-                "maxTime": [],
-                "hike": [],
+                "minOverallTime": [],
+                "maxOverallTime": [],
+                "hikeLength": [],
                 "url": [
                     "https://ropewiki.com/209_Mile_Canyon"
                 ],
@@ -1181,11 +1181,11 @@
                 "rappelCount": [],
                 "rappelLongest": [],
                 "months": [],
-                "shuttle": [],
+                "shuttleTime": [],
                 "vehicle": [],
-                "minTime": [],
-                "maxTime": [],
-                "hike": [],
+                "minOverallTime": [],
+                "maxOverallTime": [],
+                "hikeLength": [],
                 "url": [
                     "https://ropewiki.com/22-Mile_Wash"
                 ],
@@ -1248,11 +1248,11 @@
                 "rappelCount": [],
                 "rappelLongest": [],
                 "months": [],
-                "shuttle": [],
+                "shuttleTime": [],
                 "vehicle": [],
-                "minTime": [],
-                "maxTime": [],
-                "hike": [],
+                "minOverallTime": [],
+                "maxOverallTime": [],
+                "hikeLength": [],
                 "url": [
                     "https://ropewiki.com/25_Mile_Creek"
                 ],
@@ -1313,11 +1313,11 @@
                 "rappelCount": [],
                 "rappelLongest": [],
                 "months": [],
-                "shuttle": [],
+                "shuttleTime": [],
                 "vehicle": [],
-                "minTime": [],
-                "maxTime": [],
-                "hike": [],
+                "minOverallTime": [],
+                "maxOverallTime": [],
+                "hikeLength": [],
                 "url": [
                     "https://ropewiki.com/25_Mile_Wash"
                 ],
@@ -1403,7 +1403,7 @@
                     "Feb",
                     "Mar"
                 ],
-                "shuttle": [
+                "shuttleTime": [
                     {
                         "value": 0,
                         "unit": "minutes"
@@ -1412,9 +1412,9 @@
                 "vehicle": [
                     "4WD"
                 ],
-                "minTime": [],
-                "maxTime": [],
-                "hike": [],
+                "minOverallTime": [],
+                "maxOverallTime": [],
+                "hikeLength": [],
                 "url": [
                     "https://ropewiki.com/28_Canyon"
                 ],
@@ -1505,26 +1505,26 @@
                     "Oct",
                     "Nov"
                 ],
-                "shuttle": [
+                "shuttleTime": [
                     {
                         "value": 0,
                         "unit": "minutes"
                     }
                 ],
                 "vehicle": [],
-                "minTime": [
+                "minOverallTime": [
                     {
                         "value": 2,
                         "unit": "h"
                     }
                 ],
-                "maxTime": [
+                "maxOverallTime": [
                     {
                         "value": 3,
                         "unit": "h"
                     }
                 ],
-                "hike": [],
+                "hikeLength": [],
                 "url": [
                     "https://ropewiki.com/3_Fontaines"
                 ],
@@ -1612,21 +1612,21 @@
                     "Apr",
                     "May"
                 ],
-                "shuttle": [],
+                "shuttleTime": [],
                 "vehicle": [],
-                "minTime": [
+                "minOverallTime": [
                     {
                         "value": 2,
                         "unit": "h"
                     }
                 ],
-                "maxTime": [
+                "maxOverallTime": [
                     {
                         "value": 3,
                         "unit": "h"
                     }
                 ],
-                "hike": [
+                "hikeLength": [
                     {
                         "value": 4,
                         "unit": "mi"
@@ -1714,21 +1714,21 @@
                     "Oct",
                     "Nov"
                 ],
-                "shuttle": [],
+                "shuttleTime": [],
                 "vehicle": [],
-                "minTime": [
+                "minOverallTime": [
                     {
                         "value": 48,
                         "unit": "h"
                     }
                 ],
-                "maxTime": [
+                "maxOverallTime": [
                     {
                         "value": 96,
                         "unit": "h"
                     }
                 ],
-                "hike": [
+                "hikeLength": [
                     {
                         "value": 18.5,
                         "unit": "mi"
@@ -1818,21 +1818,21 @@
                     "Oct",
                     "Nov"
                 ],
-                "shuttle": [],
+                "shuttleTime": [],
                 "vehicle": [],
-                "minTime": [
+                "minOverallTime": [
                     {
                         "value": 48,
                         "unit": "h"
                     }
                 ],
-                "maxTime": [
+                "maxOverallTime": [
                     {
                         "value": 96,
                         "unit": "h"
                     }
                 ],
-                "hike": [
+                "hikeLength": [
                     {
                         "value": 16.4,
                         "unit": "mi"
@@ -1922,21 +1922,21 @@
                     "Oct",
                     "Nov"
                 ],
-                "shuttle": [],
+                "shuttleTime": [],
                 "vehicle": [],
-                "minTime": [
+                "minOverallTime": [
                     {
                         "value": 48,
                         "unit": "h"
                     }
                 ],
-                "maxTime": [
+                "maxOverallTime": [
                     {
                         "value": 72,
                         "unit": "h"
                     }
                 ],
-                "hike": [
+                "hikeLength": [
                     {
                         "value": 12,
                         "unit": "mi"
@@ -2029,21 +2029,21 @@
                     "Apr",
                     "May"
                 ],
-                "shuttle": [],
+                "shuttleTime": [],
                 "vehicle": [],
-                "minTime": [
+                "minOverallTime": [
                     {
                         "value": 2,
                         "unit": "h"
                     }
                 ],
-                "maxTime": [
+                "maxOverallTime": [
                     {
                         "value": 3,
                         "unit": "h"
                     }
                 ],
-                "hike": [
+                "hikeLength": [
                     {
                         "value": 4,
                         "unit": "mi"

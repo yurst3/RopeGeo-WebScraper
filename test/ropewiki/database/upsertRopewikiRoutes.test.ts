@@ -88,11 +88,20 @@ describe('upsertRopewikiRoutes (integration)', () => {
             undefined, // rappelCount
             undefined, // rappelLongest
             undefined, // months
-            undefined, // shuttle
+            undefined, // shuttleTime
             undefined, // vehicle
-            undefined, // minTime
-            undefined, // maxTime
-            undefined, // hike
+            undefined, // minOverallTime
+            undefined, // maxOverallTime
+            undefined, // hikeLength
+            undefined, // overallLength
+            undefined, // minApproachTime
+            undefined, // maxApproachTime
+            undefined, // minDescentTime
+            undefined, // maxDescentTime
+            undefined, // minExitTime
+            undefined, // maxExitTime
+            undefined, // approachElevGain
+            undefined, // exitElevGain
             [], // aka
             [], // betaSites
             undefined, // userVotes
@@ -371,11 +380,20 @@ describe('upsertRopewikiRoutes (integration)', () => {
             undefined, // rappelCount
             undefined, // rappelLongest
             undefined, // months
-            undefined, // shuttle
+            undefined, // shuttleTime
             undefined, // vehicle
-            undefined, // minTime
-            undefined, // maxTime
-            undefined, // hike
+            undefined, // minOverallTime
+            undefined, // maxOverallTime
+            undefined, // hikeLength
+            undefined, // overallLength
+            undefined, // minApproachTime
+            undefined, // maxApproachTime
+            undefined, // minDescentTime
+            undefined, // maxDescentTime
+            undefined, // minExitTime
+            undefined, // maxExitTime
+            undefined, // approachElevGain
+            undefined, // exitElevGain
             [], // aka
             [], // betaSites
             undefined, // userVotes

@@ -85,15 +85,15 @@
             "Apr",
             "May"
         ],
-        "minTime": {
+        "minOverallTime": {
             "value": 4,
             "unit": "h"
         },
-        "maxTime": {
+        "maxOverallTime": {
             "value": 6,
             "unit": "h"
         },
-        "hike": {
+        "hikeLength": {
             "value": 9,
             "unit": "mi"
         },
@@ -127,15 +127,15 @@
             "unit": "ft"
         },
         "months": [],
-        "shuttle": {
+        "shuttleTime": {
             "value": 0,
             "unit": "minutes"
         },
-        "minTime": {
+        "minOverallTime": {
             "value": 2,
             "unit": "h"
         },
-        "maxTime": {
+        "maxOverallTime": {
             "value": 2.25,
             "unit": "h"
         },
@@ -205,15 +205,15 @@
             "Oct",
             "Nov"
         ],
-        "minTime": {
+        "minOverallTime": {
             "value": 48,
             "unit": "h"
         },
-        "maxTime": {
+        "maxOverallTime": {
             "value": 96,
             "unit": "h"
         },
-        "hike": {
+        "hikeLength": {
             "value": 13.5,
             "unit": "mi"
         },
@@ -280,20 +280,20 @@
             "Apr",
             "May"
         ],
-        "shuttle": {
+        "shuttleTime": {
             "value": 0.5,
             "unit": "minutes"
         },
         "vehicle": "Passenger",
-        "minTime": {
+        "minOverallTime": {
             "value": 2,
             "unit": "h"
         },
-        "maxTime": {
+        "maxOverallTime": {
             "value": 3,
             "unit": "h"
         },
-        "hike": {
+        "hikeLength": {
             "value": 3.7,
             "unit": "mi"
         },
@@ -341,16 +341,16 @@
             "Oct",
             "Nov"
         ],
-        "shuttle": {
+        "shuttleTime": {
             "value": 0,
             "unit": "minutes"
         },
         "vehicle": "High Clearance",
-        "minTime": {
+        "minOverallTime": {
             "value": 3,
             "unit": "h"
         },
-        "maxTime": {
+        "maxOverallTime": {
             "value": 5,
             "unit": "h"
         },
@@ -476,7 +476,7 @@
             "Feb",
             "Mar"
         ],
-        "shuttle": {
+        "shuttleTime": {
             "value": 0,
             "unit": "minutes"
         },
@@ -522,15 +522,15 @@
             "Oct",
             "Nov"
         ],
-        "shuttle": {
+        "shuttleTime": {
             "value": 0,
             "unit": "minutes"
         },
-        "minTime": {
+        "minOverallTime": {
             "value": 2,
             "unit": "h"
         },
-        "maxTime": {
+        "maxOverallTime": {
             "value": 3,
             "unit": "h"
         },
@@ -578,15 +578,15 @@
             "Apr",
             "May"
         ],
-        "minTime": {
+        "minOverallTime": {
             "value": 2,
             "unit": "h"
         },
-        "maxTime": {
+        "maxOverallTime": {
             "value": 3,
             "unit": "h"
         },
-        "hike": {
+        "hikeLength": {
             "value": 4,
             "unit": "mi"
         },
@@ -626,15 +626,15 @@
             "Oct",
             "Nov"
         ],
-        "minTime": {
+        "minOverallTime": {
             "value": 48,
             "unit": "h"
         },
-        "maxTime": {
+        "maxOverallTime": {
             "value": 96,
             "unit": "h"
         },
-        "hike": {
+        "hikeLength": {
             "value": 18.5,
             "unit": "mi"
         },
@@ -676,15 +676,15 @@
             "Oct",
             "Nov"
         ],
-        "minTime": {
+        "minOverallTime": {
             "value": 48,
             "unit": "h"
         },
-        "maxTime": {
+        "maxOverallTime": {
             "value": 96,
             "unit": "h"
         },
-        "hike": {
+        "hikeLength": {
             "value": 16.4,
             "unit": "mi"
         },
@@ -726,15 +726,15 @@
             "Oct",
             "Nov"
         ],
-        "minTime": {
+        "minOverallTime": {
             "value": 48,
             "unit": "h"
         },
-        "maxTime": {
+        "maxOverallTime": {
             "value": 72,
             "unit": "h"
         },
-        "hike": {
+        "hikeLength": {
             "value": 12,
             "unit": "mi"
         },
@@ -779,15 +779,15 @@
             "Apr",
             "May"
         ],
-        "minTime": {
+        "minOverallTime": {
             "value": 2,
             "unit": "h"
         },
-        "maxTime": {
+        "maxOverallTime": {
             "value": 3,
             "unit": "h"
         },
-        "hike": {
+        "hikeLength": {
             "value": 4,
             "unit": "mi"
         },

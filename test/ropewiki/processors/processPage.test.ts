@@ -64,11 +64,20 @@ describe('processPage', () => {
             undefined, // rappelCount
             undefined, // rappelLongest
             [], // months
-            undefined, // shuttle
+            undefined, // shuttleTime
             undefined, // vehicle
-            undefined, // minTime
-            undefined, // maxTime
-            undefined, // hike
+            undefined, // minOverallTime
+            undefined, // maxOverallTime
+            undefined, // hikeLength
+            undefined, // overallLength
+            undefined, // minApproachTime
+            undefined, // maxApproachTime
+            undefined, // minDescentTime
+            undefined, // maxDescentTime
+            undefined, // minExitTime
+            undefined, // maxExitTime
+            undefined, // approachElevGain
+            undefined, // exitElevGain
             [], // aka
             [], // betaSites
             undefined, // userVotes

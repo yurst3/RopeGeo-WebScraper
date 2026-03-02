@@ -87,13 +87,13 @@ describe('getRopewikiPageView (integration)', () => {
         expect(result!.difficulty).toMatchObject({ technical: '3', water: 'A', time: 'II', risk: 'PG13' });
         expect(result!.permit).toBe('No');
         expect(result!.aka).toEqual([]);
-        expect(result!.months).toBeNull();
+        expect(result!.months).toEqual([]);
         expect(result!.vehicle).toBeNull();
         expect(result!.rappelLongest).toBeNull();
-        expect(result!.shuttle).toBeNull();
-        expect(result!.minTime).toBeNull();
-        expect(result!.maxTime).toBeNull();
-        expect(result!.hike).toBeNull();
+        expect(result!.shuttleTime).toBeNull();
+        expect(result!.minOverallTime).toBeNull();
+        expect(result!.maxOverallTime).toBeNull();
+        expect(result!.hikeLength).toBeNull();
         expect(result!.rappelCount).toBeNull();
         expect(result!.jumps).toBeNull();
         expect(result!.regions).toEqual([{ id: testRegionId, name: 'Utah' }]);

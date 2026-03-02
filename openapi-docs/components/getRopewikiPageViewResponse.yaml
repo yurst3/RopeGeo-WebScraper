@@ -13,6 +13,7 @@ RopewikiPageView:
     - userVotes
     - difficulty
     - regions
+    - months
     - latestRevisionDate
     - betaSections
   properties:
@@ -73,28 +74,63 @@ RopewikiPageView:
       type: number
       nullable: true
       description: Longest rappel (numeric value)
-    shuttle:
+    shuttleTime:
       type: number
       nullable: true
       description: Shuttle time (numeric value)
-    minTime:
+    minOverallTime:
       type: number
       nullable: true
-      description: Minimum time (numeric value)
-    maxTime:
+      description: Minimum overall time (numeric value)
+    maxOverallTime:
       type: number
       nullable: true
-      description: Maximum time (numeric value)
-    hike:
+      description: Maximum overall time (numeric value)
+    hikeLength:
       type: number
       nullable: true
-      description: Hike distance/time (numeric value)
+      description: Hike length (numeric value)
+    overallLength:
+      type: number
+      nullable: true
+      description: Overall length (numeric value)
+    minApproachTime:
+      type: number
+      nullable: true
+      description: Minimum approach time (numeric value)
+    maxApproachTime:
+      type: number
+      nullable: true
+      description: Maximum approach time (numeric value)
+    minDescentTime:
+      type: number
+      nullable: true
+      description: Minimum descent time (numeric value)
+    maxDescentTime:
+      type: number
+      nullable: true
+      description: Maximum descent time (numeric value)
+    minExitTime:
+      type: number
+      nullable: true
+      description: Minimum exit time (numeric value)
+    maxExitTime:
+      type: number
+      nullable: true
+      description: Maximum exit time (numeric value)
+    approachElevGain:
+      type: number
+      nullable: true
+      description: Approach elevation gain (numeric value)
+    exitElevGain:
+      type: number
+      nullable: true
+      description: Exit elevation gain (numeric value)
     months:
       type: array
       items:
         type: string
-      nullable: true
-      description: Best months
+      description: Best months (e.g. Jun, Jul)
     regions:
       type: array
       description: Region lineage (leaf to root), with id and name for each region

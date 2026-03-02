@@ -360,10 +360,10 @@ describe('RopewikiPage', () => {
                     quality: [3.5],
                     coordinates: [{ lat: 37.7749, lon: -122.4194 }],
                     rappelLongest: [{ value: 30, unit: 'm' }],
-                    shuttle: [{ value: 2, unit: 'km' }],
-                    minTime: [{ value: 4, unit: 'hours' }],
-                    maxTime: [{ value: 8, unit: 'hours' }],
-                    hike: [{ value: 1, unit: 'km' }],
+                    shuttleTime: [{ value: 2, unit: 'km' }],
+                    minOverallTime: [{ value: 4, unit: 'hours' }],
+                    maxOverallTime: [{ value: 8, unit: 'hours' }],
+                    hikeLength: [{ value: 1, unit: 'km' }],
                     months: ['January', 'February', 'March'],
                     aka: ['Alternative Name'],
                     betaSites: ['http://beta.com'],
@@ -391,10 +391,10 @@ describe('RopewikiPage', () => {
             expect(dbRow.quality).toBe(3.5);
             expect(dbRow.coordinates).toBe(JSON.stringify({ lat: 37.7749, lon: -122.4194 }));
             expect(dbRow.rappelLongest).toBe(JSON.stringify({ value: 30, unit: 'm' }));
-            expect(dbRow.shuttle).toBe(JSON.stringify({ value: 2, unit: 'km' }));
-            expect(dbRow.minTime).toBe(JSON.stringify({ value: 4, unit: 'hours' }));
-            expect(dbRow.maxTime).toBe(JSON.stringify({ value: 8, unit: 'hours' }));
-            expect(dbRow.hike).toBe(JSON.stringify({ value: 1, unit: 'km' }));
+            expect(dbRow.shuttleTime).toBe(JSON.stringify({ value: 2, unit: 'km' }));
+            expect(dbRow.minOverallTime).toBe(JSON.stringify({ value: 4, unit: 'hours' }));
+            expect(dbRow.maxOverallTime).toBe(JSON.stringify({ value: 8, unit: 'hours' }));
+            expect(dbRow.hikeLength).toBe(JSON.stringify({ value: 1, unit: 'km' }));
             expect(dbRow.months).toBe(JSON.stringify(['January', 'February', 'March']));
             expect(dbRow.aka).toBe(JSON.stringify(['Alternative Name']));
             expect(dbRow.userVotes).toBe(10);
@@ -436,10 +436,10 @@ describe('RopewikiPage', () => {
             expect(dbRow.quality).toBeNull();
             expect(dbRow.coordinates).toBeNull();
             expect(dbRow.rappelLongest).toBeNull();
-            expect(dbRow.shuttle).toBeNull();
-            expect(dbRow.minTime).toBeNull();
-            expect(dbRow.maxTime).toBeNull();
-            expect(dbRow.hike).toBeNull();
+            expect(dbRow.shuttleTime).toBeNull();
+            expect(dbRow.minOverallTime).toBeNull();
+            expect(dbRow.maxOverallTime).toBeNull();
+            expect(dbRow.hikeLength).toBeNull();
             expect(dbRow.months).toBeNull();
             expect(dbRow.aka).toBeNull();
             expect(dbRow.userVotes).toBeNull();

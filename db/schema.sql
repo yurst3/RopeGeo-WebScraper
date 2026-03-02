@@ -1,4 +1,4 @@
-\restrict GVNaCeLktTT6GzAXkjCpq35KLhpQalDykbqMcA6DIhOulqbevb9T26IzJJcpQws
+\restrict 398nWUpQtAHtZUkkAhiH6joFGPoU24K2kVZHLT0cRi7tvcTa1hYaNnpKNPlrX6q
 
 -- Dumped from database version 18.1 (Debian 18.1-1.pgdg13+2)
 -- Dumped by pg_dump version 18.1 (Homebrew)
@@ -97,10 +97,10 @@ CREATE TABLE public."RopewikiPage" (
     quality numeric,
     coordinates jsonb,
     "rappelLongest" jsonb,
-    shuttle jsonb,
-    "minTime" jsonb,
-    "maxTime" jsonb,
-    hike jsonb,
+    "shuttleTime" jsonb,
+    "minOverallTime" jsonb,
+    "maxOverallTime" jsonb,
+    "hikeLength" jsonb,
     months jsonb,
     "createdAt" timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
     "updatedAt" timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
@@ -108,7 +108,16 @@ CREATE TABLE public."RopewikiPage" (
     "latestRevisionDate" timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
     "rappelInfo" text,
     aka jsonb,
-    "userVotes" integer
+    "userVotes" integer,
+    "overallLength" jsonb,
+    "minApproachTime" jsonb,
+    "maxApproachTime" jsonb,
+    "minDescentTime" jsonb,
+    "maxDescentTime" jsonb,
+    "minExitTime" jsonb,
+    "maxExitTime" jsonb,
+    "approachElevGain" jsonb,
+    "exitElevGain" jsonb
 );
 
 
@@ -424,7 +433,7 @@ ALTER TABLE ONLY public."RopewikiRoute"
 -- PostgreSQL database dump complete
 --
 
-\unrestrict GVNaCeLktTT6GzAXkjCpq35KLhpQalDykbqMcA6DIhOulqbevb9T26IzJJcpQws
+\unrestrict 398nWUpQtAHtZUkkAhiH6joFGPoU24K2kVZHLT0cRi7tvcTa1hYaNnpKNPlrX6q
 
 
 --
@@ -451,4 +460,5 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20260206120000'),
     ('20260206130000'),
     ('20260206140000'),
-    ('20260206150000');
+    ('20260206150000'),
+    ('20260302170000');

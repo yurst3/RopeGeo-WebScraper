@@ -117,6 +117,11 @@ describe('processRopewikiRoutes hook functions', () => {
                 undefined,
                 undefined,
                 undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
                 [], // aka
                 [], // betaSites
                 undefined, // userVotes
@@ -260,6 +265,11 @@ describe('processRopewikiRoutes hook functions', () => {
                 'https://example.com/page',
                 new Date(),
                 { lat: 40, lon: -110 },
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                undefined,
                 undefined,
                 undefined,
                 undefined,

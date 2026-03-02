@@ -1005,6 +1005,12 @@ declare module 'zapatos/schema' {
       */
       aka: db.JSONValue | null;
       /**
+      * **RopewikiPage.approachElevGain**
+      * - `jsonb` in database
+      * - Nullable, no default
+      */
+      approachElevGain: db.JSONValue | null;
+      /**
       * **RopewikiPage.coordinates**
       * - `jsonb` in database
       * - Nullable, no default
@@ -1023,11 +1029,17 @@ declare module 'zapatos/schema' {
       */
       deletedAt: Date | null;
       /**
-      * **RopewikiPage.hike**
+      * **RopewikiPage.exitElevGain**
       * - `jsonb` in database
       * - Nullable, no default
       */
-      hike: db.JSONValue | null;
+      exitElevGain: db.JSONValue | null;
+      /**
+      * **RopewikiPage.hikeLength**
+      * - `jsonb` in database
+      * - Nullable, no default
+      */
+      hikeLength: db.JSONValue | null;
       /**
       * **RopewikiPage.id**
       * - `uuid` in database
@@ -1047,17 +1059,53 @@ declare module 'zapatos/schema' {
       */
       latestRevisionDate: Date;
       /**
-      * **RopewikiPage.maxTime**
+      * **RopewikiPage.maxApproachTime**
       * - `jsonb` in database
       * - Nullable, no default
       */
-      maxTime: db.JSONValue | null;
+      maxApproachTime: db.JSONValue | null;
       /**
-      * **RopewikiPage.minTime**
+      * **RopewikiPage.maxDescentTime**
       * - `jsonb` in database
       * - Nullable, no default
       */
-      minTime: db.JSONValue | null;
+      maxDescentTime: db.JSONValue | null;
+      /**
+      * **RopewikiPage.maxExitTime**
+      * - `jsonb` in database
+      * - Nullable, no default
+      */
+      maxExitTime: db.JSONValue | null;
+      /**
+      * **RopewikiPage.maxOverallTime**
+      * - `jsonb` in database
+      * - Nullable, no default
+      */
+      maxOverallTime: db.JSONValue | null;
+      /**
+      * **RopewikiPage.minApproachTime**
+      * - `jsonb` in database
+      * - Nullable, no default
+      */
+      minApproachTime: db.JSONValue | null;
+      /**
+      * **RopewikiPage.minDescentTime**
+      * - `jsonb` in database
+      * - Nullable, no default
+      */
+      minDescentTime: db.JSONValue | null;
+      /**
+      * **RopewikiPage.minExitTime**
+      * - `jsonb` in database
+      * - Nullable, no default
+      */
+      minExitTime: db.JSONValue | null;
+      /**
+      * **RopewikiPage.minOverallTime**
+      * - `jsonb` in database
+      * - Nullable, no default
+      */
+      minOverallTime: db.JSONValue | null;
       /**
       * **RopewikiPage.months**
       * - `jsonb` in database
@@ -1070,6 +1118,12 @@ declare module 'zapatos/schema' {
       * - `NOT NULL`, no default
       */
       name: string;
+      /**
+      * **RopewikiPage.overallLength**
+      * - `jsonb` in database
+      * - Nullable, no default
+      */
+      overallLength: db.JSONValue | null;
       /**
       * **RopewikiPage.pageId**
       * - `text` in database
@@ -1125,11 +1179,11 @@ declare module 'zapatos/schema' {
       */
       riskRating: string | null;
       /**
-      * **RopewikiPage.shuttle**
+      * **RopewikiPage.shuttleTime**
       * - `jsonb` in database
       * - Nullable, no default
       */
-      shuttle: db.JSONValue | null;
+      shuttleTime: db.JSONValue | null;
       /**
       * **RopewikiPage.technicalRating**
       * - `text` in database
@@ -1181,6 +1235,12 @@ declare module 'zapatos/schema' {
       */
       aka: db.JSONValue | null;
       /**
+      * **RopewikiPage.approachElevGain**
+      * - `jsonb` in database
+      * - Nullable, no default
+      */
+      approachElevGain: db.JSONValue | null;
+      /**
       * **RopewikiPage.coordinates**
       * - `jsonb` in database
       * - Nullable, no default
@@ -1199,11 +1259,17 @@ declare module 'zapatos/schema' {
       */
       deletedAt: db.TimestampString | null;
       /**
-      * **RopewikiPage.hike**
+      * **RopewikiPage.exitElevGain**
       * - `jsonb` in database
       * - Nullable, no default
       */
-      hike: db.JSONValue | null;
+      exitElevGain: db.JSONValue | null;
+      /**
+      * **RopewikiPage.hikeLength**
+      * - `jsonb` in database
+      * - Nullable, no default
+      */
+      hikeLength: db.JSONValue | null;
       /**
       * **RopewikiPage.id**
       * - `uuid` in database
@@ -1223,17 +1289,53 @@ declare module 'zapatos/schema' {
       */
       latestRevisionDate: db.TimestampString;
       /**
-      * **RopewikiPage.maxTime**
+      * **RopewikiPage.maxApproachTime**
       * - `jsonb` in database
       * - Nullable, no default
       */
-      maxTime: db.JSONValue | null;
+      maxApproachTime: db.JSONValue | null;
       /**
-      * **RopewikiPage.minTime**
+      * **RopewikiPage.maxDescentTime**
       * - `jsonb` in database
       * - Nullable, no default
       */
-      minTime: db.JSONValue | null;
+      maxDescentTime: db.JSONValue | null;
+      /**
+      * **RopewikiPage.maxExitTime**
+      * - `jsonb` in database
+      * - Nullable, no default
+      */
+      maxExitTime: db.JSONValue | null;
+      /**
+      * **RopewikiPage.maxOverallTime**
+      * - `jsonb` in database
+      * - Nullable, no default
+      */
+      maxOverallTime: db.JSONValue | null;
+      /**
+      * **RopewikiPage.minApproachTime**
+      * - `jsonb` in database
+      * - Nullable, no default
+      */
+      minApproachTime: db.JSONValue | null;
+      /**
+      * **RopewikiPage.minDescentTime**
+      * - `jsonb` in database
+      * - Nullable, no default
+      */
+      minDescentTime: db.JSONValue | null;
+      /**
+      * **RopewikiPage.minExitTime**
+      * - `jsonb` in database
+      * - Nullable, no default
+      */
+      minExitTime: db.JSONValue | null;
+      /**
+      * **RopewikiPage.minOverallTime**
+      * - `jsonb` in database
+      * - Nullable, no default
+      */
+      minOverallTime: db.JSONValue | null;
       /**
       * **RopewikiPage.months**
       * - `jsonb` in database
@@ -1246,6 +1348,12 @@ declare module 'zapatos/schema' {
       * - `NOT NULL`, no default
       */
       name: string;
+      /**
+      * **RopewikiPage.overallLength**
+      * - `jsonb` in database
+      * - Nullable, no default
+      */
+      overallLength: db.JSONValue | null;
       /**
       * **RopewikiPage.pageId**
       * - `text` in database
@@ -1301,11 +1409,11 @@ declare module 'zapatos/schema' {
       */
       riskRating: string | null;
       /**
-      * **RopewikiPage.shuttle**
+      * **RopewikiPage.shuttleTime**
       * - `jsonb` in database
       * - Nullable, no default
       */
-      shuttle: db.JSONValue | null;
+      shuttleTime: db.JSONValue | null;
       /**
       * **RopewikiPage.technicalRating**
       * - `text` in database
@@ -1357,6 +1465,12 @@ declare module 'zapatos/schema' {
       */
       aka?: db.JSONValue | db.Parameter<db.JSONValue> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, db.JSONValue | db.Parameter<db.JSONValue> | db.SQLFragment | db.ParentColumn>;
       /**
+      * **RopewikiPage.approachElevGain**
+      * - `jsonb` in database
+      * - Nullable, no default
+      */
+      approachElevGain?: db.JSONValue | db.Parameter<db.JSONValue> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, db.JSONValue | db.Parameter<db.JSONValue> | db.SQLFragment | db.ParentColumn>;
+      /**
       * **RopewikiPage.coordinates**
       * - `jsonb` in database
       * - Nullable, no default
@@ -1375,11 +1489,17 @@ declare module 'zapatos/schema' {
       */
       deletedAt?: (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.SQLFragment | db.ParentColumn>;
       /**
-      * **RopewikiPage.hike**
+      * **RopewikiPage.exitElevGain**
       * - `jsonb` in database
       * - Nullable, no default
       */
-      hike?: db.JSONValue | db.Parameter<db.JSONValue> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, db.JSONValue | db.Parameter<db.JSONValue> | db.SQLFragment | db.ParentColumn>;
+      exitElevGain?: db.JSONValue | db.Parameter<db.JSONValue> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, db.JSONValue | db.Parameter<db.JSONValue> | db.SQLFragment | db.ParentColumn>;
+      /**
+      * **RopewikiPage.hikeLength**
+      * - `jsonb` in database
+      * - Nullable, no default
+      */
+      hikeLength?: db.JSONValue | db.Parameter<db.JSONValue> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, db.JSONValue | db.Parameter<db.JSONValue> | db.SQLFragment | db.ParentColumn>;
       /**
       * **RopewikiPage.id**
       * - `uuid` in database
@@ -1399,17 +1519,53 @@ declare module 'zapatos/schema' {
       */
       latestRevisionDate?: (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.SQLFragment | db.ParentColumn>;
       /**
-      * **RopewikiPage.maxTime**
+      * **RopewikiPage.maxApproachTime**
       * - `jsonb` in database
       * - Nullable, no default
       */
-      maxTime?: db.JSONValue | db.Parameter<db.JSONValue> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, db.JSONValue | db.Parameter<db.JSONValue> | db.SQLFragment | db.ParentColumn>;
+      maxApproachTime?: db.JSONValue | db.Parameter<db.JSONValue> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, db.JSONValue | db.Parameter<db.JSONValue> | db.SQLFragment | db.ParentColumn>;
       /**
-      * **RopewikiPage.minTime**
+      * **RopewikiPage.maxDescentTime**
       * - `jsonb` in database
       * - Nullable, no default
       */
-      minTime?: db.JSONValue | db.Parameter<db.JSONValue> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, db.JSONValue | db.Parameter<db.JSONValue> | db.SQLFragment | db.ParentColumn>;
+      maxDescentTime?: db.JSONValue | db.Parameter<db.JSONValue> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, db.JSONValue | db.Parameter<db.JSONValue> | db.SQLFragment | db.ParentColumn>;
+      /**
+      * **RopewikiPage.maxExitTime**
+      * - `jsonb` in database
+      * - Nullable, no default
+      */
+      maxExitTime?: db.JSONValue | db.Parameter<db.JSONValue> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, db.JSONValue | db.Parameter<db.JSONValue> | db.SQLFragment | db.ParentColumn>;
+      /**
+      * **RopewikiPage.maxOverallTime**
+      * - `jsonb` in database
+      * - Nullable, no default
+      */
+      maxOverallTime?: db.JSONValue | db.Parameter<db.JSONValue> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, db.JSONValue | db.Parameter<db.JSONValue> | db.SQLFragment | db.ParentColumn>;
+      /**
+      * **RopewikiPage.minApproachTime**
+      * - `jsonb` in database
+      * - Nullable, no default
+      */
+      minApproachTime?: db.JSONValue | db.Parameter<db.JSONValue> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, db.JSONValue | db.Parameter<db.JSONValue> | db.SQLFragment | db.ParentColumn>;
+      /**
+      * **RopewikiPage.minDescentTime**
+      * - `jsonb` in database
+      * - Nullable, no default
+      */
+      minDescentTime?: db.JSONValue | db.Parameter<db.JSONValue> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, db.JSONValue | db.Parameter<db.JSONValue> | db.SQLFragment | db.ParentColumn>;
+      /**
+      * **RopewikiPage.minExitTime**
+      * - `jsonb` in database
+      * - Nullable, no default
+      */
+      minExitTime?: db.JSONValue | db.Parameter<db.JSONValue> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, db.JSONValue | db.Parameter<db.JSONValue> | db.SQLFragment | db.ParentColumn>;
+      /**
+      * **RopewikiPage.minOverallTime**
+      * - `jsonb` in database
+      * - Nullable, no default
+      */
+      minOverallTime?: db.JSONValue | db.Parameter<db.JSONValue> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, db.JSONValue | db.Parameter<db.JSONValue> | db.SQLFragment | db.ParentColumn>;
       /**
       * **RopewikiPage.months**
       * - `jsonb` in database
@@ -1422,6 +1578,12 @@ declare module 'zapatos/schema' {
       * - `NOT NULL`, no default
       */
       name?: string | db.Parameter<string> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, string | db.Parameter<string> | db.SQLFragment | db.ParentColumn>;
+      /**
+      * **RopewikiPage.overallLength**
+      * - `jsonb` in database
+      * - Nullable, no default
+      */
+      overallLength?: db.JSONValue | db.Parameter<db.JSONValue> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, db.JSONValue | db.Parameter<db.JSONValue> | db.SQLFragment | db.ParentColumn>;
       /**
       * **RopewikiPage.pageId**
       * - `text` in database
@@ -1477,11 +1639,11 @@ declare module 'zapatos/schema' {
       */
       riskRating?: string | db.Parameter<string> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, string | db.Parameter<string> | db.SQLFragment | db.ParentColumn>;
       /**
-      * **RopewikiPage.shuttle**
+      * **RopewikiPage.shuttleTime**
       * - `jsonb` in database
       * - Nullable, no default
       */
-      shuttle?: db.JSONValue | db.Parameter<db.JSONValue> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, db.JSONValue | db.Parameter<db.JSONValue> | db.SQLFragment | db.ParentColumn>;
+      shuttleTime?: db.JSONValue | db.Parameter<db.JSONValue> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, db.JSONValue | db.Parameter<db.JSONValue> | db.SQLFragment | db.ParentColumn>;
       /**
       * **RopewikiPage.technicalRating**
       * - `text` in database
@@ -1533,6 +1695,12 @@ declare module 'zapatos/schema' {
       */
       aka?: db.JSONValue | db.Parameter<db.JSONValue> | null | db.DefaultType | db.SQLFragment;
       /**
+      * **RopewikiPage.approachElevGain**
+      * - `jsonb` in database
+      * - Nullable, no default
+      */
+      approachElevGain?: db.JSONValue | db.Parameter<db.JSONValue> | null | db.DefaultType | db.SQLFragment;
+      /**
       * **RopewikiPage.coordinates**
       * - `jsonb` in database
       * - Nullable, no default
@@ -1551,11 +1719,17 @@ declare module 'zapatos/schema' {
       */
       deletedAt?: (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | null | db.DefaultType | db.SQLFragment;
       /**
-      * **RopewikiPage.hike**
+      * **RopewikiPage.exitElevGain**
       * - `jsonb` in database
       * - Nullable, no default
       */
-      hike?: db.JSONValue | db.Parameter<db.JSONValue> | null | db.DefaultType | db.SQLFragment;
+      exitElevGain?: db.JSONValue | db.Parameter<db.JSONValue> | null | db.DefaultType | db.SQLFragment;
+      /**
+      * **RopewikiPage.hikeLength**
+      * - `jsonb` in database
+      * - Nullable, no default
+      */
+      hikeLength?: db.JSONValue | db.Parameter<db.JSONValue> | null | db.DefaultType | db.SQLFragment;
       /**
       * **RopewikiPage.id**
       * - `uuid` in database
@@ -1575,17 +1749,53 @@ declare module 'zapatos/schema' {
       */
       latestRevisionDate?: (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.DefaultType | db.SQLFragment;
       /**
-      * **RopewikiPage.maxTime**
+      * **RopewikiPage.maxApproachTime**
       * - `jsonb` in database
       * - Nullable, no default
       */
-      maxTime?: db.JSONValue | db.Parameter<db.JSONValue> | null | db.DefaultType | db.SQLFragment;
+      maxApproachTime?: db.JSONValue | db.Parameter<db.JSONValue> | null | db.DefaultType | db.SQLFragment;
       /**
-      * **RopewikiPage.minTime**
+      * **RopewikiPage.maxDescentTime**
       * - `jsonb` in database
       * - Nullable, no default
       */
-      minTime?: db.JSONValue | db.Parameter<db.JSONValue> | null | db.DefaultType | db.SQLFragment;
+      maxDescentTime?: db.JSONValue | db.Parameter<db.JSONValue> | null | db.DefaultType | db.SQLFragment;
+      /**
+      * **RopewikiPage.maxExitTime**
+      * - `jsonb` in database
+      * - Nullable, no default
+      */
+      maxExitTime?: db.JSONValue | db.Parameter<db.JSONValue> | null | db.DefaultType | db.SQLFragment;
+      /**
+      * **RopewikiPage.maxOverallTime**
+      * - `jsonb` in database
+      * - Nullable, no default
+      */
+      maxOverallTime?: db.JSONValue | db.Parameter<db.JSONValue> | null | db.DefaultType | db.SQLFragment;
+      /**
+      * **RopewikiPage.minApproachTime**
+      * - `jsonb` in database
+      * - Nullable, no default
+      */
+      minApproachTime?: db.JSONValue | db.Parameter<db.JSONValue> | null | db.DefaultType | db.SQLFragment;
+      /**
+      * **RopewikiPage.minDescentTime**
+      * - `jsonb` in database
+      * - Nullable, no default
+      */
+      minDescentTime?: db.JSONValue | db.Parameter<db.JSONValue> | null | db.DefaultType | db.SQLFragment;
+      /**
+      * **RopewikiPage.minExitTime**
+      * - `jsonb` in database
+      * - Nullable, no default
+      */
+      minExitTime?: db.JSONValue | db.Parameter<db.JSONValue> | null | db.DefaultType | db.SQLFragment;
+      /**
+      * **RopewikiPage.minOverallTime**
+      * - `jsonb` in database
+      * - Nullable, no default
+      */
+      minOverallTime?: db.JSONValue | db.Parameter<db.JSONValue> | null | db.DefaultType | db.SQLFragment;
       /**
       * **RopewikiPage.months**
       * - `jsonb` in database
@@ -1598,6 +1808,12 @@ declare module 'zapatos/schema' {
       * - `NOT NULL`, no default
       */
       name: string | db.Parameter<string> | db.SQLFragment;
+      /**
+      * **RopewikiPage.overallLength**
+      * - `jsonb` in database
+      * - Nullable, no default
+      */
+      overallLength?: db.JSONValue | db.Parameter<db.JSONValue> | null | db.DefaultType | db.SQLFragment;
       /**
       * **RopewikiPage.pageId**
       * - `text` in database
@@ -1653,11 +1869,11 @@ declare module 'zapatos/schema' {
       */
       riskRating?: string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment;
       /**
-      * **RopewikiPage.shuttle**
+      * **RopewikiPage.shuttleTime**
       * - `jsonb` in database
       * - Nullable, no default
       */
-      shuttle?: db.JSONValue | db.Parameter<db.JSONValue> | null | db.DefaultType | db.SQLFragment;
+      shuttleTime?: db.JSONValue | db.Parameter<db.JSONValue> | null | db.DefaultType | db.SQLFragment;
       /**
       * **RopewikiPage.technicalRating**
       * - `text` in database
@@ -1709,6 +1925,12 @@ declare module 'zapatos/schema' {
       */
       aka?: db.JSONValue | db.Parameter<db.JSONValue> | null | db.DefaultType | db.SQLFragment | db.SQLFragment<any, db.JSONValue | db.Parameter<db.JSONValue> | null | db.DefaultType | db.SQLFragment>;
       /**
+      * **RopewikiPage.approachElevGain**
+      * - `jsonb` in database
+      * - Nullable, no default
+      */
+      approachElevGain?: db.JSONValue | db.Parameter<db.JSONValue> | null | db.DefaultType | db.SQLFragment | db.SQLFragment<any, db.JSONValue | db.Parameter<db.JSONValue> | null | db.DefaultType | db.SQLFragment>;
+      /**
       * **RopewikiPage.coordinates**
       * - `jsonb` in database
       * - Nullable, no default
@@ -1727,11 +1949,17 @@ declare module 'zapatos/schema' {
       */
       deletedAt?: (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | null | db.DefaultType | db.SQLFragment | db.SQLFragment<any, (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | null | db.DefaultType | db.SQLFragment>;
       /**
-      * **RopewikiPage.hike**
+      * **RopewikiPage.exitElevGain**
       * - `jsonb` in database
       * - Nullable, no default
       */
-      hike?: db.JSONValue | db.Parameter<db.JSONValue> | null | db.DefaultType | db.SQLFragment | db.SQLFragment<any, db.JSONValue | db.Parameter<db.JSONValue> | null | db.DefaultType | db.SQLFragment>;
+      exitElevGain?: db.JSONValue | db.Parameter<db.JSONValue> | null | db.DefaultType | db.SQLFragment | db.SQLFragment<any, db.JSONValue | db.Parameter<db.JSONValue> | null | db.DefaultType | db.SQLFragment>;
+      /**
+      * **RopewikiPage.hikeLength**
+      * - `jsonb` in database
+      * - Nullable, no default
+      */
+      hikeLength?: db.JSONValue | db.Parameter<db.JSONValue> | null | db.DefaultType | db.SQLFragment | db.SQLFragment<any, db.JSONValue | db.Parameter<db.JSONValue> | null | db.DefaultType | db.SQLFragment>;
       /**
       * **RopewikiPage.id**
       * - `uuid` in database
@@ -1751,17 +1979,53 @@ declare module 'zapatos/schema' {
       */
       latestRevisionDate?: (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.DefaultType | db.SQLFragment | db.SQLFragment<any, (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.DefaultType | db.SQLFragment>;
       /**
-      * **RopewikiPage.maxTime**
+      * **RopewikiPage.maxApproachTime**
       * - `jsonb` in database
       * - Nullable, no default
       */
-      maxTime?: db.JSONValue | db.Parameter<db.JSONValue> | null | db.DefaultType | db.SQLFragment | db.SQLFragment<any, db.JSONValue | db.Parameter<db.JSONValue> | null | db.DefaultType | db.SQLFragment>;
+      maxApproachTime?: db.JSONValue | db.Parameter<db.JSONValue> | null | db.DefaultType | db.SQLFragment | db.SQLFragment<any, db.JSONValue | db.Parameter<db.JSONValue> | null | db.DefaultType | db.SQLFragment>;
       /**
-      * **RopewikiPage.minTime**
+      * **RopewikiPage.maxDescentTime**
       * - `jsonb` in database
       * - Nullable, no default
       */
-      minTime?: db.JSONValue | db.Parameter<db.JSONValue> | null | db.DefaultType | db.SQLFragment | db.SQLFragment<any, db.JSONValue | db.Parameter<db.JSONValue> | null | db.DefaultType | db.SQLFragment>;
+      maxDescentTime?: db.JSONValue | db.Parameter<db.JSONValue> | null | db.DefaultType | db.SQLFragment | db.SQLFragment<any, db.JSONValue | db.Parameter<db.JSONValue> | null | db.DefaultType | db.SQLFragment>;
+      /**
+      * **RopewikiPage.maxExitTime**
+      * - `jsonb` in database
+      * - Nullable, no default
+      */
+      maxExitTime?: db.JSONValue | db.Parameter<db.JSONValue> | null | db.DefaultType | db.SQLFragment | db.SQLFragment<any, db.JSONValue | db.Parameter<db.JSONValue> | null | db.DefaultType | db.SQLFragment>;
+      /**
+      * **RopewikiPage.maxOverallTime**
+      * - `jsonb` in database
+      * - Nullable, no default
+      */
+      maxOverallTime?: db.JSONValue | db.Parameter<db.JSONValue> | null | db.DefaultType | db.SQLFragment | db.SQLFragment<any, db.JSONValue | db.Parameter<db.JSONValue> | null | db.DefaultType | db.SQLFragment>;
+      /**
+      * **RopewikiPage.minApproachTime**
+      * - `jsonb` in database
+      * - Nullable, no default
+      */
+      minApproachTime?: db.JSONValue | db.Parameter<db.JSONValue> | null | db.DefaultType | db.SQLFragment | db.SQLFragment<any, db.JSONValue | db.Parameter<db.JSONValue> | null | db.DefaultType | db.SQLFragment>;
+      /**
+      * **RopewikiPage.minDescentTime**
+      * - `jsonb` in database
+      * - Nullable, no default
+      */
+      minDescentTime?: db.JSONValue | db.Parameter<db.JSONValue> | null | db.DefaultType | db.SQLFragment | db.SQLFragment<any, db.JSONValue | db.Parameter<db.JSONValue> | null | db.DefaultType | db.SQLFragment>;
+      /**
+      * **RopewikiPage.minExitTime**
+      * - `jsonb` in database
+      * - Nullable, no default
+      */
+      minExitTime?: db.JSONValue | db.Parameter<db.JSONValue> | null | db.DefaultType | db.SQLFragment | db.SQLFragment<any, db.JSONValue | db.Parameter<db.JSONValue> | null | db.DefaultType | db.SQLFragment>;
+      /**
+      * **RopewikiPage.minOverallTime**
+      * - `jsonb` in database
+      * - Nullable, no default
+      */
+      minOverallTime?: db.JSONValue | db.Parameter<db.JSONValue> | null | db.DefaultType | db.SQLFragment | db.SQLFragment<any, db.JSONValue | db.Parameter<db.JSONValue> | null | db.DefaultType | db.SQLFragment>;
       /**
       * **RopewikiPage.months**
       * - `jsonb` in database
@@ -1774,6 +2038,12 @@ declare module 'zapatos/schema' {
       * - `NOT NULL`, no default
       */
       name?: string | db.Parameter<string> | db.SQLFragment | db.SQLFragment<any, string | db.Parameter<string> | db.SQLFragment>;
+      /**
+      * **RopewikiPage.overallLength**
+      * - `jsonb` in database
+      * - Nullable, no default
+      */
+      overallLength?: db.JSONValue | db.Parameter<db.JSONValue> | null | db.DefaultType | db.SQLFragment | db.SQLFragment<any, db.JSONValue | db.Parameter<db.JSONValue> | null | db.DefaultType | db.SQLFragment>;
       /**
       * **RopewikiPage.pageId**
       * - `text` in database
@@ -1829,11 +2099,11 @@ declare module 'zapatos/schema' {
       */
       riskRating?: string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment | db.SQLFragment<any, string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment>;
       /**
-      * **RopewikiPage.shuttle**
+      * **RopewikiPage.shuttleTime**
       * - `jsonb` in database
       * - Nullable, no default
       */
-      shuttle?: db.JSONValue | db.Parameter<db.JSONValue> | null | db.DefaultType | db.SQLFragment | db.SQLFragment<any, db.JSONValue | db.Parameter<db.JSONValue> | null | db.DefaultType | db.SQLFragment>;
+      shuttleTime?: db.JSONValue | db.Parameter<db.JSONValue> | null | db.DefaultType | db.SQLFragment | db.SQLFragment<any, db.JSONValue | db.Parameter<db.JSONValue> | null | db.DefaultType | db.SQLFragment>;
       /**
       * **RopewikiPage.technicalRating**
       * - `text` in database
