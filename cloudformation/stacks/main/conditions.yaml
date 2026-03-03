@@ -19,8 +19,8 @@ Conditions:
           - ''
   HasPipelineExecutionRoleAndCloudFront:
     'Fn::And':
-      - 'Fn::Condition': HasPipelineExecutionRoleName
-      - 'Fn::Condition': HasCloudFrontDistribution
+      - Condition: HasPipelineExecutionRoleName
+      - Condition: HasCloudFrontDistribution
   IsProduction:
     'Fn::Equals':
       - Ref: devEnvironment
@@ -34,7 +34,7 @@ Conditions:
       - 'Fn::Equals':
           - Ref: UseDatabaseProxy
           - 'true'
-      - 'Fn::Condition': IsProduction
+      - Condition: IsProduction
   HasRdsDbiResourceId:
     'Fn::Not':
       - 'Fn::Equals':

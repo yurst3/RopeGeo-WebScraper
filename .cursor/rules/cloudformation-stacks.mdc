@@ -37,7 +37,7 @@ cloudformation/stacks/
 
 **Intrinsics:**
 
-- Use **long-form** only: `Ref:`, `Fn::GetAtt:`, `Fn::Sub:`, `Fn::If:`, `Fn::And:`, `Fn::Not:`, `Fn::Equals:`, `Fn::Condition`. Short-form (`!Ref`, `!Sub`, etc.) is not supported by the merger’s YAML loader.
+- Use **long-form** only: `Ref:`, `Fn::GetAtt:`, `Fn::Sub:`, `Fn::If:`, `Fn::And:`, `Fn::Not:`, `Fn::Equals`. For condition references use **`Condition:`** not `Fn::Condition` (CloudFormation rejects it). Other short-form (`!Ref`, `!Sub`, etc.) is not supported by the merger’s YAML loader.
 
 ## 2. Merge process
 

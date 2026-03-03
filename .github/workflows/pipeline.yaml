@@ -77,6 +77,13 @@ jobs:
           SAM_CLI_TELEMETRY: 0
           AWS_DEFAULT_REGION: us-east-1
 
+      - name: Check for Fn::Condition in merged main template
+        run: |
+          if grep -q "Fn::Condition" cloudformation/stacks/mergedMainTemplate.yaml; then
+            echo "::error::Use Condition not Fn::Condition for condition references (CloudFormation rejects Fn::Condition)"
+            exit 1
+          fi
+
       - name: Lint OpenAPI docs
         run: npm run lint:openapi
 
@@ -109,6 +116,12 @@ jobs:
         run: npm ci
       - name: Merge main template (inline lambdas from lambdas/*.yaml)
         run: npm run merge:main-template
+      - name: Check for Fn::Condition in merged template
+        run: |
+          if grep -q "Fn::Condition" cloudformation/stacks/mergedMainTemplate.yaml; then
+            echo "::error::Use Condition not Fn::Condition for condition references (CloudFormation rejects Fn::Condition)"
+            exit 1
+          fi
       - uses: aws-actions/setup-sam@v2
         with:
           use-installer: true
