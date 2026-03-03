@@ -124,7 +124,7 @@ describe('getDatabaseConnection', () => {
             user: 'admin',
             password: mockToken,
             ssl: {
-                rejectUnauthorized: true,
+                rejectUnauthorized: false,
             },
         });
     });
@@ -153,7 +153,7 @@ describe('getDatabaseConnection', () => {
             user: 'admin',
             password: 'testpass',
             ssl: {
-                rejectUnauthorized: true,
+                rejectUnauthorized: false,
             },
         });
     });
