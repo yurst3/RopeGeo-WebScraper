@@ -136,6 +136,7 @@ describe('getDatabaseConnection', () => {
         process.env.DB_USER = 'admin';
         process.env.DB_PASSWORD = 'testpass';
         process.env.DEV_ENVIRONMENT = 'production';
+        process.env.USE_DATABASE_PROXY = 'true';
 
         await getDatabaseConnection();
 
@@ -320,6 +321,7 @@ describe('getDatabaseConnection', () => {
         process.env.DB_NAME = 'production-db';
         process.env.DB_USER = 'admin';
         process.env.DEV_ENVIRONMENT = 'production';
+        process.env.USE_DATABASE_PROXY = 'true';
         delete process.env.DB_PASSWORD;
 
         await expect(getDatabaseConnection()).rejects.toThrow(

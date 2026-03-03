@@ -58,6 +58,18 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Install SAM CLI
+        run: |
+          apt-get update
+          apt-get install -y python3-pip
+          pip install aws-sam-cli
+
+      - name: Lint main template
+        run: npm run lint:main-template
+
+      - name: Lint API template
+        run: npm run lint:api-template
+
       - name: Lint OpenAPI docs
         run: npm run lint:openapi
 
