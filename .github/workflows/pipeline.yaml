@@ -67,9 +67,15 @@ jobs:
 
       - name: Lint main template
         run: npm run lint:main-template
+        env:
+          SAM_CLI_TELEMETRY: 0
+          AWS_DEFAULT_REGION: us-east-1
 
       - name: Lint API template
         run: npm run lint:api-template
+        env:
+          SAM_CLI_TELEMETRY: 0
+          AWS_DEFAULT_REGION: us-east-1
 
       - name: Lint OpenAPI docs
         run: npm run lint:openapi
