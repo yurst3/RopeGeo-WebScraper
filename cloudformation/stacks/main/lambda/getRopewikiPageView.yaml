@@ -11,7 +11,7 @@ Resources:
         - arm64
       Role:
         'Fn::GetAtt': GetRopewikiPageViewRole.Arn
-      CodeUri: ../../../
+      CodeUri: ../../
       Handler: src/api/getRopewikiPageView/handler.handler
       MemorySize: 256
       Timeout: 30

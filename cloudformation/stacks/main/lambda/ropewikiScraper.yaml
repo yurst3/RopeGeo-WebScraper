@@ -9,7 +9,7 @@ Resources:
       Runtime: nodejs22.x
       Architectures:
         - arm64
-      CodeUri: ../../../
+      CodeUri: ../../
       Handler: src/ropewiki/lambda-handlers/mainHandler.mainHandler
       Events:
         CloudWatchEvent:

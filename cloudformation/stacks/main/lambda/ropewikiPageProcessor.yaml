@@ -9,7 +9,7 @@ Resources:
       Runtime: nodejs22.x
       Architectures:
         - arm64
-      CodeUri: ../../../
+      CodeUri: ../../
       Layers:
         - Ref: ChromiumLayer
       Handler: src/ropewiki/lambda-handlers/processPageHandler.processPageHandler

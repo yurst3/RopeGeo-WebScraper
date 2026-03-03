@@ -11,7 +11,7 @@ Resources:
         - arm64
       Role:
         'Fn::GetAtt': GetRoutesRole.Arn
-      CodeUri: ../../../
+      CodeUri: ../../
       Handler: src/api/getRoutes/handler.handler
       MemorySize: 256
       Timeout: 30
