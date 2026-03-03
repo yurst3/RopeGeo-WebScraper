@@ -26,8 +26,9 @@ Properties:
     Variables:
       DEV_ENVIRONMENT: !Ref devEnvironment
       PROXY_URL: !Ref ProxyUrl
-      DB_HOST: !If [IsProduction, !GetAtt RDSProxy.Endpoint, !GetAtt Database.Endpoint.Address]
+      DB_HOST: !If [UseDatabaseProxyInProd, !GetAtt RDSProxy.Endpoint, !GetAtt Database.Endpoint.Address]
       DB_PORT: !GetAtt Database.Endpoint.Port
+      USE_DATABASE_PROXY: !Ref UseDatabaseProxy
       DB_NAME: !Sub '${devEnvironment}db'
       DB_USER: !Ref DatabaseUsername
       DB_PASSWORD: !Ref DatabasePassword

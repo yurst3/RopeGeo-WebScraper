@@ -51,6 +51,13 @@ Parameters:
     Type: String
     Description: Public base URL for map data (e.g. https://api.webscraper.ropegeo.com). When set, GeoJSON/vector tile URLs use this instead of S3; use the CloudFront URL so traffic goes through CloudFront.
     Default: ''
+  UseDatabaseProxy:
+    Type: String
+    Description: When 'true' and environment is production, create and use RDS Proxy for DB connections. Set to 'false' to reduce cost; toggle back to 'true' if connection limits become an issue.
+    Default: 'false'
+    AllowedValues:
+      - 'true'
+      - 'false'
 
 Conditions:
   HasDocsBucketPipelineRole: !Not [!Equals [!Ref DocsBucketPipelineRoleArn, '']]
@@ -61,6 +68,9 @@ Conditions:
     - !Condition HasCloudFrontDistribution
   IsProduction: !Equals [!Ref devEnvironment, production]
   IsDev: !Equals [!Ref devEnvironment, dev]
+  UseDatabaseProxyInProd: !And
+    - !Equals [!Ref UseDatabaseProxy, 'true']
+    - !Condition IsProduction
 
 # Resources declares the AWS resources that you want to include in the stack
 # https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/resources-section-structure.html
@@ -381,7 +391,7 @@ Resources:
       DBInstanceIdentifier: !Sub '${devEnvironment}-db'
       Engine: postgres
       EngineVersion: '18.1'
-      DBInstanceClass: !If [IsProduction, db.t4g.small, db.t4g.micro]
+      DBInstanceClass: db.t4g.micro
       AllocatedStorage: 20
       MasterUsername: !Ref DatabaseUsername
       MasterUserPassword: !Ref DatabasePassword
@@ -398,10 +408,10 @@ Resources:
         - Key: Name
           Value: !Sub '${devEnvironment}-db'
 
-  # Allow RDS Proxy to connect to RDS (production only; proxy needs this for target registration)
+  # Allow RDS Proxy to connect to RDS (when proxy is enabled in prod)
   RDSProxyToRDSIngressRule:
     Type: AWS::EC2::SecurityGroupIngress
-    Condition: IsProduction
+    Condition: UseDatabaseProxyInProd
     Properties:
       GroupId: !Ref RDSSecurityGroup
       IpProtocol: tcp
@@ -410,10 +420,10 @@ Resources:
       SourceSecurityGroupId: !Ref RDSProxySecurityGroup
       Description: Allow PostgreSQL access from RDS Proxy
 
-  # Security Group for RDS Proxy (production only)
+  # Security Group for RDS Proxy (when proxy is enabled in prod)
   RDSProxySecurityGroup:
     Type: AWS::EC2::SecurityGroup
-    Condition: IsProduction
+    Condition: UseDatabaseProxyInProd
     Properties:
       GroupDescription: Security group for RDS Proxy
       VpcId: !Ref WebScraperVPC
@@ -433,10 +443,10 @@ Resources:
         - Key: Name
           Value: !Sub '${devEnvironment}-rds-proxy-sg'
 
-  # Secrets Manager secret for RDS Proxy authentication (production only)
+  # Secrets Manager secret for RDS Proxy authentication (when proxy is enabled in prod)
   DatabaseSecret:
     Type: AWS::SecretsManager::Secret
-    Condition: IsProduction
+    Condition: UseDatabaseProxyInProd
     Properties:
       Name: !Sub '${devEnvironment}-db-credentials'
       Description: Database credentials for RDS Proxy
@@ -446,10 +456,10 @@ Resources:
           "password": "${DatabasePassword}"
         }
 
-  # IAM Role for RDS Proxy (production only)
+  # IAM Role for RDS Proxy (when proxy is enabled in prod)
   RDSProxyRole:
     Type: AWS::IAM::Role
-    Condition: IsProduction
+    Condition: UseDatabaseProxyInProd
     Properties:
       AssumeRolePolicyDocument:
         Version: '2012-10-17'
@@ -464,10 +474,10 @@ Resources:
         - Key: Name
           Value: !Sub '${devEnvironment}-rds-proxy-role'
 
-  # RDS Proxy (production only)
+  # RDS Proxy (when proxy is enabled in prod; set UseDatabaseProxy to 'true' to create)
   RDSProxy:
     Type: AWS::RDS::DBProxy
-    Condition: IsProduction
+    Condition: UseDatabaseProxyInProd
     DependsOn:
       - Database
       - DatabaseSecret
@@ -491,10 +501,10 @@ Resources:
         - Key: Name
           Value: !Sub '${devEnvironment}-db-proxy'
 
-  # RDS Proxy Target Group (production only)
+  # RDS Proxy Target Group (when proxy is enabled in prod)
   RDSProxyTargetGroup:
     Type: AWS::RDS::DBProxyTargetGroup
-    Condition: IsProduction
+    Condition: UseDatabaseProxyInProd
     DependsOn:
       - RDSProxy
       - Database
@@ -884,7 +894,7 @@ Resources:
             - Name: DEV_ENVIRONMENT
               Value: !Ref devEnvironment
             - Name: DB_HOST
-              Value: !If [IsProduction, !GetAtt RDSProxy.Endpoint, !GetAtt Database.Endpoint.Address]
+              Value: !If [UseDatabaseProxyInProd, !GetAtt RDSProxy.Endpoint, !GetAtt Database.Endpoint.Address]
             - Name: DB_PORT
               Value: !GetAtt Database.Endpoint.Port
             - Name: DB_NAME
@@ -893,6 +903,8 @@ Resources:
               Value: !Ref DatabaseUsername
             - Name: DB_PASSWORD
               Value: !Ref DatabasePassword
+            - Name: USE_DATABASE_PROXY
+              Value: !Ref UseDatabaseProxy
             - Name: MAP_DATA_BUCKET_NAME
               Value: !Ref MapDataBucket
             - Name: CLOUDFRONT_DISTRIBUTION_ARN
@@ -1043,7 +1055,7 @@ Resources:
             - Name: DEV_ENVIRONMENT
               Value: !Ref devEnvironment
             - Name: DB_HOST
-              Value: !If [IsProduction, !GetAtt RDSProxy.Endpoint, !GetAtt Database.Endpoint.Address]
+              Value: !If [UseDatabaseProxyInProd, !GetAtt RDSProxy.Endpoint, !GetAtt Database.Endpoint.Address]
             - Name: DB_PORT
               Value: !GetAtt Database.Endpoint.Port
             - Name: DB_NAME
@@ -1052,6 +1064,8 @@ Resources:
               Value: !Ref DatabaseUsername
             - Name: DB_PASSWORD
               Value: !Ref DatabasePassword
+            - Name: USE_DATABASE_PROXY
+              Value: !Ref UseDatabaseProxy
             - Name: MAP_DATA_BUCKET_NAME
               Value: !Ref MapDataBucket
             - Name: CLOUDFRONT_DISTRIBUTION_ARN
