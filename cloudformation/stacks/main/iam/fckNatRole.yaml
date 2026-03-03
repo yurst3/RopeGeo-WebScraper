@@ -1,0 +1,44 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: IAM role and instance profile for fck-nat NAT instance
+
+Resources:
+  FckNatRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: ec2.amazonaws.com
+            Action: 'sts:AssumeRole'
+      Policies:
+        - PolicyName: AttachNatEniPolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - 'ec2:AttachNetworkInterface'
+                  - 'ec2:ModifyNetworkInterfaceAttribute'
+                Resource: '*'
+        - PolicyName: AssociateNatAddressPolicy
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action:
+                  - 'ec2:AssociateAddress'
+                  - 'ec2:DisassociateAddress'
+                Resource: '*'
+      Tags:
+        - Key: Name
+          Value:
+            'Fn::Sub': '${AWS::StackName}-fck-nat-role'
+  FckNatAsgInstanceProfile:
+    Type: 'AWS::IAM::InstanceProfile'
+    Properties:
+      Roles:
+        - Ref: FckNatRole
+      InstanceProfileName:
+        'Fn::Sub': '${AWS::StackName}-fck-nat-profile'

@@ -1,0 +1,122 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: IAM roles for Lambda functions
+
+Resources:
+  GetRoutesRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: 'sts:AssumeRole'
+      ManagedPolicyArns:
+        - Ref: LambdaExecutionPolicy
+        - 'Fn::If':
+            - HasRdsDbiResourceId
+            - Ref: RdsIamAuthPolicy
+            - Ref: 'AWS::NoValue'
+  GetRoutePreviewRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: 'sts:AssumeRole'
+      ManagedPolicyArns:
+        - Ref: LambdaExecutionPolicy
+        - 'Fn::If':
+            - HasRdsDbiResourceId
+            - Ref: RdsIamAuthPolicy
+            - Ref: 'AWS::NoValue'
+  GetRopewikiPageViewRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: 'sts:AssumeRole'
+      ManagedPolicyArns:
+        - Ref: LambdaExecutionPolicy
+        - 'Fn::If':
+            - HasRdsDbiResourceId
+            - Ref: RdsIamAuthPolicy
+            - Ref: 'AWS::NoValue'
+  MapDataProcessorRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: 'sts:AssumeRole'
+      ManagedPolicyArns:
+        - Ref: LambdaExecutionPolicy
+        - 'Fn::If':
+            - HasRdsDbiResourceId
+            - Ref: RdsIamAuthPolicy
+            - Ref: 'AWS::NoValue'
+        - Ref: S3MapDataBucketPolicy
+        - Ref: SQSMapDataProcessingQueuePolicy
+  RopewikiScraperRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: 'sts:AssumeRole'
+      ManagedPolicyArns:
+        - Ref: LambdaExecutionPolicy
+        - 'Fn::If':
+            - HasRdsDbiResourceId
+            - Ref: RdsIamAuthPolicy
+            - Ref: 'AWS::NoValue'
+        - Ref: SQSRopewikiPageProcessingQueuePolicy
+        - Ref: SQSMapDataProcessingQueuePolicy
+  RopewikiPageProcessorRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: 'sts:AssumeRole'
+      ManagedPolicyArns:
+        - Ref: LambdaExecutionPolicy
+        - 'Fn::If':
+            - HasRdsDbiResourceId
+            - Ref: RdsIamAuthPolicy
+            - Ref: 'AWS::NoValue'
+        - Ref: SQSRopewikiPageProcessingQueuePolicy
+  RopewikiRouteReprocessorRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: 'sts:AssumeRole'
+      ManagedPolicyArns:
+        - Ref: LambdaExecutionPolicy
+        - 'Fn::If':
+            - HasRdsDbiResourceId
+            - Ref: RdsIamAuthPolicy
+            - Ref: 'AWS::NoValue'
+        - Ref: SQSMapDataProcessingQueuePolicy

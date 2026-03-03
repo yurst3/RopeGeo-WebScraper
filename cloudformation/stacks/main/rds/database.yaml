@@ -1,0 +1,168 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: RDS database, proxy, security groups, and Secrets Manager secret
+
+Resources:
+  RDSSecurityGroup:
+    Type: 'AWS::EC2::SecurityGroup'
+    Properties:
+      GroupDescription: Security group for RDS database
+      VpcId:
+        Ref: WebScraperVPC
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 5432
+          ToPort: 5432
+          SourceSecurityGroupId:
+            Ref: LambdaSecurityGroup
+          Description: Allow PostgreSQL access from Lambda
+      Tags:
+        - Key: Name
+          Value: WebScraperRDSSecurityGroup
+  DBSubnetGroup:
+    Type: 'AWS::RDS::DBSubnetGroup'
+    Properties:
+      DBSubnetGroupDescription: Subnet group for RDS PostgreSQL instance
+      SubnetIds:
+        - Ref: PrivateSubnet1
+        - Ref: PrivateSubnet2
+      Tags:
+        - Key: Name
+          Value: WebScraperDBSubnetGroup
+  Database:
+    Type: 'AWS::RDS::DBInstance'
+    Properties:
+      DBInstanceIdentifier:
+        'Fn::Sub': '${devEnvironment}-db'
+      Engine: postgres
+      EngineVersion: '18.1'
+      DBInstanceClass: db.t4g.micro
+      AllocatedStorage: 20
+      MasterUsername:
+        Ref: DatabaseUsername
+      MasterUserPassword:
+        Ref: DatabasePassword
+      DBName:
+        'Fn::Sub': '${devEnvironment}db'
+      VPCSecurityGroups:
+        - Ref: RDSSecurityGroup
+      DBSubnetGroupName:
+        Ref: DBSubnetGroup
+      PubliclyAccessible: false
+      StorageType: gp3
+      BackupRetentionPeriod: 7
+      StorageEncrypted: true
+      EnablePerformanceInsights: false
+      EnableIAMDatabaseAuthentication: true
+      Tags:
+        - Key: Name
+          Value:
+            'Fn::Sub': '${devEnvironment}-db'
+  RDSProxyToRDSIngressRule:
+    Type: 'AWS::EC2::SecurityGroupIngress'
+    Condition: UseDatabaseProxyInProd
+    Properties:
+      GroupId:
+        Ref: RDSSecurityGroup
+      IpProtocol: tcp
+      FromPort: 5432
+      ToPort: 5432
+      SourceSecurityGroupId:
+        Ref: RDSProxySecurityGroup
+      Description: Allow PostgreSQL access from RDS Proxy
+  RDSProxySecurityGroup:
+    Type: 'AWS::EC2::SecurityGroup'
+    Condition: UseDatabaseProxyInProd
+    Properties:
+      GroupDescription: Security group for RDS Proxy
+      VpcId:
+        Ref: WebScraperVPC
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 5432
+          ToPort: 5432
+          SourceSecurityGroupId:
+            Ref: LambdaSecurityGroup
+          Description: Allow PostgreSQL access from Lambda
+      SecurityGroupEgress:
+        - IpProtocol: tcp
+          FromPort: 5432
+          ToPort: 5432
+          DestinationSecurityGroupId:
+            Ref: RDSSecurityGroup
+          Description: Allow PostgreSQL access to RDS
+      Tags:
+        - Key: Name
+          Value:
+            'Fn::Sub': '${devEnvironment}-rds-proxy-sg'
+  DatabaseSecret:
+    Type: 'AWS::SecretsManager::Secret'
+    Condition: UseDatabaseProxyInProd
+    Properties:
+      Name:
+        'Fn::Sub': '${devEnvironment}-db-credentials'
+      Description: Database credentials for RDS Proxy
+      SecretString:
+        'Fn::Sub': |
+          {
+            "username": "${DatabaseUsername}",
+            "password": "${DatabasePassword}"
+          }
+  RDSProxy:
+    Type: 'AWS::RDS::DBProxy'
+    Condition: UseDatabaseProxyInProd
+    DependsOn:
+      - Database
+      - DatabaseSecret
+      - RDSProxyRole
+      - RDSProxySecurityGroup
+    Properties:
+      DBProxyName:
+        'Fn::Sub': '${devEnvironment}-db-proxy'
+      EngineFamily: POSTGRESQL
+      Auth:
+        - AuthScheme: SECRETS
+          SecretArn:
+            Ref: DatabaseSecret
+          IAMAuth: DISABLED
+      RoleArn:
+        'Fn::GetAtt': RDSProxyRole.Arn
+      VpcSubnetIds:
+        - Ref: PrivateSubnet1
+        - Ref: PrivateSubnet2
+      VpcSecurityGroupIds:
+        - Ref: RDSProxySecurityGroup
+      RequireTLS: true
+      Tags:
+        - Key: Name
+          Value:
+            'Fn::Sub': '${devEnvironment}-db-proxy'
+  RDSProxyTargetGroup:
+    Type: 'AWS::RDS::DBProxyTargetGroup'
+    Condition: UseDatabaseProxyInProd
+    DependsOn:
+      - RDSProxy
+      - Database
+    Properties:
+      DBProxyName:
+        Ref: RDSProxy
+      TargetGroupName: default
+      DBClusterIdentifiers: []
+      DBInstanceIdentifiers:
+        - Ref: Database
+      ConnectionPoolConfigurationInfo:
+        MaxConnectionsPercent: 100
+        MaxIdleConnectionsPercent: 50
+        ConnectionBorrowTimeout: 120
+        SessionPinningFilters: []
+        InitQuery: ''
+Outputs:
+  DevDatabaseEndpoint:
+    Condition: IsDev
+    Description: RDS instance endpoint for dev/testing migrations (used by pipeline run-migrations)
+    Value:
+      'Fn::GetAtt': Database.Endpoint.Address
+  ProductionDatabaseEndpoint:
+    Condition: IsProduction
+    Description: RDS instance endpoint for production migrations (used by pipeline run-migrations)
+    Value:
+      'Fn::GetAtt': Database.Endpoint.Address

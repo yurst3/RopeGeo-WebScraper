@@ -1,0 +1,17 @@
+AWSTemplateFormatVersion: '2010-09-09'
+
+Conditions:
+  HasCustomDomain:
+    'Fn::Not':
+      - 'Fn::Equals':
+          - Ref: CustomDomainName
+          - ''
+  HasCertificate:
+    'Fn::Not':
+      - 'Fn::Equals':
+          - Ref: CloudFrontCertificateArn
+          - ''
+  CreateCloudFrontWithDomain:
+    'Fn::And':
+      - Condition: HasCustomDomain
+      - Condition: HasCertificate

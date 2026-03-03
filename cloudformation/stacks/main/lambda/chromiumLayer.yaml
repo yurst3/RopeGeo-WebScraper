@@ -1,0 +1,17 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Lambda layer for Chromium
+
+Resources:
+  ChromiumLayer:
+    Type: 'AWS::Serverless::LayerVersion'
+    Properties:
+      Description: Chromium with Node.js integration for AWS Lambda
+      ContentUri: ../../../layers/chromium
+      CompatibleRuntimes:
+        - nodejs22.x
+      CompatibleArchitectures:
+        - arm64
+      RetentionPolicy: Delete
+    Metadata:
+      BuildMethod: makefile
+      BuildArchitecture: arm64

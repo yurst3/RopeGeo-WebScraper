@@ -1,0 +1,98 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: fck-nat NAT instance (security group, ENI, launch template, ASG)
+
+Parameters:
+  FckNatAMIId:
+    Type: 'AWS::EC2::Image::Id'
+    Description: |
+      fck-nat AMI ID for this region (arm64). Look up with: aws ec2 describe-images --owners 568608671756 --filters "Name=name,Values=fck-nat-al2023-*" "Name=architecture,Values=arm64" --query "sort_by(Images,&CreationDate)[-1].ImageId" --output text
+Resources:
+  FckNatSecurityGroup:
+    Type: 'AWS::EC2::SecurityGroup'
+    Properties:
+      GroupDescription: Security group for fck-nat NAT instance
+      VpcId:
+        Ref: WebScraperVPC
+      SecurityGroupIngress:
+        - CidrIp: 10.0.0.0/16
+          IpProtocol: '-1'
+          Description: Allow all traffic from VPC
+      SecurityGroupEgress:
+        - CidrIp: 0.0.0.0/0
+          IpProtocol: '-1'
+          Description: Allow all outbound traffic
+      Tags:
+        - Key: Name
+          Value:
+            'Fn::Sub': '${AWS::StackName}-fck-nat-sg'
+  FckNatInterface:
+    Type: 'AWS::EC2::NetworkInterface'
+    DependsOn: FckNatSecurityGroup
+    Properties:
+      Description: fck-nat gateway interface
+      SubnetId:
+        Ref: PublicSubnet1
+      GroupSet:
+        - 'Fn::GetAtt': FckNatSecurityGroup.GroupId
+      SourceDestCheck: false
+      Tags:
+        - Key: Name
+          Value:
+            'Fn::Sub': '${AWS::StackName}-fck-nat-eni'
+  FckNatLaunchTemplate:
+    Type: 'AWS::EC2::LaunchTemplate'
+    DependsOn:
+      - FckNatRole
+      - FckNatAsgInstanceProfile
+    Properties:
+      LaunchTemplateData:
+        ImageId:
+          Ref: FckNatAMIId
+        InstanceType: t4g.nano
+        IamInstanceProfile:
+          Name:
+            Ref: FckNatAsgInstanceProfile
+        NetworkInterfaces:
+          - DeviceIndex: 0
+            AssociatePublicIpAddress: true
+            Groups:
+              - 'Fn::GetAtt': FckNatSecurityGroup.GroupId
+            SubnetId:
+              Ref: PublicSubnet1
+        UserData:
+          'Fn::Base64':
+            'Fn::Sub': |
+              #!/bin/bash
+              echo "eni_id=${FckNatInterface}" >> /etc/fck-nat.conf
+              service fck-nat restart
+  FckNatAsg:
+    Type: 'AWS::AutoScaling::AutoScalingGroup'
+    DependsOn: FckNatLaunchTemplate
+    Properties:
+      MaxSize: '1'
+      MinSize: '1'
+      DesiredCapacity: '1'
+      LaunchTemplate:
+        LaunchTemplateId:
+          Ref: FckNatLaunchTemplate
+        Version:
+          'Fn::GetAtt': FckNatLaunchTemplate.LatestVersionNumber
+      VPCZoneIdentifier:
+        - Ref: PublicSubnet1
+      Tags:
+        - Key: Name
+          Value:
+            'Fn::Sub': '${AWS::StackName}-fck-nat'
+          PropagateAtLaunch: true
+    UpdatePolicy:
+      AutoScalingScheduledAction:
+        IgnoreUnmodifiedGroupSizeProperties: true
+  PrivateRoute:
+    Type: 'AWS::EC2::Route'
+    DependsOn: FckNatInterface
+    Properties:
+      RouteTableId:
+        Ref: PrivateRouteTable
+      DestinationCidrBlock: 0.0.0.0/0
+      NetworkInterfaceId:
+        Ref: FckNatInterface

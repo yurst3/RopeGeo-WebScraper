@@ -1,0 +1,48 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Shared stack parameters (used by multiple resources)
+
+Parameters:
+  devEnvironment:
+    Type: String
+    Description: Environment name (dev or production)
+    AllowedValues:
+      - dev
+      - production
+  DatabaseUsername:
+    Type: String
+    Description: Master username for the RDS database
+    Default: admin
+    NoEcho: false
+  DatabasePassword:
+    Type: String
+    Description: Master password for the RDS database
+    NoEcho: true
+    MinLength: 8
+  ProxyUrl:
+    Type: String
+    Description: 'URL of HTTP proxy for Lambda egress when DEV_ENVIRONMENT is dev or production (e.g. http://host:port)'
+    NoEcho: true
+  PipelineExecutionRoleName:
+    Type: String
+    Description: IAM role name (not ARN) of the pipeline execution role; used to attach the ECR push policy so build-push-fargate-tasks can push images. Leave blank to skip attachment (attach FargateTasksECRPushPolicyArn manually if needed).
+    Default: ''
+  DocsBucketPipelineRoleArn:
+    Type: String
+    Description: IAM role ARN allowed to upload docs to the docs bucket (e.g. pipeline execution role for upload-api-docs). Leave blank to skip bucket policy.
+    Default: ''
+  CloudFrontDistributionArn:
+    Type: String
+    Description: 'CloudFront distribution ARN (from API stack CloudFrontDistributionArn output). When set, Docs bucket allows GetObject from CloudFront only in addition to ApiGateway/pipeline. Deploy API stack first, then update main with this value.'
+    Default: ''
+  UseDatabaseProxy:
+    Type: String
+    Description: 'When ''true'' and environment is production, create and use RDS Proxy for DB connections. Set to ''false'' to reduce cost; toggle back to ''true'' if connection limits become an issue.'
+    Default: 'false'
+    AllowedValues:
+      - 'true'
+      - 'false'
+  RdsDbiResourceId:
+    Type: String
+    Description: |
+      RDS DBI resource ID (e.g. db-0ABCD1234) for IAM database authentication. Required for direct connect with IAM (when not using proxy). Find it in RDS console (instance Configuration) or: aws rds describe-db-instances --db-instance-identifier <id> --query 'DBInstances[0].DbiResourceId'
+    Default: ''

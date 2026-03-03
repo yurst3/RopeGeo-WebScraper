@@ -1,0 +1,17 @@
+AWSTemplateFormatVersion: '2010-09-09'
+
+Parameters:
+  DocsBucketName:
+    Type: String
+    Description: Name of the S3 bucket containing openapiResolved.yaml (output from main stack DocsBucketName)
+  MapDataBucketName:
+    Type: String
+    Description: Name of the S3 bucket for map data (output from main stack MapDataBucketName). Required when using CloudFront.
+  CustomDomainName:
+    Type: String
+    Default: api.webscraper.ropegeo.com
+    Description: Custom domain for CloudFront (e.g. api.webscraper.ropegeo.com). Leave blank to skip custom domain.
+  CloudFrontCertificateArn:
+    Type: String
+    Default: ''
+    Description: ACM certificate ARN for CustomDomainName. Must be in us-east-1 for CloudFront. Required if CustomDomainName is set.

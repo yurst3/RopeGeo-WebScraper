@@ -1,0 +1,63 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Lambda that scrapes Ropewiki pages
+
+Resources:
+  RopewikiScraper:
+    Type: 'AWS::Serverless::Function'
+    Properties:
+      Description: A Lambda function that scrapes Ropewiki pages and stores them in the database
+      Runtime: nodejs22.x
+      Architectures:
+        - arm64
+      CodeUri: ../../../
+      Handler: src/ropewiki/lambda-handlers/mainHandler.mainHandler
+      Events:
+        CloudWatchEvent:
+          Type: Schedule
+          Properties:
+            Schedule: cron(0 0 * * ? *)
+            Input: '{"processPages": true, "processRoutes": true}'
+      MemorySize: 1024
+      Timeout: 900
+      VpcConfig:
+        SecurityGroupIds:
+          - Ref: LambdaSecurityGroup
+        SubnetIds:
+          - Ref: PrivateSubnet1
+      Role:
+        'Fn::GetAtt': RopewikiScraperRole.Arn
+      Environment:
+        Variables:
+          DEV_ENVIRONMENT:
+            Ref: devEnvironment
+          PROXY_URL:
+            Ref: ProxyUrl
+          DB_HOST:
+            'Fn::If':
+              - UseDatabaseProxyInProd
+              - 'Fn::GetAtt': RDSProxy.Endpoint
+              - 'Fn::GetAtt': Database.Endpoint.Address
+          DB_PORT:
+            'Fn::GetAtt': Database.Endpoint.Port
+          USE_DATABASE_PROXY:
+            Ref: UseDatabaseProxy
+          DB_NAME:
+            'Fn::Sub': '${devEnvironment}db'
+          DB_USER:
+            Ref: DatabaseUsername
+          DB_PASSWORD:
+            Ref: DatabasePassword
+          ROPEWIKI_PAGE_PROCESSING_QUEUE_URL:
+            Ref: RopewikiPageProcessingQueue
+          MAP_DATA_PROCESSING_QUEUE_URL:
+            Ref: MapDataProcessingQueue
+    Metadata:
+      BuildMethod: esbuild
+      BuildProperties:
+        Minify: true
+        Target: esnext
+        Sourcemap: true
+        EntryPoints:
+          - src/ropewiki/lambda-handlers/mainHandler.ts
+        External:
+          - '@sparticuz/chromium'

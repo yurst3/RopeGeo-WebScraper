@@ -1,0 +1,37 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: IAM policy for pipeline to push Fargate task images to ECR
+
+Resources:
+  FargateTasksECRPushPolicy:
+    Type: 'AWS::IAM::ManagedPolicy'
+    Properties:
+      ManagedPolicyName:
+        'Fn::Sub': '${AWS::StackName}-fargate-tasks-ecr-push'
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Action: 'ecr:GetAuthorizationToken'
+            Resource: '*'
+          - Effect: Allow
+            Action:
+              - 'ecr:BatchCheckLayerAvailability'
+              - 'ecr:GetDownloadUrlForLayer'
+              - 'ecr:BatchGetImage'
+              - 'ecr:PutImage'
+              - 'ecr:InitiateLayerUpload'
+              - 'ecr:UploadLayerPart'
+              - 'ecr:CompleteLayerUpload'
+            Resource:
+              - 'Fn::Sub': 'arn:aws:ecr:${AWS::Region}:${AWS::AccountId}:repository/${GenerateRouteMarkerTilesRepository}'
+              - 'Fn::Sub': 'arn:aws:ecr:${AWS::Region}:${AWS::AccountId}:repository/${GenerateTrailTilesRepository}'
+      Roles:
+        'Fn::If':
+          - HasPipelineExecutionRoleName
+          - - Ref: PipelineExecutionRoleName
+          - Ref: 'AWS::NoValue'
+Outputs:
+  FargateTasksECRPushPolicyArn:
+    Description: 'ARN of the managed policy that allows ECR login and push to Fargate task repos. If PipelineExecutionRoleName is not set, attach this policy to the role used by build-push-fargate-tasks. Example: aws iam attach-role-policy --role-name <PipelineExecutionRoleName> --policy-arn <this-value>'
+    Value:
+      Ref: FargateTasksECRPushPolicy

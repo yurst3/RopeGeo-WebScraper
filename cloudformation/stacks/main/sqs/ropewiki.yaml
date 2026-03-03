@@ -1,0 +1,40 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: SQS queues for Ropewiki page processing
+
+Resources:
+  RopewikiPageProcessingDLQ:
+    Type: 'AWS::SQS::Queue'
+    Properties:
+      QueueName:
+        'Fn::Sub': '${devEnvironment}-ropewiki-page-processing-dlq'
+      MessageRetentionPeriod: 1209600
+  RopewikiPageProcessingDLQPolicy:
+    Type: 'AWS::SQS::QueuePolicy'
+    Properties:
+      Queues:
+        - Ref: RopewikiPageProcessingDLQ
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: sqs.amazonaws.com
+            Action: 'sqs:SendMessage'
+            Resource:
+              'Fn::GetAtt': RopewikiPageProcessingDLQ.Arn
+            Condition:
+              ArnEquals:
+                'aws:SourceArn':
+                  'Fn::GetAtt': RopewikiPageProcessingQueue.Arn
+  RopewikiPageProcessingQueue:
+    Type: 'AWS::SQS::Queue'
+    Properties:
+      QueueName:
+        'Fn::Sub': '${devEnvironment}-ropewiki-page-processing-queue'
+      VisibilityTimeout: 960
+      MessageRetentionPeriod: 345600
+      ReceiveMessageWaitTimeSeconds: 5
+      RedrivePolicy:
+        deadLetterTargetArn:
+          'Fn::GetAtt': RopewikiPageProcessingDLQ.Arn
+        maxReceiveCount: 5

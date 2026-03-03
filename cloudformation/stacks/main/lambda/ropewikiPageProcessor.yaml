@@ -1,0 +1,65 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Lambda that processes individual Ropewiki pages
+
+Resources:
+  RopewikiPageProcessor:
+    Type: 'AWS::Serverless::Function'
+    Properties:
+      Description: A Lambda function that processes individual Ropewiki pages (beta sections and images)
+      Runtime: nodejs22.x
+      Architectures:
+        - arm64
+      CodeUri: ../../../
+      Layers:
+        - Ref: ChromiumLayer
+      Handler: src/ropewiki/lambda-handlers/processPageHandler.processPageHandler
+      Events:
+        SQSEvent:
+          Type: SQS
+          Properties:
+            Queue:
+              'Fn::GetAtt': RopewikiPageProcessingQueue.Arn
+            BatchSize: 10
+      MemorySize: 1024
+      Timeout: 900
+      VpcConfig:
+        SecurityGroupIds:
+          - Ref: LambdaSecurityGroup
+        SubnetIds:
+          - Ref: PrivateSubnet1
+      Role:
+        'Fn::GetAtt': RopewikiPageProcessorRole.Arn
+      Environment:
+        Variables:
+          DEV_ENVIRONMENT:
+            Ref: devEnvironment
+          PROXY_URL:
+            Ref: ProxyUrl
+          DB_HOST:
+            'Fn::If':
+              - UseDatabaseProxyInProd
+              - 'Fn::GetAtt': RDSProxy.Endpoint
+              - 'Fn::GetAtt': Database.Endpoint.Address
+          DB_PORT:
+            'Fn::GetAtt': Database.Endpoint.Port
+          USE_DATABASE_PROXY:
+            Ref: UseDatabaseProxy
+          DB_NAME:
+            'Fn::Sub': '${devEnvironment}db'
+          DB_USER:
+            Ref: DatabaseUsername
+          DB_PASSWORD:
+            Ref: DatabasePassword
+          ROPEWIKI_PAGE_PROCESSING_QUEUE_URL:
+            Ref: RopewikiPageProcessingQueue
+          ROPEWIKI_PAGE_PROCESSOR_TIMEOUT_SECONDS: '900'
+    Metadata:
+      BuildMethod: esbuild
+      BuildProperties:
+        Minify: true
+        Target: esnext
+        Sourcemap: true
+        EntryPoints:
+          - src/ropewiki/lambda-handlers/processPageHandler.ts
+        External:
+          - '@sparticuz/chromium'

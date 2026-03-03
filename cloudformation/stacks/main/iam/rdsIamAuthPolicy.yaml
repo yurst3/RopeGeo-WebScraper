@@ -1,0 +1,17 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: IAM policy for RDS database authentication (direct connect)
+
+Resources:
+  RdsIamAuthPolicy:
+    Type: 'AWS::IAM::ManagedPolicy'
+    Condition: HasRdsDbiResourceId
+    Properties:
+      ManagedPolicyName:
+        'Fn::Sub': '${AWS::StackName}-rds-iam-auth'
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Action: 'rds-db:connect'
+            Resource:
+              'Fn::Sub': 'arn:aws:rds-db:${AWS::Region}:${AWS::AccountId}:dbuser:${RdsDbiResourceId}/${DatabaseUsername}'

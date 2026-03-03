@@ -1,0 +1,21 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: ECS cluster for Fargate tasks
+
+Resources:
+  EcsCluster:
+    Type: 'AWS::ECS::Cluster'
+    Properties:
+      ClusterName:
+        'Fn::Sub': '${devEnvironment}-webscraper'
+      ClusterSettings:
+        - Name: containerInsights
+          Value: disabled
+Outputs:
+  GenerateRouteMarkerTilesEcsClusterName:
+    Description: ECS cluster name for the generate route marker tiles scheduled task
+    Value:
+      Ref: EcsCluster
+  GenerateTrailTilesEcsClusterName:
+    Description: ECS cluster name for the generate trail tiles scheduled task
+    Value:
+      Ref: EcsCluster

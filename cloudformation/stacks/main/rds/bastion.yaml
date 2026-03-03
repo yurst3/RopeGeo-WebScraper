@@ -1,0 +1,86 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Bastion host for production DB migrations
+
+Resources:
+  BastionKeyPair:
+    Type: 'AWS::EC2::KeyPair'
+    Condition: IsProduction
+    Properties:
+      KeyName:
+        'Fn::Sub': '${AWS::StackName}-bastion-key'
+      KeyType: rsa
+      KeyFormat: pem
+  BastionSecurityGroup:
+    Type: 'AWS::EC2::SecurityGroup'
+    Condition: IsProduction
+    Properties:
+      GroupDescription: Security group for bastion host (SSH tunnel for migrations)
+      VpcId:
+        Ref: WebScraperVPC
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 22
+          ToPort: 22
+          CidrIp: 0.0.0.0/0
+          Description: Allow SSH from pipeline runners
+      SecurityGroupEgress:
+        - IpProtocol: tcp
+          FromPort: 5432
+          ToPort: 5432
+          DestinationSecurityGroupId:
+            Ref: RDSSecurityGroup
+          Description: Allow PostgreSQL access to RDS
+        - IpProtocol: -1
+          CidrIp: 0.0.0.0/0
+          Description: Allow all outbound (e.g. package updates)
+      Tags:
+        - Key: Name
+          Value:
+            'Fn::Sub': '${devEnvironment}-bastion-sg'
+  BastionToRDSIngressRule:
+    Type: 'AWS::EC2::SecurityGroupIngress'
+    Condition: IsProduction
+    Properties:
+      GroupId:
+        Ref: RDSSecurityGroup
+      IpProtocol: tcp
+      FromPort: 5432
+      ToPort: 5432
+      SourceSecurityGroupId:
+        Ref: BastionSecurityGroup
+      Description: Allow PostgreSQL access from bastion
+  BastionHost:
+    Type: 'AWS::EC2::Instance'
+    Condition: IsProduction
+    DependsOn:
+      - BastionKeyPair
+      - BastionSecurityGroup
+      - BastionToRDSIngressRule
+    Properties:
+      ImageId:
+        'Fn::Sub': '{{resolve:ssm:/aws/service/ami-amazon-linux-latest/al2023-ami-kernel-default-arm64}}'
+      InstanceType: t4g.nano
+      KeyName:
+        'Fn::Sub': '${AWS::StackName}-bastion-key'
+      NetworkInterfaces:
+        - DeviceIndex: 0
+          AssociatePublicIpAddress: true
+          SubnetId:
+            Ref: PublicSubnet1
+          GroupSet:
+            - Ref: BastionSecurityGroup
+      Tags:
+        - Key: Name
+          Value:
+            'Fn::Sub': '${devEnvironment}-bastion'
+Outputs:
+  BastionPublicIP:
+    Condition: IsProduction
+    Description: Bastion host public IP for SSH tunnel (production migrations)
+    Value:
+      'Fn::GetAtt': BastionHost.PublicIp
+  BastionKeyPairId:
+    Condition: IsProduction
+    Description: 'Key pair ID; private key is in SSM at /ec2/keypair/{KeyPairId}'
+    Value:
+      'Fn::GetAtt': BastionKeyPair.KeyPairId

@@ -1,0 +1,42 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Shared stack conditions (used by multiple resources)
+
+Conditions:
+  HasDocsBucketPipelineRole:
+    'Fn::Not':
+      - 'Fn::Equals':
+          - Ref: DocsBucketPipelineRoleArn
+          - ''
+  HasPipelineExecutionRoleName:
+    'Fn::Not':
+      - 'Fn::Equals':
+          - Ref: PipelineExecutionRoleName
+          - ''
+  HasCloudFrontDistribution:
+    'Fn::Not':
+      - 'Fn::Equals':
+          - Ref: CloudFrontDistributionArn
+          - ''
+  HasPipelineExecutionRoleAndCloudFront:
+    'Fn::And':
+      - 'Fn::Condition': HasPipelineExecutionRoleName
+      - 'Fn::Condition': HasCloudFrontDistribution
+  IsProduction:
+    'Fn::Equals':
+      - Ref: devEnvironment
+      - production
+  IsDev:
+    'Fn::Equals':
+      - Ref: devEnvironment
+      - dev
+  UseDatabaseProxyInProd:
+    'Fn::And':
+      - 'Fn::Equals':
+          - Ref: UseDatabaseProxy
+          - 'true'
+      - 'Fn::Condition': IsProduction
+  HasRdsDbiResourceId:
+    'Fn::Not':
+      - 'Fn::Equals':
+          - Ref: RdsDbiResourceId
+          - ''

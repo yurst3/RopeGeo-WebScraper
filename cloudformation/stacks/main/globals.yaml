@@ -1,0 +1,11 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: WebScraper
+Transform:
+  - 'AWS::Serverless-2016-10-31'
+Globals:
+  Function:
+    Tracing: Active
+    LoggingConfig:
+      LogFormat: JSON
+  Api:
+    TracingEnabled: true

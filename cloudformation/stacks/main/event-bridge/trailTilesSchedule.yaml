@@ -1,0 +1,31 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: EventBridge schedule rule for generate trail tiles task
+
+Resources:
+  GenerateTrailTilesScheduleRule:
+    Type: 'AWS::Events::Rule'
+    Properties:
+      Name:
+        'Fn::Sub': '${devEnvironment}-generate-trail-tiles-daily'
+      Description: Run generate trail tiles task once per day at noon UTC
+      ScheduleExpression: cron(0 12 * * ? *)
+      State: ENABLED
+      Targets:
+        - Id: GenerateTrailTilesEcsTask
+          Arn:
+            'Fn::GetAtt': EcsCluster.Arn
+          RoleArn:
+            'Fn::GetAtt': GenerateTrailTilesEventBridgeRole.Arn
+          EcsParameters:
+            TaskDefinitionArn:
+              Ref: GenerateTrailTilesTaskDefinition
+            TaskCount: 1
+            LaunchType: FARGATE
+            NetworkConfiguration:
+              AwsVpcConfiguration:
+                Subnets:
+                  - Ref: PrivateSubnet1
+                  - Ref: PrivateSubnet2
+                SecurityGroups:
+                  - Ref: LambdaSecurityGroup
+                AssignPublicIp: DISABLED

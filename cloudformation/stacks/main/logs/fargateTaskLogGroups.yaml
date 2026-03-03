@@ -1,0 +1,16 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: CloudWatch Logs log groups for Fargate tasks
+
+Resources:
+  GenerateRouteMarkerTilesLogGroup:
+    Type: 'AWS::Logs::LogGroup'
+    Properties:
+      LogGroupName:
+        'Fn::Sub': '/ecs/${devEnvironment}-generate-route-marker-tiles'
+      RetentionInDays: 30
+  GenerateTrailTilesLogGroup:
+    Type: 'AWS::Logs::LogGroup'
+    Properties:
+      LogGroupName:
+        'Fn::Sub': '/ecs/${devEnvironment}-generate-trail-tiles'
+      RetentionInDays: 30

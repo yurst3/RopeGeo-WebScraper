@@ -1,0 +1,54 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: S3 bucket for map data and CloudFront policy
+
+Resources:
+  MapDataBucket:
+    Type: 'AWS::S3::Bucket'
+    Properties:
+      BucketName:
+        'Fn::Sub': '${devEnvironment}-map-data-bucket'
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+  MapDataBucketCloudFrontPolicy:
+    Type: 'AWS::S3::BucketPolicy'
+    Condition: HasCloudFrontDistribution
+    Properties:
+      Bucket:
+        Ref: MapDataBucket
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Sid: AllowCloudFrontOACGetObject
+            Effect: Allow
+            Principal:
+              Service: cloudfront.amazonaws.com
+            Action: 's3:GetObject'
+            Resource:
+              'Fn::Sub': '${MapDataBucket.Arn}/*'
+            Condition:
+              StringEquals:
+                'AWS:SourceArn':
+                  Ref: CloudFrontDistributionArn
+          - Sid: AllowCloudFrontOACListBucket
+            Effect: Allow
+            Principal:
+              Service: cloudfront.amazonaws.com
+            Action: 's3:ListBucket'
+            Resource:
+              'Fn::GetAtt': MapDataBucket.Arn
+            Condition:
+              StringEquals:
+                'AWS:SourceArn':
+                  Ref: CloudFrontDistributionArn
+Outputs:
+  MapDataBucketName:
+    Description: 'S3 bucket for map data (GeoJSON, vector tiles); pass to API stack for CloudFront'
+    Value:
+      Ref: MapDataBucket
+  MapDataBucketArn:
+    Description: ARN of the map data S3 bucket
+    Value:
+      'Fn::GetAtt': MapDataBucket.Arn

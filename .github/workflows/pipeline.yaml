@@ -96,7 +96,7 @@ jobs:
 
       # MapDataProcessor is arm64 and includes a native tippecanoe binary; it must be built in an arm64 container.
       - name: Build resources
-        run: sam build --template cloudformation/stacks/main/template-merged.yaml --use-container --build-image public.ecr.aws/sam/build-nodejs22.x --build-image MapDataProcessor=public.ecr.aws/sam/build-nodejs22.x:latest-arm64
+        run: sam build --template cloudformation/stacks/mergedMainTemplate.yaml --use-container --build-image public.ecr.aws/sam/build-nodejs22.x --build-image MapDataProcessor=public.ecr.aws/sam/build-nodejs22.x:latest-arm64
 
       - name: Assume the testing pipeline user role
         uses: aws-actions/configure-aws-credentials@v4
@@ -254,7 +254,7 @@ jobs:
             --role-arn ${PROD_CLOUDFORMATION_EXECUTION_ROLE} \
             --parameter-overrides "devEnvironment=production DatabaseUsername=$PROD_DATABASE_USERNAME DatabasePassword=$PROD_DATABASE_PASSWORD FckNatAMIId=$FCK_NAT_AMI ProxyUrl=$PROXY_URL DocsBucketPipelineRoleArn=$PROD_PIPELINE_EXECUTION_ROLE PipelineExecutionRoleName=${PROD_PIPELINE_EXECUTION_ROLE##*/}"
 
-  build-push-fargate-jobs:
+  build-push-fargate-tasks:
     if: always() && github.ref == 'refs/heads/master' && (needs.deploy-prod-main.result == 'success' || needs.deploy-testing-main.result == 'success')
     needs: [deploy-prod-main, deploy-testing-main]
     runs-on: ubuntu-latest
@@ -273,11 +273,11 @@ jobs:
           role-duration-seconds: 3600
           role-skip-session-tagging: true
 
-      - name: Get ECR repository URIs from stack outputs (all Fargate jobs)
+      - name: Get ECR repository URIs from stack outputs (all Fargate tasks)
         id: ecr-outputs
         run: |
           set -e
-          # Output keys must end with "RepositoryUri"; folder = prefix in camelCase (e.g. GenerateRouteMarkerTiles -> generateRouteMarkerTiles)
+          # Output keys must end with "RepositoryUri"; folder = prefix in camelCase (e.g. GenerateRouteMarkerTiles -> generateRouteMarkerTiles). Code lives under src/fargate-tasks/<folder>/
           TMPFILE=$(mktemp)
           if [ "${{ needs.deploy-prod-main.result }}" == "success" ]; then
             aws cloudformation describe-stacks --stack-name ${PROD_STACK_NAME} --region ${PROD_REGION} \
@@ -295,7 +295,7 @@ jobs:
           echo "has_entries=${HAS_ENTRIES}" >> $GITHUB_OUTPUT
           rm -f "$TMPFILE"
 
-      - name: Build and push all Fargate job images
+      - name: Build and push all Fargate task images
         if: steps.ecr-outputs.outputs.has_entries == 'true'
         env:
           ENTRIES: ${{ steps.ecr-outputs.outputs.entries }}
@@ -308,7 +308,7 @@ jobs:
             folder="${line%% *}"
             uri="${line#* }"
             [ -z "$folder" ] || [ -z "$uri" ] && continue
-            DOCKERFILE="src/fargate-jobs/${folder}/Dockerfile"
+            DOCKERFILE="src/fargate-tasks/${folder}/Dockerfile"
             [ -f "$DOCKERFILE" ] || { echo "Skipping $folder: no $DOCKERFILE"; continue; }
             URIS_FOR_FOLDER[$folder]+="${uri} "
           done << 'ENTRIES_EOF'
@@ -317,7 +317,7 @@ jobs:
 
           REGISTRY=""
           for folder in "${!URIS_FOR_FOLDER[@]}"; do
-            DOCKERFILE="src/fargate-jobs/${folder}/Dockerfile"
+            DOCKERFILE="src/fargate-tasks/${folder}/Dockerfile"
             [ -f "$DOCKERFILE" ] || continue
             first_uri=$(echo ${URIS_FOR_FOLDER[$folder]} | awk '{print $1}')
             if [ -z "$REGISTRY" ]; then
@@ -414,8 +414,6 @@ jobs:
     steps:
       - name: Check out repository code
         uses: actions/checkout@v4
-      - name: Resolve API template $ref
-        run: npx ts-node --files scripts/resolveYamlRefs.ts cloudformation/stacks/api/template.yaml cloudformation/stacks/api/template-resolved.yaml
       - name: Assume the testing pipeline user role
         uses: aws-actions/configure-aws-credentials@v4
         with:
@@ -441,10 +439,12 @@ jobs:
             --output text)
           echo "docs_bucket=${DOCS_BUCKET}" >> $GITHUB_OUTPUT
           echo "map_data_bucket=${MAP_DATA_BUCKET}" >> $GITHUB_OUTPUT
+      - name: Merge API template
+        run: npm ci && npm run merge:api-template
       - name: Deploy API stack to testing
         run: |
           aws cloudformation deploy \
-            --template-file cloudformation/stacks/api/template-resolved.yaml \
+            --template-file cloudformation/stacks/mergedApiTemplate.yaml \
             --stack-name ${TESTING_API_STACK_NAME} \
             --parameter-overrides \
               DocsBucketName=${{ steps.get-buckets.outputs.docs_bucket }} \
@@ -460,8 +460,6 @@ jobs:
     steps:
       - name: Check out repository code
         uses: actions/checkout@v4
-      - name: Resolve API template $ref
-        run: npx ts-node --files scripts/resolveYamlRefs.ts cloudformation/stacks/api/template.yaml cloudformation/stacks/api/template-resolved.yaml
       - name: Assume the prod pipeline user role
         uses: aws-actions/configure-aws-credentials@v4
         with:
@@ -487,10 +485,12 @@ jobs:
             --output text)
           echo "docs_bucket=${DOCS_BUCKET}" >> $GITHUB_OUTPUT
           echo "map_data_bucket=${MAP_DATA_BUCKET}" >> $GITHUB_OUTPUT
+      - name: Merge API template
+        run: npm ci && npm run merge:api-template
       - name: Deploy API stack to production
         run: |
           aws cloudformation deploy \
-            --template-file cloudformation/stacks/api/template-resolved.yaml \
+            --template-file cloudformation/stacks/mergedApiTemplate.yaml \
             --stack-name ${PROD_API_STACK_NAME} \
             --parameter-overrides \
               DocsBucketName=${{ steps.get-buckets.outputs.docs_bucket }} \

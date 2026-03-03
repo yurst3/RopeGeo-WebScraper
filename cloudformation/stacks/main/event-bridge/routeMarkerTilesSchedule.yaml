@@ -1,0 +1,31 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: EventBridge schedule rule for generate route marker tiles task
+
+Resources:
+  GenerateRouteMarkerTilesScheduleRule:
+    Type: 'AWS::Events::Rule'
+    Properties:
+      Name:
+        'Fn::Sub': '${devEnvironment}-generate-route-marker-tiles-daily'
+      Description: Run generate route marker tiles task once per day at noon UTC
+      ScheduleExpression: cron(0 12 * * ? *)
+      State: ENABLED
+      Targets:
+        - Id: GenerateRouteMarkerTilesEcsTask
+          Arn:
+            'Fn::GetAtt': EcsCluster.Arn
+          RoleArn:
+            'Fn::GetAtt': GenerateRouteMarkerTilesEventBridgeRole.Arn
+          EcsParameters:
+            TaskDefinitionArn:
+              Ref: GenerateRouteMarkerTilesTaskDefinition
+            TaskCount: 1
+            LaunchType: FARGATE
+            NetworkConfiguration:
+              AwsVpcConfiguration:
+                Subnets:
+                  - Ref: PrivateSubnet1
+                  - Ref: PrivateSubnet2
+                SecurityGroups:
+                  - Ref: LambdaSecurityGroup
+                AssignPublicIp: DISABLED

@@ -36,18 +36,25 @@ export const handler = async (
 
 **New file:** `cloudformation/stacks/main/lambdas/<PascalCaseName>.yaml` (e.g. `GetRoutes.yaml`, `GetWidget.yaml`).
 
-- **Type:** `AWS::Serverless::Function`
+Each lambda file is a small CloudFormation document with **AWSTemplateFormatVersion**, **Description**, and **Resources: { LogicalId: ... }**. Use **long-form** intrinsics only (e.g. `Ref:`, `Fn::GetAtt:`, `Fn::If:`, `Fn::Sub:`), since the stack is merged with [cloudformation-yml-merger](https://github.com/dakoo/cloudformation-yml-merger) (via `scripts/mergeMainTemplate.ts`).
+
+- **Resources.***LogicalId*: `Type: AWS::Serverless::Function`
 - **CodeUri:** `../../../` (project root relative to template directory)
 - **Handler:** `src/api/<operationName>/handler.handler`
 - **Runtime:** `nodejs22.x`, **Architectures:** `[arm64]`
 - **VpcConfig:** Same as other DB-access Lambdas: `LambdaSecurityGroup`, `PrivateSubnet1`
-- **Environment:** Include `DEV_ENVIRONMENT`, `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASSWORD` if the Lambda uses the DB (use `!If [IsProduction, !GetAtt RDSProxy.Endpoint, !GetAtt Database.Endpoint.Address]` for `DB_HOST`)
+- **Environment:** Include `DEV_ENVIRONMENT`, `DB_HOST`, `DB_PORT`, `DB_NAME`, `DB_USER`, `DB_PASSWORD` if the Lambda uses the DB (use `Fn::If` with `Fn::GetAtt` for `DB_HOST` as in existing lambdas)
 - **Metadata:** `BuildMethod: esbuild`, **EntryPoints:** `[src/api/<operationName>/handler.ts]`
 
-Example (minimal):
+Example (minimal; see existing `GetRoutes.yaml` for full structure):
 
 ```yaml
-Type: AWS::Serverless::Function
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Lambda for GET /widget API endpoint
+
+Resources:
+  GetWidget:
+    Type: AWS::Serverless::Function
 Properties:
   Description: Lambda for GET /widgets API endpoint
   Runtime: nodejs22.x
@@ -57,16 +64,16 @@ Properties:
   MemorySize: 256
   Timeout: 30
   VpcConfig:
-    SecurityGroupIds: [!Ref LambdaSecurityGroup]
-    SubnetIds: [!Ref PrivateSubnet1]
+    SecurityGroupIds: [Ref: LambdaSecurityGroup]
+    SubnetIds: [Ref: PrivateSubnet1]
   Environment:
     Variables:
-      DEV_ENVIRONMENT: !Ref devEnvironment
-      DB_HOST: !If [IsProduction, !GetAtt RDSProxy.Endpoint, !GetAtt Database.Endpoint.Address]
-      DB_PORT: !GetAtt Database.Endpoint.Port
-      DB_NAME: !Sub '${devEnvironment}db'
-      DB_USER: !Ref DatabaseUsername
-      DB_PASSWORD: !Ref DatabasePassword
+      DEV_ENVIRONMENT: Ref: devEnvironment
+      DB_HOST: (use Fn::If / Fn::GetAtt as in GetRoutes.yaml)
+      DB_PORT: Fn::GetAtt: [Database, Endpoint.Port]
+      DB_NAME: Fn::Sub: '${devEnvironment}db'
+      DB_USER: Ref: DatabaseUsername
+      DB_PASSWORD: Ref: DatabasePassword
 Metadata:
   BuildMethod: esbuild
   BuildProperties:
@@ -77,30 +84,25 @@ Metadata:
       - src/api/getWidgets/handler.ts
 ```
 
-**Reference in main template:** In `cloudformation/stacks/main/template.yaml`, under `Resources`, add:
-
-```yaml
-  # Lambda for GET /widgets API endpoint
-  GetWidgets:
-    $ref: lambdas/GetWidgets.yaml
-```
+The merger (`npm run merge:main-template`) discovers all YAML files under `cloudformation/stacks/main/` (including `lambdas/*.yaml`) and merges them; no reference in `globals.yaml` is needed.
 
 ## 3. IAM role and permission for API Gateway
 
 - **Invoke role:** There is a shared role `ApiGatewayInvokeLambdaRole` for API Gateway to invoke Lambdas. Add the **new Lambda ARN** to that role’s policy so it can invoke the new function:
   - In `ApiGatewayInvokeLambdaRole` → `Policies` → `InvokeGetRoutesLambda` (or a similarly named policy), add a second `Statement` (or add the new ARN to the existing `Resource` list):
-  - `Effect: Allow`, `Action: lambda:InvokeFunction`, `Resource: !GetAtt <LogicalId>.Arn`
+  - `Effect: Allow`, `Action: lambda:InvokeFunction`, `Resource: Fn::GetAtt: [<LogicalId>, Arn]` (main template uses long-form)
 - **Lambda permission:** Add an `AWS::Lambda::Permission` so API Gateway can invoke the new function:
-  - `FunctionName: !Ref <LogicalId>`, `Action: lambda:InvokeFunction`, `Principal: apigateway.amazonaws.com`
+  - `FunctionName: Ref: <LogicalId>`, `Action: lambda:InvokeFunction`, `Principal: apigateway.amazonaws.com`
 
 ## 4. Output Lambda ARN (and optional invoke role ARN) from the template
 
-In `cloudformation/stacks/main/template.yaml` **Outputs**, add an output for the new Lambda’s ARN so the pipeline can pass it into `resolveYamlEnvs`:
+In `the main stack (e.g. the Lambda’s YAML under cloudformation/stacks/main/)` add an **Outputs** entry for the new Lambda’s ARN so the pipeline can pass it into `resolveYamlEnvs`:
 
 ```yaml
   <LogicalId>LambdaArn:
     Description: ARN of the <LogicalId> Lambda (for OpenAPI integration resolveYamlEnvs)
-    Value: !GetAtt <LogicalId>.Arn
+    Value:
+      Fn::GetAtt: [<LogicalId>, Arn]
 ```
 
 The invoke role ARN is already output as **ApiGatewayInvokeLambdaRoleArn**. Reuse it for all Lambda integrations; no new role output is needed unless you introduce a separate role.
@@ -166,10 +168,10 @@ In `openapi-docs/integrations/<operationName>Lambda.yaml` (e.g. `getWidgetsLambd
 ## Checklist
 
 - [ ] `src/api/<operationName>/handler.ts` (and optional `database/*.ts`) added
-- [ ] `cloudformation/stacks/main/lambdas/<PascalCaseName>.yaml` created and referenced in `template.yaml`
+- [ ] `cloudformation/stacks/main/lambdas/<PascalCaseName>.yaml` created (merged automatically; no reference in globals.yaml)
 - [ ] `ApiGatewayInvokeLambdaRole` policy updated to allow `lambda:InvokeFunction` on the new function ARN
 - [ ] `AWS::Lambda::Permission` added for the new function (Principal `apigateway.amazonaws.com`)
-- [ ] New output `<LogicalId>LambdaArn` in `template.yaml`
+- [ ] New output `<LogicalId>LambdaArn` in the Lambda’s YAML or a dedicated outputs file
 - [ ] upload-api-docs: new output queried and written to step outputs
 - [ ] upload-api-docs: new env var passed into `resolveYamlEnvs`
 - [ ] OpenAPI integration uses `$env-<VAR_NAME>` and is wired in paths (see Openapi-docs rule)

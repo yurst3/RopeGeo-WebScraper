@@ -42,29 +42,29 @@ Ropewiki is powered by [MediaWiki](https://www.mediawiki.org/wiki/MediaWiki) and
 
 Note: All of the API queries are done sequentially so we don't hit any API request limits or crash ropewiki's server. We make full use of pagination to get as much data as we can per request, but it still takes roughly 3.5 hours to do a complete scrape of all data from ropewiki. This is far in excess of Lambda's max timeout value of 15 minutes, so if we ever need to populate the production/dev databases from scratch we have to run the scraper locally and manually dump/restore the data to RDS. However, in an ongoing maintenance/sync run 15 minutes should be more than enough time for a Lambda to query, parse, and upsert the few pages with new revisions. 
 
-## Fargate jobs (running locally)
+## Fargate tasks (running locally)
 
-Scheduled ECS Fargate tasks live under `src/fargate-jobs/<jobName>/`. Each job has a `main.ts` entrypoint and can be run locally with the same env vars it gets in AWS (DB, bucket names, etc.).
+Scheduled ECS Fargate tasks live under `src/fargate-tasks/<taskName>/`. Each task has a `main.ts` entrypoint and can be run locally with the same env vars it gets in AWS (DB, bucket names, etc.).
 
-**Run any Fargate job locally:**
+**Run any Fargate task locally:**
 
-1. Start the local DB if the job needs it: `npm run local-db:start`
+1. Start the local DB if the task needs it: `npm run local-db:start`
 2. Set env vars and run the job’s main module:
    ```bash
    DB_HOST=127.0.0.1 DB_PORT=8081 DB_NAME=local DB_USER=localUser DB_PASSWORD=localPass \
    DEV_ENVIRONMENT=local \
-   npx ts-node --files src/fargate-jobs/<jobFolder>/main.ts
+   npx ts-node --files src/fargate-tasks/<taskFolder>/main.ts
    ```
-   Add any job-specific vars (e.g. `MAP_DATA_BUCKET_NAME=dev-map-data-bucket` for jobs that upload to S3). With `DEV_ENVIRONMENT=local`, S3 uploads and CloudFront invalidations are typically skipped.
-3. Some jobs use external tools (e.g. Tippecanoe); install them for full behavior, or run without for partial testing.
+   Add any task-specific vars (e.g. `MAP_DATA_BUCKET_NAME=dev-map-data-bucket` for tasks that upload to S3). With `DEV_ENVIRONMENT=local`, S3 uploads and CloudFront invalidations are typically skipped.
+3. Some tasks use external tools (e.g. Tippecanoe); install them for full behavior, or run without for partial testing.
 
-**Build and push images:** The pipeline builds and pushes all Fargate job images after a main stack deploy. To build/push manually, get the job’s ECR URI from the stack output `<Prefix>RepositoryUri`, then `docker build -f src/fargate-jobs/<jobFolder>/Dockerfile -t <uri> .` and `docker push <uri>`. See `.cursor/rules/fargate-jobs.mdc` for the full convention.
+**Build and push images:** The pipeline builds and pushes all Fargate task images after a main stack deploy. To build/push manually, get the task's ECR URI from the stack output `<Prefix>RepositoryUri`, then `docker build -f src/fargate-tasks/<taskFolder>/Dockerfile -t <uri> .` and `docker push <uri>`. See `.cursor/rules/fargate-tasks.mdc` for the full convention.
 
-### Running Fargate jobs from the AWS console
+### Running Fargate tasks from the AWS console
 
-You can run a Fargate task once from the ECS console (e.g. to re-run a tile job without waiting for the schedule):
+You can run a Fargate task once from the ECS console (e.g. to re-run a tile task without waiting for the schedule):
 
-1. In **AWS Console** go to **ECS** → **Clusters** → select the cluster that hosts the job (e.g. the one created by the WebScraper stack).
+1. In **AWS Console** go to **ECS** → **Clusters** → select the cluster that hosts the task (e.g. the one created by the WebScraper stack).
 2. Open the **Tasks** tab, click **Run new task**.
 3. Choose **Fargate**, the correct **Task definition** (e.g. `generateTrailTiles` or `generateRouteMarkerTiles`), the right **Cluster**, and **Launch type** Fargate.
 4. Under **Networking** (or **VPC and security groups**), set:
@@ -72,6 +72,22 @@ You can run a Fargate task once from the ECS console (e.g. to re-run a tile job 
    - **Security group:** `WebScraper-Prod-LambdaSecurityGroup`  
    Without these, the task may not reach RDS or S3.
 5. Run the task. Check **Logs** in the task detail for progress and errors.
+
+## RDS IAM authentication (direct connect)
+
+When not using RDS Proxy (`UseDatabaseProxy` = `false`), Lambdas and Fargate tasks connect to RDS using IAM database authentication. The stack enables this on the DB instance; you need two one-time steps:
+
+1. **Grant `rds_iam` to the DB user** (run once per environment, e.g. via bastion or a one-off connect):
+   ```sql
+   GRANT rds_iam TO "your_db_username";
+   ```
+   Use the same username as the `DatabaseUsername` stack parameter.
+
+2. **Set the `RdsDbiResourceId` parameter** so IAM roles can call `rds-db:connect`. After the first deploy, get the DBI resource ID from the RDS console (instance → Configuration) or:
+   ```bash
+   aws rds describe-db-instances --db-instance-identifier <devEnvironment>-db --query 'DBInstances[0].DbiResourceId' --output text
+   ```
+   Then update the stack (e.g. via pipeline or AWS Console) with `RdsDbiResourceId` = that value (e.g. `db-0ABCD1234`).
 
 ## Prereqs for local development
 1. Download and install [AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html)
@@ -84,6 +100,8 @@ You can run a Fargate task once from the ECS console (e.g. to re-run a tile job 
 8. (Optional, Recommended) Download and install a database browser of your choice. Personally I recommend [DBeaver](https://dbeaver.io/)
 
 ## Scripts
+* `npm run merge:main-template` - Merges all YAML under `cloudformation/stacks/main/` into `cloudformation/stacks/mergedMainTemplate.yaml` (used by SAM build and deploy). Uses the [cloudformation-yml-merger](https://github.com/dakoo/cloudformation-yml-merger) package via `scripts/mergeTemplate.ts`.
+* `npm run merge:api-template` - Merges all YAML under `cloudformation/stacks/api/` into `cloudformation/stacks/mergedApiTemplate.yaml` (used by API stack deploy in the pipeline). Uses the same package via `scripts/mergeTemplate.ts`.
 * `npm run scrape-lambda:ropewiki` - Builds the RopewikiScraper lambda function and invokes it with events/RopewikiScraperCronEvent.json. MUST RUN `npm run local-db:start` BEFORE THIS. MUST RUN `aws login` BEFORE THIS. LAMBDA WILL TIME OUT AFTER 900 SECONDS (15 MINUTES).
 * `npm run scrape:ropewiki` - Runs RopewikiScraper as a node script. MUST RUN `npm run local-db:start` BEFORE THIS
 * `npm run lint:dev` - Runs eslint in "fix" mode (will attempt to fix lint errors)

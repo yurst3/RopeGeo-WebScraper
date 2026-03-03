@@ -1,0 +1,77 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: S3 bucket for API docs and bucket policy
+
+Resources:
+  DocsBucket:
+    Type: 'AWS::S3::Bucket'
+    Properties:
+      BucketName:
+        'Fn::Sub': 'webscraper-${devEnvironment}-api-docs'
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+  DocsBucketPolicy:
+    Type: 'AWS::S3::BucketPolicy'
+    Properties:
+      Bucket:
+        Ref: DocsBucket
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Sid: AllowApiGatewayReadOpenApi
+            Effect: Allow
+            Principal:
+              Service: apigateway.amazonaws.com
+            Action: 's3:GetObject'
+            Resource:
+              - 'Fn::Sub':
+                  - '${BucketArn}/openapi.yaml'
+                  - BucketArn:
+                      'Fn::GetAtt': DocsBucket.Arn
+              - 'Fn::Sub':
+                  - '${BucketArn}/openapi.json'
+                  - BucketArn:
+                      'Fn::GetAtt': DocsBucket.Arn
+          - 'Fn::If':
+              - HasDocsBucketPipelineRole
+              - Sid: AllowPipelineUpload
+                Effect: Allow
+                Principal:
+                  AWS:
+                    Ref: DocsBucketPipelineRoleArn
+                Action:
+                  - 's3:ListBucket'
+                  - 's3:GetObject'
+                  - 's3:PutObject'
+                  - 's3:DeleteObject'
+                Resource:
+                  - 'Fn::GetAtt': DocsBucket.Arn
+                  - 'Fn::Sub':
+                      - '${BucketArn}/*'
+                      - BucketArn:
+                          'Fn::GetAtt': DocsBucket.Arn
+              - Ref: 'AWS::NoValue'
+          - 'Fn::If':
+              - HasCloudFrontDistribution
+              - Sid: AllowCloudFrontOAC
+                Effect: Allow
+                Principal:
+                  Service: cloudfront.amazonaws.com
+                Action:
+                  - 's3:GetObject'
+                  - 's3:ListBucket'
+                Resource:
+                  - 'Fn::GetAtt': DocsBucket.Arn
+                  - 'Fn::Sub': '${DocsBucket.Arn}/*'
+                Condition:
+                  StringEquals:
+                    'AWS:SourceArn':
+                      Ref: CloudFrontDistributionArn
+              - Ref: 'AWS::NoValue'
+Outputs:
+  DocsBucketName:
+    Description: S3 bucket for API documentation (OpenAPI/Redoc)
+    Value:
+      Ref: DocsBucket

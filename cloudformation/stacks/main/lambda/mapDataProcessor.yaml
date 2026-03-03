@@ -1,0 +1,64 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Lambda that processes map data (KML to MBTiles)
+
+Parameters:
+  MapDataPublicBaseUrl:
+    Type: String
+    Description: 'Public base URL for map data (e.g. https://api.webscraper.ropegeo.com). When set, GeoJSON/vector tile URLs use this instead of S3; use the CloudFront URL so traffic goes through CloudFront.'
+    Default: ''
+Resources:
+  MapDataProcessor:
+    Type: 'AWS::Serverless::Function'
+    Properties:
+      Description: A Lambda function that processes map data by converting KML files to MBTiles
+      Runtime: nodejs22.x
+      Architectures:
+        - arm64
+      CodeUri: ../../../
+      Handler: src/map-data/lambda-handlers/mainHandler.mainHandler
+      Events:
+        SQSEvent:
+          Type: SQS
+          Properties:
+            Queue:
+              'Fn::GetAtt': MapDataProcessingQueue.Arn
+            BatchSize: 10
+      MemorySize: 1024
+      Timeout: 900
+      VpcConfig:
+        SecurityGroupIds:
+          - Ref: LambdaSecurityGroup
+        SubnetIds:
+          - Ref: PrivateSubnet1
+      Role:
+        'Fn::GetAtt': MapDataProcessorRole.Arn
+      Environment:
+        Variables:
+          DEV_ENVIRONMENT:
+            Ref: devEnvironment
+          PROXY_URL:
+            Ref: ProxyUrl
+          DB_HOST:
+            'Fn::If':
+              - UseDatabaseProxyInProd
+              - 'Fn::GetAtt': RDSProxy.Endpoint
+              - 'Fn::GetAtt': Database.Endpoint.Address
+          DB_PORT:
+            'Fn::GetAtt': Database.Endpoint.Port
+          USE_DATABASE_PROXY:
+            Ref: UseDatabaseProxy
+          DB_NAME:
+            'Fn::Sub': '${devEnvironment}db'
+          DB_USER:
+            Ref: DatabaseUsername
+          DB_PASSWORD:
+            Ref: DatabasePassword
+          MAP_DATA_PROCESSING_QUEUE_URL:
+            Ref: MapDataProcessingQueue
+          MAP_DATA_PROCESSOR_TIMEOUT_SECONDS: '900'
+          MAP_DATA_BUCKET_NAME:
+            Ref: MapDataBucket
+          MAP_DATA_PUBLIC_BASE_URL:
+            Ref: MapDataPublicBaseUrl
+    Metadata:
+      BuildMethod: makefile

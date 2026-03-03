@@ -1,0 +1,97 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: IAM managed policies for Lambda (execution, S3, SQS, CloudFront)
+
+Resources:
+  LambdaExecutionPolicy:
+    Type: 'AWS::IAM::ManagedPolicy'
+    Properties:
+      ManagedPolicyName:
+        'Fn::Sub': '${AWS::StackName}-lambda-execution'
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Action:
+              - 'logs:CreateLogGroup'
+              - 'logs:CreateLogStream'
+              - 'logs:PutLogEvents'
+            Resource: '*'
+          - Effect: Allow
+            Action:
+              - 'ec2:CreateNetworkInterface'
+              - 'ec2:DescribeNetworkInterfaces'
+              - 'ec2:DescribeSecurityGroups'
+              - 'ec2:DescribeSubnets'
+              - 'ec2:DeleteNetworkInterface'
+            Resource: '*'
+  S3MapDataBucketPolicy:
+    Type: 'AWS::IAM::ManagedPolicy'
+    Properties:
+      ManagedPolicyName:
+        'Fn::Sub': '${AWS::StackName}-s3-mapdata-readwrite'
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Action: 's3:ListBucket'
+            Resource:
+              'Fn::GetAtt': MapDataBucket.Arn
+          - Effect: Allow
+            Action:
+              - 's3:PutObject'
+              - 's3:PutObjectAcl'
+              - 's3:DeleteObject'
+            Resource:
+              - 'Fn::Sub': '${MapDataBucket.Arn}/routeMarkers/*'
+              - 'Fn::Sub': '${MapDataBucket.Arn}/trails/*'
+          - Effect: Allow
+            Action: 's3:GetObject'
+            Resource:
+              'Fn::Sub': '${MapDataBucket.Arn}/geojson/*'
+  SQSRopewikiPageProcessingQueuePolicy:
+    Type: 'AWS::IAM::ManagedPolicy'
+    Properties:
+      ManagedPolicyName:
+        'Fn::Sub': '${AWS::StackName}-sqs-ropewiki-page-queue-readwrite'
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Action:
+              - 'sqs:SendMessage'
+              - 'sqs:ReceiveMessage'
+              - 'sqs:ChangeMessageVisibility'
+              - 'sqs:DeleteMessage'
+              - 'sqs:GetQueueAttributes'
+            Resource:
+              'Fn::GetAtt': RopewikiPageProcessingQueue.Arn
+  SQSMapDataProcessingQueuePolicy:
+    Type: 'AWS::IAM::ManagedPolicy'
+    Properties:
+      ManagedPolicyName:
+        'Fn::Sub': '${AWS::StackName}-sqs-mapdata-queue-readwrite'
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Action:
+              - 'sqs:SendMessage'
+              - 'sqs:ReceiveMessage'
+              - 'sqs:ChangeMessageVisibility'
+              - 'sqs:DeleteMessage'
+              - 'sqs:GetQueueAttributes'
+            Resource:
+              'Fn::GetAtt': MapDataProcessingQueue.Arn
+  CloudFrontInvalidationPolicy:
+    Type: 'AWS::IAM::ManagedPolicy'
+    Condition: HasCloudFrontDistribution
+    Properties:
+      ManagedPolicyName:
+        'Fn::Sub': '${AWS::StackName}-cloudfront-invalidation'
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Action: 'cloudfront:CreateInvalidation'
+            Resource:
+              Ref: CloudFrontDistributionArn

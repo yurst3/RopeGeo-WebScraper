@@ -1,0 +1,25 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: IAM policy for pipeline to invalidate CloudFront (API distribution)
+
+Resources:
+  PipelineCloudFrontInvalidationPolicy:
+    Type: 'AWS::IAM::ManagedPolicy'
+    Condition: HasPipelineExecutionRoleAndCloudFront
+    Properties:
+      ManagedPolicyName:
+        'Fn::Sub': '${AWS::StackName}-pipeline-cloudfront-invalidation'
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Action: 'cloudfront:CreateInvalidation'
+            Resource:
+              Ref: CloudFrontDistributionArn
+      Roles:
+        - Ref: PipelineExecutionRoleName
+Outputs:
+  PipelineCloudFrontInvalidationPolicyArn:
+    Condition: HasPipelineExecutionRoleAndCloudFront
+    Description: 'ARN of the managed policy that allows CloudFront cache invalidation for the API distribution (used by invalidate-prod-api-cloudfront). If PipelineExecutionRoleName or CloudFrontDistributionArn is not set, attach this policy to the pipeline role manually when needed.'
+    Value:
+      Ref: PipelineCloudFrontInvalidationPolicy

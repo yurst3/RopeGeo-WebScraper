@@ -1,0 +1,55 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: IAM role for API Gateway to invoke Lambda and Lambda permissions
+
+Resources:
+  ApiGatewayInvokeLambdaRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: apigateway.amazonaws.com
+            Action: 'sts:AssumeRole'
+      Policies:
+        - PolicyName: InvokeApiLambdas
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action: 'lambda:InvokeFunction'
+                Resource:
+                  - 'Fn::GetAtt': GetRoutes.Arn
+                  - 'Fn::GetAtt': GetRoutePreview.Arn
+                  - 'Fn::GetAtt': GetRopewikiPageView.Arn
+      Tags:
+        - Key: Name
+          Value:
+            'Fn::Sub': '${AWS::StackName}-apig-invoke-lambda'
+  GetRoutesApiGatewayPermission:
+    Type: 'AWS::Lambda::Permission'
+    Properties:
+      FunctionName:
+        Ref: GetRoutes
+      Action: 'lambda:InvokeFunction'
+      Principal: apigateway.amazonaws.com
+  GetRoutePreviewApiGatewayPermission:
+    Type: 'AWS::Lambda::Permission'
+    Properties:
+      FunctionName:
+        Ref: GetRoutePreview
+      Action: 'lambda:InvokeFunction'
+      Principal: apigateway.amazonaws.com
+  GetRopewikiPageViewApiGatewayPermission:
+    Type: 'AWS::Lambda::Permission'
+    Properties:
+      FunctionName:
+        Ref: GetRopewikiPageView
+      Action: 'lambda:InvokeFunction'
+      Principal: apigateway.amazonaws.com
+Outputs:
+  ApiGatewayInvokeLambdaRoleArn:
+    Description: IAM role ARN for API Gateway to invoke Lambda (for OpenAPI integration resolveYamlEnvs)
+    Value:
+      'Fn::GetAtt': ApiGatewayInvokeLambdaRole.Arn
