@@ -773,7 +773,6 @@ jobs:
         if: needs.deploy-prod-main.result == 'success'
         env:
           PROD_DATABASE_USERNAME: ${{ secrets.PROD_DATABASE_USERNAME }}
-          PROD_DATABASE_PASSWORD: ${{ secrets.PROD_DATABASE_PASSWORD }}
         run: |
           cleanup() {
             SSH_PID=$(pgrep -f "ssh.*5432:.*:5432" 2>/dev/null) || true
@@ -788,6 +787,10 @@ jobs:
             echo "Missing BASTION_IP, DB_ENDPOINT, or KEY_PAIR_ID from stack outputs."
             exit 1
           fi
+          if [ -z "$PROD_DATABASE_USERNAME" ]; then
+            echo "Error: PROD_DATABASE_USERNAME must be set as a repository secret for prod migrations."
+            exit 1
+          fi
           aws ssm get-parameter --name "/ec2/keypair/${KEY_PAIR_ID}" --with-decryption --query Parameter.Value --output text --region ${PROD_REGION} > bastion_key.pem
           chmod 600 bastion_key.pem
           for i in $(seq 1 18); do
@@ -799,6 +802,7 @@ jobs:
           done
           sleep 2
           ENCODED_USER=$(python3 -c "import urllib.parse, os; print(urllib.parse.quote(os.environ.get('PROD_DATABASE_USERNAME', ''), safe=''))")
-          ENCODED_PASS=$(python3 -c "import urllib.parse, os; print(urllib.parse.quote(os.environ.get('PROD_DATABASE_PASSWORD', ''), safe=''))")
-          DB_URL="postgres://${ENCODED_USER}:${ENCODED_PASS}@127.0.0.1:5432/productiondb?sslmode=require"
+          AUTH_TOKEN=$(aws rds generate-db-auth-token --hostname "${DB_ENDPOINT}" --port 5432 --username "${PROD_DATABASE_USERNAME}" --region "${PROD_REGION}")
+          ENCODED_TOKEN=$(python3 -c "import urllib.parse, sys; print(urllib.parse.quote(sys.stdin.read().strip(), safe=''))" <<< "${AUTH_TOKEN}")
+          DB_URL="postgres://${ENCODED_USER}:${ENCODED_TOKEN}@127.0.0.1:5432/productiondb?sslmode=require"
           dbmate --url "${DB_URL}" up

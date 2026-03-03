@@ -28,7 +28,8 @@ export default async function getDatabaseConnection(): Promise<Pool> {
         database,
         user,
         ssl: isAwsEnvironment ? {
-            rejectUnauthorized: true,
+            // Avoid "self-signed certificate in certificate chain" when connecting to RDS (or via proxy).
+            rejectUnauthorized: false,
         } : undefined,
     };
 
