@@ -73,22 +73,6 @@ You can run a Fargate task once from the ECS console (e.g. to re-run a tile task
    Without these, the task may not reach RDS or S3.
 5. Run the task. Check **Logs** in the task detail for progress and errors.
 
-## RDS IAM authentication (direct connect)
-
-When not using RDS Proxy (`UseDatabaseProxy` = `false`), Lambdas and Fargate tasks connect to RDS using IAM database authentication. The stack enables this on the DB instance; you need two one-time steps:
-
-1. **Grant `rds_iam` to the DB user** (run once per environment, e.g. via bastion or a one-off connect):
-   ```sql
-   GRANT rds_iam TO "your_db_username";
-   ```
-   Use the same username as the `DatabaseUsername` stack parameter.
-
-2. **Set the `RdsDbiResourceId` parameter** so IAM roles can call `rds-db:connect`. After the first deploy, get the DBI resource ID from the RDS console (instance → Configuration) or:
-   ```bash
-   aws rds describe-db-instances --db-instance-identifier <devEnvironment>-db --query 'DBInstances[0].DbiResourceId' --output text
-   ```
-   Then update the stack (e.g. via pipeline or AWS Console) with `RdsDbiResourceId` = that value (e.g. `db-0ABCD1234`).
-
 ## Prereqs for local development
 1. Download and install [AWS CLI](https://docs.aws.amazon.com/cli/latest/userguide/getting-started-install.html)
 2. Download and install [AWS SAM CLI](https://docs.aws.amazon.com/serverless-application-model/latest/developerguide/install-sam-cli.html)
