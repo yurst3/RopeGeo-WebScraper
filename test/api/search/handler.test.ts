@@ -157,6 +157,29 @@ describe('search handler', () => {
         });
     });
 
+    it('parses params from rawQueryString when queryStringParameters is missing (e.g. HTTP API)', async () => {
+        const result = await handler(
+            {
+                queryStringParameters: null,
+                rawQueryString:
+                    'name=arch&similarity=0.5&include-pages=true&include-regions=true&order=similarity&limit=20',
+            },
+            {},
+        );
+
+        expect(mockSearchRopewiki).toHaveBeenCalledWith(mockClient, {
+            name: 'arch',
+            similarityThreshold: 0.5,
+            includePages: true,
+            includeRegions: true,
+            regionId: null,
+            order: 'similarity',
+            limit: 20,
+            cursor: null,
+        });
+        expect(result.statusCode).toBe(200);
+    });
+
     it('passes optional params including limit and cursor to searchRopewiki', async () => {
         await handler(
             {
