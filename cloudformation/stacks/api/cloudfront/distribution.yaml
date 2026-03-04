@@ -132,6 +132,9 @@ Resources:
             - OPTIONS
           Compress: true
           CachePolicyId: 4135ea2d-6df8-44a3-9df3-4b5a84be39ad
+          # Forward query strings to API Gateway (CachingDisabled does not). Use AllViewerExceptHostHeader
+          # so API Gateway receives the origin Host header, not the viewer's.
+          OriginRequestPolicyId: b689b0a8-53d0-40ab-baf2-68738e2966ac
         CacheBehaviors:
           - PathPattern: /
             TargetOriginId: DocsBucket

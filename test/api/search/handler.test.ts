@@ -157,27 +157,20 @@ describe('search handler', () => {
         });
     });
 
-    it('parses params from rawQueryString when queryStringParameters is missing (e.g. HTTP API)', async () => {
-        const result = await handler(
-            {
-                queryStringParameters: null,
-                rawQueryString:
-                    'name=arch&similarity=0.5&include-pages=true&include-regions=true&order=similarity&limit=20',
-            },
-            {},
-        );
+    it('returns 400 when queryStringParameters is null', async () => {
+        const result = await handler({ queryStringParameters: null }, {});
 
-        expect(mockSearchRopewiki).toHaveBeenCalledWith(mockClient, {
-            name: 'arch',
-            similarityThreshold: 0.5,
-            includePages: true,
-            includeRegions: true,
-            regionId: null,
-            order: 'similarity',
-            limit: 20,
-            cursor: null,
-        });
-        expect(result.statusCode).toBe(200);
+        expect(mockSearchRopewiki).not.toHaveBeenCalled();
+        expect(result.statusCode).toBe(400);
+        expect(JSON.parse(result.body).error).toBe('Missing query string parameters');
+    });
+
+    it('returns 400 when queryStringParameters is undefined', async () => {
+        const result = await handler({}, {});
+
+        expect(mockSearchRopewiki).not.toHaveBeenCalled();
+        expect(result.statusCode).toBe(400);
+        expect(JSON.parse(result.body).error).toBe('Missing query string parameters');
     });
 
     it('passes optional params including limit and cursor to searchRopewiki', async () => {
