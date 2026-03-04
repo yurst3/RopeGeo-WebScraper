@@ -1,4 +1,4 @@
-\restrict jzOKyED0lesjlqR51JyddS4WfsfiHqXCsCdAzwYJHxMjzzdR50yfDmibKHA9052
+\restrict FYw7i34zUwYFzDmVVlONs6gWYi3rEpnPrcYftDhJ0rorI6KIuL4XqPDHBIgcCNK
 
 -- Dumped from database version 18.1 (Debian 18.1-1.pgdg13+2)
 -- Dumped by pg_dump version 18.1 (Homebrew)
@@ -14,6 +14,20 @@ SET check_function_bodies = false;
 SET xmloption = content;
 SET client_min_messages = warning;
 SET row_security = off;
+
+--
+-- Name: pg_trgm; Type: EXTENSION; Schema: -; Owner: -
+--
+
+CREATE EXTENSION IF NOT EXISTS pg_trgm WITH SCHEMA public;
+
+
+--
+-- Name: EXTENSION pg_trgm; Type: COMMENT; Schema: -; Owner: -
+--
+
+COMMENT ON EXTENSION pg_trgm IS 'text similarity measurement and index searching based on trigrams';
+
 
 SET default_tablespace = '';
 
@@ -347,10 +361,24 @@ ALTER TABLE ONLY public."RopewikiSiteLink"
 
 
 --
+-- Name: RopewikiPage_name_trgm; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "RopewikiPage_name_trgm" ON public."RopewikiPage" USING gin (name public.gin_trgm_ops);
+
+
+--
 -- Name: RopewikiPage_pageId_index; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX "RopewikiPage_pageId_index" ON public."RopewikiPage" USING btree ("pageId");
+
+
+--
+-- Name: RopewikiRegion_name_trgm; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "RopewikiRegion_name_trgm" ON public."RopewikiRegion" USING gin (name public.gin_trgm_ops);
 
 
 --
@@ -436,7 +464,7 @@ ALTER TABLE ONLY public."RopewikiRoute"
 -- PostgreSQL database dump complete
 --
 
-\unrestrict jzOKyED0lesjlqR51JyddS4WfsfiHqXCsCdAzwYJHxMjzzdR50yfDmibKHA9052
+\unrestrict FYw7i34zUwYFzDmVVlONs6gWYi3rEpnPrcYftDhJ0rorI6KIuL4XqPDHBIgcCNK
 
 
 --
@@ -465,4 +493,5 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20260206140000'),
     ('20260206150000'),
     ('20260302170000'),
-    ('20260303180000');
+    ('20260303180000'),
+    ('20260303190000');

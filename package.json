@@ -35,8 +35,8 @@
     "local-db:stop": "docker stop local-db",
     "test-db:start": "docker run --publish 127.0.0.1:8080:5432/tcp --name test-db -e POSTGRES_PASSWORD=testPass -e POSTGRES_USER=testUser -e POSTGRES_DB=test -d postgres; sleep 1; npm run migrate-test:up",
     "test-db:delete": "docker stop test-db; docker rm test-db",
-    "test:unit": "NODE_OPTIONS=\"$NODE_OPTIONS --experimental-vm-modules\" jest -i --testPathIgnorePatterns=/test/ropewiki/database/* --testPathIgnorePatterns=/test/ropewiki/integration/* --testPathIgnorePatterns=/test/map-data/database/* --testPathIgnorePatterns='/test/api/.*/database/' --testPathIgnorePatterns='/test/fargate-tasks/.*/database/'",
-    "test:database": "TEST_USER=testUser TEST_PASS=testPass TEST_HOST=127.0.0.1 TEST_PORT=8080 TEST_DB=test jest -i --testPathPatterns=/test/ropewiki/database/* --testPathPatterns=/test/ropewiki/integration/* --testPathPatterns=/test/map-data/database/* --testPathPatterns='/test/api/.*/database/' --testPathPatterns='/test/fargate-tasks/.*/database/'",
+    "test:unit": "NODE_OPTIONS=\"$NODE_OPTIONS --experimental-vm-modules\" jest -i --testPathIgnorePatterns=/test/ropewiki/database/* --testPathIgnorePatterns=/test/ropewiki/integration/* --testPathIgnorePatterns=/test/map-data/database/* --testPathIgnorePatterns='/test/api/.*/database/' --testPathIgnorePatterns='/test/api/.*/integration/' --testPathIgnorePatterns='/test/fargate-tasks/.*/database/'",
+    "test:database": "TEST_USER=testUser TEST_PASS=testPass TEST_HOST=127.0.0.1 TEST_PORT=8080 TEST_DB=test jest -i --testPathPatterns=/test/ropewiki/database/* --testPathPatterns=/test/ropewiki/integration/* --testPathPatterns=/test/map-data/database/* --testPathPatterns='/test/api/.*/database/' --testPathPatterns='/test/api/.*/integration/' --testPathPatterns='/test/fargate-tasks/.*/database/'",
     "test:local": "npm run test:unit && (npm run test-db:start && npm run test:database); R=$?; npm run test-db:delete || true; exit $R",
     "test:deploy": "NODE_OPTIONS=\"$NODE_OPTIONS --experimental-vm-modules\" jest -i"
   },
@@ -55,7 +55,7 @@
     "lodash": "^4.17.21",
     "pg": "^8.16.3",
     "puppeteer": "^22.5.0",
-    "ropegeo-common": "^1.0.16",
+    "ropegeo-common": "^1.1.3",
     "undici": "^7.11.0",
     "uuid": "^13.0.0",
     "zapatos": "^6.6.1"

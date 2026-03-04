@@ -1,0 +1,54 @@
+import * as db from 'zapatos/db';
+
+type Row = { region_id: string; score: number };
+
+/**
+ * For each region id, returns the popularity score of that region's most popular page.
+ * Score = quality * COALESCE(userVotes, 1).
+ * A region's pages include the region and all its descendant regions (e.g. Utah's
+ * most popular page may be Heaps Canyon in West Zion).
+ *
+ * @param conn - Database connection
+ * @param regionIds - Region uuid strings
+ * @returns Map from region id to score (regions with no pages are omitted)
+ */
+const getRegionBestPageScores = async (
+    conn: db.Queryable,
+    regionIds: string[],
+): Promise<Map<string, number>> => {
+    if (regionIds.length === 0) {
+        return new Map();
+    }
+
+    const rows = await db.sql<db.SQL, Row[]>`
+        WITH RECURSIVE rd AS (
+            SELECT id AS region_id, id AS descendant_id
+            FROM "RopewikiRegion"
+            WHERE id = ANY(${db.param(regionIds)}::uuid[])
+              AND "deletedAt" IS NULL
+            UNION ALL
+            SELECT rd.region_id, r2.id
+            FROM "RopewikiRegion" r2
+            INNER JOIN rd ON r2."parentRegion" = rd.descendant_id::text
+            WHERE r2."deletedAt" IS NULL
+        ),
+        best_pages AS (
+            SELECT DISTINCT ON (rd.region_id) rd.region_id,
+                (COALESCE(p.quality, 0) * COALESCE(p."userVotes", 1)) AS score
+            FROM rd
+            INNER JOIN "RopewikiPage" p
+              ON p.region = rd.descendant_id AND p."deletedAt" IS NULL
+            ORDER BY rd.region_id,
+                (COALESCE(p.quality, 0) * COALESCE(p."userVotes", 1)) DESC
+        )
+        SELECT region_id, score::float AS score FROM best_pages
+    `.run(conn);
+
+    const map = new Map<string, number>();
+    for (const r of rows) {
+        map.set(r.region_id, Number(r.score));
+    }
+    return map;
+};
+
+export default getRegionBestPageScores;

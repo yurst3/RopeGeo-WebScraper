@@ -1,0 +1,174 @@
+import { describe, it, expect, beforeEach, jest } from '@jest/globals';
+import { SearchParams, SearchResults } from 'ropegeo-common';
+import { SearchCursor } from 'ropegeo-common';
+import searchRopewiki from '../../../../src/api/search/util/searchRopewiki';
+
+const mockConn = {} as import('zapatos/db').Queryable;
+
+let mockGetAllowedRegionIds: jest.MockedFunction<
+    typeof import('../../../../src/api/search/database/getAllowedRegionIds').default
+>;
+let mockGetSearchPageIds: jest.MockedFunction<
+    typeof import('../../../../src/api/search/database/getSearchPageIds').getSearchPageIds
+>;
+let mockGetPageRowsByIds: jest.MockedFunction<
+    typeof import('../../../../src/api/search/database/getPageRowsByIds').default
+>;
+let mockGetRegionRowsByIds: jest.MockedFunction<
+    typeof import('../../../../src/api/search/database/getRegionRowsByIds').default
+>;
+let mockEnrichSearchResults: jest.MockedFunction<
+    typeof import('../../../../src/api/search/util/enrichSearchResults').enrichSearchResults
+>;
+
+jest.mock('../../../../src/api/search/database/getAllowedRegionIds', () => ({
+    __esModule: true,
+    default: jest.fn(),
+}));
+
+jest.mock('../../../../src/api/search/database/getSearchPageIds', () => ({
+    getSearchPageIds: jest.fn(),
+}));
+
+jest.mock('../../../../src/api/search/database/getPageRowsByIds', () => ({
+    __esModule: true,
+    default: jest.fn(),
+}));
+
+jest.mock('../../../../src/api/search/database/getRegionRowsByIds', () => ({
+    __esModule: true,
+    default: jest.fn(),
+}));
+
+jest.mock('../../../../src/api/search/util/enrichSearchResults', () => ({
+    enrichSearchResults: jest.fn(),
+}));
+
+describe('searchRopewiki', () => {
+    beforeEach(() => {
+        jest.clearAllMocks();
+        mockGetAllowedRegionIds =
+            require('../../../../src/api/search/database/getAllowedRegionIds').default;
+        mockGetSearchPageIds =
+            require('../../../../src/api/search/database/getSearchPageIds').getSearchPageIds;
+        mockGetPageRowsByIds =
+            require('../../../../src/api/search/database/getPageRowsByIds').default;
+        mockGetRegionRowsByIds =
+            require('../../../../src/api/search/database/getRegionRowsByIds').default;
+        mockEnrichSearchResults =
+            require('../../../../src/api/search/util/enrichSearchResults').enrichSearchResults;
+    });
+
+    it('returns empty SearchResults when allowedRegionIds is empty', async () => {
+        mockGetAllowedRegionIds.mockResolvedValue([]);
+
+        const params = new SearchParams('Test', 0.5, true, true, null, 'similarity', 20, null);
+        const result = await searchRopewiki(mockConn, params);
+
+        expect(mockGetAllowedRegionIds).toHaveBeenCalledWith(mockConn, null);
+        expect(mockGetSearchPageIds).not.toHaveBeenCalled();
+        expect(result.results).toEqual([]);
+        expect(result.nextCursor).toBe('');
+    });
+
+    it('returns empty SearchResults when getSearchPageIds returns no items', async () => {
+        mockGetAllowedRegionIds.mockResolvedValue(['region-1']);
+        mockGetSearchPageIds.mockResolvedValue({ items: [], hasMore: false });
+
+        const params = new SearchParams('Test', 0.5, true, true, null, 'similarity', 20, null);
+        const result = await searchRopewiki(mockConn, params);
+
+        expect(mockGetSearchPageIds).toHaveBeenCalledWith(
+            mockConn,
+            params,
+            ['region-1'],
+        );
+        expect(mockGetPageRowsByIds).not.toHaveBeenCalled();
+        expect(mockEnrichSearchResults).not.toHaveBeenCalled();
+        expect(result.results).toEqual([]);
+        expect(result.nextCursor).toBe('');
+    });
+
+    it('calls getPageRowsByIds, getRegionRowsByIds, enrichSearchResults and returns SearchResults', async () => {
+        const pageId = 'a1000001-0001-4000-8000-000000000001';
+        const regionId = 'b1000001-0001-4000-8000-000000000001';
+        const items: SearchCursor[] = [
+            new SearchCursor(0.9, 'page', pageId),
+            new SearchCursor(0.8, 'region', regionId),
+        ];
+        const mockPageRows = new Map();
+        const mockRegionRows = new Map();
+        const mockResults = [
+            { id: pageId, title: 'Page', regions: ['R1'], source: 'ropewiki' } as unknown,
+            { id: regionId, name: 'Region', parents: [], source: 'ropewiki' } as unknown,
+        ];
+
+        mockGetAllowedRegionIds.mockResolvedValue([regionId]);
+        mockGetSearchPageIds.mockResolvedValue({ items, hasMore: false });
+        mockGetPageRowsByIds.mockResolvedValue(mockPageRows);
+        mockGetRegionRowsByIds.mockResolvedValue(mockRegionRows);
+        mockEnrichSearchResults.mockResolvedValue(mockResults);
+
+        const params = new SearchParams('Test', 0.5, true, true, null, 'similarity', 20, null);
+        const result = await searchRopewiki(mockConn, params);
+
+        expect(mockGetPageRowsByIds).toHaveBeenCalledWith(
+            mockConn,
+            'Test',
+            0.5,
+            [pageId],
+        );
+        expect(mockGetRegionRowsByIds).toHaveBeenCalledWith(
+            mockConn,
+            [regionId],
+        );
+        expect(mockEnrichSearchResults).toHaveBeenCalledWith(
+            mockConn,
+            items,
+            mockPageRows,
+            mockRegionRows,
+        );
+        expect(result.results).toEqual(mockResults);
+        expect(result.nextCursor).toBe('');
+    });
+
+    it('returns nextCursor when hasMore is true', async () => {
+        const pageId = 'a1000001-0001-4000-8000-000000000001';
+        const items: SearchCursor[] = [
+            new SearchCursor(0.9, 'page', pageId),
+        ];
+        const lastCursor = new SearchCursor(0.9, 'page', pageId);
+
+        mockGetAllowedRegionIds.mockResolvedValue(['region-1']);
+        mockGetSearchPageIds.mockResolvedValue({ items, hasMore: true });
+        mockGetPageRowsByIds.mockResolvedValue(new Map([[pageId, {}]]));
+        mockGetRegionRowsByIds.mockResolvedValue(new Map());
+        mockEnrichSearchResults.mockResolvedValue([{ id: pageId } as unknown]);
+
+        const params = new SearchParams('Test', 0.5, true, true, null, 'similarity', 20, null);
+        const result = await searchRopewiki(mockConn, params);
+
+        expect(result.nextCursor).not.toBe('');
+        expect(result.results.length).toBe(1);
+    });
+
+    it('passes regionId to getAllowedRegionIds', async () => {
+        const regionId = 'c0000001-0001-4000-8000-000000000001';
+        mockGetAllowedRegionIds.mockResolvedValue([regionId]);
+        mockGetSearchPageIds.mockResolvedValue({ items: [], hasMore: false });
+
+        const params = new SearchParams(
+            'Test',
+            0.5,
+            true,
+            true,
+            regionId,
+            'similarity',
+            20,
+            null,
+        );
+        await searchRopewiki(mockConn, params);
+
+        expect(mockGetAllowedRegionIds).toHaveBeenCalledWith(mockConn, regionId);
+    });
+});

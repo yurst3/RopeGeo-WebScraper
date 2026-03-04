@@ -1,0 +1,89 @@
+# /search
+get:
+  summary: Search pages and regions by name
+  description: |
+    Fuzzy search over Ropewiki page and region names using trigram similarity.
+    Optional region filter restricts results to that region and its descendants (region ancestry).
+    Results can be ordered by similarity or by quality * userVotes.
+    Query parameter validation follows ropegeo-common SearchParams.fromQueryStringParams (required name; similarity in [0,1]; include-pages and include-regions as true/false/1/0; at least one of include-pages or include-regions true; region a valid UUID if present; order one of similarity|quality; limit a positive integer; cursor a valid base64url-encoded cursor if present).
+  operationId: search
+  tags:
+    - search
+  parameters:
+    - name: name
+      in: query
+      required: true
+      schema:
+        type: string
+        minLength: 1
+      description: Search term for fuzzy name matching (required, non-empty)
+    - name: similarity
+      in: query
+      required: false
+      schema:
+        type: number
+        minimum: 0
+        maximum: 1
+        default: 0.5
+      description: Minimum trigram similarity threshold; number in [0, 1]
+    - name: include-pages
+      in: query
+      required: false
+      schema:
+        type: boolean
+        default: true
+      description: Include page results; true, false, 1, or 0 (case-insensitive)
+    - name: include-regions
+      in: query
+      required: false
+      schema:
+        type: boolean
+        default: true
+      description: Include region results; true, false, 1, or 0 (case-insensitive). At least one of include-pages or include-regions must be true.
+    - name: region
+      in: query
+      required: false
+      schema:
+        type: string
+        format: uuid
+      description: Restrict results to this region and its descendants (region ancestry); must be a valid UUID if provided
+    - name: order
+      in: query
+      required: false
+      schema:
+        type: string
+        enum:
+          - similarity
+          - quality
+        default: similarity
+      description: Sort by name similarity or by quality * userVotes
+    - name: limit
+      in: query
+      required: false
+      schema:
+        type: integer
+        minimum: 1
+        default: 20
+      description: Page size
+    - name: cursor
+      in: query
+      required: false
+      schema:
+        type: string
+      description: Base64url-encoded cursor for the next page (from previous response nextCursor); must be valid if provided
+  x-amazon-apigateway-integration:
+    $ref: '../integrations/searchLambda.yaml#/SearchLambdaIntegration'
+  responses:
+    '200':
+      description: Successful response; list of matching pages and/or regions
+      content:
+        application/json:
+          schema:
+            $ref: '../components/searchResponse.yaml#/SearchResponse'
+          examples:
+            searchResponse:
+              $ref: '../examples/searchResponse.yaml'
+    '400':
+      description: Bad Request (e.g. missing or empty name, similarity not in [0,1], invalid include-pages/include-regions, both include-pages and include-regions false, invalid region UUID, invalid order, invalid limit, invalid cursor)
+    '500':
+      description: Internal server error

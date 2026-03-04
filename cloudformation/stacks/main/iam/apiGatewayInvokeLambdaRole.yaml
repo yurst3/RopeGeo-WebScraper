@@ -23,6 +23,7 @@ Resources:
                   - 'Fn::GetAtt': GetRoutes.Arn
                   - 'Fn::GetAtt': GetRoutePreview.Arn
                   - 'Fn::GetAtt': GetRopewikiPageView.Arn
+                  - 'Fn::GetAtt': Search.Arn
       Tags:
         - Key: Name
           Value:
@@ -46,6 +47,13 @@ Resources:
     Properties:
       FunctionName:
         Ref: GetRopewikiPageView
+      Action: 'lambda:InvokeFunction'
+      Principal: apigateway.amazonaws.com
+  SearchApiGatewayPermission:
+    Type: 'AWS::Lambda::Permission'
+    Properties:
+      FunctionName:
+        Ref: Search
       Action: 'lambda:InvokeFunction'
       Principal: apigateway.amazonaws.com
 Outputs:

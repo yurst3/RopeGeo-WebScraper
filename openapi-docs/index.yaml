@@ -18,6 +18,8 @@ paths:
     $ref: './paths/getRoutePreview.yaml'
   /ropewiki/page/{id}:
     $ref: './paths/getRopewikiPageView.yaml'
+  /search:
+    $ref: './paths/search.yaml'
   /docs/{file}:
     $ref: './paths/getApiDocs.yaml'
   /mapdata/{path}:
