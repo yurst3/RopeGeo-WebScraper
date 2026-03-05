@@ -12,6 +12,8 @@ value:
       title: Imlay Canyon
       regions:
         - Utah
+      aka:
+        - Imlay
       difficulty:
         technical: "3"
         water: B

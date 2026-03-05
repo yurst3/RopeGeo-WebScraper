@@ -3,6 +3,7 @@ import type { GetRopewikiPagePreviewRow } from 'ropegeo-common';
 
 export type PageRow = GetRopewikiPagePreviewRow & {
     mapData: string | null;
+    aka: string[];
 };
 
 /**
@@ -43,7 +44,12 @@ async function getPageRowsByIds(
             ) AS "bannerFileUrl",
             p.url,
             p.permits,
-            rr."mapData"
+            rr."mapData",
+            (
+                SELECT COALESCE(array_agg(a.name ORDER BY a.name), '{}')
+                FROM "RopewikiAkaName" a
+                WHERE a."ropewikiPage" = p.id AND a."deletedAt" IS NULL
+            ) AS "aka"
         FROM "RopewikiPage" p
         INNER JOIN "RopewikiRegion" r ON r.id = p.region AND r."deletedAt" IS NULL
         LEFT JOIN "RopewikiRoute" rr ON rr."ropewikiPage" = p.id AND rr."deletedAt" IS NULL
@@ -56,6 +62,7 @@ async function getPageRowsByIds(
         map.set(row.pageId, {
             ...row,
             mapData: row.mapData ?? null,
+            aka: row.aka ?? [],
         });
     }
     return map;

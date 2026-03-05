@@ -38,7 +38,12 @@ const getRopewikiPagePreview = async (
                   AND i."deletedAt" IS NULL
                 ORDER BY i."order" ASC NULLS LAST
                 LIMIT 1
-            ) AS "bannerFileUrl"
+            ) AS "bannerFileUrl",
+            (
+                SELECT COALESCE(array_agg(a.name ORDER BY a.name), '{}')
+                FROM "RopewikiAkaName" a
+                WHERE a."ropewikiPage" = p.id AND a."deletedAt" IS NULL
+            ) AS "aka"
         FROM "RopewikiPage" p
         INNER JOIN "RopewikiRegion" r ON r.id = p.region AND r."deletedAt" IS NULL
         WHERE p.id = ${db.param(pageId)}::uuid
@@ -53,7 +58,8 @@ const getRopewikiPagePreview = async (
     const regionLineage = await getRopewikiRegionLineage(conn, row.regionId);
     const regions =
         regionLineage.length > 0 ? regionLineage.map((r) => r.name) : [row.regionName];
-    return PagePreview.fromDbRow(row, ropewikiRoute.mapData ?? null, regions);
+    const aka = (row as GetRopewikiPagePreviewRow & { aka?: string[] }).aka ?? [];
+    return PagePreview.fromDbRow(row, ropewikiRoute.mapData ?? null, regions, aka);
 };
 
 export default getRopewikiPagePreview;

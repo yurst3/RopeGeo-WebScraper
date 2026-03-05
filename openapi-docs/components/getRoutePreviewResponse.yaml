@@ -12,6 +12,7 @@ PagePreview:
     - source
     - title
     - regions
+    - aka
     - difficulty
     - previewType
   properties:
@@ -44,6 +45,11 @@ PagePreview:
     regions:
       type: array
       description: Region names (not ids) the page belongs to, in ascending order of depth (smallest to largest regions; e.g. specific area first, then parent region, then root)
+      items:
+        type: string
+    aka:
+      type: array
+      description: Also-known-as (AKA) names for the page
       items:
         type: string
     difficulty:

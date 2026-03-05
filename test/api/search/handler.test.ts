@@ -119,6 +119,7 @@ describe('search handler', () => {
                 ratingCount: 42,
                 title: 'Imlay Canyon',
                 regions: ['Utah'],
+                aka: [],
                 difficulty: { technical: '3', water: 'B', time: 'III', risk: null },
                 mapData: null,
                 externalLink: 'https://ropewiki.com/Imlay_Canyon',

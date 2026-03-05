@@ -10,6 +10,8 @@ value:
     title: Bear Creek Canyon
     regions:
       - Utah
+    aka:
+      - Bear Creek
     difficulty:
       technical: "3"
       water: A
@@ -27,6 +29,7 @@ value:
     title: Devil Gulch
     regions:
       - Colorado
+    aka: []
     difficulty:
       technical: null
       water: null

@@ -28,6 +28,7 @@ describe('getRopewikiPagePreview (integration)', () => {
         await db.sql`DELETE FROM "RopewikiImage"`.run(conn);
         await db.sql`DELETE FROM "RopewikiRoute"`.run(conn);
         await db.sql`DELETE FROM "Route"`.run(conn);
+        await db.sql`DELETE FROM "RopewikiAkaName"`.run(conn);
         await db.sql`DELETE FROM "RopewikiPage"`.run(conn);
         await db.sql`DELETE FROM "RopewikiRegion"`.run(conn);
 
@@ -49,6 +50,7 @@ describe('getRopewikiPagePreview (integration)', () => {
         await db.sql`DELETE FROM "RopewikiImage"`.run(conn);
         await db.sql`DELETE FROM "RopewikiRoute"`.run(conn);
         await db.sql`DELETE FROM "Route"`.run(conn);
+        await db.sql`DELETE FROM "RopewikiAkaName"`.run(conn);
         await db.sql`DELETE FROM "RopewikiPage"`.run(conn);
     });
 
@@ -56,6 +58,7 @@ describe('getRopewikiPagePreview (integration)', () => {
         await db.sql`DELETE FROM "RopewikiImage"`.run(conn);
         await db.sql`DELETE FROM "RopewikiRoute"`.run(conn);
         await db.sql`DELETE FROM "Route"`.run(conn);
+        await db.sql`DELETE FROM "RopewikiAkaName"`.run(conn);
         await db.sql`DELETE FROM "RopewikiPage"`.run(conn);
         await db.sql`DELETE FROM "RopewikiRegion"`.run(conn);
         await pool.end();
@@ -90,6 +93,7 @@ describe('getRopewikiPagePreview (integration)', () => {
             source: PageDataSource.Ropewiki,
             title: 'Bear Creek Canyon',
             regions: ['Utah'],
+            aka: [],
             rating: 4.5,
             ratingCount: 12,
             difficulty: { technical: '3', water: 'A', time: 'II', risk: 'PG13' },
@@ -97,6 +101,33 @@ describe('getRopewikiPagePreview (integration)', () => {
             externalLink: 'https://ropewiki.com/Bear_Creek_Canyon',
         });
         expect(result.imageUrl).toBeNull();
+    });
+
+    it('includes aka names in PagePreview when page has RopewikiAkaName rows', async () => {
+        const routeId = '44444444-4444-4444-4444-444444444444';
+        const pageId = 'b2c3d4e5-f6a7-8901-bcde-f12345678901';
+        await db
+            .insert('RopewikiPage', {
+                id: pageId,
+                pageId: 'aka-test',
+                name: 'AKA Test Page',
+                region: testRegionId,
+                url: 'https://ropewiki.com/AKA_Test_Page',
+                latestRevisionDate: '2025-01-01T00:00:00' as db.TimestampString,
+                permits: 'No',
+            })
+            .run(conn);
+        await db
+            .insert('RopewikiAkaName', { ropewikiPage: pageId, name: 'Other AKA' })
+            .run(conn);
+        await db
+            .insert('RopewikiAkaName', { ropewikiPage: pageId, name: 'Bear Creek' })
+            .run(conn);
+
+        const ropewikiRoute = new RopewikiRoute(routeId, pageId);
+        const result = await getRopewikiPagePreview(conn, ropewikiRoute);
+
+        expect(result.aka).toEqual(['Bear Creek', 'Other AKA']);
     });
 
     it('returns full region lineage (root to leaf) when region has parent', async () => {

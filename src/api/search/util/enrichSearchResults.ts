@@ -64,7 +64,7 @@ export async function enrichSearchResults(
             const regions =
                 lineage.length > 0 ? lineage.map((r) => r.name) : [row.regionName];
             results.push(
-                PagePreview.fromDbRow(row, row.mapData ?? null, regions),
+                PagePreview.fromDbRow(row, row.mapData ?? null, regions, row.aka ?? []),
             );
         } else {
             const row = regionRowsById.get(item.id);
