@@ -28,7 +28,7 @@ describe('getPageRowsByIds (integration)', () => {
                 parentRegion: null,
                 name: 'PageRowsTestRegion',
                 latestRevisionDate: '2025-01-01T00:00:00' as db.TimestampString,
-                pageCount: 0,
+                rawPageCount: 0,
                 level: 0,
                 bestMonths: [],
                 url: 'https://ropewiki.com/PageRowsTestRegion',

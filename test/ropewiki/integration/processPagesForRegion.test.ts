@@ -38,7 +38,7 @@ describe('processPagesForRegion (integration)', () => {
                 parentRegion: null,
                 name: regionName,
                 latestRevisionDate: '2025-01-01T00:00:00' as db.TimestampString,
-                pageCount: 0,
+                rawPageCount: 0,
                 level: 0,
                 bestMonths: JSON.stringify([]),
                 url: 'https://ropewiki.com/Test_Region',

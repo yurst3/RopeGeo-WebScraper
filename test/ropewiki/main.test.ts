@@ -15,18 +15,21 @@ jest.mock('../../src/ropewiki/processors/processRegions');
 jest.mock('../../src/ropewiki/util/getRegionsUnderLimit');
 jest.mock('../../src/ropewiki/processors/processPagesForRegion');
 jest.mock('../../src/ropewiki/processors/processRoutes');
+jest.mock('../../src/ropewiki/database/updateRegionTrueCounts');
 
 import getDatabaseConnection from '../../src/helpers/getDatabaseConnection';
 import processRegions from '../../src/ropewiki/processors/processRegions';
 import getRegionCountsUnderLimit from '../../src/ropewiki/util/getRegionsUnderLimit';
 import { getProcessPagesForRegionFn } from '../../src/ropewiki/processors/processPagesForRegion';
 import processRoutes from '../../src/ropewiki/processors/processRoutes';
+import updateRegionTrueCounts from '../../src/ropewiki/database/updateRegionTrueCounts';
 
 const mockGetDatabaseConnection = getDatabaseConnection as jest.MockedFunction<typeof getDatabaseConnection>;
 const mockProcessRegions = processRegions as jest.MockedFunction<typeof processRegions>;
 const mockGetRegionCountsUnderLimit = getRegionCountsUnderLimit as jest.MockedFunction<typeof getRegionCountsUnderLimit>;
 const mockGetProcessPagesForRegionFn = getProcessPagesForRegionFn as jest.MockedFunction<typeof getProcessPagesForRegionFn>;
 const mockProcessRoutes = processRoutes as jest.MockedFunction<typeof processRoutes>;
+const mockUpdateRegionTrueCounts = updateRegionTrueCounts as jest.MockedFunction<typeof updateRegionTrueCounts>;
 
 describe('main', () => {
     let mockPool: Pool;
@@ -61,6 +64,7 @@ describe('main', () => {
         mockGetRegionCountsUnderLimit.mockResolvedValue([]);
         mockGetProcessPagesForRegionFn.mockReturnValue(mockProcessPagesForRegion);
         mockProcessRoutes.mockResolvedValue(undefined);
+        mockUpdateRegionTrueCounts.mockResolvedValue(undefined);
     });
 
     afterEach(() => {

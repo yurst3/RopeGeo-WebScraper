@@ -18,12 +18,13 @@ SearchResponse:
 
 RegionPreview:
   type: object
-  description: Preview of a region (id, name, parents, pageCount, imageUrl, source)
+  description: Preview of a region (id, name, parents, pageCount, regionCount, imageUrl, source)
   required:
     - id
     - name
     - parents
     - pageCount
+    - regionCount
     - previewType
     - source
   properties:
@@ -41,7 +42,10 @@ RegionPreview:
         type: string
     pageCount:
       type: integer
-      description: Number of pages in the region (from RopewikiRegion)
+      description: Number of pages in this region and all descendant regions (truePageCountWithDescendents)
+    regionCount:
+      type: integer
+      description: Number of direct child regions (trueRegionCount)
     previewType:
       type: string
       description: Discriminator for the preview type; always "region" for RegionPreview

@@ -14,7 +14,7 @@ const upsertRegions = async (
 
     const results = await db
         .upsert('RopewikiRegion', rows, ['name', 'parentRegion'], {
-            updateColumns: ['pageCount', 'level', 'overview', 'bestMonths', 'isMajorRegion', 'isTopLevelRegion', 'latestRevisionDate', 'url', 'updatedAt', 'deletedAt'],
+            updateColumns: ['rawPageCount', 'level', 'overview', 'bestMonths', 'isMajorRegion', 'isTopLevelRegion', 'latestRevisionDate', 'url', 'updatedAt', 'deletedAt'],
         })
         .run(conn);
 

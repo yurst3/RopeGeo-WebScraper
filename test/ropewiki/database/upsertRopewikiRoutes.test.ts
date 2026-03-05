@@ -36,7 +36,7 @@ describe('upsertRopewikiRoutes (integration)', () => {
                     parentRegion: null,
                     name: 'Test Region',
                     latestRevisionDate,
-                    pageCount: 0,
+                    rawPageCount: 0,
                     level: 0,
                     overview: null,
                     bestMonths: JSON.stringify([]),

@@ -4,7 +4,14 @@ export class RopewikiRegion {
     id: string | undefined
     name: string
     parentRegion: string | undefined
+    /** Raw page count from getRegions API (stored as rawPageCount in DB). */
     pageCount: number
+    /** Actual number of pages in this region (computed). */
+    truePageCount: number | null
+    /** Number of direct child regions (computed). */
+    trueRegionCount: number | null
+    /** Pages in this region plus all descendant regions (computed). */
+    truePageCountWithDescendents: number | null
     level: number
     overview: string | undefined
     bestMonths: string[]
@@ -29,6 +36,9 @@ export class RopewikiRegion {
         this.name = name;
         this.parentRegion = parentRegion;
         this.pageCount = pageCount;
+        this.truePageCount = null;
+        this.trueRegionCount = null;
+        this.truePageCountWithDescendents = null;
         this.level = level;
         this.overview = overview;
         this.bestMonths = bestMonths;
@@ -105,7 +115,7 @@ export class RopewikiRegion {
         const row: s.RopewikiRegion.Insertable = {
             name: this.name,
             parentRegion: this.parentRegion ?? null,
-            pageCount: this.pageCount,
+            rawPageCount: this.pageCount,
             level: this.level,
             overview: this.overview ?? null,
             bestMonths: this.bestMonths && this.bestMonths.length > 0 ? JSON.stringify(this.bestMonths) : '[]',
@@ -129,11 +139,10 @@ export class RopewikiRegion {
         // Parse JSON fields back to their original format
         const bestMonths = row.bestMonths as string[] | null;
 
-        // Create instance using constructor
-        return new RopewikiRegion(
+        const region = new RopewikiRegion(
             row.name,
             row.parentRegion ?? undefined,
-            row.pageCount,
+            row.rawPageCount,
             row.level,
             row.overview ?? undefined,
             bestMonths ?? [],
@@ -143,6 +152,10 @@ export class RopewikiRegion {
             row.url,
             row.id
         );
+        region.truePageCount = row.truePageCount ?? null;
+        region.trueRegionCount = row.trueRegionCount ?? null;
+        region.truePageCountWithDescendents = row.truePageCountWithDescendents ?? null;
+        return region;
     }
 
     // https://ropewiki.com/index.php?title=Special:Properties&limit=500&offset=0

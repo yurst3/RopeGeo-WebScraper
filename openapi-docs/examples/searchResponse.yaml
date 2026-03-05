@@ -28,5 +28,6 @@ value:
       parents:
         - Utah
       pageCount: 12
+      regionCount: 2
       imageUrl: null
       source: ropewiki

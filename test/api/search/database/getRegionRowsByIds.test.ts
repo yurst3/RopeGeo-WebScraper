@@ -26,7 +26,7 @@ describe('getRegionRowsByIds (integration)', () => {
                 parentRegion: null,
                 name: 'RegionRowsTestOne',
                 latestRevisionDate: '2025-01-01T00:00:00' as db.TimestampString,
-                pageCount: 10,
+                rawPageCount: 10,
                 level: 0,
                 bestMonths: [],
                 url: 'https://ropewiki.com/RegionRowsTestOne',
@@ -38,7 +38,7 @@ describe('getRegionRowsByIds (integration)', () => {
                 parentRegion: region1Id,
                 name: 'RegionRowsTestTwo',
                 latestRevisionDate: '2025-01-01T00:00:00' as db.TimestampString,
-                pageCount: 3,
+                rawPageCount: 3,
                 level: 1,
                 bestMonths: [],
                 url: 'https://ropewiki.com/RegionRowsTestTwo',
@@ -67,13 +67,15 @@ describe('getRegionRowsByIds (integration)', () => {
         expect(r1.id).toBe(region1Id);
         expect(r1.name).toBe('RegionRowsTestOne');
         expect(r1.url).toBe('https://ropewiki.com/RegionRowsTestOne');
-        expect(r1.pageCount).toBe(10);
+        expect(r1.pageCount).toBe(0); // truePageCountWithDescendents (null until updateRegionTrueCounts runs)
+        expect(r1.regionCount).toBe(0); // trueRegionCount (null until updateRegionTrueCounts runs)
 
         const r2 = result.get(region2Id)!;
         expect(r2.id).toBe(region2Id);
         expect(r2.name).toBe('RegionRowsTestTwo');
         expect(r2.url).toBe('https://ropewiki.com/RegionRowsTestTwo');
-        expect(r2.pageCount).toBe(3);
+        expect(r2.pageCount).toBe(0);
+        expect(r2.regionCount).toBe(0);
     });
 
     it('returns map keyed by region id', async () => {
@@ -92,7 +94,7 @@ describe('getRegionRowsByIds (integration)', () => {
                 name: 'RegionRowsDeleted',
                 latestRevisionDate:
                     '2025-01-01T00:00:00' as db.TimestampString,
-                pageCount: 0,
+                rawPageCount: 0,
                 level: 0,
                 bestMonths: [],
                 url: 'https://ropewiki.com/RegionRowsDeleted',

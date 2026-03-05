@@ -2658,17 +2658,35 @@ declare module 'zapatos/schema' {
       */
       overview: string | null;
       /**
-      * **RopewikiRegion.pageCount**
-      * - `int4` in database
-      * - `NOT NULL`, no default
-      */
-      pageCount: number;
-      /**
       * **RopewikiRegion.parentRegion**
       * - `text` in database
       * - Nullable, no default
       */
       parentRegion: string | null;
+      /**
+      * **RopewikiRegion.rawPageCount**
+      * - `int4` in database
+      * - `NOT NULL`, no default
+      */
+      rawPageCount: number;
+      /**
+      * **RopewikiRegion.truePageCount**
+      * - `int4` in database
+      * - Nullable, no default
+      */
+      truePageCount: number | null;
+      /**
+      * **RopewikiRegion.truePageCountWithDescendents**
+      * - `int4` in database
+      * - Nullable, no default
+      */
+      truePageCountWithDescendents: number | null;
+      /**
+      * **RopewikiRegion.trueRegionCount**
+      * - `int4` in database
+      * - Nullable, no default
+      */
+      trueRegionCount: number | null;
       /**
       * **RopewikiRegion.updatedAt**
       * - `timestamp` in database
@@ -2744,17 +2762,35 @@ declare module 'zapatos/schema' {
       */
       overview: string | null;
       /**
-      * **RopewikiRegion.pageCount**
-      * - `int4` in database
-      * - `NOT NULL`, no default
-      */
-      pageCount: number;
-      /**
       * **RopewikiRegion.parentRegion**
       * - `text` in database
       * - Nullable, no default
       */
       parentRegion: string | null;
+      /**
+      * **RopewikiRegion.rawPageCount**
+      * - `int4` in database
+      * - `NOT NULL`, no default
+      */
+      rawPageCount: number;
+      /**
+      * **RopewikiRegion.truePageCount**
+      * - `int4` in database
+      * - Nullable, no default
+      */
+      truePageCount: number | null;
+      /**
+      * **RopewikiRegion.truePageCountWithDescendents**
+      * - `int4` in database
+      * - Nullable, no default
+      */
+      truePageCountWithDescendents: number | null;
+      /**
+      * **RopewikiRegion.trueRegionCount**
+      * - `int4` in database
+      * - Nullable, no default
+      */
+      trueRegionCount: number | null;
       /**
       * **RopewikiRegion.updatedAt**
       * - `timestamp` in database
@@ -2830,17 +2866,35 @@ declare module 'zapatos/schema' {
       */
       overview?: string | db.Parameter<string> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, string | db.Parameter<string> | db.SQLFragment | db.ParentColumn>;
       /**
-      * **RopewikiRegion.pageCount**
-      * - `int4` in database
-      * - `NOT NULL`, no default
-      */
-      pageCount?: number | db.Parameter<number> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, number | db.Parameter<number> | db.SQLFragment | db.ParentColumn>;
-      /**
       * **RopewikiRegion.parentRegion**
       * - `text` in database
       * - Nullable, no default
       */
       parentRegion?: string | db.Parameter<string> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, string | db.Parameter<string> | db.SQLFragment | db.ParentColumn>;
+      /**
+      * **RopewikiRegion.rawPageCount**
+      * - `int4` in database
+      * - `NOT NULL`, no default
+      */
+      rawPageCount?: number | db.Parameter<number> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, number | db.Parameter<number> | db.SQLFragment | db.ParentColumn>;
+      /**
+      * **RopewikiRegion.truePageCount**
+      * - `int4` in database
+      * - Nullable, no default
+      */
+      truePageCount?: number | db.Parameter<number> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, number | db.Parameter<number> | db.SQLFragment | db.ParentColumn>;
+      /**
+      * **RopewikiRegion.truePageCountWithDescendents**
+      * - `int4` in database
+      * - Nullable, no default
+      */
+      truePageCountWithDescendents?: number | db.Parameter<number> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, number | db.Parameter<number> | db.SQLFragment | db.ParentColumn>;
+      /**
+      * **RopewikiRegion.trueRegionCount**
+      * - `int4` in database
+      * - Nullable, no default
+      */
+      trueRegionCount?: number | db.Parameter<number> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, number | db.Parameter<number> | db.SQLFragment | db.ParentColumn>;
       /**
       * **RopewikiRegion.updatedAt**
       * - `timestamp` in database
@@ -2916,17 +2970,35 @@ declare module 'zapatos/schema' {
       */
       overview?: string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment;
       /**
-      * **RopewikiRegion.pageCount**
-      * - `int4` in database
-      * - `NOT NULL`, no default
-      */
-      pageCount: number | db.Parameter<number> | db.SQLFragment;
-      /**
       * **RopewikiRegion.parentRegion**
       * - `text` in database
       * - Nullable, no default
       */
       parentRegion?: string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment;
+      /**
+      * **RopewikiRegion.rawPageCount**
+      * - `int4` in database
+      * - `NOT NULL`, no default
+      */
+      rawPageCount: number | db.Parameter<number> | db.SQLFragment;
+      /**
+      * **RopewikiRegion.truePageCount**
+      * - `int4` in database
+      * - Nullable, no default
+      */
+      truePageCount?: number | db.Parameter<number> | null | db.DefaultType | db.SQLFragment;
+      /**
+      * **RopewikiRegion.truePageCountWithDescendents**
+      * - `int4` in database
+      * - Nullable, no default
+      */
+      truePageCountWithDescendents?: number | db.Parameter<number> | null | db.DefaultType | db.SQLFragment;
+      /**
+      * **RopewikiRegion.trueRegionCount**
+      * - `int4` in database
+      * - Nullable, no default
+      */
+      trueRegionCount?: number | db.Parameter<number> | null | db.DefaultType | db.SQLFragment;
       /**
       * **RopewikiRegion.updatedAt**
       * - `timestamp` in database
@@ -3002,17 +3074,35 @@ declare module 'zapatos/schema' {
       */
       overview?: string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment | db.SQLFragment<any, string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment>;
       /**
-      * **RopewikiRegion.pageCount**
-      * - `int4` in database
-      * - `NOT NULL`, no default
-      */
-      pageCount?: number | db.Parameter<number> | db.SQLFragment | db.SQLFragment<any, number | db.Parameter<number> | db.SQLFragment>;
-      /**
       * **RopewikiRegion.parentRegion**
       * - `text` in database
       * - Nullable, no default
       */
       parentRegion?: string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment | db.SQLFragment<any, string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment>;
+      /**
+      * **RopewikiRegion.rawPageCount**
+      * - `int4` in database
+      * - `NOT NULL`, no default
+      */
+      rawPageCount?: number | db.Parameter<number> | db.SQLFragment | db.SQLFragment<any, number | db.Parameter<number> | db.SQLFragment>;
+      /**
+      * **RopewikiRegion.truePageCount**
+      * - `int4` in database
+      * - Nullable, no default
+      */
+      truePageCount?: number | db.Parameter<number> | null | db.DefaultType | db.SQLFragment | db.SQLFragment<any, number | db.Parameter<number> | null | db.DefaultType | db.SQLFragment>;
+      /**
+      * **RopewikiRegion.truePageCountWithDescendents**
+      * - `int4` in database
+      * - Nullable, no default
+      */
+      truePageCountWithDescendents?: number | db.Parameter<number> | null | db.DefaultType | db.SQLFragment | db.SQLFragment<any, number | db.Parameter<number> | null | db.DefaultType | db.SQLFragment>;
+      /**
+      * **RopewikiRegion.trueRegionCount**
+      * - `int4` in database
+      * - Nullable, no default
+      */
+      trueRegionCount?: number | db.Parameter<number> | null | db.DefaultType | db.SQLFragment | db.SQLFragment<any, number | db.Parameter<number> | null | db.DefaultType | db.SQLFragment>;
       /**
       * **RopewikiRegion.updatedAt**
       * - `timestamp` in database

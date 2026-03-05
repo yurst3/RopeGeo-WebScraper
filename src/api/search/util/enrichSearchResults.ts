@@ -78,6 +78,7 @@ export async function enrichSearchResults(
                     row.name,
                     parents,
                     row.pageCount,
+                    row.regionCount,
                     imageUrl,
                     PageDataSource.Ropewiki,
                 ),

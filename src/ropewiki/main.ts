@@ -5,6 +5,7 @@ import type { ProcessRopewikiRoutesHookFn } from './hook-functions/processRopewi
 import getRegionCountsUnderLimit from './util/getRegionsUnderLimit';
 import getDatabaseConnection from '../helpers/getDatabaseConnection';
 import processRoutes from "./processors/processRoutes";
+import updateRegionTrueCounts from "./database/updateRegionTrueCounts";
 import { nodeProcessPagesChunk } from "./hook-functions/processPagesChunk";
 import { nodeProcessRopewikiRoutes } from "./hook-functions/processRopewikiRoutes";
 import RopewikiPage from "./types/page";
@@ -46,10 +47,11 @@ export const main = async (
             updatedPages.push(...parsedPages);
         }
 
-        // Generate/update routes for pages that were updated
-        if (event.processRoutes) {
-            await processRoutes(pool, updatedPages, processRopewikiRoutesHookFn);
-        }
+        // Update region true counts and optionally process routes (in parallel when both run)
+        await Promise.all([
+            updateRegionTrueCounts(pool),
+            event.processRoutes ? processRoutes(pool, updatedPages, processRopewikiRoutesHookFn) : Promise.resolve(),
+        ]);
 
         const elapsedTimeMs = new Date().getTime() - beginTime.getTime();
         const elapsedTimeSeconds = Math.floor(elapsedTimeMs / 1000);

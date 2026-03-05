@@ -48,6 +48,7 @@ function makeRegionRow(overrides: Partial<RegionRow> & { id: string }): RegionRo
         name: overrides.name ?? 'Test Region',
         url: overrides.url ?? 'https://example.com/region',
         pageCount: overrides.pageCount ?? 0,
+        regionCount: overrides.regionCount ?? 0,
     };
 }
 

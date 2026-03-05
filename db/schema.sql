@@ -1,4 +1,4 @@
-\restrict i2mPmdtfsriUJfEjUxeyoImNvGKMkh9sQRgFvSXdqlf5rgSmqEu2hSNLizJoc2v
+\restrict d65twIBPbH6bIicG1cXw07NuGmDLMeu9fGY4GzLgdhJmZAEvCJHDs5p1xS6eDW9
 
 -- Dumped from database version 18.1 (Debian 18.1-1.pgdg13+2)
 -- Dumped by pg_dump version 18.1 (Homebrew)
@@ -176,13 +176,16 @@ CREATE TABLE public."RopewikiRegion" (
     "updatedAt" timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
     "deletedAt" timestamp without time zone,
     "latestRevisionDate" timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    "pageCount" integer NOT NULL,
+    "rawPageCount" integer CONSTRAINT "RopewikiRegion_pageCount_not_null" NOT NULL,
     level integer NOT NULL,
     overview text,
     "bestMonths" jsonb NOT NULL,
     "isMajorRegion" boolean,
     "isTopLevelRegion" boolean,
-    url text NOT NULL
+    url text NOT NULL,
+    "truePageCount" integer,
+    "trueRegionCount" integer,
+    "truePageCountWithDescendents" integer
 );
 
 
@@ -508,7 +511,7 @@ ALTER TABLE ONLY public."RopewikiRoute"
 -- PostgreSQL database dump complete
 --
 
-\unrestrict i2mPmdtfsriUJfEjUxeyoImNvGKMkh9sQRgFvSXdqlf5rgSmqEu2hSNLizJoc2v
+\unrestrict d65twIBPbH6bIicG1cXw07NuGmDLMeu9fGY4GzLgdhJmZAEvCJHDs5p1xS6eDW9
 
 
 --
@@ -539,4 +542,5 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20260302170000'),
     ('20260303180000'),
     ('20260303190000'),
-    ('20260304100000');
+    ('20260304100000'),
+    ('20260305120000');

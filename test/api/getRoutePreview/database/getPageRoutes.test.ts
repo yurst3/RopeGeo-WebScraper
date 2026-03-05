@@ -35,7 +35,7 @@ describe('getPageRoutes (integration)', () => {
                 parentRegion: null,
                 name: 'Utah',
                 latestRevisionDate: '2025-01-01T00:00:00' as db.TimestampString,
-                pageCount: 0,
+                rawPageCount: 0,
                 level: 0,
                 bestMonths: JSON.stringify([]),
                 url: 'https://ropewiki.com/Utah',

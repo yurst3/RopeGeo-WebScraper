@@ -85,7 +85,7 @@ describe('upsertRegions (integration)', () => {
     expect(region).toBeDefined();
     expect(region.name).toBe('World');
     expect(region.parentRegion).toBeNull();
-    expect(region.pageCount).toBe(10);
+    expect(region.rawPageCount).toBe(10);
     expect(region.overview).toBe('Updated overview');
     expect(region.bestMonths).toEqual(['January']);
     expect(region.isMajorRegion).toBe(true);
@@ -105,7 +105,7 @@ describe('upsertRegions (integration)', () => {
         parentRegion: null,
         latestRevisionDate: '2024-01-01T00:00:00' as db.TimestampString,
         deletedAt: '2024-01-01T00:00:00' as db.TimestampString,
-        pageCount: 0,
+        rawPageCount: 0,
         level: 0,
         bestMonths: JSON.stringify([]),
         isMajorRegion: false,
@@ -201,7 +201,7 @@ describe('upsertRegions (integration)', () => {
     expect(region).toBeDefined();
     expect(region.name).toBe('World');
     expect(region.parentRegion).toBeNull();
-    expect(region.pageCount).toBe(10);
+    expect(region.rawPageCount).toBe(10);
     expect(region.overview).toBe('Updated');
   });
 
