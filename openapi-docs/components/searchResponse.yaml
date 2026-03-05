@@ -14,7 +14,8 @@ SearchResponse:
           - $ref: '#/RegionPreview'
     nextCursor:
       type: string
-      description: Base64url-encoded cursor for the next page; empty string when there are no more results
+      nullable: true
+      description: Base64url-encoded cursor for the next page; null when there are no more results
 
 RegionPreview:
   type: object
