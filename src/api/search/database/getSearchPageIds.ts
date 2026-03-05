@@ -19,6 +19,7 @@ export async function getSearchPageIds(
         similarityThreshold,
         includePages,
         includeRegions,
+        includeAka,
         order,
         limit,
         cursor,
@@ -27,7 +28,7 @@ export async function getSearchPageIds(
     const limitPlusOne = limit + 1;
 
     if (order === 'similarity') {
-        const pagePart = includePages
+        const pageByName = includePages
             ? db.sql`
         SELECT 'page' AS type, p.id, word_similarity(${db.param(name)}, p.name)::float AS sort_key
         FROM "RopewikiPage" p
@@ -37,6 +38,25 @@ export async function getSearchPageIds(
           AND p.region = ANY(${db.param(allowedRegionIds)}::uuid[])
       `
             : db.sql`SELECT 'page' AS type, NULL::uuid AS id, 0::float AS sort_key WHERE FALSE`;
+        const pageByAka = includePages && includeAka
+            ? db.sql`
+        SELECT 'page' AS type, p.id, word_similarity(${db.param(name)}, a.name)::float AS sort_key
+        FROM "RopewikiPage" p
+        INNER JOIN "RopewikiRegion" r ON r.id = p.region AND r."deletedAt" IS NULL
+        INNER JOIN "RopewikiAkaName" a ON a."ropewikiPage" = p.id AND a."deletedAt" IS NULL
+        WHERE p."deletedAt" IS NULL
+          AND word_similarity(${db.param(name)}, a.name) > ${db.param(similarityThreshold)}
+          AND p.region = ANY(${db.param(allowedRegionIds)}::uuid[])
+      `
+            : db.sql`SELECT 'page' AS type, NULL::uuid AS id, 0::float AS sort_key WHERE FALSE`;
+        const pagePart = includeAka && includePages
+            ? db.sql`
+        SELECT type, id, max(sort_key)::float AS sort_key
+        FROM ((${pageByName}) UNION ALL (${pageByAka})) AS u
+        WHERE id IS NOT NULL
+        GROUP BY type, id
+      `
+            : pageByName;
         const regionPart = includeRegions
             ? db.sql`
         SELECT 'region' AS type, r.id, word_similarity(${db.param(name)}, r.name)::float AS sort_key
@@ -88,7 +108,7 @@ export async function getSearchPageIds(
     )`
         : db.sql``;
 
-    const pagePartQuality = includePages
+    const pageByNameQuality = includePages
         ? db.sql`
     SELECT 'page' AS type, p.id,
       (COALESCE(p.quality, 0) * COALESCE(p."userVotes", 1))::float AS sort_key
@@ -99,6 +119,26 @@ export async function getSearchPageIds(
       AND p.region = ANY(${db.param(allowedRegionIds)}::uuid[])
   `
         : db.sql`SELECT 'page' AS type, NULL::uuid AS id, 0::float AS sort_key WHERE FALSE`;
+    const pageByAkaQuality = includePages && includeAka
+        ? db.sql`
+    SELECT 'page' AS type, p.id,
+      (COALESCE(p.quality, 0) * COALESCE(p."userVotes", 1))::float AS sort_key
+    FROM "RopewikiPage" p
+    INNER JOIN "RopewikiRegion" r ON r.id = p.region AND r."deletedAt" IS NULL
+    INNER JOIN "RopewikiAkaName" a ON a."ropewikiPage" = p.id AND a."deletedAt" IS NULL
+    WHERE p."deletedAt" IS NULL
+      AND word_similarity(${db.param(name)}, a.name) > ${db.param(similarityThreshold)}
+      AND p.region = ANY(${db.param(allowedRegionIds)}::uuid[])
+  `
+        : db.sql`SELECT 'page' AS type, NULL::uuid AS id, 0::float AS sort_key WHERE FALSE`;
+    const pagePartQuality = includeAka && includePages
+        ? db.sql`
+    SELECT type, id, max(sort_key)::float AS sort_key
+    FROM ((${pageByNameQuality}) UNION ALL (${pageByAkaQuality})) AS u
+    WHERE id IS NOT NULL
+    GROUP BY type, id
+  `
+        : pageByNameQuality;
 
     const rows = await db.sql<db.SQL, PaginationRow[]>`
     WITH RECURSIVE rd AS (

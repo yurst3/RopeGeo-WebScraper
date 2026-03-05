@@ -1,6 +1,7 @@
 import * as db from 'zapatos/db';
 import type * as s from 'zapatos/schema';
 import RopewikiPage from '../types/page';
+import upsertAkaNames from './upsertAkaNames';
 
 // Max rows per upsert to avoid "bind message has N parameter formats but 0 parameters" when
 // the parameter list is very large (e.g. in Lambda). PostgreSQL allows up to 65535 params;
@@ -41,7 +42,6 @@ const UPDATE_COLUMNS = [
     'minExitTime',
     'maxExitTime',
     'months',
-    'aka',
     'userVotes',
     'latestRevisionDate',
     'updatedAt',
@@ -74,7 +74,19 @@ const upsertPages = async (
     const chunkResults = await Promise.all(chunkPromises);
     const allResults = chunkResults.flat();
 
-    return allResults.map((row: s.RopewikiPage.JSONSelectable) => RopewikiPage.fromDbRow(row));
+    // Upsert aka names to RopewikiAkaName (one row per name per page)
+    await Promise.all(
+        allResults.map((row, i) => {
+            const page = pages[i]!;
+            return upsertAkaNames(tx, row.id!, page.aka);
+        }),
+    );
+
+    return allResults.map((row: s.RopewikiPage.JSONSelectable, i) => {
+        const page = RopewikiPage.fromDbRow(row);
+        page.aka = pages[i]!.aka;
+        return page;
+    });
 };
 
 export default upsertPages;

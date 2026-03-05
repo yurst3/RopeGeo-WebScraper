@@ -19,6 +19,7 @@ const searchRopewiki = async (
         name,
         similarityThreshold,
         regionId,
+        includeAka,
     } = params;
 
     // Resolve which regions are searchable (optionally scoped by params.regionId).
@@ -44,7 +45,9 @@ const searchRopewiki = async (
 
     // Load full page and region rows for this page of items.
     const [pageRowsById, regionRowsById] = await Promise.all([
-        getPageRowsByIds(conn, name, similarityThreshold, pageIds),
+        getPageRowsByIds(conn, name, similarityThreshold, pageIds, {
+            includeAka,
+        }),
         getRegionRowsByIds(conn, regionIdsFromItems),
     ]);
 

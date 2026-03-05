@@ -1,22 +1,28 @@
 import * as db from 'zapatos/db';
 
-// Soft-delete all RopewikiPage rows for the given region (set deletedAt = now).
+/**
+ * Soft-deletes all RopewikiPage rows for the given region and its descendant regions.
+ * Only rows with deletedAt IS NULL are updated.
+ */
 const setPagesDeletedAtForRegion = async (
     tx: db.Queryable,
     regionUuid: string,
 ): Promise<void> => {
     const now = new Date();
-
-    await db
-        .update(
-            'RopewikiPage',
-            { deletedAt: now },
-            {
-                region: regionUuid,
-                deletedAt: db.conditions.isNull,
-            }
+    await db.sql`
+        WITH RECURSIVE region_and_descendants AS (
+            SELECT id FROM "RopewikiRegion"
+            WHERE id = ${db.param(regionUuid)}::uuid AND "deletedAt" IS NULL
+            UNION ALL
+            SELECT r.id FROM "RopewikiRegion" r
+            INNER JOIN region_and_descendants d ON r."parentRegion" = d.id::text
+            WHERE r."deletedAt" IS NULL
         )
-        .run(tx);
+        UPDATE "RopewikiPage"
+        SET "deletedAt" = ${db.param(now)}
+        WHERE region IN (SELECT id FROM region_and_descendants)
+          AND "deletedAt" IS NULL
+    `.run(tx);
 };
 
 export default setPagesDeletedAtForRegion;

@@ -1,0 +1,55 @@
+---
+description: Test layout, Jest config, unit vs database vs integration tests, how to run them, and HTTP mock data
+globs: test/**/*.ts,jest.config.js,package.json
+alwaysApply: false
+---
+
+# Tests
+
+Use this rule when writing or running tests. For more specific patterns (e.g. API handler tests, Fargate task tests), see the rule for that area; they reference this rule for test infrastructure.
+
+## Where tests live
+
+Tests mirror source layout under **`test/`** (e.g. `src/api/getRoutes/` → `test/api/getRoutes/`). All test files match **`**/*.test.ts`** and are discovered by Jest from the **`test/`** root (see `jest.config.js`: `roots: ['<rootDir>/test']`).
+
+## Tooling and config
+
+- **Runner:** **Jest** (`jest` in package.json scripts; config in **`jest.config.js`**).
+- **Config:** `jest.config.js` uses `ts-jest`, `testEnvironment: 'node'`, `roots: ['<rootDir>/test']`, `testMatch: ['**/*.test.ts']`, and `setupFilesAfterEnv: ['<rootDir>/test/setupTests.ts']`. Unit tests use `NODE_OPTIONS="... --experimental-vm-modules"` for ESM where needed. Which files run as “unit” vs “database/integration” is controlled by **package.json** scripts (see below).
+
+## Unit vs database vs integration
+
+- **Unit tests:** Mock imported functions and package dependencies (e.g. `jest.mock('...')` for DB, HTTP, S3). No real DB or external services. Run with **`test:unit`** (or by path to a specific test file/suite).
+- **Database tests:** No mocks for DB; use a **temporary test database**. Test low-level DB functions (e.g. `getSearchPageIds`, `upsertPages`). Run with **`test:database`** (which starts/stops the test DB) or manually (see below).
+- **Integration tests:** Higher-level tests that do **not** mock the modules under test; they hit the real test database (and may mock only external HTTP/APIs). Also use the temporary test database. Run the same way as database tests (included in **`test:database`**).
+
+## How to run tests
+
+**Unit tests**
+
+- Run **all** unit tests: **`npm run test:unit`**.
+- Or run a specific test file/suite: pass the path to the test (e.g. `npx jest -i test/api/search/handler.test.ts`).
+
+**Database and integration tests**
+
+- **Recommended:** **`npm run test:database`** — starts the test DB, runs **all** database/integration tests, then stops the DB. No extra env setup.
+- **Manual:** (1) **`npm run test-db:start`** to start the test DB. (2) Set connection env: **`TEST_USER=testUser`**, **`TEST_PASS=testPass`**, **`TEST_HOST=127.0.0.1`**, **`TEST_PORT=8080`**, **`TEST_DB=test`**. (3) Run Jest with a path to the desired test(s) (e.g. `TEST_USER=testUser TEST_PASS=testPass TEST_HOST=127.0.0.1 TEST_PORT=8080 TEST_DB=test npx jest -i test/api/search/database/getSearchPageIds.test.ts`). (4) **`npm run test-db:delete`** to stop and remove the container.
+
+**Full local suite**
+
+- **`npm run test:local`** runs **`test:unit`** then **`test:database`** (database script handles DB start/stop once).
+
+## HTTP tests and mock response data
+
+**All HTTP-dependent tests must mock HTTP requests** (e.g. mock `httpRequest` or the fetch layer). **Do not** hit real external URLs from tests.
+
+**Mocked responses** must live in a **`/data`** folder next to the tests that use them (e.g. `test/ropewiki/data/`, `test/ropewiki/data/regions/`, or `test/<area>/data/<subfolder>/`). Use **JSON files** for API response fixtures (e.g. `ropewikiRegionsResponse.json`, `ropewikiPageInfosResponse.json`). Tests should load these files (e.g. `path.join(__dirname, '..', 'data', 'ropewikiRegionsResponse.json')`) and pass the contents to the mock.
+
+**If there is no suitable response JSON in the relevant `/data` folder for an HTTP test, do not invent or generate one.** Remind the user to add a sample response JSON in the appropriate `test/<area>/data/` location (or subfolder) and then wire the test to use it.
+
+## package.json scripts (summary)
+
+- **test:unit** — Jest with `--testPathIgnorePatterns` so database/integration paths are excluded.
+- **test:database** — `test-db:start`, then Jest with `--testPathPatterns` for database/integration paths and `TEST_*` env set; then `test-db:delete`. Exits with Jest’s exit code.
+- **test:local** — `test:unit` then `test:database`.
+- **test-db:start** / **test-db:delete** — Start or stop/remove the temporary Postgres container for tests.

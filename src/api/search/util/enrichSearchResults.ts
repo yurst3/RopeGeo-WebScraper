@@ -1,12 +1,10 @@
 import type { SearchCursor } from 'ropegeo-common';
-import { PagePreview } from 'ropegeo-common';
-import type { RegionPreview } from 'ropegeo-common';
+import { PageDataSource, PagePreview, RegionPreview } from 'ropegeo-common';
 import type * as db from 'zapatos/db';
 import getRopewikiRegionLineage from '../../../ropewiki/database/getRopewikiRegionLineage';
 import getRegionBannerUrls from '../database/getRegionBannerUrls';
 import type { PageRow } from '../database/getPageRowsByIds';
-import type { RegionRow } from '../converters/regionToRegionPreview';
-import regionToRegionPreview from '../converters/regionToRegionPreview';
+import type { RegionRow } from '../database/getRegionRowsByIds';
 
 export type { PageRow, RegionRow };
 
@@ -74,7 +72,16 @@ export async function enrichSearchResults(
             const lineage = lineageByRegionId.get(item.id) ?? [];
             const parents = lineage.slice(1).map((r) => r.name);
             const imageUrl = bannerByRegionId.get(item.id) ?? null;
-            results.push(regionToRegionPreview(row, parents, imageUrl));
+            results.push(
+                new RegionPreview(
+                    row.id,
+                    row.name,
+                    parents,
+                    row.pageCount,
+                    imageUrl,
+                    PageDataSource.Ropewiki,
+                ),
+            );
         }
     }
     return results;

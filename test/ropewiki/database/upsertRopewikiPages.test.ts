@@ -3,6 +3,7 @@ import * as db from 'zapatos/db';
 import type * as s from 'zapatos/schema';
 import { describe, it, expect, afterEach, beforeAll, afterAll } from '@jest/globals';
 import upsertPages from '../../../src/ropewiki/database/upsertPages';
+import setAkaNamesDeletedAtForRegion from '../../../src/ropewiki/database/setAkaNamesDeletedAtForRegion';
 import RopewikiPage from '../../../src/ropewiki/types/page';
 
 describe('upsertPages (integration)', () => {
@@ -87,6 +88,73 @@ describe('upsertPages (integration)', () => {
         expect(page.quality).toBe(8);
         expect(page.coordinates).toEqual({ lat: 40.123, lon: -111.456 });
         expect(new Date(page.latestRevisionDate).toISOString()).toBe(latestRevisionDate.toISOString());
+    });
+
+    it('stores aka names in RopewikiAkaName via upsertAkaNames when page has aka', async () => {
+        const latestRevisionDate = new Date('2025-01-02T12:34:56Z');
+        const pageInfo = RopewikiPage.fromResponseBody({
+            printouts: {
+                pageid: ['728-aka'],
+                name: ['Prichett Canyon'],
+                region: [{ fulltext: 'Test Region' }],
+                url: ['https://ropewiki.com/Prichett_Canyon'],
+                latestRevisionDate: [{ timestamp: String(Math.floor(latestRevisionDate.getTime() / 1000)), raw: '2025-01-02T12:34:56Z' }],
+                aka: ['Pool Arch Canyon;Other AKA'],
+            },
+        }, regionNameIds);
+
+        const results = await upsertPages(conn, [pageInfo]);
+        expect(results).toHaveLength(1);
+        const pageId = results[0]!.id;
+
+        const akaRows = await db
+            .select('RopewikiAkaName', { ropewikiPage: pageId, deletedAt: db.conditions.isNull }, { columns: ['name'], order: { by: 'name', direction: 'ASC' } })
+            .run(conn);
+        expect(akaRows.map((r) => r.name)).toEqual(['Other AKA', 'Pool Arch Canyon']);
+    });
+
+    it('updates RopewikiAkaName when upserting same page with different aka list', async () => {
+        const latestRevisionDate = new Date('2025-01-02T12:34:56Z');
+        const rev = [{ timestamp: String(Math.floor(latestRevisionDate.getTime() / 1000)), raw: '2025-01-02T12:34:56Z' }];
+        const first = RopewikiPage.fromResponseBody({
+            printouts: {
+                pageid: ['5598'],
+                name: ['AKA Update Page'],
+                region: [{ fulltext: 'Test Region' }],
+                url: ['https://ropewiki.com/AKA_Update_Page'],
+                latestRevisionDate: rev,
+                aka: ['First;Second'],
+            },
+        }, regionNameIds);
+
+        const firstResults = await upsertPages(conn, [first]);
+        const pageId = firstResults[0]!.id;
+
+        let akaRows = await db
+            .select('RopewikiAkaName', { ropewikiPage: pageId }, { columns: ['name', 'deletedAt'], order: { by: 'name', direction: 'ASC' } })
+            .run(conn);
+        expect(akaRows.filter((r) => r.deletedAt == null).map((r) => r.name)).toEqual(['First', 'Second']);
+
+        const second = RopewikiPage.fromResponseBody({
+            printouts: {
+                pageid: ['5598'],
+                name: ['AKA Update Page'],
+                region: [{ fulltext: 'Test Region' }],
+                url: ['https://ropewiki.com/AKA_Update_Page'],
+                latestRevisionDate: rev,
+                aka: ['Second;Third'],
+            },
+        }, regionNameIds);
+        await setAkaNamesDeletedAtForRegion(conn, testRegionId);
+        await upsertPages(conn, [second]);
+
+        akaRows = await db
+            .select('RopewikiAkaName', { ropewikiPage: pageId }, { columns: ['name', 'deletedAt'], order: { by: 'name', direction: 'ASC' } })
+            .run(conn);
+        const active = akaRows.filter((r) => r.deletedAt == null).map((r) => r.name).sort();
+        const deleted = akaRows.filter((r) => r.deletedAt != null).map((r) => r.name).sort();
+        expect(active).toEqual(['Second', 'Third']);
+        expect(deleted).toContain('First');
     });
 
     it('updates an existing page via upsert and returns the existing UUID', async () => {

@@ -1,0 +1,53 @@
+---
+description: Database migrations (dbmate + zapatos), naming, audit columns, and regenerating types
+globs: db/migrations/**/*.sql,src/zapatos/**/*.ts,**/database/**/*.ts
+alwaysApply: false
+---
+
+# Database migrations
+
+## Location and tools
+
+- **Migrations live in** `db/migrations/`.
+- **dbmate** runs migrations (e.g. `npm run migrate:up` or `npx dbmate --url <DATABASE_URL> up`).
+- **Zapatos** generates TypeScript types from the current DB schema; the generated file is **`src/zapatos/schema.d.ts`** (do not edit by hand).
+
+## Regenerating the Zapatos schema
+
+After **every** database migration (adding or changing tables/columns):
+
+1. Apply migrations to a database (e.g. local: `npm run migrate:up`, or test: `npm run migrate-test:up`).
+2. Regenerate types: **`npx zapatos`** (uses `DATABASE_URL` or the same DB URL as your environment).
+3. **Regenerate before** implementing or changing any database-access code. Code that touches the DB should be written against the new schema types.
+
+Local flow from package.json: `migrate:up` runs dbmate then `npx zapatos`, so one command updates both DB and types.
+
+## Naming conventions
+
+- **Table names**: **Upper CamelCase**, **singular** (e.g. `RopewikiPage`, `RopewikiAkaName`, `RopewikiRegion`). No plural table names.
+- **Column names**: **lowerCamelCase** (e.g. `ropewikiPage`, `createdAt`, `deletedAt`). Use double-quoted identifiers in SQL so casing is preserved: `"createdAt"`.
+
+## Audit columns
+
+Every table must have these three columns (all lowerCamelCase):
+
+- **`createdAt`** – `timestamp` NOT NULL, default `CURRENT_TIMESTAMP`
+- **`updatedAt`** – `timestamp` NOT NULL, default `CURRENT_TIMESTAMP`
+- **`deletedAt`** – `timestamp` NULL (used for soft deletes)
+
+Example:
+
+```sql
+"createdAt" timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+"updatedAt" timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+"deletedAt" timestamp without time zone
+```
+
+## Primary key: id uuid
+
+- **Almost every table** has a primary key **`id`** of type **uuid**, default `gen_random_uuid()`.
+- **Exception**: joiner/pivot tables that only link two entities (e.g. **`RopewikiRoute`** linking `Route` and `RopewikiPage`) do **not** have an `id` column; they use a composite unique constraint (e.g. `UNIQUE ("ropewikiPage", "route")`) and still include the three audit columns.
+
+## Migration file naming
+
+Use dbmate’s default: **`YYYYMMDDHHMMSS_ShortDescription.sql`** (e.g. `20260304100000_AddRopewikiAkaNameTable.sql`). Each file must contain `-- migrate:up` and `-- migrate:down` sections.

@@ -13,6 +13,7 @@ PagePreview:
     - title
     - regions
     - difficulty
+    - previewType
   properties:
     id:
       type: string
@@ -67,6 +68,11 @@ PagePreview:
       format: uri
       nullable: true
       description: External link to the page (e.g. Ropewiki page URL)
+    previewType:
+      type: string
+      description: Discriminator for the preview type; always "page" for PagePreview
+      enum:
+        - page
 
 Difficulty:
   type: object

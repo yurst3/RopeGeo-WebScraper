@@ -6,6 +6,7 @@ import updateLengthsForPages from "../util/updateLengthsForPages";
 import getUpdatedDatesForPages from "../database/getUpdatedDatesForPages";
 import upsertPages from "../database/upsertPages";
 import setPagesDeletedAtForRegion from "../database/setPagesDeletedAtForRegion";
+import setAkaNamesDeletedAtForRegion from "../database/setAkaNamesDeletedAtForRegion";
 import ProgressLogger from "../../helpers/progressLogger";
 import type { ProcessPagesChunkHookFn } from "../hook-functions/processPagesChunk";
 
@@ -79,7 +80,11 @@ export const getProcessPagesForRegionFn = (
             if (!regionUuid) {
                 throw new Error(`No region UUID found for region "${regionName}"`);
             }
+
+            // Soft delete all the pages and their AKA names before we upsert and clear the deleteAt
+            // Any pages that we don't upsert remain as "deleted"
             await setPagesDeletedAtForRegion(client, regionUuid);
+            await setAkaNamesDeletedAtForRegion(client, regionUuid);
 
             for (let offset = 0; offset < regionPageCount; offset += CHUNK_SIZE) {
                 console.log(`Getting pages ${offset + 1} to ${Math.min(offset + CHUNK_SIZE, regionPageCount)} in "${regionName}" (${regionPageCount} total pages)...`)

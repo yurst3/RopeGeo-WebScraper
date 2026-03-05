@@ -62,7 +62,7 @@ describe('searchRopewiki', () => {
     it('returns empty SearchResults when allowedRegionIds is empty', async () => {
         mockGetAllowedRegionIds.mockResolvedValue([]);
 
-        const params = new SearchParams('Test', 0.5, true, true, null, 'similarity', 20, null);
+        const params = new SearchParams('Test', 0.5, true, true, false, null, 'similarity', 20, null);
         const result = await searchRopewiki(mockConn, params);
 
         expect(mockGetAllowedRegionIds).toHaveBeenCalledWith(mockConn, null);
@@ -75,7 +75,7 @@ describe('searchRopewiki', () => {
         mockGetAllowedRegionIds.mockResolvedValue(['region-1']);
         mockGetSearchPageIds.mockResolvedValue({ items: [], hasMore: false });
 
-        const params = new SearchParams('Test', 0.5, true, true, null, 'similarity', 20, null);
+        const params = new SearchParams('Test', 0.5, true, true, false, null, 'similarity', 20, null);
         const result = await searchRopewiki(mockConn, params);
 
         expect(mockGetSearchPageIds).toHaveBeenCalledWith(
@@ -109,7 +109,7 @@ describe('searchRopewiki', () => {
         mockGetRegionRowsByIds.mockResolvedValue(mockRegionRows);
         mockEnrichSearchResults.mockResolvedValue(mockResults);
 
-        const params = new SearchParams('Test', 0.5, true, true, null, 'similarity', 20, null);
+        const params = new SearchParams('Test', 0.5, true, true, false, null, 'similarity', 20, null);
         const result = await searchRopewiki(mockConn, params);
 
         expect(mockGetPageRowsByIds).toHaveBeenCalledWith(
@@ -117,6 +117,7 @@ describe('searchRopewiki', () => {
             'Test',
             0.5,
             [pageId],
+            { includeAka: false },
         );
         expect(mockGetRegionRowsByIds).toHaveBeenCalledWith(
             mockConn,
@@ -145,7 +146,7 @@ describe('searchRopewiki', () => {
         mockGetRegionRowsByIds.mockResolvedValue(new Map());
         mockEnrichSearchResults.mockResolvedValue([{ id: pageId } as unknown]);
 
-        const params = new SearchParams('Test', 0.5, true, true, null, 'similarity', 20, null);
+        const params = new SearchParams('Test', 0.5, true, true, false, null, 'similarity', 20, null);
         const result = await searchRopewiki(mockConn, params);
 
         expect(result.nextCursor).not.toBe('');
@@ -162,6 +163,7 @@ describe('searchRopewiki', () => {
             0.5,
             true,
             true,
+            false,
             regionId,
             'similarity',
             20,

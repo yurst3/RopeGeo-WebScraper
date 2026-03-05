@@ -23,7 +23,7 @@ function minMaxOrNumber(
 }
 
 const ROPEWIKI_PAGE_VIEW_COLUMNS: (keyof s.RopewikiPage.Selectable)[] = [
-    'id', 'pageId', 'name', 'aka', 'url', 'quality', 'userVotes', 'technicalRating', 'waterRating', 'timeRating', 'riskRating', 'permits', 'rappelInfo', 'rappelCount', 'rappelLongest', 'vehicle',
+    'id', 'pageId', 'name', 'url', 'quality', 'userVotes', 'technicalRating', 'waterRating', 'timeRating', 'riskRating', 'permits', 'rappelInfo', 'rappelCount', 'rappelLongest', 'vehicle',
     'shuttleTime', 'minOverallTime', 'maxOverallTime', 'overallLength', 'approachLength', 'approachElevGain', 'descentLength', 'descentElevGain', 'exitLength', 'exitElevGain',
     'minApproachTime', 'maxApproachTime', 'minDescentTime', 'maxDescentTime', 'minExitTime', 'maxExitTime',
     'months', 'latestRevisionDate', 'deletedAt', 'region',
@@ -45,7 +45,7 @@ const getRopewikiPageView = async (
 
     if (!page || page.deletedAt != null) return null;
 
-    const [images, betaSections] = await Promise.all([
+    const [images, betaSections, akaRows] = await Promise.all([
         db
             .select('RopewikiImage', { ropewikiPage: pageId }, { columns: ['order', 'fileUrl', 'linkUrl', 'caption', 'betaSection', 'latestRevisionDate', 'deletedAt'] })
             .run(conn)
@@ -55,6 +55,14 @@ const getRopewikiPageView = async (
             .select('RopewikiBetaSection', { ropewikiPage: pageId }, { columns: ['id', 'order', 'title', 'text', 'latestRevisionDate', 'deletedAt'] })
             .run(conn)
             .then((rows) => rows.filter((r) => r.deletedAt == null).sort((a, b) => (a.order ?? 0) - (b.order ?? 0))),
+        db
+            .select(
+                'RopewikiAkaName',
+                { ropewikiPage: pageId, deletedAt: db.conditions.isNull },
+                { columns: ['name'], order: { by: 'name', direction: 'ASC' } },
+            )
+            .run(conn)
+            .then((rows) => rows.map((r) => r.name)),
     ]);
 
     const bannerImageRow = images.find((i) => i.betaSection == null);
@@ -106,7 +114,7 @@ const getRopewikiPageView = async (
     const view = {
         pageId: page.pageId,
         name: page.name,
-        aka: stringArray(page.aka),
+        aka: akaRows,
         url: page.url,
         quality: page.quality ?? 0,
         userVotes: page.userVotes ?? 0,

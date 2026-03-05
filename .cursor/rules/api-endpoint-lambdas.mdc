@@ -145,6 +145,8 @@ In `openapi-docs/integrations/<operationName>Lambda.yaml` (e.g. `getWidgetsLambd
 
 ## 6. Unit and database tests
 
+**Testing overview:** Test layout, Jest config, how to run unit vs database/integration tests, and HTTP mock data are documented in the **tests** rule (`.cursor/rules/tests.mdc`). Below is API-endpoint–specific guidance.
+
 **Test layout:** Mirror `src/api/<operationName>/` under `test/api/<operationName>/`:
 - `test/api/<operationName>/handler.test.ts` — unit tests for the Lambda handler (mocked DB)
 - `test/api/<operationName>/database/<queryOrMutation>.test.ts` — database/integration tests (real DB, `TEST_*` env)
@@ -157,13 +159,12 @@ In `openapi-docs/integrations/<operationName>Lambda.yaml` (e.g. `getWidgetsLambd
 - Use `@jest/globals`: `describe`, `it`, `expect`, `beforeEach`, `jest`.
 
 **Database test (`database/<name>.test.ts`):**
-- Create a `Pool` from `TEST_USER`, `TEST_PASS`, `TEST_HOST`, `TEST_PORT`, `TEST_DB` (same as other DB tests).
+- Create a `Pool` from `TEST_USER`, `TEST_PASS`, `TEST_HOST`, `TEST_PORT`, `TEST_DB` (see tests rule for running with `test:database` or manual DB + env).
 - `beforeAll` / `afterEach`: clean the table(s) the function uses (e.g. `db.sql\`DELETE FROM "Route"\`.run(conn)`).
 - `afterAll`: `pool.end()`.
 - Test: function returns expected rows when data exists; returns only non-deleted rows if the query filters on `deletedAt`; returns empty array when table is empty.
-- Run with `npm run test:database` (included via `--testPathPatterns=/test/api/database/*`). Unit tests run with `npm run test:unit` (api database tests excluded via `--testPathIgnorePatterns=/test/api/database/*`).
 
-**package.json:** Ensure `test:unit` includes `--testPathIgnorePatterns=/test/api/database/*` and `test:database` includes `--testPathPatterns=/test/api/database/*` so API handler tests run in unit and API database tests run in database.
+**package.json:** Ensure `test:unit` ignores API database tests and `test:database` includes them (see tests rule for script patterns).
 
 ## Checklist
 

@@ -354,7 +354,6 @@ class RopewikiPage {
             minExitTime: this.minExitTime ? JSON.stringify(this.minExitTime) : null,
             maxExitTime: this.maxExitTime ? JSON.stringify(this.maxExitTime) : null,
             months: this.months && this.months.length > 0 ? JSON.stringify(this.months) : null,
-            aka: this.aka && this.aka.length > 0 ? JSON.stringify(this.aka) : null,
             userVotes: this.userVotes ?? null,
             latestRevisionDate: this.latestRevisionDate,
             updatedAt: now,
@@ -378,7 +377,8 @@ class RopewikiPage {
         const minExitTime = row.minExitTime as { value: number; unit: string } | null;
         const maxExitTime = row.maxExitTime as { value: number; unit: string } | null;
         const months = row.months as string[] | null;
-        const aka = row.aka as string[] | null;
+        // aka is stored in RopewikiAkaName; not loaded here (default empty)
+        const aka: string[] = [];
 
         // Create instance using constructor (betaSites no longer in DB; kept on class for use elsewhere)
         return new RopewikiPage(

@@ -1,4 +1,4 @@
-\restrict FYw7i34zUwYFzDmVVlONs6gWYi3rEpnPrcYftDhJ0rorI6KIuL4XqPDHBIgcCNK
+\restrict 8fR6exayBmR6d49nwKuzRQfBHGHJQXJpl3lfiDodjHrrf2YfeaAiuhxforh4fc3
 
 -- Dumped from database version 18.1 (Debian 18.1-1.pgdg13+2)
 -- Dumped by pg_dump version 18.1 (Homebrew)
@@ -48,6 +48,20 @@ CREATE TABLE public."MapData" (
     "deletedAt" timestamp without time zone,
     "sourceFileUrl" text DEFAULT ''::text NOT NULL,
     "errorMessage" text
+);
+
+
+--
+-- Name: RopewikiAkaName; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public."RopewikiAkaName" (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    "ropewikiPage" uuid NOT NULL,
+    name text NOT NULL,
+    "createdAt" timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    "updatedAt" timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    "deletedAt" timestamp without time zone
 );
 
 
@@ -121,7 +135,6 @@ CREATE TABLE public."RopewikiPage" (
     "deletedAt" timestamp without time zone,
     "latestRevisionDate" timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
     "rappelInfo" text,
-    aka jsonb,
     "userVotes" integer,
     "descentLength" numeric,
     "minApproachTime" jsonb,
@@ -233,6 +246,14 @@ ALTER TABLE ONLY public."MapData"
 
 
 --
+-- Name: RopewikiAkaName RopewikiAkaName_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public."RopewikiAkaName"
+    ADD CONSTRAINT "RopewikiAkaName_pkey" PRIMARY KEY (id);
+
+
+--
 -- Name: RopewikiImage RopewikiImage_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -286,6 +307,14 @@ ALTER TABLE ONLY public."Route"
 
 ALTER TABLE ONLY public.schema_migrations
     ADD CONSTRAINT schema_migrations_pkey PRIMARY KEY (version);
+
+
+--
+-- Name: RopewikiAkaName uk_ropewikiAkaName_ropewikiPage_name; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public."RopewikiAkaName"
+    ADD CONSTRAINT "uk_ropewikiAkaName_ropewikiPage_name" UNIQUE ("ropewikiPage", name);
 
 
 --
@@ -361,6 +390,13 @@ ALTER TABLE ONLY public."RopewikiSiteLink"
 
 
 --
+-- Name: RopewikiAkaName_name_trgm; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "RopewikiAkaName_name_trgm" ON public."RopewikiAkaName" USING gin (name public.gin_trgm_ops);
+
+
+--
 -- Name: RopewikiPage_name_trgm; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -386,6 +422,14 @@ CREATE INDEX "RopewikiRegion_name_trgm" ON public."RopewikiRegion" USING gin (na
 --
 
 CREATE UNIQUE INDEX "uk_ropewikiImage_ropewikiPage_betaSection_order" ON public."RopewikiImage" USING btree ("ropewikiPage", "betaSection", "order") NULLS NOT DISTINCT WHERE ("order" IS NOT NULL);
+
+
+--
+-- Name: RopewikiAkaName fk_ropewikiAkaName_ropewikiPage; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public."RopewikiAkaName"
+    ADD CONSTRAINT "fk_ropewikiAkaName_ropewikiPage" FOREIGN KEY ("ropewikiPage") REFERENCES public."RopewikiPage"(id) ON DELETE CASCADE;
 
 
 --
@@ -464,7 +508,7 @@ ALTER TABLE ONLY public."RopewikiRoute"
 -- PostgreSQL database dump complete
 --
 
-\unrestrict FYw7i34zUwYFzDmVVlONs6gWYi3rEpnPrcYftDhJ0rorI6KIuL4XqPDHBIgcCNK
+\unrestrict 8fR6exayBmR6d49nwKuzRQfBHGHJQXJpl3lfiDodjHrrf2YfeaAiuhxforh4fc3
 
 
 --
@@ -494,4 +538,5 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20260206150000'),
     ('20260302170000'),
     ('20260303180000'),
-    ('20260303190000');
+    ('20260303190000'),
+    ('20260304100000');

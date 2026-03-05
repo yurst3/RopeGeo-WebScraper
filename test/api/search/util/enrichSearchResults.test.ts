@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, jest } from '@jest/globals';
 import { SearchCursor } from 'ropegeo-common';
 import { enrichSearchResults } from '../../../../src/api/search/util/enrichSearchResults';
 import type { PageRow } from '../../../../src/api/search/database/getPageRowsByIds';
-import type { RegionRow } from '../../../../src/api/search/converters/regionToRegionPreview';
+import type { RegionRow } from '../../../../src/api/search/database/getRegionRowsByIds';
 
 const mockConn = {} as import('zapatos/db').Queryable;
 

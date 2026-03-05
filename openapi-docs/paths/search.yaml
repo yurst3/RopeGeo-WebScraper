@@ -5,7 +5,7 @@ get:
     Fuzzy search over Ropewiki page and region names using trigram similarity.
     Optional region filter restricts results to that region and its descendants (region ancestry).
     Results can be ordered by similarity or by quality * userVotes.
-    Query parameter validation follows ropegeo-common SearchParams.fromQueryStringParams (required name; similarity in [0,1]; include-pages and include-regions as true/false/1/0; at least one of include-pages or include-regions true; region a valid UUID if present; order one of similarity|quality; limit a positive integer; cursor a valid base64url-encoded cursor if present).
+    Query parameter validation follows ropegeo-common SearchParams.fromQueryStringParams (required name; similarity in [0,1]; include-pages, include-regions, and include-aka as true/false/1/0; at least one of include-pages or include-regions true; region a valid UUID if present; order one of similarity|quality; limit a positive integer; cursor a valid base64url-encoded cursor if present).
   operationId: search
   tags:
     - search
@@ -40,6 +40,13 @@ get:
         type: boolean
         default: true
       description: Include region results; true, false, 1, or 0 (case-insensitive). At least one of include-pages or include-regions must be true.
+    - name: include-aka
+      in: query
+      required: false
+      schema:
+        type: boolean
+        default: false
+      description: When true, also match page "also known as" (aka) names; true, false, 1, or 0 (case-insensitive)
     - name: region
       in: query
       required: false
@@ -84,6 +91,6 @@ get:
             searchResponse:
               $ref: '../examples/searchResponse.yaml'
     '400':
-      description: Bad Request (e.g. missing or empty name, similarity not in [0,1], invalid include-pages/include-regions, both include-pages and include-regions false, invalid region UUID, invalid order, invalid limit, invalid cursor)
+      description: Bad Request (e.g. missing or empty name, similarity not in [0,1], invalid include-pages/include-regions/include-aka, both include-pages and include-regions false, invalid region UUID, invalid order, invalid limit, invalid cursor)
     '500':
       description: Internal server error

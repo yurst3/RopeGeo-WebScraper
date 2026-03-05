@@ -6,17 +6,20 @@ export type PageRow = GetRopewikiPagePreviewRow & {
 };
 
 /**
- * Fetches full page preview rows (for PagePreview) for the given page ids, filtered by
- * name similarity. Returns a map from page id to row; only includes pages that match
- * the similarity threshold.
+ * Fetches full page preview rows (for PagePreview) for the given page ids.
+ * When includeAka is false, filters by page name similarity so only pages matching the
+ * threshold are returned. When includeAka is true, returns all requested ids (getSearchPageIds
+ * already filtered by page name or AKA name).
  */
 async function getPageRowsByIds(
     conn: db.Queryable,
     name: string,
     similarityThreshold: number,
     pageIds: string[],
+    options?: { includeAka?: boolean },
 ): Promise<Map<string, PageRow>> {
     if (pageIds.length === 0) return new Map();
+    const filterByPageName = options?.includeAka !== true;
     const rows = await db.sql<db.SQL, (PageRow & { pageId: string })[]>`
         SELECT
             p.id AS "pageId",
@@ -46,7 +49,7 @@ async function getPageRowsByIds(
         LEFT JOIN "RopewikiRoute" rr ON rr."ropewikiPage" = p.id AND rr."deletedAt" IS NULL
         WHERE p."deletedAt" IS NULL
           AND p.id = ANY(${db.param(pageIds)}::uuid[])
-          AND word_similarity(${db.param(name)}, p.name) > ${db.param(similarityThreshold)}
+          ${filterByPageName ? db.sql`AND word_similarity(${db.param(name)}, p.name) > ${db.param(similarityThreshold)}` : db.sql``}
     `.run(conn);
     const map = new Map<string, PageRow>();
     for (const row of rows) {

@@ -402,7 +402,7 @@ describe('RopewikiPage', () => {
             expect(dbRow.exitLength).toBeNull();
             expect(dbRow.exitElevGain).toBeNull();
             expect(dbRow.months).toBe(JSON.stringify(['January', 'February', 'March']));
-            expect(dbRow.aka).toBe(JSON.stringify(['Alternative Name']));
+            expect(pageInfo.aka).toEqual(['Alternative Name']);
             expect(dbRow.userVotes).toBe(10);
             expect(dbRow.latestRevisionDate).toEqual(new Date(1609459200000));
             expect(dbRow.updatedAt).toEqual(mockDate);
@@ -453,7 +453,6 @@ describe('RopewikiPage', () => {
             expect(dbRow.exitLength).toBeNull();
             expect(dbRow.exitElevGain).toBeNull();
             expect(dbRow.months).toBeNull();
-            expect(dbRow.aka).toBeNull();
             expect(dbRow.userVotes).toBeNull();
             expect(dbRow.updatedAt).toEqual(mockDate);
             expect(dbRow.deletedAt).toBeNull();
@@ -461,11 +460,7 @@ describe('RopewikiPage', () => {
             jest.useRealTimers();
         });
 
-        it('converts empty arrays to null for aka', () => {
-            const mockDate = new Date('2023-01-15T10:30:00.000Z');
-            jest.useFakeTimers();
-            jest.setSystemTime(mockDate);
-
+        it('keeps aka on the in-memory page (aka is stored in RopewikiAkaName, not on RopewikiPage)', () => {
             const rawData = {
                 printouts: {
                     pageid: ['12345'],
@@ -480,9 +475,8 @@ describe('RopewikiPage', () => {
             const pageInfo = RopewikiPage.fromResponseBody(rawData, regionNameIds);
             const dbRow = pageInfo.toDbRow();
 
-            expect(dbRow.aka).toBeNull();
-
-            jest.useRealTimers();
+            expect(pageInfo.aka).toEqual([]);
+            expect('aka' in dbRow).toBe(false);
         });
     });
 });

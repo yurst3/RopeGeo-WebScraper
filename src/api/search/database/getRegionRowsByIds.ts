@@ -1,7 +1,11 @@
 import * as db from 'zapatos/db';
-import type { RegionRow } from '../converters/regionToRegionPreview';
 
-export type { RegionRow };
+export type RegionRow = {
+    id: string;
+    name: string;
+    url: string;
+    pageCount: number;
+};
 
 /**
  * Fetches region rows (id, name, url, pageCount) for the given region ids.

@@ -21,6 +21,7 @@ describe('getSearchPageIds (integration)', () => {
     const childRegionId = 'f0000002-0002-4000-8000-000000000002';
     const pageId = 'e0000001-0001-4000-8000-000000000001';
     const pageInParentId = 'e0000002-0002-4000-8000-000000000002';
+    const pageAkaOnlyId = 'e0000003-0003-4000-8000-000000000003';
 
     beforeAll(async () => {
         await db
@@ -73,11 +74,30 @@ describe('getSearchPageIds (integration)', () => {
                 userVotes: 1,
             })
             .run(conn);
+        await db
+            .insert('RopewikiPage', {
+                id: pageAkaOnlyId,
+                pageId: 'pageids-test-aka',
+                name: 'ZzzQqxUnrelatedName',
+                region: childRegionId,
+                url: 'https://ropewiki.com/PageIdsTestAkaOnly',
+                latestRevisionDate:
+                    '2025-01-01T00:00:00' as db.TimestampString,
+                quality: 1,
+                userVotes: 1,
+            })
+            .run(conn);
+        await db
+            .insert('RopewikiAkaName', {
+                ropewikiPage: pageAkaOnlyId,
+                name: 'AkaOnlySearchTerm',
+            })
+            .run(conn);
     });
 
     afterAll(async () => {
         await db
-            .sql`DELETE FROM "RopewikiPage" WHERE id IN (${db.param(pageId)}, ${db.param(pageInParentId)})`.run(conn);
+            .sql`DELETE FROM "RopewikiPage" WHERE id IN (${db.param(pageId)}, ${db.param(pageInParentId)}, ${db.param(pageAkaOnlyId)})`.run(conn);
         await db
             .sql`DELETE FROM "RopewikiRegion" WHERE id = ${db.param(childRegionId)}`.run(conn);
         await db
@@ -93,6 +113,7 @@ describe('getSearchPageIds (integration)', () => {
             0.1,
             true,
             true,
+            false,
             null,
             'similarity',
             10,
@@ -118,6 +139,7 @@ describe('getSearchPageIds (integration)', () => {
             0.1,
             true,
             true,
+            false,
             null,
             'similarity',
             2,
@@ -138,6 +160,7 @@ describe('getSearchPageIds (integration)', () => {
             0.1,
             true,
             true,
+            false,
             null,
             'similarity',
             2,
@@ -154,6 +177,7 @@ describe('getSearchPageIds (integration)', () => {
             0.1,
             true,
             true,
+            false,
             null,
             'similarity',
             2,
@@ -178,6 +202,7 @@ describe('getSearchPageIds (integration)', () => {
             0.1,
             true,
             true,
+            false,
             null,
             'similarity',
             10,
@@ -207,6 +232,7 @@ describe('getSearchPageIds (integration)', () => {
             0.1,
             false,
             true,
+            false,
             null,
             'similarity',
             10,
@@ -227,6 +253,7 @@ describe('getSearchPageIds (integration)', () => {
             0.1,
             true,
             false,
+            false,
             null,
             'similarity',
             10,
@@ -241,12 +268,55 @@ describe('getSearchPageIds (integration)', () => {
         expect(items.length).toBe(2);
     });
 
+    it('with includeAka true, returns page matched by AKA name', async () => {
+        const params = new SearchParams(
+            'AkaOnlySearchTerm',
+            0.1,
+            true,
+            false,
+            true,
+            null,
+            'similarity',
+            10,
+            null,
+        );
+        const { items } = await getSearchPageIds(
+            conn,
+            params,
+            allowedRegionIds,
+        );
+        const pageIds = items.filter((c) => c.type === 'page').map((c) => c.id);
+        expect(pageIds).toContain(pageAkaOnlyId);
+    });
+
+    it('with includeAka false, excludes page matched only by AKA name', async () => {
+        const params = new SearchParams(
+            'AkaOnlySearchTerm',
+            0.1,
+            true,
+            false,
+            false,
+            null,
+            'similarity',
+            10,
+            null,
+        );
+        const { items } = await getSearchPageIds(
+            conn,
+            params,
+            allowedRegionIds,
+        );
+        const pageIds = items.filter((c) => c.type === 'page').map((c) => c.id);
+        expect(pageIds).not.toContain(pageAkaOnlyId);
+    });
+
     it('returns empty when no matches above threshold', async () => {
         const params = new SearchParams(
             'XyZzNoMatchQqWw',
             0.99,
             true,
             true,
+            false,
             null,
             'similarity',
             10,
@@ -267,6 +337,7 @@ describe('getSearchPageIds (integration)', () => {
             0.1,
             true,
             true,
+            false,
             null,
             'similarity',
             10,
@@ -287,6 +358,7 @@ describe('getSearchPageIds (integration)', () => {
             0.1,
             true,
             true,
+            false,
             null,
             'quality',
             10,
@@ -315,6 +387,7 @@ describe('getSearchPageIds (integration)', () => {
             0.1,
             true,
             false,
+            false,
             null,
             'quality',
             1,
@@ -330,6 +403,7 @@ describe('getSearchPageIds (integration)', () => {
             'PageIdsTest',
             0.1,
             true,
+            false,
             false,
             null,
             'quality',
