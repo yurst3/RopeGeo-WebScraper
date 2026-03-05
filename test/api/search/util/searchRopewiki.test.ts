@@ -68,7 +68,7 @@ describe('searchRopewiki', () => {
         expect(mockGetAllowedRegionIds).toHaveBeenCalledWith(mockConn, null);
         expect(mockGetSearchPageIds).not.toHaveBeenCalled();
         expect(result.results).toEqual([]);
-        expect(result.nextCursor).toBe('');
+        expect(result.nextCursor).toBeNull();
     });
 
     it('returns empty SearchResults when getSearchPageIds returns no items', async () => {
@@ -86,7 +86,7 @@ describe('searchRopewiki', () => {
         expect(mockGetPageRowsByIds).not.toHaveBeenCalled();
         expect(mockEnrichSearchResults).not.toHaveBeenCalled();
         expect(result.results).toEqual([]);
-        expect(result.nextCursor).toBe('');
+        expect(result.nextCursor).toBeNull();
     });
 
     it('calls getPageRowsByIds, getRegionRowsByIds, enrichSearchResults and returns SearchResults', async () => {
@@ -130,7 +130,7 @@ describe('searchRopewiki', () => {
             mockRegionRows,
         );
         expect(result.results).toEqual(mockResults);
-        expect(result.nextCursor).toBe('');
+        expect(result.nextCursor).toBeNull();
     });
 
     it('returns nextCursor when hasMore is true', async () => {
@@ -149,7 +149,7 @@ describe('searchRopewiki', () => {
         const params = new SearchParams('Test', 0.5, true, true, false, null, 'similarity', 20, null);
         const result = await searchRopewiki(mockConn, params);
 
-        expect(result.nextCursor).not.toBe('');
+        expect(result.nextCursor).not.toBeNull();
         expect(result.results.length).toBe(1);
     });
 

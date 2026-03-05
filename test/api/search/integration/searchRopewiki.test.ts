@@ -225,7 +225,7 @@ describe('searchRopewiki (integration)', () => {
         );
 
         expect(results).toEqual([]);
-        expect(nextCursor).toBe('');
+        expect(nextCursor).toBeNull();
     });
 
     it('with order quality, ranks pages by quality * userVotes', async () => {
@@ -309,7 +309,7 @@ describe('searchRopewiki (integration)', () => {
         );
         const { results, nextCursor } = await searchRopewiki(conn, params);
         expect(results.length).toBe(2);
-        expect(nextCursor).not.toBe('');
+        expect(nextCursor).not.toBeNull();
     });
 
     it('cursor pagination: second page returns remaining results and empty nextCursor', async () => {
@@ -326,7 +326,7 @@ describe('searchRopewiki (integration)', () => {
         );
         const first = await searchRopewiki(conn, firstParams);
         expect(first.results.length).toBe(2);
-        expect(first.nextCursor).not.toBe('');
+        expect(first.nextCursor).not.toBeNull();
 
         const secondParams = new SearchParams(
             'SearchTest',
@@ -341,7 +341,7 @@ describe('searchRopewiki (integration)', () => {
         );
         const second = await searchRopewiki(conn, secondParams);
         expect(second.results.length).toBe(2);
-        expect(second.nextCursor).toBe('');
+        expect(second.nextCursor).toBeNull();
 
         const firstIds = new Set(
             first.results.map((r) => (r as PagePreview | RegionPreview).id),
