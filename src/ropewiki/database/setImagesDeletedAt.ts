@@ -15,6 +15,7 @@ const setImagesDeletedAt = async (
             {
                 ropewikiPage: pageUuid,
                 deletedAt: db.conditions.isNull,
+                allowUpdates: true,
             }
         )
         .run(tx);

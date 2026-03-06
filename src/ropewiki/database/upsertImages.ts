@@ -1,9 +1,11 @@
 import * as db from 'zapatos/db';
-import { RopewikiImage } from '../types/page';
+import type * as s from 'zapatos/schema';
+import { RopewikiImage } from '../types/image';
+import { makeUnnestPart } from '../../helpers/makeUnnestPart';
 
 // Insert or update images for a page.
-// On conflict (same ropewikiPage, betaSection & fileUrl), update the image fields and timestamps, including latestRevisionDate.
-// Returns an array of image IDs that were upserted.
+// ON CONFLICT (ropewikiPage, betaSection, fileUrl) DO UPDATE SET ... WHERE allowUpdates = true.
+// Returns image IDs only for images that were actually inserted or updated (locked rows are not included), in input order.
 const upsertImages = async (
     tx: db.Queryable,
     pageUuid: string,
@@ -13,31 +15,38 @@ const upsertImages = async (
 ): Promise<string[]> => {
     if (images.length === 0) return [];
 
-    const now = new Date();
+    const columns = RopewikiImage.getDbInsertColumns();
+    const rows = images.map((img) => img.toDbRow(pageUuid, betaTitleIds, latestRevisionDate));
+    const unnestPart = makeUnnestPart(RopewikiImage, rows);
 
-    const rows = images.map((image) => {
-        if (image.betaSectionTitle && !betaTitleIds[image.betaSectionTitle]) throw new Error(`No id given for ${image.betaSectionTitle} title`);
-        return {
-            ropewikiPage: pageUuid,
-            betaSection: image.betaSectionTitle ? betaTitleIds[image.betaSectionTitle] ?? null : null,
-            linkUrl: image.linkUrl,
-            fileUrl: image.fileUrl,
-            caption: image.caption ?? null,
-            order: image.order,
-            latestRevisionDate,
-            updatedAt: now,
-            deletedAt: null,
-        }
-    });
+    const key = (r: { ropewikiPage: string; betaSection: string | null; fileUrl: string }) =>
+        `${r.ropewikiPage}\0${r.betaSection ?? ''}\0${r.fileUrl}`;
 
-    const result = await db
-        .upsert('RopewikiImage', rows, ['ropewikiPage', 'betaSection', 'fileUrl'], {
-            updateColumns: ['linkUrl', 'caption', 'betaSection', 'order', 'latestRevisionDate', 'updatedAt', 'deletedAt'],
-        })
-        .run(tx);
+    const returned = await db.sql<
+        db.SQL,
+        (s.RopewikiImage.JSONSelectable)[]
+    >`
+        INSERT INTO "RopewikiImage" ( ${db.cols(columns)} )
+        SELECT * FROM unnest( ${unnestPart} ) AS t( ${db.cols(columns)} )
+        ON CONFLICT ("ropewikiPage", "betaSection", "fileUrl") DO UPDATE SET
+            "linkUrl" = EXCLUDED."linkUrl",
+            "caption" = EXCLUDED."caption",
+            "betaSection" = EXCLUDED."betaSection",
+            "order" = EXCLUDED."order",
+            "latestRevisionDate" = EXCLUDED."latestRevisionDate",
+            "updatedAt" = EXCLUDED."updatedAt",
+            "deletedAt" = EXCLUDED."deletedAt"
+        WHERE "RopewikiImage"."allowUpdates" = true
+        RETURNING id, "ropewikiPage", "betaSection", "fileUrl"
+    `.run(tx);
 
-    return result.map(row => row.id as string);
+    const byKey = new Map(
+        returned.map((row) => [
+            key({ ropewikiPage: row.ropewikiPage, betaSection: row.betaSection ?? null, fileUrl: row.fileUrl }),
+            row.id,
+        ]),
+    );
+    return rows.filter((r) => byKey.has(key(r))).map((r) => byKey.get(key(r))!);
 };
 
 export default upsertImages;
-

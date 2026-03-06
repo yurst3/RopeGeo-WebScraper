@@ -216,6 +216,44 @@ describe('upsertMapData (integration)', () => {
         expect(result.vectorTile).toBeUndefined();
     });
 
+    it('returns existing row and logs warning when allowUpdates is false (does not update)', async () => {
+        const mapDataId = '22222222-2222-2222-2222-222222222222';
+        const initialMapData = new MapData(
+            'https://example.com/original.gpx',
+            'https://example.com/original.kml',
+            'https://example.com/original.geojson',
+            'https://example.com/original.mbtiles',
+            mapDataId,
+        );
+        await upsertMapData(conn, initialMapData);
+
+        await db.sql`
+            UPDATE "MapData"
+            SET "allowUpdates" = false
+            WHERE id = ${db.param(mapDataId)}::uuid
+        `.run(conn);
+
+        const warnSpy = jest.spyOn(console, 'warn').mockImplementation(() => {});
+        const updatedMapData = new MapData(
+            'https://example.com/should-not-apply.gpx',
+            'https://example.com/should-not-apply.kml',
+            'https://example.com/should-not-apply.geojson',
+            'https://example.com/should-not-apply.mbtiles',
+            mapDataId,
+        );
+        const result = await upsertMapData(conn, updatedMapData);
+
+        expect(result.id).toBe(mapDataId);
+        expect(result.gpx).toBe('https://example.com/original.gpx');
+        expect(result.kml).toBe('https://example.com/original.kml');
+        expect(warnSpy).toHaveBeenCalledWith(`MapData row ${mapDataId} not updated: allowUpdates is false`);
+        warnSpy.mockRestore();
+
+        const dbRow = await db.selectOne('MapData', { id: mapDataId }).run(conn);
+        expect(dbRow!.gpx).toBe('https://example.com/original.gpx');
+        expect(dbRow!.kml).toBe('https://example.com/original.kml');
+    });
+
     it('skips upserting when existing data has no error and incoming data has an error', async () => {
         const mapDataId = '11111111-1111-1111-1111-111111111111';
         const consoleLogSpy = jest.spyOn(console, 'log').mockImplementation(() => {});

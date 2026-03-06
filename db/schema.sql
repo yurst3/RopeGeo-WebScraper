@@ -1,4 +1,4 @@
-\restrict LEHMS6V78KPLUoy6XY2gi6kUaybU7NwEIJA0MFsM1laITzMC0gRhpeAtsAl4qS5
+\restrict HMb3gvOoF5p7nMWkE4SjZwIyDGXIB4Ag2f0A25EF9Ff47wJk0dKYjc48wftRXZj
 
 -- Dumped from database version 18.1 (Debian 18.1-1.pgdg13+2)
 -- Dumped by pg_dump version 18.1 (Homebrew)
@@ -47,7 +47,8 @@ CREATE TABLE public."MapData" (
     "updatedAt" timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
     "deletedAt" timestamp without time zone,
     "sourceFileUrl" text DEFAULT ''::text NOT NULL,
-    "errorMessage" text
+    "errorMessage" text,
+    "allowUpdates" boolean DEFAULT true NOT NULL
 );
 
 
@@ -61,7 +62,8 @@ CREATE TABLE public."RopewikiAkaName" (
     name text NOT NULL,
     "createdAt" timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
     "updatedAt" timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    "deletedAt" timestamp without time zone
+    "deletedAt" timestamp without time zone,
+    "allowUpdates" boolean DEFAULT true NOT NULL
 );
 
 
@@ -79,6 +81,7 @@ CREATE TABLE public."RopewikiBetaSection" (
     "deletedAt" timestamp without time zone,
     "latestRevisionDate" timestamp without time zone DEFAULT CURRENT_TIMESTAMP CONSTRAINT "RopewikiPageBetaSection_latestRevisionDate_not_null" NOT NULL,
     "order" integer,
+    "allowUpdates" boolean DEFAULT true NOT NULL,
     CONSTRAINT "chk_ropewikiPageBetaSection_order_null_only_when_deleted" CHECK ((("order" IS NOT NULL) OR ("deletedAt" IS NOT NULL)))
 );
 
@@ -99,6 +102,7 @@ CREATE TABLE public."RopewikiImage" (
     "deletedAt" timestamp without time zone,
     "latestRevisionDate" timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
     "order" integer,
+    "allowUpdates" boolean DEFAULT true NOT NULL,
     CONSTRAINT "chk_ropewikiImage_order_null_only_when_deleted" CHECK ((("order" IS NOT NULL) OR ("deletedAt" IS NOT NULL)))
 );
 
@@ -147,7 +151,8 @@ CREATE TABLE public."RopewikiPage" (
     "exitElevGain" numeric,
     "approachLength" numeric,
     "descentElevGain" numeric,
-    "exitLength" numeric
+    "exitLength" numeric,
+    "allowUpdates" boolean DEFAULT true NOT NULL
 );
 
 
@@ -160,7 +165,8 @@ CREATE TABLE public."RopewikiPageSiteLink" (
     "siteLink" uuid NOT NULL,
     "createdAt" timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
     "updatedAt" timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    "deletedAt" timestamp without time zone
+    "deletedAt" timestamp without time zone,
+    "allowUpdates" boolean DEFAULT true NOT NULL
 );
 
 
@@ -185,7 +191,8 @@ CREATE TABLE public."RopewikiRegion" (
     url text NOT NULL,
     "truePageCount" integer,
     "trueRegionCount" integer,
-    "truePageCountWithDescendents" integer
+    "truePageCountWithDescendents" integer,
+    "allowUpdates" boolean DEFAULT true NOT NULL
 );
 
 
@@ -199,7 +206,8 @@ CREATE TABLE public."RopewikiRoute" (
     "mapData" uuid,
     "createdAt" timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
     "updatedAt" timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    "deletedAt" timestamp without time zone
+    "deletedAt" timestamp without time zone,
+    "allowUpdates" boolean DEFAULT true NOT NULL
 );
 
 
@@ -212,7 +220,8 @@ CREATE TABLE public."RopewikiSiteLink" (
     url text NOT NULL,
     "createdAt" timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
     "updatedAt" timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    "deletedAt" timestamp without time zone
+    "deletedAt" timestamp without time zone,
+    "allowUpdates" boolean DEFAULT true NOT NULL
 );
 
 
@@ -227,7 +236,8 @@ CREATE TABLE public."Route" (
     coordinates jsonb NOT NULL,
     "createdAt" timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
     "updatedAt" timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    "deletedAt" timestamp without time zone
+    "deletedAt" timestamp without time zone,
+    "allowUpdates" boolean DEFAULT true NOT NULL
 );
 
 
@@ -511,7 +521,7 @@ ALTER TABLE ONLY public."RopewikiRoute"
 -- PostgreSQL database dump complete
 --
 
-\unrestrict LEHMS6V78KPLUoy6XY2gi6kUaybU7NwEIJA0MFsM1laITzMC0gRhpeAtsAl4qS5
+\unrestrict HMb3gvOoF5p7nMWkE4SjZwIyDGXIB4Ag2f0A25EF9Ff47wJk0dKYjc48wftRXZj
 
 
 --
@@ -543,4 +553,5 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20260303180000'),
     ('20260303190000'),
     ('20260304100000'),
-    ('20260305120000');
+    ('20260305120000'),
+    ('20260306120000');

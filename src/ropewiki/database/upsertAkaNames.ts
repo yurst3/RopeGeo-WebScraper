@@ -20,6 +20,7 @@ const upsertAkaNames = async (
         ON CONFLICT ("ropewikiPage", "name") DO UPDATE SET
             "deletedAt" = NULL,
             "updatedAt" = ${db.param(now)}
+        WHERE "RopewikiAkaName"."allowUpdates" = true
     `.run(tx);
 };
 

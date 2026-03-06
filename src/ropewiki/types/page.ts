@@ -2,19 +2,8 @@ import type * as s from 'zapatos/schema';
 import type { SqsRecord } from '@aws-lambda-powertools/parser/types';
 import type { LengthAndElevGain } from '../http/getLengthAndElevGains';
 
-export interface RopewikiBetaSection {
-    title: string;
-    text: string;
-    order: number;
-}
-
-export interface RopewikiImage {
-    betaSectionTitle: string | undefined;
-    linkUrl: string;
-    fileUrl: string;
-    caption: string | undefined;
-    order: number;
-}
+export { RopewikiBetaSection } from './betaSection';
+export { RopewikiImage } from './image';
 
 class RopewikiPage {
     id: string | undefined
@@ -315,6 +304,31 @@ class RopewikiPage {
             betaSites,
             userVotes
         );
+    }
+
+    /** Column keys for batch INSERT in order; use with toDbRow() to build column arrays for unnest(). */
+    static getDbInsertColumns(): readonly (keyof s.RopewikiPage.Insertable)[] {
+        return [
+            'pageId', 'name', 'region', 'url', 'rating', 'timeRating', 'kmlUrl',
+            'technicalRating', 'waterRating', 'riskRating', 'permits', 'rappelInfo', 'rappelCount',
+            'vehicle', 'quality', 'coordinates', 'rappelLongest', 'shuttleTime',
+            'minOverallTime', 'maxOverallTime', 'overallLength', 'approachLength', 'approachElevGain',
+            'descentLength', 'descentElevGain', 'exitLength', 'exitElevGain',
+            'minApproachTime', 'maxApproachTime', 'minDescentTime', 'maxDescentTime',
+            'minExitTime', 'maxExitTime', 'months', 'userVotes', 'latestRevisionDate', 'updatedAt', 'deletedAt',
+        ];
+    }
+
+    /** PostgreSQL array type for each getDbInsertColumns() entry (for unnest casts). */
+    static getDbInsertColumnTypes(): readonly string[] {
+        return [
+            'text', 'text', 'uuid', 'text', 'text', 'text', 'text',
+            'text', 'text', 'text', 'text', 'text', 'integer',
+            'text', 'numeric', 'jsonb', 'jsonb', 'jsonb',
+            'jsonb', 'jsonb', 'numeric', 'numeric', 'numeric',
+            'numeric', 'numeric', 'numeric', 'numeric',
+            'jsonb', 'jsonb', 'jsonb', 'jsonb', 'jsonb', 'jsonb', 'jsonb', 'integer', 'timestamp', 'timestamp', 'timestamp',
+        ];
     }
 
     toDbRow(): s.RopewikiPage.Insertable {

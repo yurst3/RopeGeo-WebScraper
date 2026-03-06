@@ -95,6 +95,36 @@ describe('upsertRegions (integration)', () => {
     );
   });
 
+  it('does not update a region when allowUpdates is false', async () => {
+    const initialRevisionDate = new Date('2024-01-01T00:00:00Z');
+    const latestRevisionDate = new Date('2024-02-01T00:00:00Z');
+
+    await upsertRegions(
+      conn,
+      [new RopewikiRegion('Locked Region', undefined, 5, 0, 'Original overview', [], false, false, initialRevisionDate)],
+    );
+
+    await db.sql`
+      UPDATE "RopewikiRegion"
+      SET "allowUpdates" = false
+      WHERE name = ${db.param('Locked Region')} AND "parentRegion" IS NULL
+    `.run(conn);
+
+    await upsertRegions(
+      conn,
+      [new RopewikiRegion('Locked Region', undefined, 999, 0, 'Should not apply', ['January'], true, true, latestRevisionDate)],
+    );
+
+    const rows = await db.select('RopewikiRegion', { name: 'Locked Region' }).run(conn);
+    const region = rows.find((r) => r.parentRegion === null) as s.RopewikiRegion.JSONSelectable;
+    expect(region).toBeDefined();
+    expect(region.rawPageCount).toBe(5);
+    expect(region.overview).toBe('Original overview');
+    expect(region.bestMonths).toEqual([]);
+    expect(region.isMajorRegion).toBe(false);
+    expect(region.isTopLevelRegion).toBe(false);
+  });
+
   it('sets deletedAt to null when upserting', async () => {
     const latestRevisionDate = new Date('2024-01-01T00:00:00Z');
 

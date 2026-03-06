@@ -4,7 +4,7 @@ import type * as s from 'zapatos/schema';
 import { describe, it, expect, afterEach, beforeAll, afterAll } from '@jest/globals';
 import setBetaSectionsDeletedAt from '../../../src/ropewiki/database/setBetaSectionsDeletedAt';
 import upsertBetaSections from '../../../src/ropewiki/database/upsertBetaSections';
-import type { RopewikiBetaSection } from '../../../src/ropewiki/types/page';
+import { RopewikiBetaSection } from '../../../src/ropewiki/types/betaSection';
 import RopewikiPage from '../../../src/ropewiki/types/page';
 import upsertPages from '../../../src/ropewiki/database/upsertPages';
 
@@ -108,16 +108,16 @@ describe('soft delete then upsert beta sections (integration)', () => {
 
         // First "parse": Introduction (0), Approach (1), Descent (2)
         const firstParse: RopewikiBetaSection[] = [
-            { title: 'Introduction', text: 'Intro text.', order: 0 },
-            { title: 'Approach', text: 'Approach text.', order: 1 },
-            { title: 'Descent', text: 'Descent text.', order: 2 },
+            new RopewikiBetaSection('Introduction', 'Intro text.', 0),
+            new RopewikiBetaSection('Approach', 'Approach text.', 1),
+            new RopewikiBetaSection('Descent', 'Descent text.', 2),
         ];
         await upsertBetaSections(conn, testPageUuid, firstParse, rev1);
 
         // Other page: different sections that must remain untouched by soft-delete/upsert of test page
         const otherPageSections: RopewikiBetaSection[] = [
-            { title: 'Overview', text: 'Overview text.', order: 0 },
-            { title: 'Route', text: 'Route text.', order: 1 },
+            new RopewikiBetaSection('Overview', 'Overview text.', 0),
+            new RopewikiBetaSection('Route', 'Route text.', 1),
         ];
         await upsertBetaSections(conn, otherPageUuid, otherPageSections, rev1);
 
@@ -129,9 +129,9 @@ describe('soft delete then upsert beta sections (integration)', () => {
         // Second "parse": Approach is removed, "New Section" added between Introduction and Descent
         // So we have Introduction (0), New Section (1), Descent (2)
         const secondParse: RopewikiBetaSection[] = [
-            { title: 'Introduction', text: 'Intro text.', order: 0 },
-            { title: 'New Section', text: 'New section text.', order: 1 },
-            { title: 'Descent', text: 'Descent text.', order: 2 },
+            new RopewikiBetaSection('Introduction', 'Intro text.', 0),
+            new RopewikiBetaSection('New Section', 'New section text.', 1),
+            new RopewikiBetaSection('Descent', 'Descent text.', 2),
         ];
 
         // Replicate processPage order: soft-delete all, then upsert
@@ -188,9 +188,9 @@ describe('soft delete then upsert beta sections (integration)', () => {
     it('allows multiple soft-deleted beta sections with order null for the same page', async () => {
         const rev = new Date('2025-01-01T00:00:00Z');
         const sections: RopewikiBetaSection[] = [
-            { title: 'Section A', text: 'Text A.', order: 0 },
-            { title: 'Section B', text: 'Text B.', order: 1 },
-            { title: 'Section C', text: 'Text C.', order: 2 },
+            new RopewikiBetaSection('Section A', 'Text A.', 0),
+            new RopewikiBetaSection('Section B', 'Text B.', 1),
+            new RopewikiBetaSection('Section C', 'Text C.', 2),
         ];
         await upsertBetaSections(conn, testPageUuid, sections, rev);
 

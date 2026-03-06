@@ -1,39 +1,40 @@
 import * as db from 'zapatos/db';
-import { RopewikiBetaSection } from '../types/page';
+import type * as s from 'zapatos/schema';
+import { RopewikiBetaSection } from '../types/betaSection';
+import { makeUnnestPart } from '../../helpers/makeUnnestPart';
 
 // Insert or update beta sections for a page.
-// On conflict (same ropewikiPage & title), update the text and timestamps, including latestRevisionDate.
-// Returns a map of title -> id for all upserted beta sections.
+// ON CONFLICT (ropewikiPage, title) DO UPDATE SET ... WHERE allowUpdates = true.
+// Returns a map of title -> id only for beta sections that were actually inserted or updated (locked rows are not included).
 const upsertBetaSections = async (
     tx: db.Queryable,
     pageUuid: string,
     betaSections: RopewikiBetaSection[],
     latestRevisionDate: Date,
 ): Promise<{ [title: string]: string }> => {
-    if (betaSections.length === 0) {
-        return {};
-    }
+    if (betaSections.length === 0) return {};
 
-    const now = new Date();
+    const columns = RopewikiBetaSection.getDbInsertColumns();
+    const rows = betaSections.map((b) => b.toDbRow(pageUuid, latestRevisionDate));
+    const unnestPart = makeUnnestPart(RopewikiBetaSection, rows);
 
-    const rows = betaSections.map((betaSection) => ({
-        ropewikiPage: pageUuid,
-        title: betaSection.title,
-        text: betaSection.text,
-        order: betaSection.order,
-        latestRevisionDate,
-        updatedAt: now,
-        deletedAt: null,
-    }));
+    const returned = await db.sql<
+        db.SQL,
+        (s.RopewikiBetaSection.JSONSelectable)[]
+    >`
+        INSERT INTO "RopewikiBetaSection" ( ${db.cols(columns)} )
+        SELECT * FROM unnest( ${unnestPart} ) AS t( ${db.cols(columns)} )
+        ON CONFLICT ("ropewikiPage", "title") DO UPDATE SET
+            "text" = EXCLUDED."text",
+            "order" = EXCLUDED."order",
+            "latestRevisionDate" = EXCLUDED."latestRevisionDate",
+            "updatedAt" = EXCLUDED."updatedAt",
+            "deletedAt" = EXCLUDED."deletedAt"
+        WHERE "RopewikiBetaSection"."allowUpdates" = true
+        RETURNING id, title
+    `.run(tx);
 
-    const result = await db
-        .upsert('RopewikiBetaSection', rows, ['ropewikiPage', 'title'], {
-            updateColumns: ['text', 'order', 'latestRevisionDate', 'updatedAt', 'deletedAt'],
-        })
-        .run(tx);
-
-    return Object.fromEntries(result.map(row => [row.title, row.id]));
+    return Object.fromEntries(returned.map((row) => [row.title, row.id]));
 };
 
 export default upsertBetaSections;
-

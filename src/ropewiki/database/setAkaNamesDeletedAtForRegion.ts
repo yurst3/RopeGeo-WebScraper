@@ -27,6 +27,7 @@ const setAkaNamesDeletedAtForRegion = async (
         WHERE a."ropewikiPage" = p.id
           AND p.region IN (SELECT id FROM region_and_descendants)
           AND a."deletedAt" IS NULL
+          AND a."allowUpdates" = true
     `.run(tx);
 };
 

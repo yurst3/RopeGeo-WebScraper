@@ -29,25 +29,27 @@ Local flow from package.json: `migrate:up` runs dbmate then `npx zapatos`, so on
 
 ## Audit columns
 
-Every table must have these three columns (all lowerCamelCase):
+Every table must have these four columns (all lowerCamelCase):
 
 - **`createdAt`** – `timestamp` NOT NULL, default `CURRENT_TIMESTAMP`
 - **`updatedAt`** – `timestamp` NOT NULL, default `CURRENT_TIMESTAMP`
 - **`deletedAt`** – `timestamp` NULL (used for soft deletes)
+- **`allowUpdates`** – `boolean` NOT NULL, default `true` (when false, application logic must prevent updating the row)
 
 Example:
 
 ```sql
 "createdAt" timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
 "updatedAt" timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
-"deletedAt" timestamp without time zone
+"deletedAt" timestamp without time zone,
+"allowUpdates" boolean DEFAULT true NOT NULL
 ```
 
 ## Primary key: id uuid
 
 - **Almost every table** has a primary key **`id`** of type **uuid**, default `gen_random_uuid()`.
-- **Exception**: joiner/pivot tables that only link two entities (e.g. **`RopewikiRoute`** linking `Route` and `RopewikiPage`) do **not** have an `id` column; they use a composite unique constraint (e.g. `UNIQUE ("ropewikiPage", "route")`) and still include the three audit columns.
+- **Exception**: joiner/pivot tables that only link two entities (e.g. **`RopewikiRoute`** linking `Route` and `RopewikiPage`) do **not** have an `id` column; they use a composite unique constraint (e.g. `UNIQUE ("ropewikiPage", "route")`) and still include the four audit columns.
 
 ## Migration file naming
 
-Use dbmate’s default: **`YYYYMMDDHHMMSS_ShortDescription.sql`** (e.g. `20260304100000_AddRopewikiAkaNameTable.sql`). Each file must contain `-- migrate:up` and `-- migrate:down` sections.
+Use dbmate’s default: **`YYYYMMDDHHMMSS_ShortDescription.sql`** (e.g. `20260304100000_AddRopewikiAkaNameTable.sql`). The timestamp must be the **current date and time** when you create the file so that dbmate applies migrations in the correct order (it runs them in filename order). Each file must contain `-- migrate:up` and `-- migrate:down` sections.

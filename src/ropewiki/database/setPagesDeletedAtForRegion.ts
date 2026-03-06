@@ -24,6 +24,7 @@ const setPagesDeletedAtForRegion = async (
         SET "deletedAt" = ${db.param(now)}
         WHERE region IN (SELECT id FROM region_and_descendants)
           AND "deletedAt" IS NULL
+          AND "allowUpdates" = true
     `.run(tx);
 };
 

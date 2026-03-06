@@ -110,6 +110,19 @@ export class RopewikiRegion {
         );
     }
 
+    /** Column keys for batch INSERT in order (excludes id). Use with toDbRow() to build column arrays for unnest(). */
+    static getDbInsertColumns(): readonly (keyof s.RopewikiRegion.Insertable)[] {
+        return [
+            'name', 'parentRegion', 'rawPageCount', 'level', 'overview', 'bestMonths',
+            'isMajorRegion', 'isTopLevelRegion', 'latestRevisionDate', 'url', 'updatedAt', 'deletedAt',
+        ];
+    }
+
+    /** PostgreSQL array type for each getDbInsertColumns() entry (bestMonths is text[]; SELECT casts to jsonb). */
+    static getDbInsertColumnTypes(): readonly string[] {
+        return ['text', 'text', 'integer', 'integer', 'text', 'text', 'boolean', 'boolean', 'timestamp', 'text', 'timestamp', 'timestamp'];
+    }
+
     toDbRow(): s.RopewikiRegion.Insertable {
         const now = new Date();
         const row: s.RopewikiRegion.Insertable = {

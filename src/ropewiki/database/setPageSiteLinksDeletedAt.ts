@@ -15,6 +15,7 @@ const setPageSiteLinksDeletedAt = async (
             {
                 page: pageUuid,
                 deletedAt: db.conditions.isNull,
+                allowUpdates: true,
             }
         )
         .run(tx);

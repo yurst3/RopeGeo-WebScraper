@@ -31,7 +31,7 @@ const updateRegionTrueCounts = async (conn: db.Queryable): Promise<void> => {
             "trueRegionCount" = counts."trueRegionCount",
             "truePageCountWithDescendents" = counts."truePageCountWithDescendents"
         FROM counts
-        WHERE r.id = counts.id
+        WHERE r.id = counts.id AND r."allowUpdates" = true
     `.run(conn);
 };
 

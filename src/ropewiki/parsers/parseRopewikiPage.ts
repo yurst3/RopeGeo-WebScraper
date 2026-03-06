@@ -3,7 +3,11 @@ import uniqBy from 'lodash/uniqBy';
 import { launchBrowser } from '../../helpers/browserLauncher';
 import { timeoutAfter } from '../../helpers/timeoutAfter';
 
-const evalPage = (): { beta: RopewikiBetaSection[], images: RopewikiImage[] } => {
+/** Plain shape returned from browser eval; converted to class instances before returning from parseRopewikiPage. */
+type BetaSectionParse = { title: string; text: string; order: number };
+type ImageParse = { betaSectionTitle: string | undefined; linkUrl: string; fileUrl: string; caption: string | undefined; order: number };
+
+const evalPage = (): { beta: BetaSectionParse[]; images: ImageParse[] } => {
     // Functions have to be defined inside evalPage() because it is being run in a browser context and can't reference other functions
     const getHeaderTitle = (childNodes: NodeListOf<ChildNode>): string | undefined => {
         for (let i = 0; i < childNodes.length; i++) {
@@ -12,7 +16,7 @@ const evalPage = (): { beta: RopewikiBetaSection[], images: RopewikiImage[] } =>
         }
     }
 
-    let currentBeta: RopewikiBetaSection | null = null;
+    let currentBeta: BetaSectionParse | null = null;
     let betaOrder: number = 0;
     let imageOrder: number = 0;
     const parseChildNodes = (childNodes: NodeListOf<ChildNode>) => {
@@ -164,8 +168,8 @@ const evalPage = (): { beta: RopewikiBetaSection[], images: RopewikiImage[] } =>
         }
     }
 
-    const beta: RopewikiBetaSection[] = [];
-    const images: RopewikiImage[] = [];
+    const beta: BetaSectionParse[] = [];
+    const images: ImageParse[] = [];
 
     const parent: Element | null = document.querySelector('.mw-parser-output');
     if (parent === null) return { beta, images };
@@ -180,8 +184,8 @@ const evalPage = (): { beta: RopewikiBetaSection[], images: RopewikiImage[] } =>
 
 // Aberfoyle Canyon has duplicate "Background" beta sections, however both are empty
 const removeDuplicates = (
-    result: { beta: RopewikiBetaSection[], images: RopewikiImage[] }
-): { beta: RopewikiBetaSection[], images: RopewikiImage[] } => {
+    result: { beta: BetaSectionParse[]; images: ImageParse[] }
+): { beta: BetaSectionParse[]; images: ImageParse[] } => {
     return {
         beta: uniqBy(result.beta, 'title'),
         images: uniqBy(result.images, image => `${image.betaSectionTitle}-${image.fileUrl}`)
@@ -190,13 +194,13 @@ const removeDuplicates = (
 
 // See Devil Gulch test data and unit test
 const removeEmptyBetaSectionsWithoutImages = (
-    result: { beta: RopewikiBetaSection[], images: RopewikiImage[] }
-): { beta: RopewikiBetaSection[], images: RopewikiImage[] } => {
+    result: { beta: BetaSectionParse[]; images: ImageParse[] }
+): { beta: BetaSectionParse[]; images: ImageParse[] } => {
     const imageBetaSectionTitles: Set<string | undefined> = new Set(
         result.images.map(image => image.betaSectionTitle)
     );
 
-    const beta: RopewikiBetaSection[] = result.beta.filter(betaSection => {
+    const beta: BetaSectionParse[] = result.beta.filter(betaSection => {
         const isEmpty: boolean = betaSection.text.length === 0;
         const hasImage: boolean = imageBetaSectionTitles.has(betaSection.title);
         if (isEmpty && !hasImage) return false;
@@ -230,7 +234,10 @@ const parseRopewikiPage = async (html: string): Promise<{ beta: RopewikiBetaSect
     result = removeEmptyBetaSectionsWithoutImages(result);
     result = removeDuplicates(result);
 
-    return result;
+    return {
+        beta: result.beta.map((b) => new RopewikiBetaSection(b.title, b.text, b.order)),
+        images: result.images.map((i) => new RopewikiImage(i.betaSectionTitle, i.linkUrl, i.fileUrl, i.caption, i.order)),
+    };
 };
 
 export default parseRopewikiPage;

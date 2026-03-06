@@ -27,6 +27,7 @@ const updateRouteForPage = async (
         WHERE r.id = rr.route
         AND rr."ropewikiPage" = ${db.param(page.id)}::uuid
         AND rr."deletedAt" IS NULL
+        AND r."allowUpdates" = true
     `.run(conn);
 };
 

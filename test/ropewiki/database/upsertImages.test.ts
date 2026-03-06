@@ -3,11 +3,11 @@ import * as db from 'zapatos/db';
 import type * as s from 'zapatos/schema';
 import { describe, it, expect, afterEach, beforeAll, afterAll } from '@jest/globals';
 import upsertImages from '../../../src/ropewiki/database/upsertImages';
-import type { RopewikiImage } from '../../../src/ropewiki/types/page';
+import { RopewikiImage } from '../../../src/ropewiki/types/image';
 import RopewikiPage from '../../../src/ropewiki/types/page';
 import upsertPages from '../../../src/ropewiki/database/upsertPages';
 import upsertBetaSections from '../../../src/ropewiki/database/upsertBetaSections';
-import type { RopewikiBetaSection } from '../../../src/ropewiki/types/page';
+import { RopewikiBetaSection } from '../../../src/ropewiki/types/betaSection';
 
 describe('upsertImages (integration)', () => {
     const pool = new Pool({
@@ -62,8 +62,8 @@ describe('upsertImages (integration)', () => {
 
         // Insert test beta sections to get betaTitleIds
         const betaSections: RopewikiBetaSection[] = [
-            { title: 'Introduction', text: 'Introduction text.', order: 1 },
-            { title: 'Approach', text: 'Approach text.', order: 2 },
+            new RopewikiBetaSection('Introduction', 'Introduction text.', 1),
+            new RopewikiBetaSection('Approach', 'Approach text.', 2),
         ];
         betaTitleIds = await upsertBetaSections(conn, testPageUuid, betaSections, new Date('2025-01-01T00:00:00Z'));
     });
@@ -96,27 +96,9 @@ describe('upsertImages (integration)', () => {
     it('inserts net new images and returns their IDs', async () => {
         const latestRevisionDate = new Date('2025-01-02T12:34:56Z');
         const images: RopewikiImage[] = [
-            {
-                betaSectionTitle: 'Introduction',
-                linkUrl: 'https://ropewiki.com/Image1',
-                fileUrl: 'https://ropewiki.com/files/Image1.jpg',
-                caption: 'Image 1 caption',
-                order: 1,
-            },
-            {
-                betaSectionTitle: 'Approach',
-                linkUrl: 'https://ropewiki.com/Image2',
-                fileUrl: 'https://ropewiki.com/files/Image2.jpg',
-                caption: 'Image 2 caption',
-                order: 1,
-            },
-            {
-                betaSectionTitle: undefined,
-                linkUrl: 'https://ropewiki.com/Image3',
-                fileUrl: 'https://ropewiki.com/files/Image3.jpg',
-                caption: 'Image 3 caption',
-                order: 1,
-            },
+            new RopewikiImage('Introduction', 'https://ropewiki.com/Image1', 'https://ropewiki.com/files/Image1.jpg', 'Image 1 caption', 1),
+            new RopewikiImage('Approach', 'https://ropewiki.com/Image2', 'https://ropewiki.com/files/Image2.jpg', 'Image 2 caption', 1),
+            new RopewikiImage(undefined, 'https://ropewiki.com/Image3', 'https://ropewiki.com/files/Image3.jpg', 'Image 3 caption', 1),
         ];
 
         const result = await upsertImages(conn, testPageUuid, images, betaTitleIds, latestRevisionDate);
@@ -170,20 +152,8 @@ describe('upsertImages (integration)', () => {
 
         // First, insert images
         const initialImages: RopewikiImage[] = [
-            {
-                betaSectionTitle: 'Introduction',
-                linkUrl: 'https://ropewiki.com/Image1',
-                fileUrl: 'https://ropewiki.com/files/Image1.jpg',
-                caption: 'Initial caption 1',
-                order: 1,
-            },
-            {
-                betaSectionTitle: undefined,
-                linkUrl: 'https://ropewiki.com/Image2',
-                fileUrl: 'https://ropewiki.com/files/Image2.jpg',
-                caption: 'Initial caption 2',
-                order: 1,
-            },
+            new RopewikiImage('Introduction', 'https://ropewiki.com/Image1', 'https://ropewiki.com/files/Image1.jpg', 'Initial caption 1', 1),
+            new RopewikiImage(undefined, 'https://ropewiki.com/Image2', 'https://ropewiki.com/files/Image2.jpg', 'Initial caption 2', 1),
         ];
 
         const initialResult = await upsertImages(conn, testPageUuid, initialImages, betaTitleIds, initialRevisionDate);
@@ -202,20 +172,8 @@ describe('upsertImages (integration)', () => {
 
         // Now update the same images with new data
         const updatedImages: RopewikiImage[] = [
-            {
-                betaSectionTitle: 'Introduction',
-                linkUrl: 'https://ropewiki.com/Image1_Updated',
-                fileUrl: 'https://ropewiki.com/files/Image1.jpg', // Same fileUrl (conflict key)
-                caption: 'Updated caption 1',
-                order: 2,
-            },
-            {
-                betaSectionTitle: undefined,
-                linkUrl: 'https://ropewiki.com/Image2_Updated',
-                fileUrl: 'https://ropewiki.com/files/Image2.jpg', // Same fileUrl (conflict key)
-                caption: 'Updated caption 2',
-                order: 2,
-            },
+            new RopewikiImage('Introduction', 'https://ropewiki.com/Image1_Updated', 'https://ropewiki.com/files/Image1.jpg', 'Updated caption 1', 2),
+            new RopewikiImage(undefined, 'https://ropewiki.com/Image2_Updated', 'https://ropewiki.com/files/Image2.jpg', 'Updated caption 2', 2),
         ];
 
         const updatedResult = await upsertImages(conn, testPageUuid, updatedImages, betaTitleIds, updatedRevisionDate);
@@ -255,13 +213,7 @@ describe('upsertImages (integration)', () => {
     it('throws an error when betaSectionTitle is provided but not found in betaTitleIds', async () => {
         const latestRevisionDate = new Date('2025-01-04T10:00:00Z');
         const images: RopewikiImage[] = [
-            {
-                betaSectionTitle: 'NonExistentSection',
-                linkUrl: 'https://ropewiki.com/Image1',
-                fileUrl: 'https://ropewiki.com/files/Image1.jpg',
-                caption: 'Image 1 caption',
-                order: 1,
-            },
+            new RopewikiImage('NonExistentSection', 'https://ropewiki.com/Image1', 'https://ropewiki.com/files/Image1.jpg', 'Image 1 caption', 1),
         ];
 
         await expect(
@@ -272,13 +224,7 @@ describe('upsertImages (integration)', () => {
     it('sets deletedAt to null when upserting', async () => {
         const latestRevisionDate = new Date('2025-01-02T12:34:56Z');
         const images: RopewikiImage[] = [
-            {
-                betaSectionTitle: 'Introduction',
-                linkUrl: 'https://ropewiki.com/DeletedImage',
-                fileUrl: 'https://ropewiki.com/files/DeletedImage.jpg',
-                caption: 'Deleted image caption',
-                order: 1,
-            },
+            new RopewikiImage('Introduction', 'https://ropewiki.com/DeletedImage', 'https://ropewiki.com/files/DeletedImage.jpg', 'Deleted image caption', 1),
         ];
 
         // Insert an image with deletedAt set
@@ -317,20 +263,8 @@ describe('upsertImages (integration)', () => {
     it('throws an error when attempting to insert duplicate order for the same page and betaSection', async () => {
         const latestRevisionDate = new Date('2025-01-02T12:34:56Z');
         const images: RopewikiImage[] = [
-            {
-                betaSectionTitle: 'Introduction',
-                linkUrl: 'https://ropewiki.com/Image1',
-                fileUrl: 'https://ropewiki.com/files/Image1.jpg',
-                caption: 'Image 1 caption',
-                order: 1,
-            },
-            {
-                betaSectionTitle: 'Introduction',
-                linkUrl: 'https://ropewiki.com/Image2',
-                fileUrl: 'https://ropewiki.com/files/Image2.jpg',
-                caption: 'Image 2 caption',
-                order: 1, // Same order and betaSection as Image1
-            },
+            new RopewikiImage('Introduction', 'https://ropewiki.com/Image1', 'https://ropewiki.com/files/Image1.jpg', 'Image 1 caption', 1),
+            new RopewikiImage('Introduction', 'https://ropewiki.com/Image2', 'https://ropewiki.com/files/Image2.jpg', 'Image 2 caption', 1), // Same order and betaSection as Image1
         ];
 
         await expect(
@@ -341,20 +275,8 @@ describe('upsertImages (integration)', () => {
     it('allows same order for different betaSections', async () => {
         const latestRevisionDate = new Date('2025-01-02T12:34:56Z');
         const images: RopewikiImage[] = [
-            {
-                betaSectionTitle: 'Introduction',
-                linkUrl: 'https://ropewiki.com/Image1',
-                fileUrl: 'https://ropewiki.com/files/Image1.jpg',
-                caption: 'Image 1 caption',
-                order: 1,
-            },
-            {
-                betaSectionTitle: 'Approach',
-                linkUrl: 'https://ropewiki.com/Image2',
-                fileUrl: 'https://ropewiki.com/files/Image2.jpg',
-                caption: 'Image 2 caption',
-                order: 1, // Same order but different betaSection - should be allowed
-            },
+            new RopewikiImage('Introduction', 'https://ropewiki.com/Image1', 'https://ropewiki.com/files/Image1.jpg', 'Image 1 caption', 1),
+            new RopewikiImage('Approach', 'https://ropewiki.com/Image2', 'https://ropewiki.com/files/Image2.jpg', 'Image 2 caption', 1), // Same order but different betaSection - should be allowed
         ];
 
         const result = await upsertImages(conn, testPageUuid, images, betaTitleIds, latestRevisionDate);
@@ -364,20 +286,8 @@ describe('upsertImages (integration)', () => {
     it('allows same order for images without betaSection', async () => {
         const latestRevisionDate = new Date('2025-01-02T12:34:56Z');
         const images: RopewikiImage[] = [
-            {
-                betaSectionTitle: undefined,
-                linkUrl: 'https://ropewiki.com/Image1',
-                fileUrl: 'https://ropewiki.com/files/Image1.jpg',
-                caption: 'Image 1 caption',
-                order: 1,
-            },
-            {
-                betaSectionTitle: undefined,
-                linkUrl: 'https://ropewiki.com/Image2',
-                fileUrl: 'https://ropewiki.com/files/Image2.jpg',
-                caption: 'Image 2 caption',
-                order: 1, // Same order and betaSection (both null) - should throw
-            },
+            new RopewikiImage(undefined, 'https://ropewiki.com/Image1', 'https://ropewiki.com/files/Image1.jpg', 'Image 1 caption', 1),
+            new RopewikiImage(undefined, 'https://ropewiki.com/Image2', 'https://ropewiki.com/files/Image2.jpg', 'Image 2 caption', 1), // Same order and betaSection (both null) - should throw
         ];
 
         await expect(
@@ -390,25 +300,13 @@ describe('upsertImages (integration)', () => {
         
         // First insert with order 1
         const initialImages: RopewikiImage[] = [
-            {
-                betaSectionTitle: 'Introduction',
-                linkUrl: 'https://ropewiki.com/Image1',
-                fileUrl: 'https://ropewiki.com/files/Image1.jpg',
-                caption: 'Initial caption',
-                order: 1,
-            },
+            new RopewikiImage('Introduction', 'https://ropewiki.com/Image1', 'https://ropewiki.com/files/Image1.jpg', 'Initial caption', 1),
         ];
         await upsertImages(conn, testPageUuid, initialImages, betaTitleIds, latestRevisionDate);
 
         // Update with order 2
         const updatedImages: RopewikiImage[] = [
-            {
-                betaSectionTitle: 'Introduction',
-                linkUrl: 'https://ropewiki.com/Image1_Updated',
-                fileUrl: 'https://ropewiki.com/files/Image1.jpg', // Same fileUrl (conflict key)
-                caption: 'Updated caption',
-                order: 2,
-            },
+            new RopewikiImage('Introduction', 'https://ropewiki.com/Image1_Updated', 'https://ropewiki.com/files/Image1.jpg', 'Updated caption', 2),
         ];
         await upsertImages(conn, testPageUuid, updatedImages, betaTitleIds, latestRevisionDate);
 
@@ -424,13 +322,7 @@ describe('upsertImages (integration)', () => {
     it('propagates errors from the database layer', async () => {
         const latestRevisionDate = new Date('2025-01-04T10:00:00Z');
         const images: RopewikiImage[] = [
-            {
-                betaSectionTitle: 'Introduction',
-                linkUrl: 'https://ropewiki.com/Image1',
-                fileUrl: 'https://ropewiki.com/files/Image1.jpg',
-                caption: 'Image 1 caption',
-                order: 1,
-            },
+            new RopewikiImage('Introduction', 'https://ropewiki.com/Image1', 'https://ropewiki.com/files/Image1.jpg', 'Image 1 caption', 1),
         ];
 
         // Use a client with a non-existent database to force an error

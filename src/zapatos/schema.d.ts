@@ -30,6 +30,12 @@ declare module 'zapatos/schema' {
     export type Table = 'MapData';
     export interface Selectable {
       /**
+      * **MapData.allowUpdates**
+      * - `bool` in database
+      * - `NOT NULL`, default: `true`
+      */
+      allowUpdates: boolean;
+      /**
       * **MapData.createdAt**
       * - `timestamp` in database
       * - `NOT NULL`, default: `CURRENT_TIMESTAMP`
@@ -91,6 +97,12 @@ declare module 'zapatos/schema' {
       vectorTile: string | null;
     }
     export interface JSONSelectable {
+      /**
+      * **MapData.allowUpdates**
+      * - `bool` in database
+      * - `NOT NULL`, default: `true`
+      */
+      allowUpdates: boolean;
       /**
       * **MapData.createdAt**
       * - `timestamp` in database
@@ -154,6 +166,12 @@ declare module 'zapatos/schema' {
     }
     export interface Whereable {
       /**
+      * **MapData.allowUpdates**
+      * - `bool` in database
+      * - `NOT NULL`, default: `true`
+      */
+      allowUpdates?: boolean | db.Parameter<boolean> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, boolean | db.Parameter<boolean> | db.SQLFragment | db.ParentColumn>;
+      /**
       * **MapData.createdAt**
       * - `timestamp` in database
       * - `NOT NULL`, default: `CURRENT_TIMESTAMP`
@@ -216,6 +234,12 @@ declare module 'zapatos/schema' {
     }
     export interface Insertable {
       /**
+      * **MapData.allowUpdates**
+      * - `bool` in database
+      * - `NOT NULL`, default: `true`
+      */
+      allowUpdates?: boolean | db.Parameter<boolean> | db.DefaultType | db.SQLFragment;
+      /**
       * **MapData.createdAt**
       * - `timestamp` in database
       * - `NOT NULL`, default: `CURRENT_TIMESTAMP`
@@ -277,6 +301,12 @@ declare module 'zapatos/schema' {
       vectorTile?: string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment;
     }
     export interface Updatable {
+      /**
+      * **MapData.allowUpdates**
+      * - `bool` in database
+      * - `NOT NULL`, default: `true`
+      */
+      allowUpdates?: boolean | db.Parameter<boolean> | db.DefaultType | db.SQLFragment | db.SQLFragment<any, boolean | db.Parameter<boolean> | db.DefaultType | db.SQLFragment>;
       /**
       * **MapData.createdAt**
       * - `timestamp` in database
@@ -353,6 +383,12 @@ declare module 'zapatos/schema' {
     export type Table = 'RopewikiAkaName';
     export interface Selectable {
       /**
+      * **RopewikiAkaName.allowUpdates**
+      * - `bool` in database
+      * - `NOT NULL`, default: `true`
+      */
+      allowUpdates: boolean;
+      /**
       * **RopewikiAkaName.createdAt**
       * - `timestamp` in database
       * - `NOT NULL`, default: `CURRENT_TIMESTAMP`
@@ -390,6 +426,12 @@ declare module 'zapatos/schema' {
       updatedAt: Date;
     }
     export interface JSONSelectable {
+      /**
+      * **RopewikiAkaName.allowUpdates**
+      * - `bool` in database
+      * - `NOT NULL`, default: `true`
+      */
+      allowUpdates: boolean;
       /**
       * **RopewikiAkaName.createdAt**
       * - `timestamp` in database
@@ -429,6 +471,12 @@ declare module 'zapatos/schema' {
     }
     export interface Whereable {
       /**
+      * **RopewikiAkaName.allowUpdates**
+      * - `bool` in database
+      * - `NOT NULL`, default: `true`
+      */
+      allowUpdates?: boolean | db.Parameter<boolean> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, boolean | db.Parameter<boolean> | db.SQLFragment | db.ParentColumn>;
+      /**
       * **RopewikiAkaName.createdAt**
       * - `timestamp` in database
       * - `NOT NULL`, default: `CURRENT_TIMESTAMP`
@@ -467,6 +515,12 @@ declare module 'zapatos/schema' {
     }
     export interface Insertable {
       /**
+      * **RopewikiAkaName.allowUpdates**
+      * - `bool` in database
+      * - `NOT NULL`, default: `true`
+      */
+      allowUpdates?: boolean | db.Parameter<boolean> | db.DefaultType | db.SQLFragment;
+      /**
       * **RopewikiAkaName.createdAt**
       * - `timestamp` in database
       * - `NOT NULL`, default: `CURRENT_TIMESTAMP`
@@ -504,6 +558,12 @@ declare module 'zapatos/schema' {
       updatedAt?: (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.DefaultType | db.SQLFragment;
     }
     export interface Updatable {
+      /**
+      * **RopewikiAkaName.allowUpdates**
+      * - `bool` in database
+      * - `NOT NULL`, default: `true`
+      */
+      allowUpdates?: boolean | db.Parameter<boolean> | db.DefaultType | db.SQLFragment | db.SQLFragment<any, boolean | db.Parameter<boolean> | db.DefaultType | db.SQLFragment>;
       /**
       * **RopewikiAkaName.createdAt**
       * - `timestamp` in database
@@ -555,6 +615,12 @@ declare module 'zapatos/schema' {
   export namespace RopewikiBetaSection {
     export type Table = 'RopewikiBetaSection';
     export interface Selectable {
+      /**
+      * **RopewikiBetaSection.allowUpdates**
+      * - `bool` in database
+      * - `NOT NULL`, default: `true`
+      */
+      allowUpdates: boolean;
       /**
       * **RopewikiBetaSection.createdAt**
       * - `timestamp` in database
@@ -612,6 +678,12 @@ declare module 'zapatos/schema' {
     }
     export interface JSONSelectable {
       /**
+      * **RopewikiBetaSection.allowUpdates**
+      * - `bool` in database
+      * - `NOT NULL`, default: `true`
+      */
+      allowUpdates: boolean;
+      /**
       * **RopewikiBetaSection.createdAt**
       * - `timestamp` in database
       * - `NOT NULL`, default: `CURRENT_TIMESTAMP`
@@ -667,6 +739,12 @@ declare module 'zapatos/schema' {
       updatedAt: db.TimestampString;
     }
     export interface Whereable {
+      /**
+      * **RopewikiBetaSection.allowUpdates**
+      * - `bool` in database
+      * - `NOT NULL`, default: `true`
+      */
+      allowUpdates?: boolean | db.Parameter<boolean> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, boolean | db.Parameter<boolean> | db.SQLFragment | db.ParentColumn>;
       /**
       * **RopewikiBetaSection.createdAt**
       * - `timestamp` in database
@@ -724,6 +802,12 @@ declare module 'zapatos/schema' {
     }
     export interface Insertable {
       /**
+      * **RopewikiBetaSection.allowUpdates**
+      * - `bool` in database
+      * - `NOT NULL`, default: `true`
+      */
+      allowUpdates?: boolean | db.Parameter<boolean> | db.DefaultType | db.SQLFragment;
+      /**
       * **RopewikiBetaSection.createdAt**
       * - `timestamp` in database
       * - `NOT NULL`, default: `CURRENT_TIMESTAMP`
@@ -779,6 +863,12 @@ declare module 'zapatos/schema' {
       updatedAt?: (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.DefaultType | db.SQLFragment;
     }
     export interface Updatable {
+      /**
+      * **RopewikiBetaSection.allowUpdates**
+      * - `bool` in database
+      * - `NOT NULL`, default: `true`
+      */
+      allowUpdates?: boolean | db.Parameter<boolean> | db.DefaultType | db.SQLFragment | db.SQLFragment<any, boolean | db.Parameter<boolean> | db.DefaultType | db.SQLFragment>;
       /**
       * **RopewikiBetaSection.createdAt**
       * - `timestamp` in database
@@ -849,6 +939,12 @@ declare module 'zapatos/schema' {
     export type Table = 'RopewikiImage';
     export interface Selectable {
       /**
+      * **RopewikiImage.allowUpdates**
+      * - `bool` in database
+      * - `NOT NULL`, default: `true`
+      */
+      allowUpdates: boolean;
+      /**
       * **RopewikiImage.betaSection**
       * - `uuid` in database
       * - Nullable, no default
@@ -916,6 +1012,12 @@ declare module 'zapatos/schema' {
       updatedAt: Date;
     }
     export interface JSONSelectable {
+      /**
+      * **RopewikiImage.allowUpdates**
+      * - `bool` in database
+      * - `NOT NULL`, default: `true`
+      */
+      allowUpdates: boolean;
       /**
       * **RopewikiImage.betaSection**
       * - `uuid` in database
@@ -985,6 +1087,12 @@ declare module 'zapatos/schema' {
     }
     export interface Whereable {
       /**
+      * **RopewikiImage.allowUpdates**
+      * - `bool` in database
+      * - `NOT NULL`, default: `true`
+      */
+      allowUpdates?: boolean | db.Parameter<boolean> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, boolean | db.Parameter<boolean> | db.SQLFragment | db.ParentColumn>;
+      /**
       * **RopewikiImage.betaSection**
       * - `uuid` in database
       * - Nullable, no default
@@ -1053,6 +1161,12 @@ declare module 'zapatos/schema' {
     }
     export interface Insertable {
       /**
+      * **RopewikiImage.allowUpdates**
+      * - `bool` in database
+      * - `NOT NULL`, default: `true`
+      */
+      allowUpdates?: boolean | db.Parameter<boolean> | db.DefaultType | db.SQLFragment;
+      /**
       * **RopewikiImage.betaSection**
       * - `uuid` in database
       * - Nullable, no default
@@ -1120,6 +1234,12 @@ declare module 'zapatos/schema' {
       updatedAt?: (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.DefaultType | db.SQLFragment;
     }
     export interface Updatable {
+      /**
+      * **RopewikiImage.allowUpdates**
+      * - `bool` in database
+      * - `NOT NULL`, default: `true`
+      */
+      allowUpdates?: boolean | db.Parameter<boolean> | db.DefaultType | db.SQLFragment | db.SQLFragment<any, boolean | db.Parameter<boolean> | db.DefaultType | db.SQLFragment>;
       /**
       * **RopewikiImage.betaSection**
       * - `uuid` in database
@@ -1201,6 +1321,12 @@ declare module 'zapatos/schema' {
   export namespace RopewikiPage {
     export type Table = 'RopewikiPage';
     export interface Selectable {
+      /**
+      * **RopewikiPage.allowUpdates**
+      * - `bool` in database
+      * - `NOT NULL`, default: `true`
+      */
+      allowUpdates: boolean;
       /**
       * **RopewikiPage.approachElevGain**
       * - `numeric` in database
@@ -1444,6 +1570,12 @@ declare module 'zapatos/schema' {
     }
     export interface JSONSelectable {
       /**
+      * **RopewikiPage.allowUpdates**
+      * - `bool` in database
+      * - `NOT NULL`, default: `true`
+      */
+      allowUpdates: boolean;
+      /**
       * **RopewikiPage.approachElevGain**
       * - `numeric` in database
       * - Nullable, no default
@@ -1685,6 +1817,12 @@ declare module 'zapatos/schema' {
       waterRating: string | null;
     }
     export interface Whereable {
+      /**
+      * **RopewikiPage.allowUpdates**
+      * - `bool` in database
+      * - `NOT NULL`, default: `true`
+      */
+      allowUpdates?: boolean | db.Parameter<boolean> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, boolean | db.Parameter<boolean> | db.SQLFragment | db.ParentColumn>;
       /**
       * **RopewikiPage.approachElevGain**
       * - `numeric` in database
@@ -1928,6 +2066,12 @@ declare module 'zapatos/schema' {
     }
     export interface Insertable {
       /**
+      * **RopewikiPage.allowUpdates**
+      * - `bool` in database
+      * - `NOT NULL`, default: `true`
+      */
+      allowUpdates?: boolean | db.Parameter<boolean> | db.DefaultType | db.SQLFragment;
+      /**
       * **RopewikiPage.approachElevGain**
       * - `numeric` in database
       * - Nullable, no default
@@ -2169,6 +2313,12 @@ declare module 'zapatos/schema' {
       waterRating?: string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment;
     }
     export interface Updatable {
+      /**
+      * **RopewikiPage.allowUpdates**
+      * - `bool` in database
+      * - `NOT NULL`, default: `true`
+      */
+      allowUpdates?: boolean | db.Parameter<boolean> | db.DefaultType | db.SQLFragment | db.SQLFragment<any, boolean | db.Parameter<boolean> | db.DefaultType | db.SQLFragment>;
       /**
       * **RopewikiPage.approachElevGain**
       * - `numeric` in database
@@ -2425,6 +2575,12 @@ declare module 'zapatos/schema' {
     export type Table = 'RopewikiPageSiteLink';
     export interface Selectable {
       /**
+      * **RopewikiPageSiteLink.allowUpdates**
+      * - `bool` in database
+      * - `NOT NULL`, default: `true`
+      */
+      allowUpdates: boolean;
+      /**
       * **RopewikiPageSiteLink.createdAt**
       * - `timestamp` in database
       * - `NOT NULL`, default: `CURRENT_TIMESTAMP`
@@ -2456,6 +2612,12 @@ declare module 'zapatos/schema' {
       updatedAt: Date;
     }
     export interface JSONSelectable {
+      /**
+      * **RopewikiPageSiteLink.allowUpdates**
+      * - `bool` in database
+      * - `NOT NULL`, default: `true`
+      */
+      allowUpdates: boolean;
       /**
       * **RopewikiPageSiteLink.createdAt**
       * - `timestamp` in database
@@ -2489,6 +2651,12 @@ declare module 'zapatos/schema' {
     }
     export interface Whereable {
       /**
+      * **RopewikiPageSiteLink.allowUpdates**
+      * - `bool` in database
+      * - `NOT NULL`, default: `true`
+      */
+      allowUpdates?: boolean | db.Parameter<boolean> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, boolean | db.Parameter<boolean> | db.SQLFragment | db.ParentColumn>;
+      /**
       * **RopewikiPageSiteLink.createdAt**
       * - `timestamp` in database
       * - `NOT NULL`, default: `CURRENT_TIMESTAMP`
@@ -2521,6 +2689,12 @@ declare module 'zapatos/schema' {
     }
     export interface Insertable {
       /**
+      * **RopewikiPageSiteLink.allowUpdates**
+      * - `bool` in database
+      * - `NOT NULL`, default: `true`
+      */
+      allowUpdates?: boolean | db.Parameter<boolean> | db.DefaultType | db.SQLFragment;
+      /**
       * **RopewikiPageSiteLink.createdAt**
       * - `timestamp` in database
       * - `NOT NULL`, default: `CURRENT_TIMESTAMP`
@@ -2552,6 +2726,12 @@ declare module 'zapatos/schema' {
       updatedAt?: (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.DefaultType | db.SQLFragment;
     }
     export interface Updatable {
+      /**
+      * **RopewikiPageSiteLink.allowUpdates**
+      * - `bool` in database
+      * - `NOT NULL`, default: `true`
+      */
+      allowUpdates?: boolean | db.Parameter<boolean> | db.DefaultType | db.SQLFragment | db.SQLFragment<any, boolean | db.Parameter<boolean> | db.DefaultType | db.SQLFragment>;
       /**
       * **RopewikiPageSiteLink.createdAt**
       * - `timestamp` in database
@@ -2597,6 +2777,12 @@ declare module 'zapatos/schema' {
   export namespace RopewikiRegion {
     export type Table = 'RopewikiRegion';
     export interface Selectable {
+      /**
+      * **RopewikiRegion.allowUpdates**
+      * - `bool` in database
+      * - `NOT NULL`, default: `true`
+      */
+      allowUpdates: boolean;
       /**
       * **RopewikiRegion.bestMonths**
       * - `jsonb` in database
@@ -2702,6 +2888,12 @@ declare module 'zapatos/schema' {
     }
     export interface JSONSelectable {
       /**
+      * **RopewikiRegion.allowUpdates**
+      * - `bool` in database
+      * - `NOT NULL`, default: `true`
+      */
+      allowUpdates: boolean;
+      /**
       * **RopewikiRegion.bestMonths**
       * - `jsonb` in database
       * - `NOT NULL`, no default
@@ -2805,6 +2997,12 @@ declare module 'zapatos/schema' {
       url: string;
     }
     export interface Whereable {
+      /**
+      * **RopewikiRegion.allowUpdates**
+      * - `bool` in database
+      * - `NOT NULL`, default: `true`
+      */
+      allowUpdates?: boolean | db.Parameter<boolean> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, boolean | db.Parameter<boolean> | db.SQLFragment | db.ParentColumn>;
       /**
       * **RopewikiRegion.bestMonths**
       * - `jsonb` in database
@@ -2910,6 +3108,12 @@ declare module 'zapatos/schema' {
     }
     export interface Insertable {
       /**
+      * **RopewikiRegion.allowUpdates**
+      * - `bool` in database
+      * - `NOT NULL`, default: `true`
+      */
+      allowUpdates?: boolean | db.Parameter<boolean> | db.DefaultType | db.SQLFragment;
+      /**
       * **RopewikiRegion.bestMonths**
       * - `jsonb` in database
       * - `NOT NULL`, no default
@@ -3013,6 +3217,12 @@ declare module 'zapatos/schema' {
       url: string | db.Parameter<string> | db.SQLFragment;
     }
     export interface Updatable {
+      /**
+      * **RopewikiRegion.allowUpdates**
+      * - `bool` in database
+      * - `NOT NULL`, default: `true`
+      */
+      allowUpdates?: boolean | db.Parameter<boolean> | db.DefaultType | db.SQLFragment | db.SQLFragment<any, boolean | db.Parameter<boolean> | db.DefaultType | db.SQLFragment>;
       /**
       * **RopewikiRegion.bestMonths**
       * - `jsonb` in database
@@ -3131,6 +3341,12 @@ declare module 'zapatos/schema' {
     export type Table = 'RopewikiRoute';
     export interface Selectable {
       /**
+      * **RopewikiRoute.allowUpdates**
+      * - `bool` in database
+      * - `NOT NULL`, default: `true`
+      */
+      allowUpdates: boolean;
+      /**
       * **RopewikiRoute.createdAt**
       * - `timestamp` in database
       * - `NOT NULL`, default: `CURRENT_TIMESTAMP`
@@ -3168,6 +3384,12 @@ declare module 'zapatos/schema' {
       updatedAt: Date;
     }
     export interface JSONSelectable {
+      /**
+      * **RopewikiRoute.allowUpdates**
+      * - `bool` in database
+      * - `NOT NULL`, default: `true`
+      */
+      allowUpdates: boolean;
       /**
       * **RopewikiRoute.createdAt**
       * - `timestamp` in database
@@ -3207,6 +3429,12 @@ declare module 'zapatos/schema' {
     }
     export interface Whereable {
       /**
+      * **RopewikiRoute.allowUpdates**
+      * - `bool` in database
+      * - `NOT NULL`, default: `true`
+      */
+      allowUpdates?: boolean | db.Parameter<boolean> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, boolean | db.Parameter<boolean> | db.SQLFragment | db.ParentColumn>;
+      /**
       * **RopewikiRoute.createdAt**
       * - `timestamp` in database
       * - `NOT NULL`, default: `CURRENT_TIMESTAMP`
@@ -3245,6 +3473,12 @@ declare module 'zapatos/schema' {
     }
     export interface Insertable {
       /**
+      * **RopewikiRoute.allowUpdates**
+      * - `bool` in database
+      * - `NOT NULL`, default: `true`
+      */
+      allowUpdates?: boolean | db.Parameter<boolean> | db.DefaultType | db.SQLFragment;
+      /**
       * **RopewikiRoute.createdAt**
       * - `timestamp` in database
       * - `NOT NULL`, default: `CURRENT_TIMESTAMP`
@@ -3282,6 +3516,12 @@ declare module 'zapatos/schema' {
       updatedAt?: (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.DefaultType | db.SQLFragment;
     }
     export interface Updatable {
+      /**
+      * **RopewikiRoute.allowUpdates**
+      * - `bool` in database
+      * - `NOT NULL`, default: `true`
+      */
+      allowUpdates?: boolean | db.Parameter<boolean> | db.DefaultType | db.SQLFragment | db.SQLFragment<any, boolean | db.Parameter<boolean> | db.DefaultType | db.SQLFragment>;
       /**
       * **RopewikiRoute.createdAt**
       * - `timestamp` in database
@@ -3334,6 +3574,12 @@ declare module 'zapatos/schema' {
     export type Table = 'RopewikiSiteLink';
     export interface Selectable {
       /**
+      * **RopewikiSiteLink.allowUpdates**
+      * - `bool` in database
+      * - `NOT NULL`, default: `true`
+      */
+      allowUpdates: boolean;
+      /**
       * **RopewikiSiteLink.createdAt**
       * - `timestamp` in database
       * - `NOT NULL`, default: `CURRENT_TIMESTAMP`
@@ -3365,6 +3611,12 @@ declare module 'zapatos/schema' {
       url: string;
     }
     export interface JSONSelectable {
+      /**
+      * **RopewikiSiteLink.allowUpdates**
+      * - `bool` in database
+      * - `NOT NULL`, default: `true`
+      */
+      allowUpdates: boolean;
       /**
       * **RopewikiSiteLink.createdAt**
       * - `timestamp` in database
@@ -3398,6 +3650,12 @@ declare module 'zapatos/schema' {
     }
     export interface Whereable {
       /**
+      * **RopewikiSiteLink.allowUpdates**
+      * - `bool` in database
+      * - `NOT NULL`, default: `true`
+      */
+      allowUpdates?: boolean | db.Parameter<boolean> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, boolean | db.Parameter<boolean> | db.SQLFragment | db.ParentColumn>;
+      /**
       * **RopewikiSiteLink.createdAt**
       * - `timestamp` in database
       * - `NOT NULL`, default: `CURRENT_TIMESTAMP`
@@ -3430,6 +3688,12 @@ declare module 'zapatos/schema' {
     }
     export interface Insertable {
       /**
+      * **RopewikiSiteLink.allowUpdates**
+      * - `bool` in database
+      * - `NOT NULL`, default: `true`
+      */
+      allowUpdates?: boolean | db.Parameter<boolean> | db.DefaultType | db.SQLFragment;
+      /**
       * **RopewikiSiteLink.createdAt**
       * - `timestamp` in database
       * - `NOT NULL`, default: `CURRENT_TIMESTAMP`
@@ -3461,6 +3725,12 @@ declare module 'zapatos/schema' {
       url: string | db.Parameter<string> | db.SQLFragment;
     }
     export interface Updatable {
+      /**
+      * **RopewikiSiteLink.allowUpdates**
+      * - `bool` in database
+      * - `NOT NULL`, default: `true`
+      */
+      allowUpdates?: boolean | db.Parameter<boolean> | db.DefaultType | db.SQLFragment | db.SQLFragment<any, boolean | db.Parameter<boolean> | db.DefaultType | db.SQLFragment>;
       /**
       * **RopewikiSiteLink.createdAt**
       * - `timestamp` in database
@@ -3507,6 +3777,12 @@ declare module 'zapatos/schema' {
     export type Table = 'Route';
     export interface Selectable {
       /**
+      * **Route.allowUpdates**
+      * - `bool` in database
+      * - `NOT NULL`, default: `true`
+      */
+      allowUpdates: boolean;
+      /**
       * **Route.coordinates**
       * - `jsonb` in database
       * - `NOT NULL`, no default
@@ -3550,6 +3826,12 @@ declare module 'zapatos/schema' {
       updatedAt: Date;
     }
     export interface JSONSelectable {
+      /**
+      * **Route.allowUpdates**
+      * - `bool` in database
+      * - `NOT NULL`, default: `true`
+      */
+      allowUpdates: boolean;
       /**
       * **Route.coordinates**
       * - `jsonb` in database
@@ -3595,6 +3877,12 @@ declare module 'zapatos/schema' {
     }
     export interface Whereable {
       /**
+      * **Route.allowUpdates**
+      * - `bool` in database
+      * - `NOT NULL`, default: `true`
+      */
+      allowUpdates?: boolean | db.Parameter<boolean> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, boolean | db.Parameter<boolean> | db.SQLFragment | db.ParentColumn>;
+      /**
       * **Route.coordinates**
       * - `jsonb` in database
       * - `NOT NULL`, no default
@@ -3639,6 +3927,12 @@ declare module 'zapatos/schema' {
     }
     export interface Insertable {
       /**
+      * **Route.allowUpdates**
+      * - `bool` in database
+      * - `NOT NULL`, default: `true`
+      */
+      allowUpdates?: boolean | db.Parameter<boolean> | db.DefaultType | db.SQLFragment;
+      /**
       * **Route.coordinates**
       * - `jsonb` in database
       * - `NOT NULL`, no default
@@ -3682,6 +3976,12 @@ declare module 'zapatos/schema' {
       updatedAt?: (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.DefaultType | db.SQLFragment;
     }
     export interface Updatable {
+      /**
+      * **Route.allowUpdates**
+      * - `bool` in database
+      * - `NOT NULL`, default: `true`
+      */
+      allowUpdates?: boolean | db.Parameter<boolean> | db.DefaultType | db.SQLFragment | db.SQLFragment<any, boolean | db.Parameter<boolean> | db.DefaultType | db.SQLFragment>;
       /**
       * **Route.coordinates**
       * - `jsonb` in database

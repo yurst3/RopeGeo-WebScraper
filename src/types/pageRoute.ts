@@ -28,6 +28,16 @@ export class PageRoute {
 };
 
 export class RopewikiRoute extends PageRoute {
+    /** Column keys for batch INSERT in order. Use with toDbRow() to build column arrays for unnest(). */
+    static getDbInsertColumns(): readonly (keyof s.RopewikiRoute.Insertable)[] {
+        return ['route', 'ropewikiPage', 'mapData', 'updatedAt', 'deletedAt'];
+    }
+
+    /** PostgreSQL array type for each getDbInsertColumns() entry. */
+    static getDbInsertColumnTypes(): readonly string[] {
+        return ['uuid', 'uuid', 'uuid', 'timestamp', 'timestamp'];
+    }
+
     toDbRow(): s.RopewikiRoute.Insertable {
         const now = new Date();
         return {

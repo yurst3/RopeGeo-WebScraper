@@ -3,7 +3,7 @@ import * as db from 'zapatos/db';
 import type * as s from 'zapatos/schema';
 import { describe, it, expect, afterEach, beforeAll, afterAll } from '@jest/globals';
 import upsertBetaSections from '../../../src/ropewiki/database/upsertBetaSections';
-import type { RopewikiBetaSection } from '../../../src/ropewiki/types/page';
+import { RopewikiBetaSection } from '../../../src/ropewiki/types/betaSection';
 import RopewikiPage from '../../../src/ropewiki/types/page';
 import upsertPages from '../../../src/ropewiki/database/upsertPages';
 
@@ -83,9 +83,9 @@ describe('upsertBetaSections (integration)', () => {
     it('inserts net new beta sections', async () => {
         const latestRevisionDate = new Date('2025-01-02T12:34:56Z');
         const betaSections: RopewikiBetaSection[] = [
-            { title: 'Introduction', text: 'This is the introduction text.', order: 1 },
-            { title: 'Approach', text: 'This is the approach text.', order: 2 },
-            { title: 'Descent', text: 'This is the descent text.', order: 3 },
+            new RopewikiBetaSection('Introduction', 'This is the introduction text.', 1),
+            new RopewikiBetaSection('Approach', 'This is the approach text.', 2),
+            new RopewikiBetaSection('Descent', 'This is the descent text.', 3),
         ];
 
         const result = await upsertBetaSections(conn, testPageUuid, betaSections, latestRevisionDate);
@@ -138,8 +138,8 @@ describe('upsertBetaSections (integration)', () => {
 
         // First, insert beta sections
         const initialBetaSections: RopewikiBetaSection[] = [
-            { title: 'Introduction', text: 'Initial introduction text.', order: 1 },
-            { title: 'Approach', text: 'Initial approach text.', order: 2 },
+            new RopewikiBetaSection('Introduction', 'Initial introduction text.', 1),
+            new RopewikiBetaSection('Approach', 'Initial approach text.', 2),
         ];
 
         const initialResult = await upsertBetaSections(conn, testPageUuid, initialBetaSections, initialRevisionDate);
@@ -159,8 +159,8 @@ describe('upsertBetaSections (integration)', () => {
 
         // Now update the same beta sections with new text
         const updatedBetaSections: RopewikiBetaSection[] = [
-            { title: 'Introduction', text: 'Updated introduction text.', order: 1 },
-            { title: 'Approach', text: 'Updated approach text.', order: 2 },
+            new RopewikiBetaSection('Introduction', 'Updated introduction text.', 1),
+            new RopewikiBetaSection('Approach', 'Updated approach text.', 2),
         ];
 
         const updatedResult = await upsertBetaSections(conn, testPageUuid, updatedBetaSections, updatedRevisionDate);
@@ -192,7 +192,7 @@ describe('upsertBetaSections (integration)', () => {
     it('sets deletedAt to null when upserting', async () => {
         const latestRevisionDate = new Date('2025-01-02T12:34:56Z');
         const betaSections: RopewikiBetaSection[] = [
-            { title: 'Deleted Section', text: 'Deleted text.', order: 1 },
+            new RopewikiBetaSection('Deleted Section', 'Deleted text.', 1),
         ];
 
         // Insert a beta section with deletedAt set
@@ -229,8 +229,8 @@ describe('upsertBetaSections (integration)', () => {
     it('throws an error when attempting to insert duplicate order for the same page', async () => {
         const latestRevisionDate = new Date('2025-01-02T12:34:56Z');
         const betaSections: RopewikiBetaSection[] = [
-            { title: 'Section 1', text: 'Text 1.', order: 1 },
-            { title: 'Section 2', text: 'Text 2.', order: 1 }, // Same order as Section 1
+            new RopewikiBetaSection('Section 1', 'Text 1.', 1),
+            new RopewikiBetaSection('Section 2', 'Text 2.', 1), // Same order as Section 1
         ];
 
         await expect(
@@ -243,13 +243,13 @@ describe('upsertBetaSections (integration)', () => {
         
         // First insert with order 1
         const initialBetaSections: RopewikiBetaSection[] = [
-            { title: 'Section', text: 'Initial text.', order: 1 },
+            new RopewikiBetaSection('Section', 'Initial text.', 1),
         ];
         await upsertBetaSections(conn, testPageUuid, initialBetaSections, latestRevisionDate);
 
         // Update with order 2
         const updatedBetaSections: RopewikiBetaSection[] = [
-            { title: 'Section', text: 'Updated text.', order: 2 },
+            new RopewikiBetaSection('Section', 'Updated text.', 2),
         ];
         await upsertBetaSections(conn, testPageUuid, updatedBetaSections, latestRevisionDate);
 
@@ -265,7 +265,7 @@ describe('upsertBetaSections (integration)', () => {
     it('propagates errors from the database layer', async () => {
         const latestRevisionDate = new Date('2025-01-04T10:00:00Z');
         const betaSections: RopewikiBetaSection[] = [
-            { title: 'Introduction', text: 'Test text.', order: 1 },
+            new RopewikiBetaSection('Introduction', 'Test text.', 1),
         ];
 
         // Use a client with a non-existent database to force an error

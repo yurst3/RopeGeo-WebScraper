@@ -4,7 +4,7 @@ import type * as s from 'zapatos/schema';
 import { describe, it, expect, afterEach, beforeAll, afterAll } from '@jest/globals';
 import setImagesDeletedAt from '../../../src/ropewiki/database/setImagesDeletedAt';
 import upsertImages from '../../../src/ropewiki/database/upsertImages';
-import type { RopewikiImage } from '../../../src/ropewiki/types/page';
+import { RopewikiImage } from '../../../src/ropewiki/types/image';
 import RopewikiPage from '../../../src/ropewiki/types/page';
 import upsertPages from '../../../src/ropewiki/database/upsertPages';
 
@@ -112,55 +112,19 @@ describe('soft delete then upsert images (integration)', () => {
         const rev1 = new Date('2025-01-01T00:00:00Z');
         const rev2 = new Date('2025-01-02T00:00:00Z');
 
-        const imgA = (): RopewikiImage => ({
-            betaSectionTitle: undefined,
-            linkUrl: `${BASE_LINK}ImgA`,
-            fileUrl: `${BASE_FILE}ImgA.jpg`,
-            caption: 'A',
-            order: 0,
-        });
-        const imgB = (): RopewikiImage => ({
-            betaSectionTitle: undefined,
-            linkUrl: `${BASE_LINK}ImgB`,
-            fileUrl: `${BASE_FILE}ImgB.jpg`,
-            caption: 'B',
-            order: 1,
-        });
-        const imgC = (): RopewikiImage => ({
-            betaSectionTitle: undefined,
-            linkUrl: `${BASE_LINK}ImgC`,
-            fileUrl: `${BASE_FILE}ImgC.jpg`,
-            caption: 'C',
-            order: 2,
-        });
-        const imgD = (): RopewikiImage => ({
-            betaSectionTitle: undefined,
-            linkUrl: `${BASE_LINK}ImgD`,
-            fileUrl: `${BASE_FILE}ImgD.jpg`,
-            caption: 'D',
-            order: 1,
-        });
+        const imgA = (order = 0) => new RopewikiImage(undefined, `${BASE_LINK}ImgA`, `${BASE_FILE}ImgA.jpg`, 'A', order);
+        const imgB = (order = 1) => new RopewikiImage(undefined, `${BASE_LINK}ImgB`, `${BASE_FILE}ImgB.jpg`, 'B', order);
+        const imgC = (order = 2) => new RopewikiImage(undefined, `${BASE_LINK}ImgC`, `${BASE_FILE}ImgC.jpg`, 'C', order);
+        const imgD = (order = 1) => new RopewikiImage(undefined, `${BASE_LINK}ImgD`, `${BASE_FILE}ImgD.jpg`, 'D', order);
 
         // First "parse": ImgA (0), ImgB (1), ImgC (2)
-        const firstParse: RopewikiImage[] = [imgA(), imgB(), imgC()];
+        const firstParse: RopewikiImage[] = [imgA(0), imgB(1), imgC(2)];
         await upsertImages(conn, testPageUuid, firstParse, betaTitleIds, rev1);
 
         // Other page: two images that must remain untouched
         const otherImages: RopewikiImage[] = [
-            {
-                betaSectionTitle: undefined,
-                linkUrl: `${BASE_LINK}Other1`,
-                fileUrl: `${BASE_FILE}Other1.jpg`,
-                caption: 'Other 1',
-                order: 0,
-            },
-            {
-                betaSectionTitle: undefined,
-                linkUrl: `${BASE_LINK}Other2`,
-                fileUrl: `${BASE_FILE}Other2.jpg`,
-                caption: 'Other 2',
-                order: 1,
-            },
+            new RopewikiImage(undefined, `${BASE_LINK}Other1`, `${BASE_FILE}Other1.jpg`, 'Other 1', 0),
+            new RopewikiImage(undefined, `${BASE_LINK}Other2`, `${BASE_FILE}Other2.jpg`, 'Other 2', 1),
         ];
         await upsertImages(conn, otherPageUuid, otherImages, betaTitleIds, rev1);
 
@@ -170,11 +134,7 @@ describe('soft delete then upsert images (integration)', () => {
         expect(afterFirst).toHaveLength(3);
 
         // Second "parse": ImgB removed, ImgD added in the middle → ImgA (0), ImgD (1), ImgC (2)
-        const secondParse: RopewikiImage[] = [
-            { ...imgA(), order: 0 },
-            { ...imgD(), order: 1 },
-            { ...imgC(), order: 2 },
-        ];
+        const secondParse: RopewikiImage[] = [imgA(0), imgD(1), imgC(2)];
 
         await setImagesDeletedAt(conn, testPageUuid);
         await upsertImages(conn, testPageUuid, secondParse, betaTitleIds, rev2);
@@ -217,27 +177,9 @@ describe('soft delete then upsert images (integration)', () => {
     it('allows multiple soft-deleted images with order null for the same page', async () => {
         const rev = new Date('2025-01-01T00:00:00Z');
         const images: RopewikiImage[] = [
-            {
-                betaSectionTitle: undefined,
-                linkUrl: `${BASE_LINK}X`,
-                fileUrl: `${BASE_FILE}X.jpg`,
-                caption: 'X',
-                order: 0,
-            },
-            {
-                betaSectionTitle: undefined,
-                linkUrl: `${BASE_LINK}Y`,
-                fileUrl: `${BASE_FILE}Y.jpg`,
-                caption: 'Y',
-                order: 1,
-            },
-            {
-                betaSectionTitle: undefined,
-                linkUrl: `${BASE_LINK}Z`,
-                fileUrl: `${BASE_FILE}Z.jpg`,
-                caption: 'Z',
-                order: 2,
-            },
+            new RopewikiImage(undefined, `${BASE_LINK}X`, `${BASE_FILE}X.jpg`, 'X', 0),
+            new RopewikiImage(undefined, `${BASE_LINK}Y`, `${BASE_FILE}Y.jpg`, 'Y', 1),
+            new RopewikiImage(undefined, `${BASE_LINK}Z`, `${BASE_FILE}Z.jpg`, 'Z', 2),
         ];
         await upsertImages(conn, testPageUuid, images, betaTitleIds, rev);
 
