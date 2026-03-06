@@ -23,7 +23,7 @@ describe('getRegionRowsByIds (integration)', () => {
         await db
             .insert('RopewikiRegion', {
                 id: region1Id,
-                parentRegion: null,
+                parentRegionName: null,
                 name: 'RegionRowsTestOne',
                 latestRevisionDate: '2025-01-01T00:00:00' as db.TimestampString,
                 rawPageCount: 10,
@@ -35,7 +35,7 @@ describe('getRegionRowsByIds (integration)', () => {
         await db
             .insert('RopewikiRegion', {
                 id: region2Id,
-                parentRegion: region1Id,
+                parentRegionName: region1Id,
                 name: 'RegionRowsTestTwo',
                 latestRevisionDate: '2025-01-01T00:00:00' as db.TimestampString,
                 rawPageCount: 3,
@@ -90,7 +90,7 @@ describe('getRegionRowsByIds (integration)', () => {
         await db
             .insert('RopewikiRegion', {
                 id: deletedId,
-                parentRegion: null,
+                parentRegionName: null,
                 name: 'RegionRowsDeleted',
                 latestRevisionDate:
                     '2025-01-01T00:00:00' as db.TimestampString,

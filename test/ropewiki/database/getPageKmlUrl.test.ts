@@ -41,7 +41,7 @@ describe('getPageKmlUrl (integration)', () => {
             .insert('RopewikiRegion', [
                 {
                     id: regionId,
-                    parentRegion: null,
+                    parentRegionName: null,
                     name: 'Test Region',
                     latestRevisionDate,
                     rawPageCount: 1,
@@ -85,7 +85,7 @@ describe('getPageKmlUrl (integration)', () => {
             .insert('RopewikiRegion', [
                 {
                     id: regionId,
-                    parentRegion: null,
+                    parentRegionName: null,
                     name: 'Test Region',
                     latestRevisionDate,
                     rawPageCount: 1,
@@ -140,7 +140,7 @@ describe('getPageKmlUrl (integration)', () => {
             .insert('RopewikiRegion', [
                 {
                     id: regionId,
-                    parentRegion: null,
+                    parentRegionName: null,
                     name: 'Test Region',
                     latestRevisionDate,
                     rawPageCount: 2,

@@ -25,7 +25,7 @@ describe('setPagesDeletedAtForRegion (integration)', () => {
             .insert('RopewikiRegion', [
                 {
                     id: parentRegionId,
-                    parentRegion: null,
+                    parentRegionName: null,
                     name: 'Parent Region',
                     latestRevisionDate: '2025-01-01T00:00:00' as db.TimestampString,
                     rawPageCount: 0,
@@ -35,7 +35,7 @@ describe('setPagesDeletedAtForRegion (integration)', () => {
                 },
                 {
                     id: childRegionId,
-                    parentRegion: parentRegionId,
+                    parentRegionName: parentRegionId,
                     name: 'Child Region',
                     latestRevisionDate: '2025-01-01T00:00:00' as db.TimestampString,
                     rawPageCount: 0,
@@ -45,7 +45,7 @@ describe('setPagesDeletedAtForRegion (integration)', () => {
                 },
                 {
                     id: otherRegionId,
-                    parentRegion: null,
+                    parentRegionName: null,
                     name: 'Other Region',
                     latestRevisionDate: '2025-01-01T00:00:00' as db.TimestampString,
                     rawPageCount: 0,
@@ -195,7 +195,7 @@ describe('setPagesDeletedAtForRegion (integration)', () => {
         expect(new Date(freshRow!.deletedAt as string).getTime()).toBeCloseTo(Date.now(), -3);
     });
 
-    it('soft-deletes pages in all descendant levels when hierarchy uses name-based parentRegion', async () => {
+    it('soft-deletes pages in all descendant levels when hierarchy uses name-based parentRegionName', async () => {
         const grandparentId = 'dddddddd-dddd-4e48-99a6-81608cc0051d';
         const parentId = 'eeeeeeee-eeee-4e48-99a6-81608cc0051d';
         const childId = 'ffffffff-ffff-4e48-99a6-81608cc0051d';
@@ -207,7 +207,7 @@ describe('setPagesDeletedAtForRegion (integration)', () => {
             .insert('RopewikiRegion', [
                 {
                     id: grandparentId,
-                    parentRegion: null,
+                    parentRegionName: null,
                     name: grandparentName,
                     latestRevisionDate: '2025-01-01T00:00:00' as db.TimestampString,
                     rawPageCount: 0,
@@ -217,7 +217,7 @@ describe('setPagesDeletedAtForRegion (integration)', () => {
                 },
                 {
                     id: parentId,
-                    parentRegion: grandparentName,
+                    parentRegionName: grandparentName,
                     name: parentName,
                     latestRevisionDate: '2025-01-01T00:00:00' as db.TimestampString,
                     rawPageCount: 0,
@@ -227,7 +227,7 @@ describe('setPagesDeletedAtForRegion (integration)', () => {
                 },
                 {
                     id: childId,
-                    parentRegion: parentName,
+                    parentRegionName: parentName,
                     name: childName,
                     latestRevisionDate: '2025-01-01T00:00:00' as db.TimestampString,
                     rawPageCount: 0,

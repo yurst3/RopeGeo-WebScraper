@@ -1,4 +1,4 @@
-\restrict HMb3gvOoF5p7nMWkE4SjZwIyDGXIB4Ag2f0A25EF9Ff47wJk0dKYjc48wftRXZj
+\restrict zt5i31Q23KQh2G5zTyG2AIyoEaFPcwTkYrRcr2LaNKKW2DOFPxAadiEIgapYQYN
 
 -- Dumped from database version 18.1 (Debian 18.1-1.pgdg13+2)
 -- Dumped by pg_dump version 18.1 (Homebrew)
@@ -176,7 +176,7 @@ CREATE TABLE public."RopewikiPageSiteLink" (
 
 CREATE TABLE public."RopewikiRegion" (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
-    "parentRegion" text,
+    "parentRegionName" text,
     name text NOT NULL,
     "createdAt" timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
     "updatedAt" timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
@@ -371,11 +371,11 @@ ALTER TABLE ONLY public."RopewikiPage"
 
 
 --
--- Name: RopewikiRegion uk_ropewikiRegion_name_parentRegion; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: RopewikiRegion uk_ropewikiRegion_name_parentRegionName; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public."RopewikiRegion"
-    ADD CONSTRAINT "uk_ropewikiRegion_name_parentRegion" UNIQUE NULLS NOT DISTINCT (name, "parentRegion");
+    ADD CONSTRAINT "uk_ropewikiRegion_name_parentRegionName" UNIQUE NULLS NOT DISTINCT (name, "parentRegionName");
 
 
 --
@@ -521,7 +521,7 @@ ALTER TABLE ONLY public."RopewikiRoute"
 -- PostgreSQL database dump complete
 --
 
-\unrestrict HMb3gvOoF5p7nMWkE4SjZwIyDGXIB4Ag2f0A25EF9Ff47wJk0dKYjc48wftRXZj
+\unrestrict zt5i31Q23KQh2G5zTyG2AIyoEaFPcwTkYrRcr2LaNKKW2DOFPxAadiEIgapYQYN
 
 
 --
@@ -554,4 +554,5 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20260303190000'),
     ('20260304100000'),
     ('20260305120000'),
-    ('20260306120000');
+    ('20260306120000'),
+    ('20260306220246');

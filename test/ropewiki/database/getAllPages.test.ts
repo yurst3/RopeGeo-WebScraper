@@ -23,7 +23,7 @@ describe('getAllPages (integration)', () => {
         await db
             .insert('RopewikiRegion', {
                 id: testRegionId,
-                parentRegion: null,
+                parentRegionName: null,
                 name: 'Test Region',
                 latestRevisionDate: '2025-01-01T00:00:00' as db.TimestampString,
                 rawPageCount: 0,

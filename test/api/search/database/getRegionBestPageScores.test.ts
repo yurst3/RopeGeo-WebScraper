@@ -25,7 +25,7 @@ describe('getRegionBestPageScores (integration)', () => {
         await db
             .insert('RopewikiRegion', {
                 id: parentRegionId,
-                parentRegion: null,
+                parentRegionName: null,
                 name: 'ScoreTestParent',
                 latestRevisionDate: '2025-01-01T00:00:00' as db.TimestampString,
                 rawPageCount: 0,
@@ -37,7 +37,7 @@ describe('getRegionBestPageScores (integration)', () => {
         await db
             .insert('RopewikiRegion', {
                 id: childRegionId,
-                parentRegion: parentRegionId,
+                parentRegionName: parentRegionId,
                 name: 'ScoreTestChild',
                 latestRevisionDate: '2025-01-01T00:00:00' as db.TimestampString,
                 rawPageCount: 0,
@@ -102,7 +102,7 @@ describe('getRegionBestPageScores (integration)', () => {
         await db
             .insert('RopewikiRegion', {
                 id: regionId,
-                parentRegion: null,
+                parentRegionName: null,
                 name: 'ScoreTestNoPages',
                 latestRevisionDate:
                     '2025-01-01T00:00:00' as db.TimestampString,
@@ -135,7 +135,7 @@ describe('getRegionBestPageScores (integration)', () => {
         await db
             .insert('RopewikiRegion', {
                 id: regionId,
-                parentRegion: null,
+                parentRegionName: null,
                 name: 'ScoreTestNullVotes',
                 latestRevisionDate:
                     '2025-01-01T00:00:00' as db.TimestampString,
@@ -168,7 +168,7 @@ describe('getRegionBestPageScores (integration)', () => {
             .sql`DELETE FROM "RopewikiRegion" WHERE id = ${db.param(regionId)}`.run(conn);
     });
 
-    it('considers all layers of nested regions (name-based parentRegion)', async () => {
+    it('considers all layers of nested regions (name-based parentRegionName)', async () => {
         const grandparentId = 'd2000005-0005-4000-8000-000000000005';
         const parentId = 'd2000006-0006-4000-8000-000000000006';
         const childId = 'd2000007-0007-4000-8000-000000000007';
@@ -182,7 +182,7 @@ describe('getRegionBestPageScores (integration)', () => {
         await db
             .insert('RopewikiRegion', {
                 id: grandparentId,
-                parentRegion: null,
+                parentRegionName: null,
                 name: grandparentName,
                 latestRevisionDate:
                     '2025-01-01T00:00:00' as db.TimestampString,
@@ -195,7 +195,7 @@ describe('getRegionBestPageScores (integration)', () => {
         await db
             .insert('RopewikiRegion', {
                 id: parentId,
-                parentRegion: grandparentName,
+                parentRegionName: grandparentName,
                 name: parentName,
                 latestRevisionDate:
                     '2025-01-01T00:00:00' as db.TimestampString,
@@ -208,7 +208,7 @@ describe('getRegionBestPageScores (integration)', () => {
         await db
             .insert('RopewikiRegion', {
                 id: childId,
-                parentRegion: parentName,
+                parentRegionName: parentName,
                 name: childName,
                 latestRevisionDate:
                     '2025-01-01T00:00:00' as db.TimestampString,

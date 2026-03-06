@@ -39,7 +39,7 @@ describe('getRegion (integration)', () => {
             .insert('RopewikiRegion', [
                 {
                     id: worldId,
-                    parentRegion: null,
+                    parentRegionName: null,
                     name: 'World',
                     latestRevisionDate,
                     rawPageCount: 100,
@@ -52,7 +52,7 @@ describe('getRegion (integration)', () => {
                 },
                 {
                     id: africaId,
-                    parentRegion: 'World',
+                    parentRegionName: 'World',
                     name: 'Africa',
                     latestRevisionDate,
                     rawPageCount: 50,
@@ -99,7 +99,7 @@ describe('getRegion (integration)', () => {
             .insert('RopewikiRegion', [
                 {
                     id: worldId,
-                    parentRegion: null,
+                    parentRegionName: null,
                     name: 'World',
                     latestRevisionDate,
                     rawPageCount: 0,
@@ -112,7 +112,7 @@ describe('getRegion (integration)', () => {
                 },
                 {
                     id: africaId,
-                    parentRegion: 'World',
+                    parentRegionName: 'World',
                     name: 'Africa',
                     latestRevisionDate,
                     rawPageCount: 0,
@@ -125,7 +125,7 @@ describe('getRegion (integration)', () => {
                 },
                 {
                     id: asiaId,
-                    parentRegion: 'World',
+                    parentRegionName: 'World',
                     name: 'Asia',
                     latestRevisionDate,
                     rawPageCount: 0,
@@ -157,7 +157,7 @@ describe('getRegion (integration)', () => {
             .insert('RopewikiRegion', [
                 {
                     id: worldId,
-                    parentRegion: null,
+                    parentRegionName: null,
                     name: 'World',
                     latestRevisionDate,
                     rawPageCount: 0,

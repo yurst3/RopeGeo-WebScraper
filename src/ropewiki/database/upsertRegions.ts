@@ -4,7 +4,7 @@ import { RopewikiRegion } from '../types/region';
 import { makeUnnestPart } from '../../helpers/makeUnnestPart';
 
 // Insert or update a batch of regions.
-// ON CONFLICT (name, parentRegion) DO UPDATE SET ... WHERE allowUpdates = true.
+// ON CONFLICT (name, parentRegionName) DO UPDATE SET ... WHERE allowUpdates = true.
 // Returns only rows that were actually inserted or updated (locked rows are not returned).
 const upsertRegions = async (
     conn: db.Queryable,
@@ -22,11 +22,11 @@ const upsertRegions = async (
     >`
         INSERT INTO "RopewikiRegion" ( ${db.cols(columns)} )
         SELECT
-            t."name", t."parentRegion", t."rawPageCount", t."level", t."overview",
+            t."name", t."parentRegionName", t."rawPageCount", t."level", t."overview",
             t."bestMonths"::jsonb,
             t."isMajorRegion", t."isTopLevelRegion", t."latestRevisionDate", t."url", t."updatedAt", t."deletedAt"
         FROM unnest( ${unnestPart} ) AS t( ${db.cols(columns)} )
-        ON CONFLICT ("name", "parentRegion") DO UPDATE SET
+        ON CONFLICT ("name", "parentRegionName") DO UPDATE SET
             "rawPageCount" = EXCLUDED."rawPageCount",
             "level" = EXCLUDED."level",
             "overview" = EXCLUDED."overview",
@@ -41,8 +41,8 @@ const upsertRegions = async (
         RETURNING *
     `.run(conn);
 
-    const key = (name: string, parentRegion: string | null) => `${name}\0${parentRegion ?? ''}`;
-    const byKey = new Map(returned.map((row) => [key(row.name, row.parentRegion ?? null), row]));
+    const key = (name: string, parentRegionName: string | null) => `${name}\0${parentRegionName ?? ''}`;
+    const byKey = new Map(returned.map((row) => [key(row.name, row.parentRegionName ?? null), row]));
     return regions
         .filter((r) => byKey.has(key(r.name, r.parentRegion ?? null)))
         .map((r) => RopewikiRegion.fromDbRow(byKey.get(key(r.name, r.parentRegion ?? null))!));

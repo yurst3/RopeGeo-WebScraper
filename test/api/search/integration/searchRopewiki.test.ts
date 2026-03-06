@@ -34,7 +34,7 @@ describe('searchRopewiki (integration)', () => {
         await db
             .insert('RopewikiRegion', {
                 id: parentRegionId,
-                parentRegion: null,
+                parentRegionName: null,
                 name: 'SearchTestParentRegion',
                 latestRevisionDate: '2025-01-01T00:00:00' as db.TimestampString,
                 rawPageCount: 0,
@@ -46,7 +46,7 @@ describe('searchRopewiki (integration)', () => {
         await db
             .insert('RopewikiRegion', {
                 id: childRegionId,
-                parentRegion: parentRegionId,
+                parentRegionName: parentRegionId,
                 name: 'SearchTestChildRegion',
                 latestRevisionDate: '2025-01-01T00:00:00' as db.TimestampString,
                 rawPageCount: 0,

@@ -149,8 +149,8 @@ export async function getSearchPageIds(
       SELECT rd.region_id, r2.id, r2.name
       FROM "RopewikiRegion" r2
       INNER JOIN rd ON (
-        r2."parentRegion" = rd.descendant_name
-        OR r2."parentRegion" = rd.descendant_id::text
+        r2."parentRegionName" = rd.descendant_name
+        OR r2."parentRegionName" = rd.descendant_id::text
       )
       WHERE r2."deletedAt" IS NULL
     ),

@@ -49,7 +49,7 @@ describe('upsertRopewikiRoute (integration)', () => {
             .insert('RopewikiRegion', [
                 {
                     id: regionId,
-                    parentRegion: null,
+                    parentRegionName: null,
                     name: 'Test Region',
                     latestRevisionDate,
                     rawPageCount: 1,
@@ -130,7 +130,7 @@ describe('upsertRopewikiRoute (integration)', () => {
             .insert('RopewikiRegion', [
                 {
                     id: regionId,
-                    parentRegion: null,
+                    parentRegionName: null,
                     name: 'Test Region',
                     latestRevisionDate,
                     rawPageCount: 1,
@@ -200,7 +200,7 @@ describe('upsertRopewikiRoute (integration)', () => {
             .insert('RopewikiRegion', [
                 {
                     id: regionId,
-                    parentRegion: null,
+                    parentRegionName: null,
                     name: 'Test Region',
                     latestRevisionDate,
                     rawPageCount: 1,
@@ -305,7 +305,7 @@ describe('upsertRopewikiRoute (integration)', () => {
             .insert('RopewikiRegion', [
                 {
                     id: regionId,
-                    parentRegion: null,
+                    parentRegionName: null,
                     name: 'Test Region',
                     latestRevisionDate,
                     rawPageCount: 1,
@@ -397,7 +397,7 @@ describe('upsertRopewikiRoute (integration)', () => {
             .insert('RopewikiRegion', [
                 {
                     id: regionId,
-                    parentRegion: null,
+                    parentRegionName: null,
                     name: 'Test Region',
                     latestRevisionDate,
                     rawPageCount: 1,

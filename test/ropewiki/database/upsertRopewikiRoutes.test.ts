@@ -33,7 +33,7 @@ describe('upsertRopewikiRoutes (integration)', () => {
             .insert('RopewikiRegion', [
                 {
                     id: testRegionId,
-                    parentRegion: null,
+                    parentRegionName: null,
                     name: 'Test Region',
                     latestRevisionDate,
                     rawPageCount: 0,

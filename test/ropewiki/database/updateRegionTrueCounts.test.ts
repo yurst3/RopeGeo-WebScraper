@@ -26,7 +26,7 @@ describe('updateRegionTrueCounts (integration)', () => {
             .insert('RopewikiRegion', [
                 {
                     id: parentRegionId,
-                    parentRegion: null,
+                    parentRegionName: null,
                     name: 'Parent Region',
                     latestRevisionDate: '2025-01-01T00:00:00' as db.TimestampString,
                     rawPageCount: 0,
@@ -36,7 +36,7 @@ describe('updateRegionTrueCounts (integration)', () => {
                 },
                 {
                     id: childRegionId,
-                    parentRegion: 'Parent Region',
+                    parentRegionName: 'Parent Region',
                     name: 'Child Region',
                     latestRevisionDate: '2025-01-01T00:00:00' as db.TimestampString,
                     rawPageCount: 0,
@@ -46,7 +46,7 @@ describe('updateRegionTrueCounts (integration)', () => {
                 },
                 {
                     id: otherRegionId,
-                    parentRegion: null,
+                    parentRegionName: null,
                     name: 'Other Region',
                     latestRevisionDate: '2025-01-01T00:00:00' as db.TimestampString,
                     rawPageCount: 0,

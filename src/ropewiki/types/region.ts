@@ -113,7 +113,7 @@ export class RopewikiRegion {
     /** Column keys for batch INSERT in order (excludes id). Use with toDbRow() to build column arrays for unnest(). */
     static getDbInsertColumns(): readonly (keyof s.RopewikiRegion.Insertable)[] {
         return [
-            'name', 'parentRegion', 'rawPageCount', 'level', 'overview', 'bestMonths',
+            'name', 'parentRegionName', 'rawPageCount', 'level', 'overview', 'bestMonths',
             'isMajorRegion', 'isTopLevelRegion', 'latestRevisionDate', 'url', 'updatedAt', 'deletedAt',
         ];
     }
@@ -127,7 +127,7 @@ export class RopewikiRegion {
         const now = new Date();
         const row: s.RopewikiRegion.Insertable = {
             name: this.name,
-            parentRegion: this.parentRegion ?? null,
+            parentRegionName: this.parentRegion ?? null,
             rawPageCount: this.pageCount,
             level: this.level,
             overview: this.overview ?? null,
@@ -154,7 +154,7 @@ export class RopewikiRegion {
 
         const region = new RopewikiRegion(
             row.name,
-            row.parentRegion ?? undefined,
+            row.parentRegionName ?? undefined,
             row.rawPageCount,
             row.level,
             row.overview ?? undefined,

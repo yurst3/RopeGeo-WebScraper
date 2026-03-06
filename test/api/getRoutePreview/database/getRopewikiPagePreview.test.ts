@@ -35,7 +35,7 @@ describe('getRopewikiPagePreview (integration)', () => {
         await db
             .insert('RopewikiRegion', {
                 id: testRegionId,
-                parentRegion: null,
+                parentRegionName: null,
                 name: 'Utah',
                 latestRevisionDate: '2025-01-01T00:00:00' as db.TimestampString,
                 rawPageCount: 0,
@@ -139,7 +139,7 @@ describe('getRopewikiPagePreview (integration)', () => {
         await db
             .insert('RopewikiRegion', {
                 id: parentRegionId,
-                parentRegion: null,
+                parentRegionName: null,
                 name: 'United States',
                 latestRevisionDate: '2025-01-01T00:00:00' as db.TimestampString,
                 rawPageCount: 0,
@@ -151,7 +151,7 @@ describe('getRopewikiPagePreview (integration)', () => {
         await db
             .insert('RopewikiRegion', {
                 id: childRegionId,
-                parentRegion: 'United States',
+                parentRegionName: 'United States',
                 name: 'Utah',
                 latestRevisionDate: '2025-01-01T00:00:00' as db.TimestampString,
                 rawPageCount: 0,

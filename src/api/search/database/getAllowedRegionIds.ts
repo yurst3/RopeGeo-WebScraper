@@ -16,7 +16,7 @@ async function getAllowedRegionIds(
             UNION ALL
             SELECT r.id, r.name FROM "RopewikiRegion" r
             INNER JOIN region_and_descendants d ON (
-                r."parentRegion" = d.name OR r."parentRegion" = d.id::text
+                r."parentRegionName" = d.name OR r."parentRegionName" = d.id::text
             )
             WHERE r."deletedAt" IS NULL
               AND ${db.param(regionId)}::uuid IS NOT NULL

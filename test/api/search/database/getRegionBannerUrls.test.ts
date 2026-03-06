@@ -25,7 +25,7 @@ describe('getRegionBannerUrls (integration)', () => {
         await db
             .insert('RopewikiRegion', {
                 id: parentRegionId,
-                parentRegion: null,
+                parentRegionName: null,
                 name: 'BannerTestParent',
                 latestRevisionDate: '2025-01-01T00:00:00' as db.TimestampString,
                 rawPageCount: 0,
@@ -37,7 +37,7 @@ describe('getRegionBannerUrls (integration)', () => {
         await db
             .insert('RopewikiRegion', {
                 id: childRegionId,
-                parentRegion: parentRegionId,
+                parentRegionName: parentRegionId,
                 name: 'BannerTestChild',
                 latestRevisionDate: '2025-01-01T00:00:00' as db.TimestampString,
                 rawPageCount: 0,
@@ -129,7 +129,7 @@ describe('getRegionBannerUrls (integration)', () => {
         await db
             .insert('RopewikiRegion', {
                 id: regionId,
-                parentRegion: null,
+                parentRegionName: null,
                 name: 'BannerTestOrder',
                 latestRevisionDate:
                     '2025-01-01T00:00:00' as db.TimestampString,
@@ -187,7 +187,7 @@ describe('getRegionBannerUrls (integration)', () => {
         await db
             .insert('RopewikiRegion', {
                 id: regionId,
-                parentRegion: null,
+                parentRegionName: null,
                 name: 'BannerTestNoPages',
                 latestRevisionDate:
                     '2025-01-01T00:00:00' as db.TimestampString,
@@ -218,7 +218,7 @@ describe('getRegionBannerUrls (integration)', () => {
         );
     });
 
-    it('considers all layers of nested regions (name-based parentRegion)', async () => {
+    it('considers all layers of nested regions (name-based parentRegionName)', async () => {
         const grandparentId = 'd1000005-0005-4000-8000-000000000005';
         const parentId = 'd1000006-0006-4000-8000-000000000006';
         const childId = 'd1000007-0007-4000-8000-000000000007';
@@ -232,7 +232,7 @@ describe('getRegionBannerUrls (integration)', () => {
         await db
             .insert('RopewikiRegion', {
                 id: grandparentId,
-                parentRegion: null,
+                parentRegionName: null,
                 name: grandparentName,
                 latestRevisionDate:
                     '2025-01-01T00:00:00' as db.TimestampString,
@@ -245,7 +245,7 @@ describe('getRegionBannerUrls (integration)', () => {
         await db
             .insert('RopewikiRegion', {
                 id: parentId,
-                parentRegion: grandparentName,
+                parentRegionName: grandparentName,
                 name: parentName,
                 latestRevisionDate:
                     '2025-01-01T00:00:00' as db.TimestampString,
@@ -258,7 +258,7 @@ describe('getRegionBannerUrls (integration)', () => {
         await db
             .insert('RopewikiRegion', {
                 id: childId,
-                parentRegion: parentName,
+                parentRegionName: parentName,
                 name: childName,
                 latestRevisionDate:
                     '2025-01-01T00:00:00' as db.TimestampString,

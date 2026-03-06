@@ -24,7 +24,7 @@ describe('getAllowedRegionIds (integration)', () => {
         await db
             .insert('RopewikiRegion', {
                 id: rootId,
-                parentRegion: null,
+                parentRegionName: null,
                 name: 'AllowedIdsRoot',
                 latestRevisionDate: '2025-01-01T00:00:00' as db.TimestampString,
                 rawPageCount: 0,
@@ -36,7 +36,7 @@ describe('getAllowedRegionIds (integration)', () => {
         await db
             .insert('RopewikiRegion', {
                 id: childId,
-                parentRegion: rootId,
+                parentRegionName: rootId,
                 name: 'AllowedIdsChild',
                 latestRevisionDate: '2025-01-01T00:00:00' as db.TimestampString,
                 rawPageCount: 0,
@@ -48,7 +48,7 @@ describe('getAllowedRegionIds (integration)', () => {
         await db
             .insert('RopewikiRegion', {
                 id: grandchildId,
-                parentRegion: childId,
+                parentRegionName: childId,
                 name: 'AllowedIdsGrandchild',
                 latestRevisionDate: '2025-01-01T00:00:00' as db.TimestampString,
                 rawPageCount: 0,
@@ -106,7 +106,7 @@ describe('getAllowedRegionIds (integration)', () => {
         expect(result).toEqual([]);
     });
 
-    it('returns all descendants when hierarchy uses name-based parentRegion', async () => {
+    it('returns all descendants when hierarchy uses name-based parentRegionName', async () => {
         const grandparentId = 'd3000004-0004-4000-8000-000000000004';
         const parentId = 'd3000005-0005-4000-8000-000000000005';
         const childId = 'd3000006-0006-4000-8000-000000000006';
@@ -117,7 +117,7 @@ describe('getAllowedRegionIds (integration)', () => {
         await db
             .insert('RopewikiRegion', {
                 id: grandparentId,
-                parentRegion: null,
+                parentRegionName: null,
                 name: grandparentName,
                 latestRevisionDate:
                     '2025-01-01T00:00:00' as db.TimestampString,
@@ -130,7 +130,7 @@ describe('getAllowedRegionIds (integration)', () => {
         await db
             .insert('RopewikiRegion', {
                 id: parentId,
-                parentRegion: grandparentName,
+                parentRegionName: grandparentName,
                 name: parentName,
                 latestRevisionDate:
                     '2025-01-01T00:00:00' as db.TimestampString,
@@ -143,7 +143,7 @@ describe('getAllowedRegionIds (integration)', () => {
         await db
             .insert('RopewikiRegion', {
                 id: childId,
-                parentRegion: parentName,
+                parentRegionName: parentName,
                 name: childName,
                 latestRevisionDate:
                     '2025-01-01T00:00:00' as db.TimestampString,

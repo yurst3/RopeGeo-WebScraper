@@ -2844,11 +2844,11 @@ declare module 'zapatos/schema' {
       */
       overview: string | null;
       /**
-      * **RopewikiRegion.parentRegion**
+      * **RopewikiRegion.parentRegionName**
       * - `text` in database
       * - Nullable, no default
       */
-      parentRegion: string | null;
+      parentRegionName: string | null;
       /**
       * **RopewikiRegion.rawPageCount**
       * - `int4` in database
@@ -2954,11 +2954,11 @@ declare module 'zapatos/schema' {
       */
       overview: string | null;
       /**
-      * **RopewikiRegion.parentRegion**
+      * **RopewikiRegion.parentRegionName**
       * - `text` in database
       * - Nullable, no default
       */
-      parentRegion: string | null;
+      parentRegionName: string | null;
       /**
       * **RopewikiRegion.rawPageCount**
       * - `int4` in database
@@ -3064,11 +3064,11 @@ declare module 'zapatos/schema' {
       */
       overview?: string | db.Parameter<string> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, string | db.Parameter<string> | db.SQLFragment | db.ParentColumn>;
       /**
-      * **RopewikiRegion.parentRegion**
+      * **RopewikiRegion.parentRegionName**
       * - `text` in database
       * - Nullable, no default
       */
-      parentRegion?: string | db.Parameter<string> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, string | db.Parameter<string> | db.SQLFragment | db.ParentColumn>;
+      parentRegionName?: string | db.Parameter<string> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, string | db.Parameter<string> | db.SQLFragment | db.ParentColumn>;
       /**
       * **RopewikiRegion.rawPageCount**
       * - `int4` in database
@@ -3174,11 +3174,11 @@ declare module 'zapatos/schema' {
       */
       overview?: string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment;
       /**
-      * **RopewikiRegion.parentRegion**
+      * **RopewikiRegion.parentRegionName**
       * - `text` in database
       * - Nullable, no default
       */
-      parentRegion?: string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment;
+      parentRegionName?: string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment;
       /**
       * **RopewikiRegion.rawPageCount**
       * - `int4` in database
@@ -3284,11 +3284,11 @@ declare module 'zapatos/schema' {
       */
       overview?: string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment | db.SQLFragment<any, string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment>;
       /**
-      * **RopewikiRegion.parentRegion**
+      * **RopewikiRegion.parentRegionName**
       * - `text` in database
       * - Nullable, no default
       */
-      parentRegion?: string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment | db.SQLFragment<any, string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment>;
+      parentRegionName?: string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment | db.SQLFragment<any, string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment>;
       /**
       * **RopewikiRegion.rawPageCount**
       * - `int4` in database
@@ -3326,7 +3326,7 @@ declare module 'zapatos/schema' {
       */
       url?: string | db.Parameter<string> | db.SQLFragment | db.SQLFragment<any, string | db.Parameter<string> | db.SQLFragment>;
     }
-    export type UniqueIndex = 'RopewikiRegion_pkey' | 'uk_ropewikiRegion_name_parentRegion';
+    export type UniqueIndex = 'RopewikiRegion_pkey' | 'uk_ropewikiRegion_name_parentRegionName';
     export type Column = keyof Selectable;
     export type OnlyCols<T extends readonly Column[]> = Pick<Selectable, T[number]>;
     export type SQLExpression = Table | db.ColumnNames<Updatable | (keyof Updatable)[]> | db.ColumnValues<Updatable> | Whereable | Column | db.ParentColumn | db.GenericSQLExpression;

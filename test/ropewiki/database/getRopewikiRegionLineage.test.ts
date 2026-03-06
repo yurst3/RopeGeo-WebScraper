@@ -21,16 +21,16 @@ describe('getRopewikiRegionLineage (integration)', () => {
 
     const conn: db.Queryable = pool;
 
-    /** parentRegion is the parent region's name (not id), matching DB column semantics. */
+    /** parentRegionName is the parent region's name (not id), matching DB column semantics. */
     const insertRegion = async (
         id: string,
         name: string,
-        parentRegion: string | null,
+        parentRegionName: string | null,
     ) => {
         await db
             .insert('RopewikiRegion', {
                 id,
-                parentRegion,
+                parentRegionName,
                 name,
                 latestRevisionDate: '2025-01-01T00:00:00' as db.TimestampString,
                 rawPageCount: 0,

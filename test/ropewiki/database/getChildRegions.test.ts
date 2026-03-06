@@ -41,7 +41,7 @@ describe('getChildRegions (integration)', () => {
             .insert('RopewikiRegion', [
                 {
                     id: worldId,
-                    parentRegion: null,
+                    parentRegionName: null,
                     name: 'World',
                     latestRevisionDate,
                     rawPageCount: 0,
@@ -54,7 +54,7 @@ describe('getChildRegions (integration)', () => {
                 },
                 {
                     id: africaId,
-                    parentRegion: 'World',
+                    parentRegionName: 'World',
                     name: 'Africa',
                     latestRevisionDate,
                     rawPageCount: 0,
@@ -67,7 +67,7 @@ describe('getChildRegions (integration)', () => {
                 },
                 {
                     id: asiaId,
-                    parentRegion: 'World',
+                    parentRegionName: 'World',
                     name: 'Asia',
                     latestRevisionDate,
                     rawPageCount: 0,
@@ -80,7 +80,7 @@ describe('getChildRegions (integration)', () => {
                 },
                 {
                     id: europeId,
-                    parentRegion: 'World',
+                    parentRegionName: 'World',
                     name: 'Europe',
                     latestRevisionDate,
                     rawPageCount: 0,
@@ -116,7 +116,7 @@ describe('getChildRegions (integration)', () => {
             .insert('RopewikiRegion', [
                 {
                     id: worldId,
-                    parentRegion: null,
+                    parentRegionName: null,
                     name: 'World',
                     latestRevisionDate,
                     rawPageCount: 0,
@@ -129,7 +129,7 @@ describe('getChildRegions (integration)', () => {
                 },
                 {
                     id: africaId,
-                    parentRegion: 'World',
+                    parentRegionName: 'World',
                     name: 'Africa',
                     latestRevisionDate,
                     rawPageCount: 0,
@@ -164,7 +164,7 @@ describe('getChildRegions (integration)', () => {
             .insert('RopewikiRegion', [
                 {
                     id: worldId,
-                    parentRegion: null,
+                    parentRegionName: null,
                     name: 'World',
                     latestRevisionDate,
                     rawPageCount: 0,
@@ -177,7 +177,7 @@ describe('getChildRegions (integration)', () => {
                 },
                 {
                     id: africaId,
-                    parentRegion: 'World',
+                    parentRegionName: 'World',
                     name: 'Africa',
                     latestRevisionDate,
                     rawPageCount: 0,
@@ -190,7 +190,7 @@ describe('getChildRegions (integration)', () => {
                 },
                 {
                     id: kenyaId,
-                    parentRegion: 'Africa',
+                    parentRegionName: 'Africa',
                     name: 'Kenya',
                     latestRevisionDate,
                     rawPageCount: 0,
@@ -222,7 +222,7 @@ describe('getChildRegions (integration)', () => {
             .insert('RopewikiRegion', [
                 {
                     id: worldId,
-                    parentRegion: null,
+                    parentRegionName: null,
                     name: 'World',
                     latestRevisionDate,
                     rawPageCount: 0,
@@ -235,7 +235,7 @@ describe('getChildRegions (integration)', () => {
                 },
                 {
                     id: africaId,
-                    parentRegion: 'World',
+                    parentRegionName: 'World',
                     name: 'Africa',
                     latestRevisionDate,
                     rawPageCount: 0,
@@ -248,7 +248,7 @@ describe('getChildRegions (integration)', () => {
                 },
                 {
                     id: asiaId,
-                    parentRegion: 'World',
+                    parentRegionName: 'World',
                     name: 'Asia',
                     latestRevisionDate,
                     rawPageCount: 0,

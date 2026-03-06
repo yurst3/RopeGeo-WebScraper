@@ -39,7 +39,7 @@ describe('getRegions (integration)', () => {
             .insert('RopewikiRegion', [
                 {
                     id: worldId,
-                    parentRegion: null,
+                    parentRegionName: null,
                     name: 'World',
                     latestRevisionDate,
                     rawPageCount: 0,
@@ -49,7 +49,7 @@ describe('getRegions (integration)', () => {
                 },
                 {
                     id: africaId,
-                    parentRegion: worldId,
+                    parentRegionName: worldId,
                     name: 'Africa',
                     latestRevisionDate,
                     rawPageCount: 0,
@@ -68,11 +68,11 @@ describe('getRegions (integration)', () => {
         const africa = result.find((r) => r.id === africaId) as s.RopewikiRegion.JSONSelectable;
 
         expect(world.name).toBe('World');
-        expect(world.parentRegion).toBeNull();
+        expect(world.parentRegionName).toBeNull();
         expect(world.latestRevisionDate).toBe(latestRevisionDate);
 
         expect(africa.name).toBe('Africa');
-        expect(africa.parentRegion).toBe(worldId);
+        expect(africa.parentRegionName).toBe(worldId);
         expect(africa.latestRevisionDate).toBe(latestRevisionDate);
     });
 

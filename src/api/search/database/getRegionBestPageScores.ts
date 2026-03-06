@@ -7,7 +7,7 @@ type Row = { region_id: string; score: number };
  * Score = quality * COALESCE(userVotes, 1).
  * A region's pages include the region and all its descendant regions at every level
  * (e.g. Utah's most popular page may be in West Zion > Heaps Canyon, multiple levels deep).
- * parentRegion is matched by descendant name (production) or by descendant id (some tests).
+ * parentRegionName is matched by descendant name (production) or by descendant id (some tests).
  *
  * @param conn - Database connection
  * @param regionIds - Region uuid strings
@@ -31,8 +31,8 @@ const getRegionBestPageScores = async (
             SELECT rd.region_id, r2.id, r2.name
             FROM "RopewikiRegion" r2
             INNER JOIN rd ON (
-                r2."parentRegion" = rd.descendant_name
-                OR r2."parentRegion" = rd.descendant_id::text
+                r2."parentRegionName" = rd.descendant_name
+                OR r2."parentRegionName" = rd.descendant_id::text
             )
             WHERE r2."deletedAt" IS NULL
         ),

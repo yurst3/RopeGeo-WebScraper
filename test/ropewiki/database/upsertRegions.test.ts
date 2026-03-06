@@ -56,15 +56,15 @@ describe('upsertRegions (integration)', () => {
     const africa = rows.find((r) => r.name === 'Africa') as s.RopewikiRegion.JSONSelectable;
 
     expect(world.name).toBe('World');
-    expect(world.parentRegion).toBeNull();
+    expect(world.parentRegionName).toBeNull();
     expect(new Date(world.latestRevisionDate).toISOString()).toBe(latestRevisionDate.toISOString());
 
     expect(africa.name).toBe('Africa');
-    expect(africa.parentRegion).toBe('World');
+    expect(africa.parentRegionName).toBe('World');
     expect(new Date(africa.latestRevisionDate).toISOString()).toBe(latestRevisionDate.toISOString());
   });
 
-  it('updates existing regions via upsert when name and parentRegion match', async () => {
+  it('updates existing regions via upsert when name and parentRegionName match', async () => {
     const initialRevisionDate = new Date('2024-01-01T00:00:00Z');
     const latestRevisionDate = new Date('2024-02-01T00:00:00Z');
 
@@ -74,17 +74,17 @@ describe('upsertRegions (integration)', () => {
       [new RopewikiRegion('World', undefined, 0, 0, undefined, [], false, false, initialRevisionDate)],
     );
 
-    // Update the same region (same name and parentRegion)
+    // Update the same region (same name and parentRegionName)
     await upsertRegions(
       conn,
       [new RopewikiRegion('World', undefined, 10, 0, 'Updated overview', ['January'], true, true, latestRevisionDate)],
     );
 
     const rows = await db.select('RopewikiRegion', { name: 'World' }).run(conn);
-    const region = rows.find((r) => r.parentRegion === null) as s.RopewikiRegion.JSONSelectable;
+    const region = rows.find((r) => r.parentRegionName === null) as s.RopewikiRegion.JSONSelectable;
     expect(region).toBeDefined();
     expect(region.name).toBe('World');
-    expect(region.parentRegion).toBeNull();
+    expect(region.parentRegionName).toBeNull();
     expect(region.rawPageCount).toBe(10);
     expect(region.overview).toBe('Updated overview');
     expect(region.bestMonths).toEqual(['January']);
@@ -107,7 +107,7 @@ describe('upsertRegions (integration)', () => {
     await db.sql`
       UPDATE "RopewikiRegion"
       SET "allowUpdates" = false
-      WHERE name = ${db.param('Locked Region')} AND "parentRegion" IS NULL
+      WHERE name = ${db.param('Locked Region')} AND "parentRegionName" IS NULL
     `.run(conn);
 
     await upsertRegions(
@@ -116,7 +116,7 @@ describe('upsertRegions (integration)', () => {
     );
 
     const rows = await db.select('RopewikiRegion', { name: 'Locked Region' }).run(conn);
-    const region = rows.find((r) => r.parentRegion === null) as s.RopewikiRegion.JSONSelectable;
+    const region = rows.find((r) => r.parentRegionName === null) as s.RopewikiRegion.JSONSelectable;
     expect(region).toBeDefined();
     expect(region.rawPageCount).toBe(5);
     expect(region.overview).toBe('Original overview');
@@ -132,7 +132,7 @@ describe('upsertRegions (integration)', () => {
     await db
       .insert('RopewikiRegion', {
         name: 'Deleted Region',
-        parentRegion: null,
+        parentRegionName: null,
         latestRevisionDate: '2024-01-01T00:00:00' as db.TimestampString,
         deletedAt: '2024-01-01T00:00:00' as db.TimestampString,
         rawPageCount: 0,
@@ -146,10 +146,10 @@ describe('upsertRegions (integration)', () => {
 
     // Verify deletedAt is set
     const beforeRows = await db.select('RopewikiRegion', { name: 'Deleted Region' }).run(conn);
-    const beforeRegion = beforeRows.find((r) => r.parentRegion === null);
+    const beforeRegion = beforeRows.find((r) => r.parentRegionName === null);
     expect(beforeRegion?.deletedAt).not.toBeNull();
 
-    // Upsert the region (same name and parentRegion)
+    // Upsert the region (same name and parentRegionName)
     await upsertRegions(
       conn,
       [new RopewikiRegion('Deleted Region', undefined, 0, 0, undefined, [], false, false, latestRevisionDate)],
@@ -157,7 +157,7 @@ describe('upsertRegions (integration)', () => {
 
     // Verify deletedAt is now null
     const afterRows = await db.select('RopewikiRegion', { name: 'Deleted Region' }).run(conn);
-    const region = afterRows.find((r) => r.parentRegion === null) as s.RopewikiRegion.JSONSelectable;
+    const region = afterRows.find((r) => r.parentRegionName === null) as s.RopewikiRegion.JSONSelectable;
     expect(region).toBeDefined();
     expect(region.deletedAt).toBeNull();
     expect(region.name).toBe('Deleted Region');
@@ -178,13 +178,13 @@ describe('upsertRegions (integration)', () => {
     const rows = await db.select('RopewikiRegion', { name: 'Utah' }).run(conn);
     expect(rows).toHaveLength(2);
 
-    const utahWorld = rows.find((r) => r.parentRegion === 'World') as s.RopewikiRegion.JSONSelectable;
-    const utahUS = rows.find((r) => r.parentRegion === 'United States') as s.RopewikiRegion.JSONSelectable;
+    const utahWorld = rows.find((r) => r.parentRegionName === 'World') as s.RopewikiRegion.JSONSelectable;
+    const utahUS = rows.find((r) => r.parentRegionName === 'United States') as s.RopewikiRegion.JSONSelectable;
 
     expect(utahWorld.name).toBe('Utah');
-    expect(utahWorld.parentRegion).toBe('World');
+    expect(utahWorld.parentRegionName).toBe('World');
     expect(utahUS.name).toBe('Utah');
-    expect(utahUS.parentRegion).toBe('United States');
+    expect(utahUS.parentRegionName).toBe('United States');
   });
 
   it('treats regions with same parentRegion but different name as different', async () => {
@@ -199,16 +199,16 @@ describe('upsertRegions (integration)', () => {
       ],
     );
 
-    const rows = await db.select('RopewikiRegion', { parentRegion: 'World' }).run(conn);
+    const rows = await db.select('RopewikiRegion', { parentRegionName: 'World' }).run(conn);
     expect(rows).toHaveLength(2);
 
     const utah = rows.find((r) => r.name === 'Utah') as s.RopewikiRegion.JSONSelectable;
     const nevada = rows.find((r) => r.name === 'Nevada') as s.RopewikiRegion.JSONSelectable;
 
     expect(utah.name).toBe('Utah');
-    expect(utah.parentRegion).toBe('World');
+    expect(utah.parentRegionName).toBe('World');
     expect(nevada.name).toBe('Nevada');
-    expect(nevada.parentRegion).toBe('World');
+    expect(nevada.parentRegionName).toBe('World');
   });
 
   it('handles null parentRegion correctly for top-level regions', async () => {
@@ -227,10 +227,10 @@ describe('upsertRegions (integration)', () => {
     );
 
     const rows = await db.select('RopewikiRegion', { name: 'World' }).run(conn);
-    const region = rows.find((r) => r.parentRegion === null) as s.RopewikiRegion.JSONSelectable;
+    const region = rows.find((r) => r.parentRegionName === null) as s.RopewikiRegion.JSONSelectable;
     expect(region).toBeDefined();
     expect(region.name).toBe('World');
-    expect(region.parentRegion).toBeNull();
+    expect(region.parentRegionName).toBeNull();
     expect(region.rawPageCount).toBe(10);
     expect(region.overview).toBe('Updated');
   });
