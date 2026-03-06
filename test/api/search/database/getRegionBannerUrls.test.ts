@@ -217,4 +217,136 @@ describe('getRegionBannerUrls (integration)', () => {
             'https://ropewiki.com/images/child-banner.jpg',
         );
     });
+
+    it('considers all layers of nested regions (name-based parentRegion)', async () => {
+        const grandparentId = 'd1000005-0005-4000-8000-000000000005';
+        const parentId = 'd1000006-0006-4000-8000-000000000006';
+        const childId = 'd1000007-0007-4000-8000-000000000007';
+        const pageInGrandparentId = 'e1000005-0005-4000-8000-000000000005';
+        const pageInParentId = 'e1000006-0006-4000-8000-000000000006';
+        const pageInChildId = 'e1000007-0007-4000-8000-000000000007';
+        const grandparentName = 'BannerTestGrandparent';
+        const parentName = 'BannerTestMidParent';
+        const childName = 'BannerTestDeepChild';
+
+        await db
+            .insert('RopewikiRegion', {
+                id: grandparentId,
+                parentRegion: null,
+                name: grandparentName,
+                latestRevisionDate:
+                    '2025-01-01T00:00:00' as db.TimestampString,
+                rawPageCount: 0,
+                level: 0,
+                bestMonths: [],
+                url: 'https://ropewiki.com/BannerTestGrandparent',
+            })
+            .run(conn);
+        await db
+            .insert('RopewikiRegion', {
+                id: parentId,
+                parentRegion: grandparentName,
+                name: parentName,
+                latestRevisionDate:
+                    '2025-01-01T00:00:00' as db.TimestampString,
+                rawPageCount: 0,
+                level: 1,
+                bestMonths: [],
+                url: 'https://ropewiki.com/BannerTestMidParent',
+            })
+            .run(conn);
+        await db
+            .insert('RopewikiRegion', {
+                id: childId,
+                parentRegion: parentName,
+                name: childName,
+                latestRevisionDate:
+                    '2025-01-01T00:00:00' as db.TimestampString,
+                rawPageCount: 0,
+                level: 2,
+                bestMonths: [],
+                url: 'https://ropewiki.com/BannerTestDeepChild',
+            })
+            .run(conn);
+
+        await db
+            .insert('RopewikiPage', {
+                id: pageInGrandparentId,
+                pageId: 'banner-gp-1',
+                name: 'Page In Grandparent',
+                region: grandparentId,
+                url: 'https://ropewiki.com/Page_In_Grandparent',
+                latestRevisionDate:
+                    '2025-01-01T00:00:00' as db.TimestampString,
+                quality: 2,
+                userVotes: 2,
+            })
+            .run(conn);
+        await db
+            .insert('RopewikiPage', {
+                id: pageInParentId,
+                pageId: 'banner-mid-1',
+                name: 'Page In Parent',
+                region: parentId,
+                url: 'https://ropewiki.com/Page_In_Mid',
+                latestRevisionDate:
+                    '2025-01-01T00:00:00' as db.TimestampString,
+                quality: 3,
+                userVotes: 4,
+            })
+            .run(conn);
+        await db
+            .insert('RopewikiPage', {
+                id: pageInChildId,
+                pageId: 'banner-deep-1',
+                name: 'Page In Deep Child',
+                region: childId,
+                url: 'https://ropewiki.com/Page_In_Deep',
+                latestRevisionDate:
+                    '2025-01-01T00:00:00' as db.TimestampString,
+                quality: 5,
+                userVotes: 10,
+            })
+            .run(conn);
+
+        const deepBannerUrl =
+            'https://ropewiki.com/images/deep-child-banner.jpg';
+        await db
+            .insert('RopewikiImage', {
+                ropewikiPage: pageInGrandparentId,
+                betaSection: null,
+                linkUrl: 'https://ropewiki.com/File:gp.jpg',
+                fileUrl: 'https://ropewiki.com/images/gp.jpg',
+                order: 1,
+            })
+            .run(conn);
+        await db
+            .insert('RopewikiImage', {
+                ropewikiPage: pageInParentId,
+                betaSection: null,
+                linkUrl: 'https://ropewiki.com/File:mid.jpg',
+                fileUrl: 'https://ropewiki.com/images/mid.jpg',
+                order: 1,
+            })
+            .run(conn);
+        await db
+            .insert('RopewikiImage', {
+                ropewikiPage: pageInChildId,
+                betaSection: null,
+                linkUrl: 'https://ropewiki.com/File:deep.jpg',
+                fileUrl: deepBannerUrl,
+                order: 1,
+            })
+            .run(conn);
+
+        const result = await getRegionBannerUrls(conn, [grandparentId]);
+        expect(result.get(grandparentId)).toBe(deepBannerUrl);
+
+        await db
+            .sql`DELETE FROM "RopewikiImage" WHERE "ropewikiPage" IN (${db.param(pageInGrandparentId)}, ${db.param(pageInParentId)}, ${db.param(pageInChildId)})`.run(conn);
+        await db
+            .sql`DELETE FROM "RopewikiPage" WHERE id IN (${db.param(pageInGrandparentId)}, ${db.param(pageInParentId)}, ${db.param(pageInChildId)})`.run(conn);
+        await db
+            .sql`DELETE FROM "RopewikiRegion" WHERE id IN (${db.param(childId)}, ${db.param(parentId)}, ${db.param(grandparentId)})`.run(conn);
+    });
 });

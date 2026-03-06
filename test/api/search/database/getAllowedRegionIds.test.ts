@@ -105,4 +105,62 @@ describe('getAllowedRegionIds (integration)', () => {
         );
         expect(result).toEqual([]);
     });
+
+    it('returns all descendants when hierarchy uses name-based parentRegion', async () => {
+        const grandparentId = 'd3000004-0004-4000-8000-000000000004';
+        const parentId = 'd3000005-0005-4000-8000-000000000005';
+        const childId = 'd3000006-0006-4000-8000-000000000006';
+        const grandparentName = 'AllowedIdsNameRoot';
+        const parentName = 'AllowedIdsNameMid';
+        const childName = 'AllowedIdsNameLeaf';
+
+        await db
+            .insert('RopewikiRegion', {
+                id: grandparentId,
+                parentRegion: null,
+                name: grandparentName,
+                latestRevisionDate:
+                    '2025-01-01T00:00:00' as db.TimestampString,
+                rawPageCount: 0,
+                level: 0,
+                bestMonths: [],
+                url: 'https://ropewiki.com/AllowedIdsNameRoot',
+            })
+            .run(conn);
+        await db
+            .insert('RopewikiRegion', {
+                id: parentId,
+                parentRegion: grandparentName,
+                name: parentName,
+                latestRevisionDate:
+                    '2025-01-01T00:00:00' as db.TimestampString,
+                rawPageCount: 0,
+                level: 1,
+                bestMonths: [],
+                url: 'https://ropewiki.com/AllowedIdsNameMid',
+            })
+            .run(conn);
+        await db
+            .insert('RopewikiRegion', {
+                id: childId,
+                parentRegion: parentName,
+                name: childName,
+                latestRevisionDate:
+                    '2025-01-01T00:00:00' as db.TimestampString,
+                rawPageCount: 0,
+                level: 2,
+                bestMonths: [],
+                url: 'https://ropewiki.com/AllowedIdsNameLeaf',
+            })
+            .run(conn);
+
+        const result = await getAllowedRegionIds(conn, grandparentId);
+        expect(result).toEqual(
+            expect.arrayContaining([grandparentId, parentId, childId]),
+        );
+        expect(result.length).toBe(3);
+
+        await db
+            .sql`DELETE FROM "RopewikiRegion" WHERE id IN (${db.param(childId)}, ${db.param(parentId)}, ${db.param(grandparentId)})`.run(conn);
+    });
 });

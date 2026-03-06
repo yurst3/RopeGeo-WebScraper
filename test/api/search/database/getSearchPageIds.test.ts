@@ -2,6 +2,7 @@ import { Pool } from 'pg';
 import { describe, it, expect, beforeAll, afterAll } from '@jest/globals';
 import { SearchParams } from 'ropegeo-common';
 import * as db from 'zapatos/db';
+import getAllowedRegionIds from '../../../../src/api/search/database/getAllowedRegionIds';
 import { getSearchPageIds } from '../../../../src/api/search/database/getSearchPageIds';
 
 describe('getSearchPageIds (integration)', () => {
@@ -415,5 +416,98 @@ describe('getSearchPageIds (integration)', () => {
         expect(secondItems.length).toBe(1);
         expect(hasMoreSecond).toBe(false);
         expect(secondItems[0]!.id).toBe(pageInParentId);
+    });
+
+    it('finds page in deep child when hierarchy uses name-based parentRegion', async () => {
+        const grandparentId = 'f0000004-0004-4000-8000-000000000004';
+        const parentId = 'f0000005-0005-4000-8000-000000000005';
+        const childId = 'f0000006-0006-4000-8000-000000000006';
+        const deepPageId = 'e0000004-0004-4000-8000-000000000004';
+        const grandparentName = 'PageIdsNameRoot';
+        const parentName = 'PageIdsNameMid';
+        const childName = 'PageIdsNameLeaf';
+
+        await db
+            .insert('RopewikiRegion', {
+                id: grandparentId,
+                parentRegion: null,
+                name: grandparentName,
+                latestRevisionDate:
+                    '2025-01-01T00:00:00' as db.TimestampString,
+                rawPageCount: 0,
+                level: 0,
+                bestMonths: [],
+                url: 'https://ropewiki.com/PageIdsNameRoot',
+            })
+            .run(conn);
+        await db
+            .insert('RopewikiRegion', {
+                id: parentId,
+                parentRegion: grandparentName,
+                name: parentName,
+                latestRevisionDate:
+                    '2025-01-01T00:00:00' as db.TimestampString,
+                rawPageCount: 0,
+                level: 1,
+                bestMonths: [],
+                url: 'https://ropewiki.com/PageIdsNameMid',
+            })
+            .run(conn);
+        await db
+            .insert('RopewikiRegion', {
+                id: childId,
+                parentRegion: parentName,
+                name: childName,
+                latestRevisionDate:
+                    '2025-01-01T00:00:00' as db.TimestampString,
+                rawPageCount: 0,
+                level: 2,
+                bestMonths: [],
+                url: 'https://ropewiki.com/PageIdsNameLeaf',
+            })
+            .run(conn);
+        await db
+            .insert('RopewikiPage', {
+                id: deepPageId,
+                pageId: 'pageids-name-deep-1',
+                name: 'NameBasedDeepPage',
+                region: childId,
+                url: 'https://ropewiki.com/NameBasedDeepPage',
+                latestRevisionDate:
+                    '2025-01-01T00:00:00' as db.TimestampString,
+                quality: 1,
+                userVotes: 1,
+            })
+            .run(conn);
+
+        const nameBasedAllowedIds = await getAllowedRegionIds(
+            conn,
+            grandparentId,
+        );
+        expect(nameBasedAllowedIds).toContain(childId);
+
+        const params = new SearchParams(
+            'NameBasedDeepPage',
+            0.1,
+            true,
+            true,
+            false,
+            null,
+            'similarity',
+            10,
+            null,
+        );
+        const { items } = await getSearchPageIds(
+            conn,
+            params,
+            nameBasedAllowedIds,
+        );
+        const pageIds = items.filter((c) => c.type === 'page').map((c) => c.id);
+        expect(pageIds).toContain(deepPageId);
+
+        await db
+            .sql`DELETE FROM "RopewikiPage" WHERE id = ${db.param(deepPageId)}`.run(conn);
+        await db
+            .sql`DELETE FROM "RopewikiRegion" WHERE id IN (${db.param(childId)}, ${db.param(parentId)}, ${db.param(grandparentId)})`.run(conn);
     });
 });

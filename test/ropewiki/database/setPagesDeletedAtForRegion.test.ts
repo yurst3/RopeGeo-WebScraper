@@ -194,4 +194,95 @@ describe('setPagesDeletedAtForRegion (integration)', () => {
         expect(freshRow?.deletedAt).not.toBeNull();
         expect(new Date(freshRow!.deletedAt as string).getTime()).toBeCloseTo(Date.now(), -3);
     });
+
+    it('soft-deletes pages in all descendant levels when hierarchy uses name-based parentRegion', async () => {
+        const grandparentId = 'dddddddd-dddd-4e48-99a6-81608cc0051d';
+        const parentId = 'eeeeeeee-eeee-4e48-99a6-81608cc0051d';
+        const childId = 'ffffffff-ffff-4e48-99a6-81608cc0051d';
+        const grandparentName = 'PagesNameRoot';
+        const parentName = 'PagesNameMid';
+        const childName = 'PagesNameLeaf';
+
+        await db
+            .insert('RopewikiRegion', [
+                {
+                    id: grandparentId,
+                    parentRegion: null,
+                    name: grandparentName,
+                    latestRevisionDate: '2025-01-01T00:00:00' as db.TimestampString,
+                    rawPageCount: 0,
+                    level: 0,
+                    bestMonths: JSON.stringify([]),
+                    url: 'https://ropewiki.com/PagesNameRoot',
+                },
+                {
+                    id: parentId,
+                    parentRegion: grandparentName,
+                    name: parentName,
+                    latestRevisionDate: '2025-01-01T00:00:00' as db.TimestampString,
+                    rawPageCount: 0,
+                    level: 1,
+                    bestMonths: JSON.stringify([]),
+                    url: 'https://ropewiki.com/PagesNameMid',
+                },
+                {
+                    id: childId,
+                    parentRegion: parentName,
+                    name: childName,
+                    latestRevisionDate: '2025-01-01T00:00:00' as db.TimestampString,
+                    rawPageCount: 0,
+                    level: 2,
+                    bestMonths: JSON.stringify([]),
+                    url: 'https://ropewiki.com/PagesNameLeaf',
+                },
+            ])
+            .run(conn);
+
+        const pageGpId = '11111111-1111-4111-8111-111111111111';
+        const pageMidId = '22222222-2222-4222-8222-222222222222';
+        const pageLeafId = '33333333-3333-4333-8333-333333333333';
+        await db
+            .insert('RopewikiPage', [
+                {
+                    id: pageGpId,
+                    pageId: 'name-gp-1',
+                    name: 'Grandparent Page',
+                    region: grandparentId,
+                    url: 'https://ropewiki.com/Grandparent_Page',
+                    months: [],
+                    latestRevisionDate: '2025-01-01T00:00:00' as db.TimestampString,
+                },
+                {
+                    id: pageMidId,
+                    pageId: 'name-mid-1',
+                    name: 'Mid Page',
+                    region: parentId,
+                    url: 'https://ropewiki.com/Mid_Page',
+                    months: [],
+                    latestRevisionDate: '2025-01-01T00:00:00' as db.TimestampString,
+                },
+                {
+                    id: pageLeafId,
+                    pageId: 'name-leaf-1',
+                    name: 'Leaf Page',
+                    region: childId,
+                    url: 'https://ropewiki.com/Leaf_Page',
+                    months: [],
+                    latestRevisionDate: '2025-01-01T00:00:00' as db.TimestampString,
+                },
+            ])
+            .run(conn);
+
+        await setPagesDeletedAtForRegion(conn, grandparentId);
+
+        const afterGp = await db.select('RopewikiPage', { id: pageGpId }).run(conn);
+        const afterMid = await db.select('RopewikiPage', { id: pageMidId }).run(conn);
+        const afterLeaf = await db.select('RopewikiPage', { id: pageLeafId }).run(conn);
+        expect(afterGp[0]!.deletedAt).not.toBeNull();
+        expect(afterMid[0]!.deletedAt).not.toBeNull();
+        expect(afterLeaf[0]!.deletedAt).not.toBeNull();
+
+        await db.sql`DELETE FROM "RopewikiPage" WHERE id IN (${db.param(pageGpId)}, ${db.param(pageMidId)}, ${db.param(pageLeafId)})`.run(conn);
+        await db.sql`DELETE FROM "RopewikiRegion" WHERE id IN (${db.param(childId)}, ${db.param(parentId)}, ${db.param(grandparentId)})`.run(conn);
+    });
 });

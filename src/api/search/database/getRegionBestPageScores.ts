@@ -5,8 +5,9 @@ type Row = { region_id: string; score: number };
 /**
  * For each region id, returns the popularity score of that region's most popular page.
  * Score = quality * COALESCE(userVotes, 1).
- * A region's pages include the region and all its descendant regions (e.g. Utah's
- * most popular page may be Heaps Canyon in West Zion).
+ * A region's pages include the region and all its descendant regions at every level
+ * (e.g. Utah's most popular page may be in West Zion > Heaps Canyon, multiple levels deep).
+ * parentRegion is matched by descendant name (production) or by descendant id (some tests).
  *
  * @param conn - Database connection
  * @param regionIds - Region uuid strings
@@ -22,14 +23,17 @@ const getRegionBestPageScores = async (
 
     const rows = await db.sql<db.SQL, Row[]>`
         WITH RECURSIVE rd AS (
-            SELECT id AS region_id, id AS descendant_id
+            SELECT id AS region_id, id AS descendant_id, name AS descendant_name
             FROM "RopewikiRegion"
             WHERE id = ANY(${db.param(regionIds)}::uuid[])
               AND "deletedAt" IS NULL
             UNION ALL
-            SELECT rd.region_id, r2.id
+            SELECT rd.region_id, r2.id, r2.name
             FROM "RopewikiRegion" r2
-            INNER JOIN rd ON r2."parentRegion" = rd.descendant_id::text
+            INNER JOIN rd ON (
+                r2."parentRegion" = rd.descendant_name
+                OR r2."parentRegion" = rd.descendant_id::text
+            )
             WHERE r2."deletedAt" IS NULL
         ),
         best_pages AS (

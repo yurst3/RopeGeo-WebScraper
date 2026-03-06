@@ -167,4 +167,104 @@ describe('getRegionBestPageScores (integration)', () => {
         await db
             .sql`DELETE FROM "RopewikiRegion" WHERE id = ${db.param(regionId)}`.run(conn);
     });
+
+    it('considers all layers of nested regions (name-based parentRegion)', async () => {
+        const grandparentId = 'd2000005-0005-4000-8000-000000000005';
+        const parentId = 'd2000006-0006-4000-8000-000000000006';
+        const childId = 'd2000007-0007-4000-8000-000000000007';
+        const pageInGrandparentId = 'e2000005-0005-4000-8000-000000000005';
+        const pageInParentId = 'e2000006-0006-4000-8000-000000000006';
+        const pageInChildId = 'e2000007-0007-4000-8000-000000000007';
+        const grandparentName = 'ScoreTestGrandparent';
+        const parentName = 'ScoreTestMidParent';
+        const childName = 'ScoreTestDeepChild';
+
+        await db
+            .insert('RopewikiRegion', {
+                id: grandparentId,
+                parentRegion: null,
+                name: grandparentName,
+                latestRevisionDate:
+                    '2025-01-01T00:00:00' as db.TimestampString,
+                rawPageCount: 0,
+                level: 0,
+                bestMonths: [],
+                url: 'https://ropewiki.com/ScoreTestGrandparent',
+            })
+            .run(conn);
+        await db
+            .insert('RopewikiRegion', {
+                id: parentId,
+                parentRegion: grandparentName,
+                name: parentName,
+                latestRevisionDate:
+                    '2025-01-01T00:00:00' as db.TimestampString,
+                rawPageCount: 0,
+                level: 1,
+                bestMonths: [],
+                url: 'https://ropewiki.com/ScoreTestMidParent',
+            })
+            .run(conn);
+        await db
+            .insert('RopewikiRegion', {
+                id: childId,
+                parentRegion: parentName,
+                name: childName,
+                latestRevisionDate:
+                    '2025-01-01T00:00:00' as db.TimestampString,
+                rawPageCount: 0,
+                level: 2,
+                bestMonths: [],
+                url: 'https://ropewiki.com/ScoreTestDeepChild',
+            })
+            .run(conn);
+
+        await db
+            .insert('RopewikiPage', {
+                id: pageInGrandparentId,
+                pageId: 'score-gp-1',
+                name: 'Page In Grandparent',
+                region: grandparentId,
+                url: 'https://ropewiki.com/Page_In_Grandparent',
+                latestRevisionDate:
+                    '2025-01-01T00:00:00' as db.TimestampString,
+                quality: 2,
+                userVotes: 2,
+            })
+            .run(conn);
+        await db
+            .insert('RopewikiPage', {
+                id: pageInParentId,
+                pageId: 'score-mid-1',
+                name: 'Page In Parent',
+                region: parentId,
+                url: 'https://ropewiki.com/Page_In_Mid',
+                latestRevisionDate:
+                    '2025-01-01T00:00:00' as db.TimestampString,
+                quality: 3,
+                userVotes: 4,
+            })
+            .run(conn);
+        await db
+            .insert('RopewikiPage', {
+                id: pageInChildId,
+                pageId: 'score-deep-1',
+                name: 'Page In Deep Child',
+                region: childId,
+                url: 'https://ropewiki.com/Page_In_Deep',
+                latestRevisionDate:
+                    '2025-01-01T00:00:00' as db.TimestampString,
+                quality: 5,
+                userVotes: 10,
+            })
+            .run(conn);
+
+        const result = await getRegionBestPageScores(conn, [grandparentId]);
+        expect(result.get(grandparentId)).toBe(50);
+
+        await db
+            .sql`DELETE FROM "RopewikiPage" WHERE id IN (${db.param(pageInGrandparentId)}, ${db.param(pageInParentId)}, ${db.param(pageInChildId)})`.run(conn);
+        await db
+            .sql`DELETE FROM "RopewikiRegion" WHERE id IN (${db.param(childId)}, ${db.param(parentId)}, ${db.param(grandparentId)})`.run(conn);
+    });
 });

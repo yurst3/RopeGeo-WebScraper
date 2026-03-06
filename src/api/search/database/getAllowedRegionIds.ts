@@ -10,12 +10,14 @@ async function getAllowedRegionIds(
 ): Promise<string[]> {
     const rows = await db.sql<db.SQL, { id: string }[]>`
         WITH RECURSIVE region_and_descendants AS (
-            SELECT id FROM "RopewikiRegion"
+            SELECT id, name FROM "RopewikiRegion"
             WHERE "deletedAt" IS NULL
               AND (${db.param(regionId)}::uuid IS NULL OR id = ${db.param(regionId)}::uuid)
             UNION ALL
-            SELECT r.id FROM "RopewikiRegion" r
-            INNER JOIN region_and_descendants d ON r."parentRegion" = d.id::text
+            SELECT r.id, r.name FROM "RopewikiRegion" r
+            INNER JOIN region_and_descendants d ON (
+                r."parentRegion" = d.name OR r."parentRegion" = d.id::text
+            )
             WHERE r."deletedAt" IS NULL
               AND ${db.param(regionId)}::uuid IS NOT NULL
         )

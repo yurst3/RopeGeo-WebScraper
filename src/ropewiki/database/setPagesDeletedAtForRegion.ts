@@ -11,11 +11,13 @@ const setPagesDeletedAtForRegion = async (
     const now = new Date();
     await db.sql`
         WITH RECURSIVE region_and_descendants AS (
-            SELECT id FROM "RopewikiRegion"
+            SELECT id, name FROM "RopewikiRegion"
             WHERE id = ${db.param(regionUuid)}::uuid AND "deletedAt" IS NULL
             UNION ALL
-            SELECT r.id FROM "RopewikiRegion" r
-            INNER JOIN region_and_descendants d ON r."parentRegion" = d.id::text
+            SELECT r.id, r.name FROM "RopewikiRegion" r
+            INNER JOIN region_and_descendants d ON (
+                r."parentRegion" = d.name OR r."parentRegion" = d.id::text
+            )
             WHERE r."deletedAt" IS NULL
         )
         UPDATE "RopewikiPage"

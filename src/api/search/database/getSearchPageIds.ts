@@ -142,13 +142,16 @@ export async function getSearchPageIds(
 
     const rows = await db.sql<db.SQL, PaginationRow[]>`
     WITH RECURSIVE rd AS (
-      SELECT id AS region_id, id AS descendant_id
+      SELECT id AS region_id, id AS descendant_id, name AS descendant_name
       FROM "RopewikiRegion"
       WHERE id = ANY(${db.param(allowedRegionIds)}::uuid[]) AND "deletedAt" IS NULL
       UNION ALL
-      SELECT rd.region_id, r2.id
+      SELECT rd.region_id, r2.id, r2.name
       FROM "RopewikiRegion" r2
-      INNER JOIN rd ON r2."parentRegion" = rd.descendant_id::text
+      INNER JOIN rd ON (
+        r2."parentRegion" = rd.descendant_name
+        OR r2."parentRegion" = rd.descendant_id::text
+      )
       WHERE r2."deletedAt" IS NULL
     ),
     region_scores AS (
