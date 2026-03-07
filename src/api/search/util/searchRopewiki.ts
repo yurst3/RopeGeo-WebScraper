@@ -1,10 +1,10 @@
 import * as db from 'zapatos/db';
 import { SearchParams, SearchResults } from 'ropegeo-common';
 import getAllowedRegionIds from '../../../ropewiki/database/getAllowedRegionIds';
+import { enrichRopewikiPreviews } from '../../../ropewiki/util/enrichRopewikiPreviews';
 import getPageRowsByIds from '../database/getPageRowsByIds';
 import getRegionRowsByIds from '../database/getRegionRowsByIds';
 import { getSearchPageIds } from '../database/getSearchPageIds';
-import { enrichSearchResults } from './enrichSearchResults';
 
 /**
  * Fuzzy search over RopewikiPage and RopewikiRegion names using pg_trgm word_similarity.
@@ -52,9 +52,10 @@ const searchRopewiki = async (
     ]);
 
     // Turn (type, id) items into PagePreview/RegionPreview with lineage and banners.
-    const results = await enrichSearchResults(
+    const previewItems = items.map((i) => ({ type: i.type, id: i.id }));
+    const results = await enrichRopewikiPreviews(
         conn,
-        items,
+        previewItems,
         pageRowsById,
         regionRowsById,
     );

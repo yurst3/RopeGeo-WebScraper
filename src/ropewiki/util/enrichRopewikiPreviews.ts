@@ -1,14 +1,26 @@
-import type { SearchCursor } from 'ropegeo-common';
+import type { GetRopewikiPagePreviewRow } from 'ropegeo-common';
 import { PageDataSource, PagePreview, RegionPreview } from 'ropegeo-common';
 import type * as db from 'zapatos/db';
-import getRopewikiRegionLineage from '../../../ropewiki/database/getRopewikiRegionLineage';
+import getRopewikiRegionLineage from '../database/getRopewikiRegionLineage';
 import getRegionBannerUrls from '../database/getRegionBannerUrls';
-import type { PageRow } from '../database/getPageRowsByIds';
-import type { RegionRow } from '../database/getRegionRowsByIds';
 
-export type { PageRow, RegionRow };
+export type RopewikiPreviewItem = { type: 'page' | 'region'; id: string };
 
-export type LineageEntry = { id: string; name: string };
+/** Page row shape required to build PagePreview (GetRopewikiPagePreviewRow + mapData and aka). */
+export type RopewikiPreviewPageRow = GetRopewikiPagePreviewRow & {
+    mapData: string | null;
+    aka: string[];
+};
+
+/** Region row shape required to build RegionPreview. */
+export type RopewikiPreviewRegionRow = {
+    id: string;
+    name: string;
+    pageCount: number;
+    regionCount: number;
+};
+
+type LineageEntry = { id: string; name: string };
 
 async function fetchLineageByRegionId(
     conn: db.Queryable,
@@ -25,36 +37,32 @@ async function fetchLineageByRegionId(
 }
 
 /**
- * Enriches paginated search items with lineage (for pages and regions) and banner
- * URLs (for regions). Fetches lineage and banners from the DB, then builds
- * (PagePreview | RegionPreview)[] in the same order as items.
+ * Enriches paginated items (page/region ids in order) with Ropewiki lineage and region banner URLs,
+ * then builds (PagePreview | RegionPreview)[] in the same order as items.
+ * Shared by search and getRopewikiRegionPreviews.
  */
-export async function enrichSearchResults(
+export async function enrichRopewikiPreviews(
     conn: db.Queryable,
-    items: SearchCursor[],
-    pageRowsById: Map<string, PageRow>,
-    regionRowsById: Map<string, RegionRow>,
+    items: RopewikiPreviewItem[],
+    pageRowsById: Map<string, RopewikiPreviewPageRow>,
+    regionRowsById: Map<string, RopewikiPreviewRegionRow>,
 ): Promise<(PagePreview | RegionPreview)[]> {
     if (items.length === 0) return [];
 
-    // Collect page ids and region ids from this page of search items.
     const pageIds = items.filter((i) => i.type === 'page').map((i) => i.id);
     const regionIdsFromItems = items.filter((i) => i.type === 'region').map((i) => i.id);
 
-    // Region ids we need lineage for: items that are regions, plus each page’s region.
     const regionIdsNeeded = new Set<string>(regionIdsFromItems);
     for (const id of pageIds) {
         const row = pageRowsById.get(id);
         if (row) regionIdsNeeded.add(row.regionId);
     }
 
-    // Fetch lineage (for breadcrumbs) and region banner URLs in parallel.
     const [lineageByRegionId, bannerByRegionId] = await Promise.all([
         fetchLineageByRegionId(conn, [...regionIdsNeeded]),
         getRegionBannerUrls(conn, regionIdsFromItems),
     ]);
 
-    // Build previews in the same order as items; pages get lineage, regions get parents + banner.
     const results: (PagePreview | RegionPreview)[] = [];
     for (const item of items) {
         if (item.type === 'page') {

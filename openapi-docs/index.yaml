@@ -20,6 +20,8 @@ paths:
     $ref: './paths/getRopewikiPageView.yaml'
   /ropewiki/region/{id}:
     $ref: './paths/getRopewikiRegionView.yaml'
+  /ropewiki/regions/{id}/previews:
+    $ref: './paths/getRopewikiRegionPreviews.yaml'
   /search:
     $ref: './paths/search.yaml'
   /docs/{file}:

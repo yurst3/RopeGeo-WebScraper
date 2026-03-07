@@ -1,29 +1,32 @@
 import { describe, it, expect, beforeEach, jest } from '@jest/globals';
-import { SearchCursor } from 'ropegeo-common';
-import { enrichSearchResults } from '../../../../src/api/search/util/enrichSearchResults';
-import type { PageRow } from '../../../../src/api/search/database/getPageRowsByIds';
-import type { RegionRow } from '../../../../src/api/search/database/getRegionRowsByIds';
+import {
+    enrichRopewikiPreviews,
+    type RopewikiPreviewPageRow,
+    type RopewikiPreviewRegionRow,
+} from '../../../src/ropewiki/util/enrichRopewikiPreviews';
 
 const mockConn = {} as import('zapatos/db').Queryable;
 
 let mockGetRopewikiRegionLineage: jest.MockedFunction<
-    typeof import('../../../../src/ropewiki/database/getRopewikiRegionLineage').default
+    typeof import('../../../src/ropewiki/database/getRopewikiRegionLineage').default
 >;
 let mockGetRegionBannerUrls: jest.MockedFunction<
-    typeof import('../../../../src/api/search/database/getRegionBannerUrls').default
+    typeof import('../../../src/ropewiki/database/getRegionBannerUrls').default
 >;
 
-jest.mock('../../../../src/ropewiki/database/getRopewikiRegionLineage', () => ({
+jest.mock('../../../src/ropewiki/database/getRopewikiRegionLineage', () => ({
     __esModule: true,
     default: jest.fn(),
 }));
 
-jest.mock('../../../../src/api/search/database/getRegionBannerUrls', () => ({
+jest.mock('../../../src/ropewiki/database/getRegionBannerUrls', () => ({
     __esModule: true,
     default: jest.fn(),
 }));
 
-function makePageRow(overrides: Partial<PageRow> & { pageId: string; regionId: string }): PageRow {
+function makePageRow(
+    overrides: Partial<RopewikiPreviewPageRow> & { pageId: string; regionId: string },
+): RopewikiPreviewPageRow {
     return {
         pageId: overrides.pageId,
         title: overrides.title ?? 'Test Page',
@@ -39,20 +42,22 @@ function makePageRow(overrides: Partial<PageRow> & { pageId: string; regionId: s
         url: overrides.url ?? null,
         permits: overrides.permits ?? null,
         mapData: overrides.mapData ?? null,
+        aka: overrides.aka ?? [],
     };
 }
 
-function makeRegionRow(overrides: Partial<RegionRow> & { id: string }): RegionRow {
+function makeRegionRow(
+    overrides: Partial<RopewikiPreviewRegionRow> & { id: string },
+): RopewikiPreviewRegionRow {
     return {
         id: overrides.id,
         name: overrides.name ?? 'Test Region',
-        url: overrides.url ?? 'https://example.com/region',
         pageCount: overrides.pageCount ?? 0,
         regionCount: overrides.regionCount ?? 0,
     };
 }
 
-describe('enrichSearchResults', () => {
+describe('enrichRopewikiPreviews', () => {
     const pageId = 'a1000001-0001-4000-8000-000000000001';
     const regionId = 'b1000001-0001-4000-8000-000000000001';
     const regionId2 = 'b1000002-0002-4000-8000-000000000002';
@@ -60,15 +65,15 @@ describe('enrichSearchResults', () => {
     beforeEach(() => {
         jest.clearAllMocks();
         mockGetRopewikiRegionLineage =
-            require('../../../../src/ropewiki/database/getRopewikiRegionLineage').default;
+            require('../../../src/ropewiki/database/getRopewikiRegionLineage').default;
         mockGetRegionBannerUrls =
-            require('../../../../src/api/search/database/getRegionBannerUrls').default;
+            require('../../../src/ropewiki/database/getRegionBannerUrls').default;
         mockGetRopewikiRegionLineage.mockResolvedValue([]);
         mockGetRegionBannerUrls.mockResolvedValue(new Map());
     });
 
     it('returns empty array when items is empty', async () => {
-        const result = await enrichSearchResults(
+        const result = await enrichRopewikiPreviews(
             mockConn,
             [],
             new Map(),
@@ -80,10 +85,8 @@ describe('enrichSearchResults', () => {
     });
 
     it('returns PagePreview for page item with lineage as regions', async () => {
-        const items: SearchCursor[] = [
-            new SearchCursor(0.9, 'page', pageId),
-        ];
-        const pageRowsById = new Map<string, PageRow>([
+        const items = [{ type: 'page' as const, id: pageId }];
+        const pageRowsById = new Map<string, RopewikiPreviewPageRow>([
             [pageId, makePageRow({ pageId, regionId, regionName: 'Child Region', title: 'My Page' })],
         ]);
         mockGetRopewikiRegionLineage.mockResolvedValue([
@@ -91,7 +94,7 @@ describe('enrichSearchResults', () => {
             { id: regionId2, name: 'Parent Region' },
         ]);
 
-        const result = await enrichSearchResults(
+        const result = await enrichRopewikiPreviews(
             mockConn,
             items,
             pageRowsById,
@@ -107,15 +110,13 @@ describe('enrichSearchResults', () => {
     });
 
     it('uses regionName when lineage is empty for page', async () => {
-        const items: SearchCursor[] = [
-            new SearchCursor(0.9, 'page', pageId),
-        ];
-        const pageRowsById = new Map<string, PageRow>([
+        const items = [{ type: 'page' as const, id: pageId }];
+        const pageRowsById = new Map<string, RopewikiPreviewPageRow>([
             [pageId, makePageRow({ pageId, regionId, regionName: 'Solo Region', title: 'Page' })],
         ]);
         mockGetRopewikiRegionLineage.mockResolvedValue([]);
 
-        const result = await enrichSearchResults(
+        const result = await enrichRopewikiPreviews(
             mockConn,
             items,
             pageRowsById,
@@ -128,10 +129,8 @@ describe('enrichSearchResults', () => {
     });
 
     it('returns RegionPreview for region item with parents and imageUrl', async () => {
-        const items: SearchCursor[] = [
-            new SearchCursor(0.8, 'region', regionId),
-        ];
-        const regionRowsById = new Map<string, RegionRow>([
+        const items = [{ type: 'region' as const, id: regionId }];
+        const regionRowsById = new Map<string, RopewikiPreviewRegionRow>([
             [regionId, makeRegionRow({ id: regionId, name: 'Child', pageCount: 5 })],
         ]);
         mockGetRopewikiRegionLineage.mockResolvedValue([
@@ -142,7 +141,7 @@ describe('enrichSearchResults', () => {
             new Map([[regionId, 'https://example.com/banner.jpg']]),
         );
 
-        const result = await enrichSearchResults(
+        const result = await enrichRopewikiPreviews(
             mockConn,
             items,
             new Map(),
@@ -161,20 +160,20 @@ describe('enrichSearchResults', () => {
 
     it('skips items with missing row and preserves order', async () => {
         const otherPageId = 'a1000002-0002-4000-8000-000000000002';
-        const items: SearchCursor[] = [
-            new SearchCursor(0.9, 'page', pageId),
-            new SearchCursor(0.8, 'page', otherPageId),
-            new SearchCursor(0.7, 'region', regionId),
+        const items = [
+            { type: 'page' as const, id: pageId },
+            { type: 'page' as const, id: otherPageId },
+            { type: 'region' as const, id: regionId },
         ];
-        const pageRowsById = new Map<string, PageRow>([
+        const pageRowsById = new Map<string, RopewikiPreviewPageRow>([
             [pageId, makePageRow({ pageId, regionId, title: 'First' })],
         ]);
-        const regionRowsById = new Map<string, RegionRow>([
+        const regionRowsById = new Map<string, RopewikiPreviewRegionRow>([
             [regionId, makeRegionRow({ id: regionId })],
         ]);
         mockGetRopewikiRegionLineage.mockResolvedValue([]);
 
-        const result = await enrichSearchResults(
+        const result = await enrichRopewikiPreviews(
             mockConn,
             items,
             pageRowsById,
@@ -187,19 +186,19 @@ describe('enrichSearchResults', () => {
     });
 
     it('returns results in same order as items', async () => {
-        const items: SearchCursor[] = [
-            new SearchCursor(0.7, 'region', regionId),
-            new SearchCursor(0.9, 'page', pageId),
+        const items = [
+            { type: 'region' as const, id: regionId },
+            { type: 'page' as const, id: pageId },
         ];
-        const pageRowsById = new Map<string, PageRow>([
+        const pageRowsById = new Map<string, RopewikiPreviewPageRow>([
             [pageId, makePageRow({ pageId, regionId, title: 'Page' })],
         ]);
-        const regionRowsById = new Map<string, RegionRow>([
+        const regionRowsById = new Map<string, RopewikiPreviewRegionRow>([
             [regionId, makeRegionRow({ id: regionId, name: 'Region' })],
         ]);
         mockGetRopewikiRegionLineage.mockResolvedValue([]);
 
-        const result = await enrichSearchResults(
+        const result = await enrichRopewikiPreviews(
             mockConn,
             items,
             pageRowsById,

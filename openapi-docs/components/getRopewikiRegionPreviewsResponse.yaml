@@ -1,0 +1,18 @@
+GetRopewikiRegionPreviewsResponse:
+  type: object
+  description: Response body for getRopewikiRegionPreviews (RopewikiRegionPreviewsResult from ropegeo-common); contains results and nextCursor for pagination.
+  required:
+    - results
+    - nextCursor
+  properties:
+    results:
+      type: array
+      description: List of page and region previews in the region and its descendants, ordered by quality (quality * userVotes)
+      items:
+        oneOf:
+          - $ref: './getRoutePreviewResponse.yaml#/PagePreview'
+          - $ref: './searchResponse.yaml#/RegionPreview'
+    nextCursor:
+      type: string
+      nullable: true
+      description: Base64url-encoded cursor for the next page; null when there are no more results

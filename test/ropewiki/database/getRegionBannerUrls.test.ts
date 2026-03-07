@@ -1,7 +1,7 @@
 import { Pool } from 'pg';
 import { describe, it, expect, beforeAll, afterAll } from '@jest/globals';
 import * as db from 'zapatos/db';
-import getRegionBannerUrls from '../../../../src/api/search/database/getRegionBannerUrls';
+import getRegionBannerUrls from '../../../src/ropewiki/database/getRegionBannerUrls';
 
 describe('getRegionBannerUrls (integration)', () => {
     const pool = new Pool({

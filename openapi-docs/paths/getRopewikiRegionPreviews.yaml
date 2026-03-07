@@ -1,0 +1,50 @@
+# /ropewiki/regions/{id}/previews
+get:
+  summary: Get Ropewiki region previews
+  description: |
+    Returns paginated PagePreview and RegionPreview items for the given region and its descendants.
+    Ordering uses the same quality logic as the search endpoint (quality * userVotes).
+    Query parameter validation follows ropegeo-common RopewikiRegionPreviewsParams.fromQueryStringParams (limit a positive integer; cursor a valid base64url-encoded cursor if present).
+  operationId: getRopewikiRegionPreviews
+  tags:
+    - ropewiki
+  parameters:
+    - name: id
+      in: path
+      required: true
+      description: RopewikiRegion uuid
+      schema:
+        type: string
+        format: uuid
+    - name: limit
+      in: query
+      required: false
+      schema:
+        type: integer
+        minimum: 1
+        default: 20
+      description: Page size
+    - name: cursor
+      in: query
+      required: false
+      schema:
+        type: string
+      description: Base64url-encoded cursor for the next page (from previous response nextCursor); must be valid if provided
+  x-amazon-apigateway-integration:
+    $ref: '../integrations/getRopewikiRegionPreviewsLambda.yaml#/GetRopewikiRegionPreviewsLambdaIntegration'
+  responses:
+    '200':
+      description: Successful response; list of page and region previews in the region and its descendants
+      content:
+        application/json:
+          schema:
+            $ref: '../components/getRopewikiRegionPreviewsResponse.yaml#/GetRopewikiRegionPreviewsResponse'
+          examples:
+            getRopewikiRegionPreviewsResponse:
+              $ref: '../examples/getRopewikiRegionPreviewsResponse.yaml'
+    '400':
+      description: Bad Request; missing, empty, or invalid UUID id, or invalid query parameters (limit, cursor)
+    '404':
+      description: Not Found; no Ropewiki region exists with the given id
+    '500':
+      description: Internal server error

@@ -1,0 +1,54 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Lambda for GET /ropewiki/regions/{id}/previews API endpoint
+
+Resources:
+  GetRopewikiRegionPreviews:
+    Type: 'AWS::Serverless::Function'
+    Properties:
+      Description: 'Lambda for GET /ropewiki/regions/{id}/previews API endpoint; returns paginated PagePreview and RegionPreview for the region and its descendants'
+      Runtime: nodejs22.x
+      Architectures:
+        - arm64
+      Role:
+        'Fn::GetAtt': GetRopewikiRegionPreviewsRole.Arn
+      CodeUri: ../../
+      Handler: src/api/getRopewikiRegionPreviews/handler.handler
+      MemorySize: 256
+      Timeout: 30
+      VpcConfig:
+        SecurityGroupIds:
+          - Ref: LambdaSecurityGroup
+        SubnetIds:
+          - Ref: PrivateSubnet1
+      Environment:
+        Variables:
+          DEV_ENVIRONMENT:
+            Ref: devEnvironment
+          DB_HOST:
+            'Fn::If':
+              - UseDatabaseProxyInProd
+              - 'Fn::GetAtt': RDSProxy.Endpoint
+              - 'Fn::GetAtt': Database.Endpoint.Address
+          DB_PORT:
+            'Fn::GetAtt': Database.Endpoint.Port
+          USE_DATABASE_PROXY:
+            Ref: UseDatabaseProxy
+          DB_NAME:
+            'Fn::Sub': '${devEnvironment}db'
+          DB_USER:
+            Ref: DatabaseUsername
+          DB_PASSWORD:
+            Ref: DatabasePassword
+    Metadata:
+      BuildMethod: esbuild
+      BuildProperties:
+        Minify: true
+        Target: esnext
+        Sourcemap: true
+        EntryPoints:
+          - src/api/getRopewikiRegionPreviews/handler.ts
+Outputs:
+  GetRopewikiRegionPreviewsLambdaArn:
+    Description: ARN of the GetRopewikiRegionPreviews Lambda (for OpenAPI integration resolveYamlEnvs)
+    Value:
+      'Fn::GetAtt': GetRopewikiRegionPreviews.Arn

@@ -17,8 +17,8 @@ let mockGetPageRowsByIds: jest.MockedFunction<
 let mockGetRegionRowsByIds: jest.MockedFunction<
     typeof import('../../../../src/api/search/database/getRegionRowsByIds').default
 >;
-let mockEnrichSearchResults: jest.MockedFunction<
-    typeof import('../../../../src/api/search/util/enrichSearchResults').enrichSearchResults
+let mockEnrichRopewikiPreviews: jest.MockedFunction<
+    typeof import('../../../../src/ropewiki/util/enrichRopewikiPreviews').enrichRopewikiPreviews
 >;
 
 jest.mock('../../../../src/ropewiki/database/getAllowedRegionIds', () => ({
@@ -40,8 +40,8 @@ jest.mock('../../../../src/api/search/database/getRegionRowsByIds', () => ({
     default: jest.fn(),
 }));
 
-jest.mock('../../../../src/api/search/util/enrichSearchResults', () => ({
-    enrichSearchResults: jest.fn(),
+jest.mock('../../../../src/ropewiki/util/enrichRopewikiPreviews', () => ({
+    enrichRopewikiPreviews: jest.fn(),
 }));
 
 describe('searchRopewiki', () => {
@@ -55,8 +55,8 @@ describe('searchRopewiki', () => {
             require('../../../../src/api/search/database/getPageRowsByIds').default;
         mockGetRegionRowsByIds =
             require('../../../../src/api/search/database/getRegionRowsByIds').default;
-        mockEnrichSearchResults =
-            require('../../../../src/api/search/util/enrichSearchResults').enrichSearchResults;
+        mockEnrichRopewikiPreviews =
+            require('../../../../src/ropewiki/util/enrichRopewikiPreviews').enrichRopewikiPreviews;
     });
 
     it('returns empty SearchResults when allowedRegionIds is empty', async () => {
@@ -84,12 +84,12 @@ describe('searchRopewiki', () => {
             ['region-1'],
         );
         expect(mockGetPageRowsByIds).not.toHaveBeenCalled();
-        expect(mockEnrichSearchResults).not.toHaveBeenCalled();
+        expect(mockEnrichRopewikiPreviews).not.toHaveBeenCalled();
         expect(result.results).toEqual([]);
         expect(result.nextCursor).toBeNull();
     });
 
-    it('calls getPageRowsByIds, getRegionRowsByIds, enrichSearchResults and returns SearchResults', async () => {
+    it('calls getPageRowsByIds, getRegionRowsByIds, enrichRopewikiPreviews and returns SearchResults', async () => {
         const pageId = 'a1000001-0001-4000-8000-000000000001';
         const regionId = 'b1000001-0001-4000-8000-000000000001';
         const items: SearchCursor[] = [
@@ -107,7 +107,7 @@ describe('searchRopewiki', () => {
         mockGetSearchPageIds.mockResolvedValue({ items, hasMore: false });
         mockGetPageRowsByIds.mockResolvedValue(mockPageRows);
         mockGetRegionRowsByIds.mockResolvedValue(mockRegionRows);
-        mockEnrichSearchResults.mockResolvedValue(mockResults);
+        mockEnrichRopewikiPreviews.mockResolvedValue(mockResults);
 
         const params = new SearchParams('Test', 0.5, true, true, false, null, 'similarity', 20, null);
         const result = await searchRopewiki(mockConn, params);
@@ -123,9 +123,12 @@ describe('searchRopewiki', () => {
             mockConn,
             [regionId],
         );
-        expect(mockEnrichSearchResults).toHaveBeenCalledWith(
+        expect(mockEnrichRopewikiPreviews).toHaveBeenCalledWith(
             mockConn,
-            items,
+            [
+                { type: 'page', id: pageId },
+                { type: 'region', id: regionId },
+            ],
             mockPageRows,
             mockRegionRows,
         );
@@ -144,7 +147,7 @@ describe('searchRopewiki', () => {
         mockGetSearchPageIds.mockResolvedValue({ items, hasMore: true });
         mockGetPageRowsByIds.mockResolvedValue(new Map([[pageId, {}]]));
         mockGetRegionRowsByIds.mockResolvedValue(new Map());
-        mockEnrichSearchResults.mockResolvedValue([{ id: pageId } as unknown]);
+        mockEnrichRopewikiPreviews.mockResolvedValue([{ id: pageId } as unknown]);
 
         const params = new SearchParams('Test', 0.5, true, true, false, null, 'similarity', 20, null);
         const result = await searchRopewiki(mockConn, params);
