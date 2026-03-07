@@ -1,0 +1,65 @@
+GetRopewikiRegionViewResponse:
+  $ref: "#/RopewikiRegionView"
+
+RopewikiRegionView:
+  type: object
+  description: Region view for GET /ropewiki/region/{id} (RopewikiRegionView from ropegeo-common)
+  required:
+    - name
+    - parentRegion
+    - regionCount
+    - topLevelPageCount
+    - pageCount
+    - overview
+    - bestMonths
+    - isMajorRegion
+    - latestRevisionDate
+    - externalLink
+  properties:
+    name:
+      type: string
+      description: Region name
+    parentRegion:
+      type: object
+      nullable: true
+      description: Parent region id and name, or null if top-level
+      required:
+        - id
+        - name
+      properties:
+        id:
+          type: string
+          format: uuid
+          description: Parent region uuid
+        name:
+          type: string
+          description: Parent region name
+    regionCount:
+      type: integer
+      description: Number of descendant regions (trueRegionCount)
+    topLevelPageCount:
+      type: integer
+      description: Pages in this region only (truePageCount)
+    pageCount:
+      type: integer
+      description: Raw page count from source (rawPageCount)
+    overview:
+      type: string
+      nullable: true
+      description: Region overview text
+    bestMonths:
+      type: array
+      items:
+        type: string
+      description: Best months to visit
+    isMajorRegion:
+      type: boolean
+      description: Whether the region is marked as major
+    latestRevisionDate:
+      type: string
+      format: date-time
+      description: Last revision date
+    externalLink:
+      type: string
+      format: uri
+      description: External URL for the region

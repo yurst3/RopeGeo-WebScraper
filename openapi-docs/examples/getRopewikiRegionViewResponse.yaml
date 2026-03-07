@@ -1,0 +1,19 @@
+# Example Object for getRopewikiRegionView 200 response
+summary: Sample RopewikiRegionView
+value:
+  name: North America
+  parentRegion:
+    id: a1b2c3d4-e5f6-7890-abcd-ef1234567890
+    name: World
+  regionCount: 12
+  topLevelPageCount: 45
+  pageCount: 120
+  overview: Canyoneering regions across North America.
+  bestMonths:
+    - April
+    - May
+    - September
+    - October
+  isMajorRegion: true
+  latestRevisionDate: "2025-01-15T00:00:00.000Z"
+  externalLink: https://ropewiki.com/North_America

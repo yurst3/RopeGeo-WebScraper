@@ -1,0 +1,54 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Lambda for GET /ropewiki/region/{id} API endpoint
+
+Resources:
+  GetRopewikiRegionView:
+    Type: 'AWS::Serverless::Function'
+    Properties:
+      Description: 'Lambda for GET /ropewiki/region/{id} API endpoint; returns RopewikiRegionView for the given region id'
+      Runtime: nodejs22.x
+      Architectures:
+        - arm64
+      Role:
+        'Fn::GetAtt': GetRopewikiRegionViewRole.Arn
+      CodeUri: ../../
+      Handler: src/api/getRopewikiRegionView/handler.handler
+      MemorySize: 256
+      Timeout: 30
+      VpcConfig:
+        SecurityGroupIds:
+          - Ref: LambdaSecurityGroup
+        SubnetIds:
+          - Ref: PrivateSubnet1
+      Environment:
+        Variables:
+          DEV_ENVIRONMENT:
+            Ref: devEnvironment
+          DB_HOST:
+            'Fn::If':
+              - UseDatabaseProxyInProd
+              - 'Fn::GetAtt': RDSProxy.Endpoint
+              - 'Fn::GetAtt': Database.Endpoint.Address
+          DB_PORT:
+            'Fn::GetAtt': Database.Endpoint.Port
+          USE_DATABASE_PROXY:
+            Ref: UseDatabaseProxy
+          DB_NAME:
+            'Fn::Sub': '${devEnvironment}db'
+          DB_USER:
+            Ref: DatabaseUsername
+          DB_PASSWORD:
+            Ref: DatabasePassword
+    Metadata:
+      BuildMethod: esbuild
+      BuildProperties:
+        Minify: true
+        Target: esnext
+        Sourcemap: true
+        EntryPoints:
+          - src/api/getRopewikiRegionView/handler.ts
+Outputs:
+  GetRopewikiRegionViewLambdaArn:
+    Description: ARN of the GetRopewikiRegionView Lambda (for OpenAPI integration resolveYamlEnvs)
+    Value:
+      'Fn::GetAtt': GetRopewikiRegionView.Arn

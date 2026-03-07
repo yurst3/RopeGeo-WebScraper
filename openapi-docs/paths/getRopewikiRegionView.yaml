@@ -1,0 +1,33 @@
+# /ropewiki/region/{id}
+get:
+  summary: Get Ropewiki region view
+  description: Returns the RopewikiRegionView for the given RopewikiRegion id (UUID). Validates that id is a valid UUID and that the region exists.
+  operationId: getRopewikiRegionView
+  tags:
+    - ropewiki
+  parameters:
+    - name: id
+      in: path
+      required: true
+      description: RopewikiRegion uuid
+      schema:
+        type: string
+        format: uuid
+  x-amazon-apigateway-integration:
+    $ref: '../integrations/getRopewikiRegionViewLambda.yaml#/GetRopewikiRegionViewLambdaIntegration'
+  responses:
+    '200':
+      description: Successful response; RopewikiRegionView object
+      content:
+        application/json:
+          schema:
+            $ref: '../components/getRopewikiRegionViewResponse.yaml#/GetRopewikiRegionViewResponse'
+          examples:
+            getRopewikiRegionViewResponse:
+              $ref: '../examples/getRopewikiRegionViewResponse.yaml'
+    '400':
+      description: Bad Request; missing, empty, or invalid UUID id
+    '404':
+      description: Not Found; no Ropewiki region exists with the given id
+    '500':
+      description: Internal server error
