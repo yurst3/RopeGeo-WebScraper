@@ -1,0 +1,16 @@
+# Example Object for getRopewikiRegionImages 200 response
+summary: Sample region images response (RopewikiRegionImagesResult)
+value:
+  nextCursor: null
+  results:
+    - id: a1b2c3d4-e5f6-7890-abcd-ef1234567890
+      pageId: b2c3d4e5-f6a7-8901-bcde-f23456789012
+      pageName: Imlay Canyon
+      url: https://ropewiki.com/images/thumb/1/2/Imlay.jpg/400px-Imlay.jpg
+      externalLink: https://ropewiki.com/File:Imlay.jpg
+      caption: Main rappel
+    - id: c3d4e5f6-a7b8-9012-cdef-123456789012
+      pageId: d4e5f6a7-b8c9-0123-def0-234567890123
+      pageName: Heaps Canyon
+      url: https://ropewiki.com/images/thumb/2/3/Heaps.jpg/400px-Heaps.jpg
+      externalLink: https://ropewiki.com/File:Heaps.jpg

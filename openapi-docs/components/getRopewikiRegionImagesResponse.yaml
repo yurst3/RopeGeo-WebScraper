@@ -1,0 +1,49 @@
+GetRopewikiRegionImagesResponse:
+  type: object
+  description: Response body for getRopewikiRegionImages (RopewikiRegionImagesResult from ropegeo-common); contains results and nextCursor for pagination.
+  required:
+    - results
+    - nextCursor
+  properties:
+    results:
+      type: array
+      description: List of banner images (RopewikiRegionImageView) for pages in the region and its descendants, ordered by page popularity (quality * userVotes)
+      items:
+        $ref: '#/RopewikiRegionImageView'
+    nextCursor:
+      type: string
+      nullable: true
+      description: Base64url-encoded cursor for the next page; null when there are no more results
+
+RopewikiRegionImageView:
+  type: object
+  description: Banner image view for getRopewikiRegionImages (id, pageId, pageName, url, externalLink, caption)
+  required:
+    - id
+    - pageId
+    - pageName
+    - url
+    - externalLink
+  properties:
+    id:
+      type: string
+      format: uuid
+      description: RopewikiImage id
+    pageId:
+      type: string
+      format: uuid
+      description: RopewikiPage id this image belongs to
+    pageName:
+      type: string
+      description: Display name of the page
+    url:
+      type: string
+      format: uri
+      description: Image file URL
+    externalLink:
+      type: string
+      format: uri
+      description: Link URL (e.g. to Ropewiki file page)
+    caption:
+      type: string
+      description: Optional image caption

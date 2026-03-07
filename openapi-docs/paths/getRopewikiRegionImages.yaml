@@ -1,11 +1,11 @@
-# /ropewiki/region/{id}/previews
+# /ropewiki/region/{id}/images
 get:
-  summary: Get Ropewiki region previews
+  summary: Get Ropewiki region images
   description: |
-    Returns paginated PagePreview and RegionPreview items for the given region and its descendants.
-    Ordering uses the same quality logic as the search endpoint (quality * userVotes).
-    Query parameter validation follows ropegeo-common RopewikiRegionPreviewsParams.fromQueryStringParams (limit a positive integer; cursor a valid base64url-encoded cursor if present).
-  operationId: getRopewikiRegionPreviews
+    Returns paginated RopewikiRegionImageView (banner images, betaSection IS NULL) for pages in the given region and its descendants.
+    Ordered by page popularity (quality * userVotes) descending.
+    Query parameter validation follows ropegeo-common RopewikiRegionImagesParams.fromQueryStringParams (limit a positive integer; cursor a valid base64url-encoded cursor if present).
+  operationId: getRopewikiRegionImages
   tags:
     - ropewiki
   parameters:
@@ -31,17 +31,17 @@ get:
         type: string
       description: Base64url-encoded cursor for the next page (from previous response nextCursor); must be valid if provided
   x-amazon-apigateway-integration:
-    $ref: '../integrations/getRopewikiRegionPreviewsLambda.yaml#/GetRopewikiRegionPreviewsLambdaIntegration'
+    $ref: '../integrations/getRopewikiRegionImagesLambda.yaml#/GetRopewikiRegionImagesLambdaIntegration'
   responses:
     '200':
-      description: Successful response; list of page and region previews in the region and its descendants
+      description: Successful response; list of banner images for pages in the region and its descendants
       content:
         application/json:
           schema:
-            $ref: '../components/getRopewikiRegionPreviewsResponse.yaml#/GetRopewikiRegionPreviewsResponse'
+            $ref: '../components/getRopewikiRegionImagesResponse.yaml#/GetRopewikiRegionImagesResponse'
           examples:
-            getRopewikiRegionPreviewsResponse:
-              $ref: '../examples/getRopewikiRegionPreviewsResponse.yaml'
+            getRopewikiRegionImagesResponse:
+              $ref: '../examples/getRopewikiRegionImagesResponse.yaml'
     '400':
       description: Bad Request; missing, empty, or invalid UUID id, or invalid query parameters (limit, cursor)
     '404':

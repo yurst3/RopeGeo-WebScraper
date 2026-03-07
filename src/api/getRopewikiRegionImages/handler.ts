@@ -1,8 +1,8 @@
 import type { PoolClient } from 'pg';
-import { RopewikiRegionPreviewsParams } from 'ropegeo-common';
+import { RopewikiRegionImagesParams } from 'ropegeo-common';
 import getDatabaseConnection from '../../helpers/getDatabaseConnection';
 import getAllowedRegionIds from '../../ropewiki/database/getAllowedRegionIds';
-import getRopewikiRegionPreviews from './util/getRopewikiRegionPreviews';
+import getRopewikiRegionImages from './util/getRopewikiRegionImages';
 
 const CORS_HEADERS = {
     'Content-Type': 'application/json',
@@ -13,9 +13,9 @@ const UUID_REGEX =
     /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 
 /**
- * Lambda handler for GET /ropewiki/region/{id}/previews (API Gateway proxy integration).
- * Returns paginated PagePreview | RegionPreview for the region and its descendants, ordered by quality.
- * 400 if id is invalid or query params invalid; 404 if region not found.
+ * Lambda handler for GET /ropewiki/region/{id}/images (API Gateway proxy integration).
+ * Returns paginated RopewikiRegionImageView (banner images) for pages in the region and its descendants, ordered by page popularity.
+ * 400 if id invalid or query params invalid; 404 if region not found.
  */
 export const handler = async (
     event: {
@@ -46,9 +46,9 @@ export const handler = async (
         };
     }
 
-    let params: RopewikiRegionPreviewsParams;
+    let params: RopewikiRegionImagesParams;
     try {
-        params = RopewikiRegionPreviewsParams.fromQueryStringParams(
+        params = RopewikiRegionImagesParams.fromQueryStringParams(
             event.queryStringParameters ?? {},
         );
     } catch (err) {
@@ -81,14 +81,14 @@ export const handler = async (
             };
         }
 
-        const result = await getRopewikiRegionPreviews(client, id, params);
+        const result = await getRopewikiRegionImages(client, id, params);
         return {
             statusCode: 200,
             headers: CORS_HEADERS,
             body: JSON.stringify(result),
         };
     } catch (error) {
-        console.error('Error in getRopewikiRegionPreviews handler:', error);
+        console.error('Error in getRopewikiRegionImages handler:', error);
         return {
             statusCode: 500,
             headers: CORS_HEADERS,

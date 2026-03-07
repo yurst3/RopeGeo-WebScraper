@@ -25,6 +25,7 @@ Resources:
                   - 'Fn::GetAtt': GetRopewikiPageView.Arn
                   - 'Fn::GetAtt': GetRopewikiRegionView.Arn
                   - 'Fn::GetAtt': GetRopewikiRegionPreviews.Arn
+                  - 'Fn::GetAtt': GetRopewikiRegionImages.Arn
                   - 'Fn::GetAtt': Search.Arn
       Tags:
         - Key: Name
@@ -63,6 +64,13 @@ Resources:
     Properties:
       FunctionName:
         Ref: GetRopewikiRegionPreviews
+      Action: 'lambda:InvokeFunction'
+      Principal: apigateway.amazonaws.com
+  GetRopewikiRegionImagesApiGatewayPermission:
+    Type: 'AWS::Lambda::Permission'
+    Properties:
+      FunctionName:
+        Ref: GetRopewikiRegionImages
       Action: 'lambda:InvokeFunction'
       Principal: apigateway.amazonaws.com
   SearchApiGatewayPermission:

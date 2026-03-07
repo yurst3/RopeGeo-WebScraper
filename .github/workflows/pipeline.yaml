@@ -425,6 +425,11 @@ jobs:
             --region ${PROD_REGION} \
             --query "Stacks[0].Outputs[?OutputKey=='GetRopewikiRegionPreviewsLambdaArn'].OutputValue" \
             --output text)
+          GET_ROPEWIKI_REGION_IMAGES_ARN=$(aws cloudformation describe-stacks \
+            --stack-name ${PROD_STACK_NAME} \
+            --region ${PROD_REGION} \
+            --query "Stacks[0].Outputs[?OutputKey=='GetRopewikiRegionImagesLambdaArn'].OutputValue" \
+            --output text)
           SEARCH_ARN=$(aws cloudformation describe-stacks \
             --stack-name ${PROD_STACK_NAME} \
             --region ${PROD_REGION} \
@@ -441,6 +446,7 @@ jobs:
           echo "get_ropewiki_page_view_arn=${GET_ROPEWIKI_PAGE_VIEW_ARN}" >> $GITHUB_OUTPUT
           echo "get_ropewiki_region_view_arn=${GET_ROPEWIKI_REGION_VIEW_ARN}" >> $GITHUB_OUTPUT
           echo "get_ropewiki_region_previews_arn=${GET_ROPEWIKI_REGION_PREVIEWS_ARN}" >> $GITHUB_OUTPUT
+          echo "get_ropewiki_region_images_arn=${GET_ROPEWIKI_REGION_IMAGES_ARN}" >> $GITHUB_OUTPUT
           echo "search_arn=${SEARCH_ARN}" >> $GITHUB_OUTPUT
           echo "invoke_lambda_role=${INVOKE_LAMBDA_ROLE}" >> $GITHUB_OUTPUT
 
@@ -452,6 +458,7 @@ jobs:
           GET_ROPEWIKI_PAGE_VIEW_LAMBDA_ARN=${{ steps.stack-outputs.outputs.get_ropewiki_page_view_arn }} \
           GET_ROPEWIKI_REGION_VIEW_LAMBDA_ARN=${{ steps.stack-outputs.outputs.get_ropewiki_region_view_arn }} \
           GET_ROPEWIKI_REGION_PREVIEWS_LAMBDA_ARN=${{ steps.stack-outputs.outputs.get_ropewiki_region_previews_arn }} \
+          GET_ROPEWIKI_REGION_IMAGES_LAMBDA_ARN=${{ steps.stack-outputs.outputs.get_ropewiki_region_images_arn }} \
           SEARCH_LAMBDA_ARN=${{ steps.stack-outputs.outputs.search_arn }} \
           APIGATEWAY_INVOKE_LAMBDA_ROLE_ARN=${{ steps.stack-outputs.outputs.invoke_lambda_role }} \
           DOCS_BUCKET_NAME=${{ steps.stack-outputs.outputs.bucket }} \
