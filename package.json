@@ -38,7 +38,8 @@
     "test:unit": "NODE_OPTIONS=\"$NODE_OPTIONS --experimental-vm-modules\" jest -i --testPathIgnorePatterns=/test/ropewiki/database/* --testPathIgnorePatterns=/test/ropewiki/integration/* --testPathIgnorePatterns=/test/map-data/database/* --testPathIgnorePatterns='/test/api/.*/database/' --testPathIgnorePatterns='/test/api/.*/integration/' --testPathIgnorePatterns='/test/fargate-tasks/.*/database/'",
     "test:database": "npm run test-db:start && (TEST_USER=testUser TEST_PASS=testPass TEST_HOST=127.0.0.1 TEST_PORT=8080 TEST_DB=test jest -i --testPathPatterns=/test/ropewiki/database/* --testPathPatterns=/test/ropewiki/integration/* --testPathPatterns=/test/map-data/database/* --testPathPatterns='/test/api/.*/database/' --testPathPatterns='/test/api/.*/integration/' --testPathPatterns='/test/fargate-tasks/.*/database/'); R=$?; npm run test-db:delete || true; exit $R",
     "test:local": "npm run test:unit && npm run test:database",
-    "test:deploy": "NODE_OPTIONS=\"$NODE_OPTIONS --experimental-vm-modules\" jest -i"
+    "test:deploy": "NODE_OPTIONS=\"$NODE_OPTIONS --experimental-vm-modules\" jest -i",
+    "get-prod-db-auth-token": "bash scripts/get-prod-db-auth-token.sh"
   },
   "dependencies": {
     "@aws-lambda-powertools/parser": "^2.30.2",
@@ -55,7 +56,7 @@
     "lodash": "^4.17.21",
     "pg": "^8.16.3",
     "puppeteer": "^22.5.0",
-    "ropegeo-common": "^1.1.7",
+    "ropegeo-common": "^1.2.1",
     "undici": "^7.11.0",
     "uuid": "^13.0.0",
     "zapatos": "^6.6.1"

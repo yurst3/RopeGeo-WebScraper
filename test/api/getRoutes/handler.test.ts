@@ -1,9 +1,9 @@
 import { describe, it, expect, beforeEach, jest } from '@jest/globals';
-import { Route, RouteType } from 'ropegeo-common';
+import { PageDataSource, Route, RouteType } from 'ropegeo-common';
 import { handler } from '../../../src/api/getRoutes/handler';
 
 let mockGetDatabaseConnection: jest.MockedFunction<typeof import('../../../src/helpers/getDatabaseConnection').default>;
-let mockGetRoutes: jest.MockedFunction<typeof import('../../../src/api/getRoutes/database/getRoutes').default>;
+let mockGetRoutes: jest.MockedFunction<typeof import('../../../src/api/getRoutes/util/getRoutes').default>;
 
 let mockClient: { release: ReturnType<typeof jest.fn> };
 let mockPool: { connect: ReturnType<typeof jest.fn> };
@@ -13,7 +13,7 @@ jest.mock('../../../src/helpers/getDatabaseConnection', () => ({
     default: jest.fn(),
 }));
 
-jest.mock('../../../src/api/getRoutes/database/getRoutes', () => ({
+jest.mock('../../../src/api/getRoutes/util/getRoutes', () => ({
     __esModule: true,
     default: jest.fn(),
 }));
@@ -31,7 +31,7 @@ describe('getRoutes handler', () => {
         };
 
         mockGetDatabaseConnection = require('../../../src/helpers/getDatabaseConnection').default;
-        mockGetRoutes = require('../../../src/api/getRoutes/database/getRoutes').default;
+        mockGetRoutes = require('../../../src/api/getRoutes/util/getRoutes').default;
 
         mockGetDatabaseConnection.mockResolvedValue(mockPool as never);
         mockGetRoutes.mockResolvedValue([]);
@@ -47,7 +47,7 @@ describe('getRoutes handler', () => {
 
         expect(mockGetDatabaseConnection).toHaveBeenCalledTimes(1);
         expect(mockPool.connect).toHaveBeenCalledTimes(1);
-        expect(mockGetRoutes).toHaveBeenCalledWith(mockClient);
+        expect(mockGetRoutes).toHaveBeenCalledWith(mockClient, expect.any(Object));
         expect(mockClient.release).toHaveBeenCalledTimes(1);
         expect(result.statusCode).toBe(200);
         expect(result.headers).toEqual({
@@ -73,6 +73,87 @@ describe('getRoutes handler', () => {
 
         expect(result.statusCode).toBe(200);
         expect(JSON.parse(result.body)).toEqual({ type: 'FeatureCollection', features: [] });
+    });
+
+    it('returns 400 when source is present but region is absent', async () => {
+        const result = await handler(
+            { queryStringParameters: { source: PageDataSource.Ropewiki } },
+            {},
+        );
+
+        expect(mockGetRoutes).not.toHaveBeenCalled();
+        expect(result.statusCode).toBe(400);
+        expect(result.headers['Content-Type']).toBe('application/json');
+        const body = JSON.parse(result.body);
+        expect(body.message).toBe('Bad Request');
+        expect(body.error).toMatch(/source|region/);
+    });
+
+    it('returns 400 when region is present but source is absent', async () => {
+        const result = await handler(
+            { queryStringParameters: { region: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890' } },
+            {},
+        );
+
+        expect(mockGetRoutes).not.toHaveBeenCalled();
+        expect(result.statusCode).toBe(400);
+        const body = JSON.parse(result.body);
+        expect(body.message).toBe('Bad Request');
+        expect(body.error).toMatch(/source|region/);
+    });
+
+    it('returns 400 when source is invalid', async () => {
+        const result = await handler(
+            {
+                queryStringParameters: {
+                    source: 'invalid',
+                    region: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
+                },
+            },
+            {},
+        );
+
+        expect(mockGetRoutes).not.toHaveBeenCalled();
+        expect(result.statusCode).toBe(400);
+        const body = JSON.parse(result.body);
+        expect(body.message).toBe('Bad Request');
+        expect(body.error).toMatch(/source|ropewiki/);
+    });
+
+    it('calls getRoutes with RoutesParams when source and region are present and returns filtered routes', async () => {
+        const regionId = 'a1b2c3d4-e5f6-7890-abcd-ef1234567890';
+        const mockRoutes: Route[] = [
+            new Route('id-2', 'Filtered Route', RouteType.Cave, { lat: 40.2, lon: -111.6 }),
+        ];
+        mockGetRoutes.mockResolvedValue(mockRoutes);
+
+        const result = await handler(
+            {
+                queryStringParameters: {
+                    source: PageDataSource.Ropewiki,
+                    region: regionId,
+                },
+            },
+            {},
+        );
+
+        expect(mockGetRoutes).toHaveBeenCalledWith(mockClient, expect.any(Object));
+        const routesParams = mockGetRoutes.mock.calls[0]![1];
+        expect(routesParams).toBeDefined();
+        expect(routesParams.region).not.toBeNull();
+        expect(routesParams.region!.source).toBe(PageDataSource.Ropewiki);
+        expect(routesParams.region!.id).toBe(regionId);
+        expect(result.statusCode).toBe(200);
+        expect(JSON.parse(result.body)).toEqual({
+            type: 'FeatureCollection',
+            features: [
+                {
+                    type: 'Feature',
+                    geometry: { type: 'Point', coordinates: [-111.6, 40.2] },
+                    properties: { id: 'id-2', name: 'Filtered Route', type: 'Cave' },
+                },
+            ],
+        });
     });
 
     it('handles getDatabaseConnection failure and returns 500', async () => {

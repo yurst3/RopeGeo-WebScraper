@@ -2,7 +2,7 @@ import { Pool } from 'pg';
 import { describe, it, expect, beforeAll, afterAll } from '@jest/globals';
 import { SearchParams } from 'ropegeo-common';
 import * as db from 'zapatos/db';
-import getAllowedRegionIds from '../../../../src/api/search/database/getAllowedRegionIds';
+import getAllowedRegionIds from '../../../../src/ropewiki/database/getAllowedRegionIds';
 import { getSearchPageIds } from '../../../../src/api/search/database/getSearchPageIds';
 
 describe('getSearchPageIds (integration)', () => {

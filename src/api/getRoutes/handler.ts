@@ -1,7 +1,7 @@
 import type { PoolClient } from 'pg';
-import { RoutesGeojson } from 'ropegeo-common';
+import { RoutesGeojson, RoutesParams } from 'ropegeo-common';
 import getDatabaseConnection from '../../helpers/getDatabaseConnection';
-import getRoutes from './database/getRoutes';
+import getRoutes from './util/getRoutes';
 
 const CORS_HEADERS = {
     'Content-Type': 'application/json',
@@ -10,18 +10,36 @@ const CORS_HEADERS = {
 
 /**
  * Lambda handler for GET /routes (API Gateway proxy integration).
- * Returns all non-deleted routes as a GeoJSON Feature Collection.
+ * Returns routes as a GeoJSON Feature Collection. Optional query params source and region
+ * (validated via RoutesParams.fromQueryStringParams) restrict to that source/region and its descendants.
  */
 export const handler = async (
-    _event: unknown,
+    event: {
+        queryStringParameters?: Record<string, string | undefined> | null;
+    },
     _context: unknown,
 ): Promise<{ statusCode: number; headers: Record<string, string>; body: string }> => {
+    const rawParams = event.queryStringParameters ?? {};
+    let params: RoutesParams;
+    try {
+        params = RoutesParams.fromQueryStringParams(rawParams);
+    } catch (err) {
+        return {
+            statusCode: 400,
+            headers: CORS_HEADERS,
+            body: JSON.stringify({
+                message: 'Bad Request',
+                error: err instanceof Error ? err.message : String(err),
+            }),
+        };
+    }
+
     let client: PoolClient | undefined;
 
     try {
         const pool = await getDatabaseConnection();
         client = await pool.connect();
-        const routes = await getRoutes(client);
+        const routes = await getRoutes(client, params);
         const geojson = RoutesGeojson.fromRoutes(routes);
         return {
             statusCode: 200,

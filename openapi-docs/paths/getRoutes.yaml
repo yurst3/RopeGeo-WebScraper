@@ -1,10 +1,29 @@
 # /routes
 get:
   summary: List all routes
-  description: Returns all routes in the database as a GeoJSON Feature Collection. Each feature has id, name, and type properties and a Point geometry with the route coordinate.
+  description: |
+    Returns routes in the database as a GeoJSON Feature Collection. Each feature has id, name, and type properties and a Point geometry with the route coordinate.
+    Optional query parameters source and region restrict results to routes from the given source (e.g. ropewiki) in the given region and its descendants; both must be present or both absent.
+    Query parameter validation follows ropegeo-common RoutesParams.fromQueryStringParams (source one of PageDataSource values, e.g. ropewiki; region a non-empty string when provided; source and region must both be present or both be absent).
   operationId: getRoutes
   tags:
     - routes
+  parameters:
+    - name: source
+      in: query
+      required: false
+      schema:
+        type: string
+        enum:
+          - ropewiki
+      description: Page data source; must be provided together with region if filtering by region
+    - name: region
+      in: query
+      required: false
+      schema:
+        type: string
+        format: uuid
+      description: Region id (and its descendants) to restrict routes to; must be provided together with source if filtering
   x-amazon-apigateway-integration:
     $ref: '../integrations/getRoutesLambda.yaml#/GetRoutesLambdaIntegration'
   responses:
@@ -17,5 +36,7 @@ get:
           examples:
             getRoutesResponse:
               $ref: '../examples/getRoutesResponse.yaml'
+    '400':
+      description: Bad Request (e.g. source without region or region without source; source not one of allowed values)
     '500':
       description: Internal server error

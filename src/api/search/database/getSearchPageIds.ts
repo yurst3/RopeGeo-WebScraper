@@ -7,7 +7,7 @@ type PaginationRow = { type: string; id: string; sort_key: number };
  * Returns one page of (type, id, sort_key) for search, ordered by sort_key DESC, type ASC, id ASC.
  * Uses keyset pagination: when cursor is provided, only rows "after" the cursor are returned.
  * Fetches limit+1 rows to detect hasMore; the last of the first `limit` becomes the nextCursor.
- * @param allowedRegionIds - Region ids to include (e.g. from getAllowedRegionIds(conn, params.regionId))
+ * @param allowedRegionIds - Region ids to include (e.g. from ropewiki/database getAllowedRegionIds(conn, params.regionId))
  */
 export async function getSearchPageIds(
     conn: db.Queryable,

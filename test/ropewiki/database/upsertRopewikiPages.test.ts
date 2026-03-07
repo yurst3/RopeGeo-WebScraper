@@ -20,7 +20,8 @@ describe('upsertPages (integration)', () => {
     const regionNameIds: {[name: string]: string} = { 'Test Region': testRegionId };
 
     beforeAll(async () => {
-        // Clean tables
+        // Clean tables (RopewikiRoute references RopewikiPage and Route)
+        await db.sql`DELETE FROM "RopewikiRoute"`.run(conn);
         await db.sql`DELETE FROM "RopewikiPage"`.run(conn);
         await db.sql`DELETE FROM "RopewikiRegion"`.run(conn);
 
@@ -41,10 +42,12 @@ describe('upsertPages (integration)', () => {
 
     afterEach(async () => {
         // Clean between tests
+        await db.sql`DELETE FROM "RopewikiRoute"`.run(conn);
         await db.sql`DELETE FROM "RopewikiPage"`.run(conn);
     });
 
     afterAll(async () => {
+        await db.sql`DELETE FROM "RopewikiRoute"`.run(conn);
         await db.sql`DELETE FROM "RopewikiPage"`.run(conn);
         await db.sql`DELETE FROM "RopewikiRegion"`.run(conn);
         await pool.end();

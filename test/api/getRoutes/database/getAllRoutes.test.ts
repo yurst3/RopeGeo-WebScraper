@@ -1,9 +1,9 @@
 import { Pool } from 'pg';
 import { describe, it, expect, beforeAll, afterAll, afterEach } from '@jest/globals';
 import * as db from 'zapatos/db';
-import getRoutes from '../../../../src/api/getRoutes/database/getRoutes';
+import getAllRoutes from '../../../../src/api/getRoutes/database/getAllRoutes';
 
-describe('getRoutes (integration)', () => {
+describe('getAllRoutes (integration)', () => {
     const pool = new Pool({
         user: process.env.TEST_USER,
         password: process.env.TEST_PASS,
@@ -15,10 +15,12 @@ describe('getRoutes (integration)', () => {
     const conn: db.Queryable = pool;
 
     beforeAll(async () => {
+        await db.sql`DELETE FROM "RopewikiRoute"`.run(conn);
         await db.sql`DELETE FROM "Route"`.run(conn);
     });
 
     afterEach(async () => {
+        await db.sql`DELETE FROM "RopewikiRoute"`.run(conn);
         await db.sql`DELETE FROM "Route"`.run(conn);
     });
 
@@ -43,7 +45,7 @@ describe('getRoutes (integration)', () => {
             ])
             .run(conn);
 
-        const result = await getRoutes(conn);
+        const result = await getAllRoutes(conn);
 
         expect(result.length).toBe(1);
         expect(result[0].name).toBe('Active Route');
@@ -60,7 +62,7 @@ describe('getRoutes (integration)', () => {
             ])
             .run(conn);
 
-        const result = await getRoutes(conn);
+        const result = await getAllRoutes(conn);
 
         expect(result.length).toBe(2);
         const names = result.map((r) => r.name).sort();
@@ -74,7 +76,7 @@ describe('getRoutes (integration)', () => {
     });
 
     it('returns empty array when no routes exist', async () => {
-        const result = await getRoutes(conn);
+        const result = await getAllRoutes(conn);
         expect(result).toEqual([]);
     });
 });

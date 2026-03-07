@@ -6,7 +6,7 @@ import searchRopewiki from '../../../../src/api/search/util/searchRopewiki';
 const mockConn = {} as import('zapatos/db').Queryable;
 
 let mockGetAllowedRegionIds: jest.MockedFunction<
-    typeof import('../../../../src/api/search/database/getAllowedRegionIds').default
+    typeof import('../../../../src/ropewiki/database/getAllowedRegionIds').default
 >;
 let mockGetSearchPageIds: jest.MockedFunction<
     typeof import('../../../../src/api/search/database/getSearchPageIds').getSearchPageIds
@@ -21,7 +21,7 @@ let mockEnrichSearchResults: jest.MockedFunction<
     typeof import('../../../../src/api/search/util/enrichSearchResults').enrichSearchResults
 >;
 
-jest.mock('../../../../src/api/search/database/getAllowedRegionIds', () => ({
+jest.mock('../../../../src/ropewiki/database/getAllowedRegionIds', () => ({
     __esModule: true,
     default: jest.fn(),
 }));
@@ -48,7 +48,7 @@ describe('searchRopewiki', () => {
     beforeEach(() => {
         jest.clearAllMocks();
         mockGetAllowedRegionIds =
-            require('../../../../src/api/search/database/getAllowedRegionIds').default;
+            require('../../../../src/ropewiki/database/getAllowedRegionIds').default;
         mockGetSearchPageIds =
             require('../../../../src/api/search/database/getSearchPageIds').getSearchPageIds;
         mockGetPageRowsByIds =

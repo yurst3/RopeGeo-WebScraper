@@ -1,6 +1,6 @@
 import * as db from 'zapatos/db';
 import { SearchParams, SearchResults } from 'ropegeo-common';
-import getAllowedRegionIds from '../database/getAllowedRegionIds';
+import getAllowedRegionIds from '../../../ropewiki/database/getAllowedRegionIds';
 import getPageRowsByIds from '../database/getPageRowsByIds';
 import getRegionRowsByIds from '../database/getRegionRowsByIds';
 import { getSearchPageIds } from '../database/getSearchPageIds';

@@ -6,11 +6,11 @@ import { routeFromDbRow } from '../../../converters/route';
 /**
  * Fetches all non-deleted routes from the Route table, converted to Route instances.
  */
-const getRoutes = async (conn: db.Queryable): Promise<Route[]> => {
+const getAllRoutes = async (conn: db.Queryable): Promise<Route[]> => {
     const rows = await db
         .select('Route', { deletedAt: db.conditions.isNull })
         .run(conn);
     return rows.map((row: s.Route.JSONSelectable) => routeFromDbRow(row));
 };
 
-export default getRoutes;
+export default getAllRoutes;
