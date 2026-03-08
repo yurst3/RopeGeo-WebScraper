@@ -177,6 +177,9 @@ describe('search handler', () => {
     });
 
     it('passes optional params including limit and cursor to searchRopewiki', async () => {
+        // Cursor must be base64url-encoded JSON with cursorType: 'search' (ropegeo-common)
+        const validCursor =
+            'eyJjdXJzb3JUeXBlIjoic2VhcmNoIiwic29ydEtleSI6MC45LCJ0eXBlIjoicGFnZSIsImlkIjoiYTEyMyJ9';
         await handler(
             {
                 queryStringParameters: {
@@ -187,7 +190,7 @@ describe('search handler', () => {
                     region: 'c3d4e5f6-a7b8-9012-cdef-123456789012',
                     order: 'quality',
                     limit: '10',
-                    cursor: 'eyJzb3J0S2V5IjowLjksInR5cGUiOiJwYWdlIiwiaWQiOiJhMTIzIn0',
+                    cursor: validCursor,
                 },
             },
             {},
