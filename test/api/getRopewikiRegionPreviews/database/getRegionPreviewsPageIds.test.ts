@@ -32,15 +32,15 @@ describe('getRegionPreviewsPageIds (integration)', () => {
         await pool.end();
     });
 
-    it('returns pages and regions in allowed set ordered by quality (sort_key DESC, type ASC, id ASC)', async () => {
-        const regionId = 'd1000001-0001-4000-8000-000000000001';
+    it('returns only direct children (pages in region + child regions) ordered by quality (sort_key DESC, type ASC, id ASC)', async () => {
+        const parentRegionId = 'd1000001-0001-4000-8000-000000000001';
         const childRegionId = 'd1000002-0002-4000-8000-000000000002';
         const page1Id = 'd2000001-0001-4000-8000-000000000001';
         const page2Id = 'd2000002-0002-4000-8000-000000000002';
 
         await db
             .insert('RopewikiRegion', {
-                id: regionId,
+                id: parentRegionId,
                 parentRegionName: null,
                 name: 'RegionPreviewsParent',
                 latestRevisionDate: '2025-01-01T00:00:00' as db.TimestampString,
@@ -67,7 +67,7 @@ describe('getRegionPreviewsPageIds (integration)', () => {
                 id: page1Id,
                 pageId: 'region-previews-page-1',
                 name: 'RegionPreviewsPage1',
-                region: regionId,
+                region: parentRegionId,
                 url: 'https://ropewiki.com/RegionPreviewsPage1',
                 latestRevisionDate: '2025-01-01T00:00:00' as db.TimestampString,
                 quality: 10,
@@ -88,10 +88,16 @@ describe('getRegionPreviewsPageIds (integration)', () => {
             .run(conn);
 
         const params = RopewikiRegionPreviewsParams.fromQueryStringParams({ limit: '10' });
-        const allowedRegionIds = [regionId, childRegionId];
-        const { items, hasMore } = await getRegionPreviewsPageIds(conn, allowedRegionIds, params);
+        const { items, hasMore } = await getRegionPreviewsPageIds(conn, parentRegionId, params);
 
-        expect(items.length).toBeGreaterThanOrEqual(2);
+        // Direct children only: 1 page in parent (page1), 1 child region (RegionPreviewsChild). Parent region and page2 (in child) are not included.
+        expect(items.length).toBe(2);
+        const pageIds = items.filter((r) => r.type === 'page').map((r) => r.id);
+        const regionIds = items.filter((r) => r.type === 'region').map((r) => r.id);
+        expect(pageIds).toContain(page1Id);
+        expect(pageIds).not.toContain(page2Id);
+        expect(regionIds).toContain(childRegionId);
+        expect(regionIds).not.toContain(parentRegionId);
         expect(items.every((r) => r.type === 'page' || r.type === 'region')).toBe(true);
         expect(items.every((r) => typeof r.sort_key === 'number' && r.id)).toBe(true);
         for (let i = 1; i < items.length; i++) {
@@ -141,7 +147,7 @@ describe('getRegionPreviewsPageIds (integration)', () => {
         }
 
         const params = RopewikiRegionPreviewsParams.fromQueryStringParams({ limit: '2' });
-        const { items, hasMore } = await getRegionPreviewsPageIds(conn, [regionId], params);
+        const { items, hasMore } = await getRegionPreviewsPageIds(conn, regionId, params);
 
         expect(items.length).toBe(2);
         expect(hasMore).toBe(true);

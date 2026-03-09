@@ -4,9 +4,6 @@ import getRopewikiRegionPreviews from '../../../../src/api/getRopewikiRegionPrev
 
 const mockConn = {} as import('zapatos/db').Queryable;
 
-let mockGetAllowedRegionIds: jest.MockedFunction<
-    typeof import('../../../../src/ropewiki/database/getAllowedRegionIds').default
->;
 let mockGetRegionPreviewsPageIds: jest.MockedFunction<
     typeof import('../../../../src/api/getRopewikiRegionPreviews/database/getRegionPreviewsPageIds').getRegionPreviewsPageIds
 >;
@@ -19,11 +16,6 @@ let mockGetRegionRowsByIds: jest.MockedFunction<
 let mockEnrichRopewikiPreviews: jest.MockedFunction<
     typeof import('../../../../src/ropewiki/util/enrichRopewikiPreviews').enrichRopewikiPreviews
 >;
-
-jest.mock('../../../../src/ropewiki/database/getAllowedRegionIds', () => ({
-    __esModule: true,
-    default: jest.fn(),
-}));
 
 jest.mock('../../../../src/api/getRopewikiRegionPreviews/database/getRegionPreviewsPageIds', () => ({
     getRegionPreviewsPageIds: jest.fn(),
@@ -49,8 +41,6 @@ describe('getRopewikiRegionPreviews', () => {
 
     beforeEach(() => {
         jest.clearAllMocks();
-        mockGetAllowedRegionIds =
-            require('../../../../src/ropewiki/database/getAllowedRegionIds').default;
         mockGetRegionPreviewsPageIds =
             require('../../../../src/api/getRopewikiRegionPreviews/database/getRegionPreviewsPageIds').getRegionPreviewsPageIds;
         mockGetPageRowsByIds = require('../../../../src/api/search/database/getPageRowsByIds').default;
@@ -58,20 +48,8 @@ describe('getRopewikiRegionPreviews', () => {
         mockEnrichRopewikiPreviews =
             require('../../../../src/ropewiki/util/enrichRopewikiPreviews').enrichRopewikiPreviews;
 
-        mockGetAllowedRegionIds.mockResolvedValue([regionId]);
         mockGetRegionPreviewsPageIds.mockResolvedValue({ items: [], hasMore: false });
         mockEnrichRopewikiPreviews.mockResolvedValue([]);
-    });
-
-    it('returns empty result when allowedRegionIds is empty', async () => {
-        mockGetAllowedRegionIds.mockResolvedValue([]);
-
-        const params = RopewikiRegionPreviewsParams.fromQueryStringParams({});
-        const result = await getRopewikiRegionPreviews(mockConn, regionId, params);
-
-        expect(mockGetRegionPreviewsPageIds).not.toHaveBeenCalled();
-        expect(result.results).toEqual([]);
-        expect(result.nextCursor).toBeNull();
     });
 
     it('returns empty result when getRegionPreviewsPageIds returns no items', async () => {
@@ -80,7 +58,7 @@ describe('getRopewikiRegionPreviews', () => {
 
         expect(mockGetRegionPreviewsPageIds).toHaveBeenCalledWith(
             mockConn,
-            [regionId],
+            regionId,
             params,
         );
         expect(mockGetPageRowsByIds).not.toHaveBeenCalled();
@@ -150,16 +128,15 @@ describe('getRopewikiRegionPreviews', () => {
         expect(cursorFromRow).toHaveBeenCalledWith(items[1]);
     });
 
-    it('passes regionId to getAllowedRegionIds and allowedRegionIds plus params to getRegionPreviewsPageIds', async () => {
+    it('passes regionId and params to getRegionPreviewsPageIds', async () => {
         const params = RopewikiRegionPreviewsParams.fromQueryStringParams({
             limit: '5',
         });
         await getRopewikiRegionPreviews(mockConn, regionId, params);
 
-        expect(mockGetAllowedRegionIds).toHaveBeenCalledWith(mockConn, regionId);
         expect(mockGetRegionPreviewsPageIds).toHaveBeenCalledWith(
             mockConn,
-            [regionId],
+            regionId,
             params,
         );
     });

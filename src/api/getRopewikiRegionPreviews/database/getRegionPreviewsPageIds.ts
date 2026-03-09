@@ -9,13 +9,14 @@ export function cursorFromRow(row: PaginationRow): RegionPreviewsCursor {
 }
 
 /**
- * Returns one page of (type, id, sort_key) for region previews, ordered by quality (sort_key DESC, type ASC, id ASC).
- * Uses the same quality ordering as search: sort_key = (quality * userVotes) for pages; for regions, max such score in that region.
+ * Returns one page of (type, id, sort_key) for region previews: direct children of the given region only
+ * (pages in that region + regions whose parent is that region). Ordered by quality (sort_key DESC, type ASC, id ASC).
  * Uses keyset pagination via RegionPreviewsCursor (sortKey, type, id).
+ * The queried region itself is never included in the results.
  */
 export async function getRegionPreviewsPageIds(
     conn: db.Queryable,
-    allowedRegionIds: string[],
+    parentRegionId: string,
     params: RopewikiRegionPreviewsParams,
 ): Promise<{ items: PaginationRow[]; hasMore: boolean }> {
     const { limit, cursor } = params;
@@ -29,45 +30,42 @@ export async function getRegionPreviewsPageIds(
     )`
         : db.sql``;
 
-    const pagePart = db.sql`
-    SELECT 'page' AS type, p.id,
-      (COALESCE(p.quality, 0) * COALESCE(p."userVotes", 1))::float AS sort_key
-    FROM "RopewikiPage" p
-    INNER JOIN "RopewikiRegion" r ON r.id = p.region AND r."deletedAt" IS NULL
-    WHERE p."deletedAt" IS NULL
-      AND p.region = ANY(${db.param(allowedRegionIds)}::uuid[])
-  `;
-
     const rows = await db.sql<db.SQL, PaginationRow[]>`
-    WITH RECURSIVE rd AS (
-      SELECT id AS region_id, id AS descendant_id, name AS descendant_name
-      FROM "RopewikiRegion"
-      WHERE id = ANY(${db.param(allowedRegionIds)}::uuid[]) AND "deletedAt" IS NULL
-      UNION ALL
-      SELECT rd.region_id, r2.id, r2.name
-      FROM "RopewikiRegion" r2
-      INNER JOIN rd ON (
-        r2."parentRegionName" = rd.descendant_name
-        OR r2."parentRegionName" = rd.descendant_id::text
+    WITH parent_region AS (
+      SELECT id, name FROM "RopewikiRegion"
+      WHERE id = ${db.param(parentRegionId)}::uuid AND "deletedAt" IS NULL
+    ),
+    direct_child_regions AS (
+      SELECT r.id
+      FROM "RopewikiRegion" r
+      INNER JOIN parent_region pr ON (
+        r."parentRegionName" = pr.name OR r."parentRegionName" = pr.id::text
       )
-      WHERE r2."deletedAt" IS NULL
+      WHERE r."deletedAt" IS NULL
     ),
     region_scores AS (
-      SELECT DISTINCT ON (rd.region_id) rd.region_id,
+      SELECT DISTINCT ON (dcr.id) dcr.id AS region_id,
         (COALESCE(p.quality, 0) * COALESCE(p."userVotes", 1))::float AS score
-      FROM rd
-      INNER JOIN "RopewikiPage" p ON p.region = rd.descendant_id AND p."deletedAt" IS NULL
-      ORDER BY rd.region_id, (COALESCE(p.quality, 0) * COALESCE(p."userVotes", 1)) DESC
+      FROM direct_child_regions dcr
+      INNER JOIN "RopewikiPage" p ON p.region = dcr.id AND p."deletedAt" IS NULL
+      ORDER BY dcr.id, (COALESCE(p.quality, 0) * COALESCE(p."userVotes", 1)) DESC
+    ),
+    page_part AS (
+      SELECT 'page' AS type, p.id,
+        (COALESCE(p.quality, 0) * COALESCE(p."userVotes", 1))::float AS sort_key
+      FROM "RopewikiPage" p
+      INNER JOIN parent_region pr ON p.region = pr.id
+      WHERE p."deletedAt" IS NULL
     ),
     region_rows AS (
       SELECT 'region' AS type, r.id, COALESCE(rs.score, -1)::float AS sort_key
       FROM "RopewikiRegion" r
+      INNER JOIN direct_child_regions dcr ON dcr.id = r.id
       LEFT JOIN region_scores rs ON rs.region_id = r.id
       WHERE r."deletedAt" IS NULL
-        AND r.id = ANY(${db.param(allowedRegionIds)}::uuid[])
     ),
     combined AS (
-      (${pagePart})
+      (SELECT type, id, sort_key FROM page_part WHERE id IS NOT NULL)
       UNION ALL
       (SELECT type, id, sort_key FROM region_rows WHERE id IS NOT NULL)
     ),

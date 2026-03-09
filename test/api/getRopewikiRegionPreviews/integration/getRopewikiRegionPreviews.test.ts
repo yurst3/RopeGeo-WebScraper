@@ -93,7 +93,7 @@ describe('getRopewikiRegionPreviews (integration)', () => {
         await pool.end();
     });
 
-    it('returns both page and region previews for the region and its descendants', async () => {
+    it('returns only direct children (pages in region + child regions), never the queried region', async () => {
         const params = RopewikiRegionPreviewsParams.fromQueryStringParams({
             limit: '20',
         });
@@ -101,13 +101,14 @@ describe('getRopewikiRegionPreviews (integration)', () => {
 
         const pages = result.results.filter(isPagePreview);
         const regions = result.results.filter(isRegionPreview);
-        expect(pages.length).toBe(2);
-        expect(regions.length).toBe(2);
+        // Direct children only: 1 page in parent (ParentPage), 1 child region (RegionPreviewsIntChild). Queried region and ChildPage (in child) are not included.
+        expect(pages.length).toBe(1);
+        expect(regions.length).toBe(1);
         const pageTitles = pages.map((p) => p.title);
         expect(pageTitles).toContain('ParentPage');
-        expect(pageTitles).toContain('ChildPage');
+        expect(pageTitles).not.toContain('ChildPage');
         const regionNames = regions.map((r) => r.name);
-        expect(regionNames).toContain('RegionPreviewsIntParent');
+        expect(regionNames).not.toContain('RegionPreviewsIntParent');
         expect(regionNames).toContain('RegionPreviewsIntChild');
     });
 
@@ -118,31 +119,30 @@ describe('getRopewikiRegionPreviews (integration)', () => {
         const result = await getRopewikiRegionPreviews(conn, parentRegionId, params);
 
         const pages = result.results.filter(isPagePreview);
-        expect(pages.length).toBe(2);
-        const childPage = pages.find((p) => p.title === 'ChildPage');
-        const parentPage = pages.find((p) => p.title === 'ParentPage');
-        expect(childPage).toBeDefined();
-        expect(parentPage).toBeDefined();
-        const childIndex = result.results.indexOf(childPage!);
-        const parentIndex = result.results.indexOf(parentPage!);
-        expect(childIndex).toBeLessThan(parentIndex);
+        const regions = result.results.filter(isRegionPreview);
+        expect(pages.length).toBe(1);
+        expect(regions.length).toBe(1);
+        // Region (RegionPreviewsIntChild) has best page score 10*3=30; ParentPage has 2*5=10, so region comes first
+        const regionPreview = regions[0]!;
+        const pagePreview = pages[0]!;
+        expect(result.results.indexOf(regionPreview)).toBeLessThan(result.results.indexOf(pagePreview));
     });
 
-    it('includes previews from nested (descendant) regions when querying by parent region', async () => {
+    it('includes only direct children when querying by parent region', async () => {
         const params = RopewikiRegionPreviewsParams.fromQueryStringParams({
             limit: '20',
         });
         const result = await getRopewikiRegionPreviews(conn, parentRegionId, params);
 
         const pages = result.results.filter(isPagePreview);
-        expect(pages.some((p) => p.id === pageInChildId)).toBe(true);
-        expect(pages.some((p) => p.id === pageInParentId)).toBe(true);
         const regions = result.results.filter(isRegionPreview);
+        expect(pages.some((p) => p.id === pageInParentId)).toBe(true);
+        expect(pages.some((p) => p.id === pageInChildId)).toBe(false);
         expect(regions.some((r) => r.id === childRegionId)).toBe(true);
-        expect(regions.some((r) => r.id === parentRegionId)).toBe(true);
+        expect(regions.some((r) => r.id === parentRegionId)).toBe(false);
     });
 
-    it('when querying by child region only, returns only that region and its page previews', async () => {
+    it('when querying by child region only, returns only direct children (pages in that region, no sub-regions)', async () => {
         const params = RopewikiRegionPreviewsParams.fromQueryStringParams({
             limit: '20',
         });
@@ -153,9 +153,7 @@ describe('getRopewikiRegionPreviews (integration)', () => {
         expect(pages).toHaveLength(1);
         expect(pages[0]!.title).toBe('ChildPage');
         expect(pages[0]!.id).toBe(pageInChildId);
-        expect(regions).toHaveLength(1);
-        expect(regions[0]!.name).toBe('RegionPreviewsIntChild');
-        expect(regions[0]!.id).toBe(childRegionId);
+        expect(regions).toHaveLength(0);
     });
 
     it('cursor pagination returns all items with no duplicates or skips at page boundaries', async () => {

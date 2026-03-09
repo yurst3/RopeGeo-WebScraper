@@ -7,7 +7,7 @@ GetRopewikiRegionPreviewsResponse:
   properties:
     results:
       type: array
-      description: List of page and region previews in the region and its descendants, ordered by quality (quality * userVotes)
+      description: List of page and region previews for direct children of the region only (one level deep), ordered by quality (quality * userVotes)
       items:
         oneOf:
           - $ref: './getRoutePreviewResponse.yaml#/PagePreview'
