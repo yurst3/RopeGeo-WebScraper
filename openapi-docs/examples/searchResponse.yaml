@@ -1,6 +1,7 @@
 # Example Object for search 200 response (SearchResults from ropegeo-common)
 summary: Sample search results for name "Imlay"
 value:
+  resultType: search
   nextCursor: null
   results:
     - previewType: page

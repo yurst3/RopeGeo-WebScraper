@@ -1,10 +1,16 @@
 GetRopewikiRegionPreviewsResponse:
   type: object
-  description: Response body for getRopewikiRegionPreviews (RopewikiRegionPreviewsResult from ropegeo-common); contains results and nextCursor for pagination.
+  description: Response body for getRopewikiRegionPreviews (RopewikiRegionPreviewsResult from ropegeo-common); contains resultType, results and nextCursor for pagination.
   required:
+    - resultType
     - results
     - nextCursor
   properties:
+    resultType:
+      type: string
+      description: Discriminator for cursor-paginated result type; always "ropewikiRegionPreviews" for this endpoint (ropegeo-common ResultType)
+      enum:
+        - ropewikiRegionPreviews
     results:
       type: array
       description: List of page and region previews for direct children of the region only (one level deep), ordered by quality (quality * userVotes)

@@ -1,6 +1,7 @@
 # Example Object for getRopewikiRegionPreviews 200 response
 summary: Sample region previews for a region (RopewikiRegionPreviewsResult)
 value:
+  resultType: ropewikiRegionPreviews
   nextCursor: eyJzb3J0S2V5IjoxMjMuNCwidHlwZSI6InBhZ2UiLCJpZCI6ImExYjJjM2Q0LWU1ZjYtNzg5MC1hYmNkLWVmMTIzNDU2Nzg5MCJ9
   results:
     - previewType: page
