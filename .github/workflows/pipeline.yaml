@@ -286,7 +286,7 @@ jobs:
             --s3-bucket ${PROD_ARTIFACTS_BUCKET} \
             --no-fail-on-empty-changeset \
             --role-arn ${PROD_CLOUDFORMATION_EXECUTION_ROLE} \
-            --parameter-overrides "devEnvironment=production DatabaseUsername=$PROD_DATABASE_USERNAME DatabasePassword=$PROD_DATABASE_PASSWORD FckNatAMIId=$FCK_NAT_AMI ProxyUrl=$PROXY_URL DocsBucketPipelineRoleArn=$PROD_PIPELINE_EXECUTION_ROLE PipelineExecutionRoleName=${PROD_PIPELINE_EXECUTION_ROLE##*/} RdsDbiResourceId=$PROD_RDS_DBI_RESOURCE_ID"
+            --parameter-overrides "devEnvironment=production DatabaseUsername=$PROD_DATABASE_USERNAME DatabasePassword=$PROD_DATABASE_PASSWORD FckNatAMIId=$FCK_NAT_AMI ProxyUrl=$PROXY_URL DocsBucketPipelineRoleArn=$PROD_PIPELINE_EXECUTION_ROLE PipelineExecutionRoleName=${PROD_PIPELINE_EXECUTION_ROLE##*/} RdsDbiResourceId=$PROD_RDS_DBI_RESOURCE_ID ImagePublicBaseUrl=https://api.webscraper.ropegeo.com"
 
   build-push-fargate-tasks:
     if: always() && github.ref == 'refs/heads/master' && (needs.deploy-prod-main.result == 'success' || needs.deploy-testing-main.result == 'success')
@@ -499,8 +499,14 @@ jobs:
             --region ${TESTING_REGION} \
             --query "Stacks[0].Outputs[?OutputKey=='MapDataBucketName'].OutputValue" \
             --output text)
+          IMAGE_DATA_BUCKET=$(aws cloudformation describe-stacks \
+            --stack-name ${TESTING_STACK_NAME} \
+            --region ${TESTING_REGION} \
+            --query "Stacks[0].Outputs[?OutputKey=='ImageDataBucketName'].OutputValue" \
+            --output text)
           echo "docs_bucket=${DOCS_BUCKET}" >> $GITHUB_OUTPUT
           echo "map_data_bucket=${MAP_DATA_BUCKET}" >> $GITHUB_OUTPUT
+          echo "image_data_bucket=${IMAGE_DATA_BUCKET}" >> $GITHUB_OUTPUT
       - name: Merge API template
         run: npm ci && npm run merge:api-template
       - name: Deploy API stack to testing
@@ -511,6 +517,7 @@ jobs:
             --parameter-overrides \
               DocsBucketName=${{ steps.get-buckets.outputs.docs_bucket }} \
               MapDataBucketName=${{ steps.get-buckets.outputs.map_data_bucket }} \
+              ImageDataBucketName=${{ steps.get-buckets.outputs.image_data_bucket }} \
             --capabilities CAPABILITY_IAM \
             --region ${TESTING_REGION} \
             --no-fail-on-empty-changeset
@@ -545,8 +552,14 @@ jobs:
             --region ${PROD_REGION} \
             --query "Stacks[0].Outputs[?OutputKey=='MapDataBucketName'].OutputValue" \
             --output text)
+          IMAGE_DATA_BUCKET=$(aws cloudformation describe-stacks \
+            --stack-name ${PROD_STACK_NAME} \
+            --region ${PROD_REGION} \
+            --query "Stacks[0].Outputs[?OutputKey=='ImageDataBucketName'].OutputValue" \
+            --output text)
           echo "docs_bucket=${DOCS_BUCKET}" >> $GITHUB_OUTPUT
           echo "map_data_bucket=${MAP_DATA_BUCKET}" >> $GITHUB_OUTPUT
+          echo "image_data_bucket=${IMAGE_DATA_BUCKET}" >> $GITHUB_OUTPUT
       - name: Merge API template
         run: npm ci && npm run merge:api-template
       - name: Deploy API stack to production
@@ -557,6 +570,7 @@ jobs:
             --parameter-overrides \
               DocsBucketName=${{ steps.get-buckets.outputs.docs_bucket }} \
               MapDataBucketName=${{ steps.get-buckets.outputs.map_data_bucket }} \
+              ImageDataBucketName=${{ steps.get-buckets.outputs.image_data_bucket }} \
               CustomDomainName=api.webscraper.ropegeo.com \
               CloudFrontCertificateArn=${{ secrets.PROD_CLOUDFRONT_CERTIFICATE_ARN }} \
             --capabilities CAPABILITY_IAM \
