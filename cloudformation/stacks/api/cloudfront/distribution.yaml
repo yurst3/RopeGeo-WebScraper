@@ -48,6 +48,24 @@ Resources:
           return request;
         }
 
+  StripImagesPrefixFunction:
+    Type: AWS::CloudFront::Function
+    Properties:
+      Name:
+        'Fn::Sub': '${AWS::StackName}-strip-images-prefix'
+      AutoPublish: true
+      FunctionConfig:
+        Comment: Strip /images prefix for image data bucket origin
+        Runtime: cloudfront-js-1.0
+      FunctionCode: |
+        function handler(event) {
+          var request = event.request;
+          if (request.uri && request.uri.indexOf('/images/') === 0) {
+            request.uri = request.uri.replace(/^\/images\//, '/');
+          }
+          return request;
+        }
+
   RootRedirectFunction:
     Type: AWS::CloudFront::Function
     Properties:
@@ -95,26 +113,54 @@ Resources:
               MinimumProtocolVersion: TLSv1.2_2021
             - CloudFrontDefaultCertificate: true
         Origins:
-          - Id: MapDataBucket
-            DomainName:
-              'Fn::Sub': '${MapDataBucketName}.s3.${AWS::Region}.amazonaws.com'
-            OriginAccessControlId:
-              'Fn::GetAtt': [WebScraperOAC, Id]
-            S3OriginConfig: {}
-          - Id: DocsBucket
-            DomainName:
-              'Fn::Sub': '${DocsBucketName}.s3.${AWS::Region}.amazonaws.com'
-            OriginAccessControlId:
-              'Fn::GetAtt': [WebScraperOAC, Id]
-            S3OriginConfig: {}
-          - Id: WebScraperApi
-            DomainName:
-              'Fn::Sub': '${WebScraperApi}.execute-api.${AWS::Region}.amazonaws.com'
-            CustomOriginConfig:
-              HTTPSPort: 443
-              OriginProtocolPolicy: https-only
-              OriginSSLProtocols:
-                - TLSv1.2
+          'Fn::If':
+            - HasImageDataBucket
+            - - Id: MapDataBucket
+                DomainName:
+                  'Fn::Sub': '${MapDataBucketName}.s3.${AWS::Region}.amazonaws.com'
+                OriginAccessControlId:
+                  'Fn::GetAtt': [WebScraperOAC, Id]
+                S3OriginConfig: {}
+              - Id: DocsBucket
+                DomainName:
+                  'Fn::Sub': '${DocsBucketName}.s3.${AWS::Region}.amazonaws.com'
+                OriginAccessControlId:
+                  'Fn::GetAtt': [WebScraperOAC, Id]
+                S3OriginConfig: {}
+              - Id: ImageDataBucket
+                DomainName:
+                  'Fn::Sub': '${ImageDataBucketName}.s3.${AWS::Region}.amazonaws.com'
+                OriginAccessControlId:
+                  'Fn::GetAtt': [WebScraperOAC, Id]
+                S3OriginConfig: {}
+              - Id: WebScraperApi
+                DomainName:
+                  'Fn::Sub': '${WebScraperApi}.execute-api.${AWS::Region}.amazonaws.com'
+                CustomOriginConfig:
+                  HTTPSPort: 443
+                  OriginProtocolPolicy: https-only
+                  OriginSSLProtocols:
+                    - TLSv1.2
+            - - Id: MapDataBucket
+                DomainName:
+                  'Fn::Sub': '${MapDataBucketName}.s3.${AWS::Region}.amazonaws.com'
+                OriginAccessControlId:
+                  'Fn::GetAtt': [WebScraperOAC, Id]
+                S3OriginConfig: {}
+              - Id: DocsBucket
+                DomainName:
+                  'Fn::Sub': '${DocsBucketName}.s3.${AWS::Region}.amazonaws.com'
+                OriginAccessControlId:
+                  'Fn::GetAtt': [WebScraperOAC, Id]
+                S3OriginConfig: {}
+              - Id: WebScraperApi
+                DomainName:
+                  'Fn::Sub': '${WebScraperApi}.execute-api.${AWS::Region}.amazonaws.com'
+                CustomOriginConfig:
+                  HTTPSPort: 443
+                  OriginProtocolPolicy: https-only
+                  OriginSSLProtocols:
+                    - TLSv1.2
         DefaultCacheBehavior:
           TargetOriginId: WebScraperApi
           ViewerProtocolPolicy: redirect-to-https
@@ -136,51 +182,113 @@ Resources:
           # so API Gateway receives the origin Host header, not the viewer's.
           OriginRequestPolicyId: b689b0a8-53d0-40ab-baf2-68738e2966ac
         CacheBehaviors:
-          - PathPattern: /
-            TargetOriginId: DocsBucket
-            ViewerProtocolPolicy: redirect-to-https
-            AllowedMethods:
-              - GET
-              - HEAD
-            CachedMethods:
-              - GET
-              - HEAD
-            Compress: true
-            CachePolicyId: 658327ea-f89d-4fab-a63d-7e88639e58f6
-            FunctionAssociations:
-              - EventType: viewer-request
-                FunctionARN:
-                  'Fn::GetAtt': [RootRedirectFunction, FunctionARN]
-          - PathPattern: /mapdata/*
-            TargetOriginId: MapDataBucket
-            ViewerProtocolPolicy: redirect-to-https
-            AllowedMethods:
-              - GET
-              - HEAD
-            CachedMethods:
-              - GET
-              - HEAD
-            Compress: true
-            CachePolicyId: 658327ea-f89d-4fab-a63d-7e88639e58f6
-            FunctionAssociations:
-              - EventType: viewer-request
-                FunctionARN:
-                  'Fn::GetAtt': [StripMapDataPrefixFunction, FunctionARN]
-          - PathPattern: /docs/*
-            TargetOriginId: DocsBucket
-            ViewerProtocolPolicy: redirect-to-https
-            AllowedMethods:
-              - GET
-              - HEAD
-            CachedMethods:
-              - GET
-              - HEAD
-            Compress: true
-            CachePolicyId: 658327ea-f89d-4fab-a63d-7e88639e58f6
-            FunctionAssociations:
-              - EventType: viewer-request
-                FunctionARN:
-                  'Fn::GetAtt': [StripDocsPrefixFunction, FunctionARN]
+          'Fn::If':
+            - HasImageDataBucket
+            - - PathPattern: /
+                TargetOriginId: DocsBucket
+                ViewerProtocolPolicy: redirect-to-https
+                AllowedMethods:
+                  - GET
+                  - HEAD
+                CachedMethods:
+                  - GET
+                  - HEAD
+                Compress: true
+                CachePolicyId: 658327ea-f89d-4fab-a63d-7e88639e58f6
+                FunctionAssociations:
+                  - EventType: viewer-request
+                    FunctionARN:
+                      'Fn::GetAtt': [RootRedirectFunction, FunctionARN]
+              - PathPattern: /mapdata/*
+                TargetOriginId: MapDataBucket
+                ViewerProtocolPolicy: redirect-to-https
+                AllowedMethods:
+                  - GET
+                  - HEAD
+                CachedMethods:
+                  - GET
+                  - HEAD
+                Compress: true
+                CachePolicyId: 658327ea-f89d-4fab-a63d-7e88639e58f6
+                FunctionAssociations:
+                  - EventType: viewer-request
+                    FunctionARN:
+                      'Fn::GetAtt': [StripMapDataPrefixFunction, FunctionARN]
+              - PathPattern: /images/*
+                TargetOriginId: ImageDataBucket
+                ViewerProtocolPolicy: redirect-to-https
+                AllowedMethods:
+                  - GET
+                  - HEAD
+                CachedMethods:
+                  - GET
+                  - HEAD
+                Compress: true
+                CachePolicyId: 658327ea-f89d-4fab-a63d-7e88639e58f6
+                FunctionAssociations:
+                  - EventType: viewer-request
+                    FunctionARN:
+                      'Fn::GetAtt': [StripImagesPrefixFunction, FunctionARN]
+              - PathPattern: /docs/*
+                TargetOriginId: DocsBucket
+                ViewerProtocolPolicy: redirect-to-https
+                AllowedMethods:
+                  - GET
+                  - HEAD
+                CachedMethods:
+                  - GET
+                  - HEAD
+                Compress: true
+                CachePolicyId: 658327ea-f89d-4fab-a63d-7e88639e58f6
+                FunctionAssociations:
+                  - EventType: viewer-request
+                    FunctionARN:
+                      'Fn::GetAtt': [StripDocsPrefixFunction, FunctionARN]
+            - - PathPattern: /
+                TargetOriginId: DocsBucket
+                ViewerProtocolPolicy: redirect-to-https
+                AllowedMethods:
+                  - GET
+                  - HEAD
+                CachedMethods:
+                  - GET
+                  - HEAD
+                Compress: true
+                CachePolicyId: 658327ea-f89d-4fab-a63d-7e88639e58f6
+                FunctionAssociations:
+                  - EventType: viewer-request
+                    FunctionARN:
+                      'Fn::GetAtt': [RootRedirectFunction, FunctionARN]
+              - PathPattern: /mapdata/*
+                TargetOriginId: MapDataBucket
+                ViewerProtocolPolicy: redirect-to-https
+                AllowedMethods:
+                  - GET
+                  - HEAD
+                CachedMethods:
+                  - GET
+                  - HEAD
+                Compress: true
+                CachePolicyId: 658327ea-f89d-4fab-a63d-7e88639e58f6
+                FunctionAssociations:
+                  - EventType: viewer-request
+                    FunctionARN:
+                      'Fn::GetAtt': [StripMapDataPrefixFunction, FunctionARN]
+              - PathPattern: /docs/*
+                TargetOriginId: DocsBucket
+                ViewerProtocolPolicy: redirect-to-https
+                AllowedMethods:
+                  - GET
+                  - HEAD
+                CachedMethods:
+                  - GET
+                  - HEAD
+                Compress: true
+                CachePolicyId: 658327ea-f89d-4fab-a63d-7e88639e58f6
+                FunctionAssociations:
+                  - EventType: viewer-request
+                    FunctionARN:
+                      'Fn::GetAtt': [StripDocsPrefixFunction, FunctionARN]
 
 Outputs:
   CloudFrontDistributionId:

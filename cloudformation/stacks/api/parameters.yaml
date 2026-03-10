@@ -7,6 +7,10 @@ Parameters:
   MapDataBucketName:
     Type: String
     Description: Name of the S3 bucket for map data (output from main stack MapDataBucketName). Required when using CloudFront.
+  ImageDataBucketName:
+    Type: String
+    Default: ''
+    Description: Name of the S3 bucket for processed images (output from main stack ImageDataBucketName). Leave blank to skip /images/* CloudFront behavior.
   CustomDomainName:
     Type: String
     Default: api.webscraper.ropegeo.com

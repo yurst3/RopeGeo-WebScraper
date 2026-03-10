@@ -45,12 +45,35 @@ const getRopewikiPageView = async (
 
     if (!page || page.deletedAt != null) return null;
 
-    const [images, betaSections, akaRows] = await Promise.all([
-        db
-            .select('RopewikiImage', { ropewikiPage: pageId }, { columns: ['order', 'fileUrl', 'linkUrl', 'caption', 'betaSection', 'latestRevisionDate', 'deletedAt'] })
-            .run(conn)
-            .then((rows) => rows.filter((r) => r.deletedAt == null))
-            .then((rows) => rows.sort((a, b) => (a.betaSection ?? '').localeCompare(b.betaSection ?? '') || (a.order ?? 0) - (b.order ?? 0))),
+    type ImageRow = {
+        order: number | null;
+        linkUrl: string;
+        caption: string | null;
+        betaSection: string | null;
+        latestRevisionDate: db.TimestampString;
+        bannerUrl: string | null;
+    };
+
+    const [imageRows, betaSections, akaRows] = await Promise.all([
+        db.sql<db.SQL, ImageRow[]>`
+            SELECT
+                i."order",
+                i."linkUrl",
+                i.caption,
+                i."betaSection",
+                i."latestRevisionDate",
+                (
+                    SELECT d."bannerUrl"
+                    FROM "ImageData" d
+                    WHERE d.id = i."processedImage"
+                      AND d."errorMessage" IS NULL
+                      AND d."bannerUrl" IS NOT NULL
+                ) AS "bannerUrl"
+            FROM "RopewikiImage" i
+            WHERE i."ropewikiPage" = ${db.param(pageId)}::uuid
+              AND i."deletedAt" IS NULL
+            ORDER BY (i."betaSection" IS NULL) DESC, i."betaSection" ASC NULLS LAST, i."order" ASC NULLS LAST
+        `.run(conn),
         db
             .select('RopewikiBetaSection', { ropewikiPage: pageId }, { columns: ['id', 'order', 'title', 'text', 'latestRevisionDate', 'deletedAt'] })
             .run(conn)
@@ -65,19 +88,19 @@ const getRopewikiPageView = async (
             .then((rows) => rows.map((r) => r.name)),
     ]);
 
-    const bannerImageRow = images.find((i) => i.betaSection == null);
+    const bannerImageRow = imageRows.find((i) => i.betaSection == null);
     const bannerImage = bannerImageRow
         ? {
               order: bannerImageRow.order ?? 0,
-              url: bannerImageRow.fileUrl,
+              url: bannerImageRow.bannerUrl,
               linkUrl: bannerImageRow.linkUrl,
               caption: bannerImageRow.caption ?? '',
               latestRevisionDate: new Date(bannerImageRow.latestRevisionDate),
           }
         : null;
 
-    const imagesBySection = new Map<string | null, typeof images>();
-    for (const img of images) {
+    const imagesBySection = new Map<string | null, ImageRow[]>();
+    for (const img of imageRows) {
         const key = img.betaSection ?? null;
         if (!imagesBySection.has(key)) imagesBySection.set(key, []);
         imagesBySection.get(key)!.push(img);
@@ -86,7 +109,7 @@ const getRopewikiPageView = async (
     const betaSectionsView = betaSections.map((sec) => {
         const secImages = (imagesBySection.get(sec.id) ?? []).map((i) => ({
             order: i.order ?? 0,
-            url: i.fileUrl,
+            url: i.bannerUrl,
             linkUrl: i.linkUrl,
             caption: i.caption ?? '',
             latestRevisionDate: new Date(i.latestRevisionDate),

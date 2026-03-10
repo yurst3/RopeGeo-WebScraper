@@ -47,6 +47,10 @@ Resources:
         Sourcemap: true
         EntryPoints:
           - src/api/getRopewikiPageView/handler.ts
+        External:
+          - sharp
+          - pdf-lib
+          - pdf-to-img
 Outputs:
   GetRopewikiPageViewLambdaArn:
     Description: ARN of the GetRopewikiPageView Lambda (for OpenAPI integration resolveYamlEnvs)

@@ -47,6 +47,10 @@ Resources:
         Sourcemap: true
         EntryPoints:
           - src/api/getRoutePreview/handler.ts
+        External:
+          - sharp
+          - pdf-lib
+          - pdf-to-img
 Outputs:
   GetRoutePreviewLambdaArn:
     Description: ARN of the GetRoutePreview Lambda (for OpenAPI integration resolveYamlEnvs)

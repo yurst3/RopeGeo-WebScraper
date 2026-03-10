@@ -47,6 +47,10 @@ Resources:
         Sourcemap: true
         EntryPoints:
           - src/api/getRopewikiRegionView/handler.ts
+        External:
+          - sharp
+          - pdf-lib
+          - pdf-to-img
 Outputs:
   GetRopewikiRegionViewLambdaArn:
     Description: ARN of the GetRopewikiRegionView Lambda (for OpenAPI integration resolveYamlEnvs)

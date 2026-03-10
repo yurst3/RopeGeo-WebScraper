@@ -1,0 +1,57 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Lambda that enqueues all RopewikiImages needing AVIF processing to the image processor queue
+
+Resources:
+  ReprocessRopewikiImages:
+    Type: 'AWS::Serverless::Function'
+    Properties:
+      Description: Enqueues RopewikiImages that need processing (no processedImage or source URL changed) to the image processor queue
+      Runtime: nodejs22.x
+      Architectures:
+        - arm64
+      CodeUri: ../../
+      Handler: src/ropewiki/lambda-handlers/reprocessImagesHandler.reprocessImagesHandler
+      MemorySize: 512
+      Timeout: 900
+      VpcConfig:
+        SecurityGroupIds:
+          - Ref: LambdaSecurityGroup
+        SubnetIds:
+          - Ref: PrivateSubnet1
+      Role:
+        'Fn::GetAtt': ReprocessRopewikiImagesRole.Arn
+      Environment:
+        Variables:
+          DEV_ENVIRONMENT:
+            Ref: devEnvironment
+          PROXY_URL:
+            Ref: ProxyUrl
+          DB_HOST:
+            'Fn::If':
+              - UseDatabaseProxyInProd
+              - 'Fn::GetAtt': RDSProxy.Endpoint
+              - 'Fn::GetAtt': Database.Endpoint.Address
+          DB_PORT:
+            'Fn::GetAtt': Database.Endpoint.Port
+          USE_DATABASE_PROXY:
+            Ref: UseDatabaseProxy
+          DB_NAME:
+            'Fn::Sub': '${devEnvironment}db'
+          DB_USER:
+            Ref: DatabaseUsername
+          DB_PASSWORD:
+            Ref: DatabasePassword
+          IMAGE_PROCESSOR_QUEUE_URL:
+            Ref: ImageProcessorQueue
+    Metadata:
+      BuildMethod: esbuild
+      BuildProperties:
+        Minify: true
+        Target: esnext
+        Sourcemap: true
+        EntryPoints:
+          - src/ropewiki/lambda-handlers/reprocessImagesHandler.ts
+        External:
+          - sharp
+          - pdf-lib
+          - pdf-to-img

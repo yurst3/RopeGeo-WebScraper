@@ -10,8 +10,8 @@ const mockConn = {} as import('zapatos/db').Queryable;
 let mockGetRopewikiRegionLineage: jest.MockedFunction<
     typeof import('../../../src/ropewiki/database/getRopewikiRegionLineage').default
 >;
-let mockGetRegionBannerUrls: jest.MockedFunction<
-    typeof import('../../../src/ropewiki/database/getRegionBannerUrls').default
+let mockGetRegionPreviewUrls: jest.MockedFunction<
+    typeof import('../../../src/ropewiki/database/getRegionPreviewUrls').default
 >;
 
 jest.mock('../../../src/ropewiki/database/getRopewikiRegionLineage', () => ({
@@ -19,7 +19,7 @@ jest.mock('../../../src/ropewiki/database/getRopewikiRegionLineage', () => ({
     default: jest.fn(),
 }));
 
-jest.mock('../../../src/ropewiki/database/getRegionBannerUrls', () => ({
+jest.mock('../../../src/ropewiki/database/getRegionPreviewUrls', () => ({
     __esModule: true,
     default: jest.fn(),
 }));
@@ -66,10 +66,10 @@ describe('enrichRopewikiPreviews', () => {
         jest.clearAllMocks();
         mockGetRopewikiRegionLineage =
             require('../../../src/ropewiki/database/getRopewikiRegionLineage').default;
-        mockGetRegionBannerUrls =
-            require('../../../src/ropewiki/database/getRegionBannerUrls').default;
+        mockGetRegionPreviewUrls =
+            require('../../../src/ropewiki/database/getRegionPreviewUrls').default;
         mockGetRopewikiRegionLineage.mockResolvedValue([]);
-        mockGetRegionBannerUrls.mockResolvedValue(new Map());
+        mockGetRegionPreviewUrls.mockResolvedValue(new Map());
     });
 
     it('returns empty array when items is empty', async () => {
@@ -81,7 +81,7 @@ describe('enrichRopewikiPreviews', () => {
         );
         expect(result).toEqual([]);
         expect(mockGetRopewikiRegionLineage).not.toHaveBeenCalled();
-        expect(mockGetRegionBannerUrls).not.toHaveBeenCalled();
+        expect(mockGetRegionPreviewUrls).not.toHaveBeenCalled();
     });
 
     it('returns PagePreview for page item with lineage as regions', async () => {
@@ -137,7 +137,7 @@ describe('enrichRopewikiPreviews', () => {
             { id: regionId, name: 'Child' },
             { id: regionId2, name: 'Parent' },
         ]);
-        mockGetRegionBannerUrls.mockResolvedValue(
+        mockGetRegionPreviewUrls.mockResolvedValue(
             new Map([[regionId, 'https://example.com/banner.jpg']]),
         );
 

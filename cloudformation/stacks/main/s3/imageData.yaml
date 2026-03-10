@@ -1,0 +1,54 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: S3 bucket for processed images (AVIF) and CloudFront policy
+
+Resources:
+  ImageDataBucket:
+    Type: 'AWS::S3::Bucket'
+    Properties:
+      BucketName:
+        'Fn::Sub': '${devEnvironment}-image-data-bucket'
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+  ImageDataBucketCloudFrontPolicy:
+    Type: 'AWS::S3::BucketPolicy'
+    Condition: HasCloudFrontDistribution
+    Properties:
+      Bucket:
+        Ref: ImageDataBucket
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Sid: AllowCloudFrontOACGetObject
+            Effect: Allow
+            Principal:
+              Service: cloudfront.amazonaws.com
+            Action: 's3:GetObject'
+            Resource:
+              'Fn::Sub': '${ImageDataBucket.Arn}/*'
+            Condition:
+              StringEquals:
+                'AWS:SourceArn':
+                  Ref: CloudFrontDistributionArn
+          - Sid: AllowCloudFrontOACListBucket
+            Effect: Allow
+            Principal:
+              Service: cloudfront.amazonaws.com
+            Action: 's3:ListBucket'
+            Resource:
+              'Fn::GetAtt': ImageDataBucket.Arn
+            Condition:
+              StringEquals:
+                'AWS:SourceArn':
+                  Ref: CloudFrontDistributionArn
+Outputs:
+  ImageDataBucketName:
+    Description: 'S3 bucket for processed images (AVIF); pass to API stack for CloudFront /images/*'
+    Value:
+      Ref: ImageDataBucket
+  ImageDataBucketArn:
+    Description: ARN of the image data S3 bucket
+    Value:
+      'Fn::GetAtt': ImageDataBucket.Arn

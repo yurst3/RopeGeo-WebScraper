@@ -61,3 +61,6 @@ Resources:
           - src/ropewiki/lambda-handlers/mainHandler.ts
         External:
           - '@sparticuz/chromium'
+          - sharp
+          - pdf-lib
+          - pdf-to-img

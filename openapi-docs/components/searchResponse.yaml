@@ -62,7 +62,7 @@ RegionPreview:
       type: string
       format: uri
       nullable: true
-      description: Optional image URL for the region (null for Ropewiki)
+      description: Optional image URL for the region (null for Ropewiki). When present and processed, may be API URL (e.g. .../images/{id}/banner.avif); otherwise source URL.
     source:
       type: string
       description: Source of the region (e.g. ropewiki)

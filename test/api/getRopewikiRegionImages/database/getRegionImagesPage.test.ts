@@ -103,7 +103,8 @@ describe('getRegionImagesPage (integration)', () => {
         const { items, hasMore } = await getRegionImagesPage(conn, allowedRegionIds, params);
 
         expect(items.length).toBe(2);
-        expect(items.every((r) => r.id && r.ropewikiPage && r.pageName && r.fileUrl && r.linkUrl)).toBe(true);
+        expect(items.every((r) => r.id && r.ropewikiPage && r.pageName && r.linkUrl)).toBe(true);
+        // fileUrl may be null when no processed ImageData
         expect(Number(items[0]!.sort_key)).toBeGreaterThanOrEqual(Number(items[1]!.sort_key));
         expect(items[0]!.pageName).toBe('RegionImagesPage1');
         expect(items[1]!.pageName).toBe('RegionImagesPage2');

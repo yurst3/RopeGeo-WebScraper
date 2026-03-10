@@ -1,4 +1,6 @@
 import type * as s from 'zapatos/schema';
+import { PageDataSource } from 'ropegeo-common';
+import { ImageDataEvent } from '../../image-data/types/lambdaEvent';
 
 /** Plain row shape returned by toDbRow (insert columns we supply). */
 export interface ImageInsertRow {
@@ -14,6 +16,10 @@ export interface ImageInsertRow {
 }
 
 export class RopewikiImage {
+    /** Set when built from DB (e.g. fromDbRow); required for toImageDataEvent(). */
+    id?: string;
+    /** Set when built from DB (e.g. upsertImages RETURNING). FK to ImageData when present. */
+    processedImage?: string | null;
     betaSectionTitle: string | undefined;
     linkUrl: string;
     fileUrl: string;
@@ -32,6 +38,34 @@ export class RopewikiImage {
         this.fileUrl = fileUrl;
         this.caption = caption;
         this.order = order;
+    }
+
+    /**
+     * Builds a RopewikiImage from a zapatos RopewikiImage row (e.g. RETURNING or select).
+     * betaSectionTitle is not on the row (row has betaSection uuid), so it is left undefined.
+     */
+    static fromDbRow(row: s.RopewikiImage.JSONSelectable): RopewikiImage {
+        const img = new RopewikiImage(
+            undefined,
+            row.linkUrl,
+            row.fileUrl,
+            row.caption ?? undefined,
+            row.order ?? 0,
+        );
+        img.id = row.id;
+        img.processedImage = row.processedImage ?? null;
+        return img;
+    }
+
+    /**
+     * Returns an ImageDataEvent for this image (e.g. to enqueue for AVIF processing).
+     * @throws Error if this image has no id (e.g. not loaded from DB)
+     */
+    toImageDataEvent(): ImageDataEvent {
+        if (this.id === undefined || this.id === null || this.id === '') {
+            throw new Error('RopewikiImage must have an id to create ImageDataEvent');
+        }
+        return new ImageDataEvent(PageDataSource.Ropewiki, this.id, this.fileUrl);
     }
 
     /** Column keys for batch INSERT in order (excludes id, createdAt). Use with toDbRow() to build column arrays for unnest(). */

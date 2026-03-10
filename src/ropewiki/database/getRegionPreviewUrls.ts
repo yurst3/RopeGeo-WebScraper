@@ -1,10 +1,10 @@
 import * as db from 'zapatos/db';
 
-type Row = { region_id: string; fileUrl: string | null };
+type Row = { region_id: string; fileUrl: string | null; processedImage: string | null };
 
 /**
- * For each region id, returns the banner image fileUrl of that region's most popular page.
- * "Most popular" = max(quality * COALESCE(userVotes, 1)).
+ * For each region id, returns the processed preview.avif URL of that region's most popular page's banner image.
+ * Returns null when no image or no processed ImageData. "Most popular" = max(quality * COALESCE(userVotes, 1)).
  * A region's pages include pages in the region and all its descendant regions at every level
  * (e.g. Utah's most popular page may be in West Zion > Heaps Canyon, multiple levels deep).
  * parentRegionName is matched by descendant name (production) or by descendant id (some tests).
@@ -12,9 +12,9 @@ type Row = { region_id: string; fileUrl: string | null };
  *
  * @param conn - Database connection
  * @param regionIds - Region uuid strings
- * @returns Map from region id to fileUrl (or null if no page/image)
+ * @returns Map from region id to resolved preview URL (or null if no page/image)
  */
-const getRegionBannerUrls = async (
+const getRegionPreviewUrls = async (
     conn: db.Queryable,
     regionIds: string[],
 ): Promise<Map<string, string | null>> => {
@@ -55,15 +55,35 @@ const getRegionBannerUrls = async (
                   AND i."deletedAt" IS NULL
                 ORDER BY i."order" ASC NULLS LAST
                 LIMIT 1
-            ) AS "fileUrl"
+            ) AS "fileUrl",
+            (
+                SELECT i."processedImage"
+                FROM "RopewikiImage" i
+                WHERE i."ropewikiPage" = bp.page_id
+                  AND i."betaSection" IS NULL
+                  AND i."deletedAt" IS NULL
+                ORDER BY i."order" ASC NULLS LAST
+                LIMIT 1
+            ) AS "processedImage"
         FROM best_pages bp
     `.run(conn);
 
+    const processedImageIds = [...new Set(rows.map((r) => r.processedImage).filter((id): id is string => id != null))];
+    const imageDataRows = processedImageIds.length > 0
+        ? await db.select('ImageData', { id: db.conditions.isIn(processedImageIds) }, { columns: ['id', 'previewUrl', 'errorMessage'] }).run(conn)
+        : [];
+    const imageDataById = new Map(imageDataRows.map((r) => [r.id, r]));
+
     const map = new Map<string, string | null>();
     for (const r of rows) {
-        map.set(r.region_id, r.fileUrl ?? null);
+        const imageData = r.processedImage ? imageDataById.get(r.processedImage) : null;
+        const url =
+            imageData && imageData.errorMessage == null && imageData.previewUrl
+                ? imageData.previewUrl
+                : null;
+        map.set(r.region_id, url);
     }
     return map;
 };
 
-export default getRegionBannerUrls;
+export default getRegionPreviewUrls;

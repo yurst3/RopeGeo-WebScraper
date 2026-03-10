@@ -51,3 +51,7 @@ Resources:
         Sourcemap: true
         EntryPoints:
           - src/ropewiki/lambda-handlers/reprocessRoutesHandler.ts
+        External:
+          - sharp
+          - pdf-lib
+          - pdf-to-img

@@ -1,0 +1,70 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Lambda that processes images (download, convert to AVIF, upload to S3)
+
+Parameters:
+  ImagePublicBaseUrl:
+    Type: String
+    Description: 'Public base URL for processed images (e.g. https://cloudfront-domain/images). When set, stored URLs use this so traffic goes through CloudFront.'
+    Default: ''
+Resources:
+  ImageProcessor:
+    Type: 'AWS::Serverless::Function'
+    Properties:
+      Description: Processes images by downloading from source URL, converting to AVIF (preview/banner/full), and uploading to S3
+      Runtime: nodejs22.x
+      Architectures:
+        - arm64
+      CodeUri: ../../
+      Handler: src/image-data/lambda-handlers/mainHandler.mainHandler
+      Events:
+        SQSEvent:
+          Type: SQS
+          Properties:
+            Queue:
+              'Fn::GetAtt': ImageProcessorQueue.Arn
+            BatchSize: 10
+      MemorySize: 1024
+      Timeout: 900
+      VpcConfig:
+        SecurityGroupIds:
+          - Ref: LambdaSecurityGroup
+        SubnetIds:
+          - Ref: PrivateSubnet1
+      Role:
+        'Fn::GetAtt': ImageProcessorRole.Arn
+      Environment:
+        Variables:
+          DEV_ENVIRONMENT:
+            Ref: devEnvironment
+          PROXY_URL:
+            Ref: ProxyUrl
+          DB_HOST:
+            'Fn::If':
+              - UseDatabaseProxyInProd
+              - 'Fn::GetAtt': RDSProxy.Endpoint
+              - 'Fn::GetAtt': Database.Endpoint.Address
+          DB_PORT:
+            'Fn::GetAtt': Database.Endpoint.Port
+          USE_DATABASE_PROXY:
+            Ref: UseDatabaseProxy
+          DB_NAME:
+            'Fn::Sub': '${devEnvironment}db'
+          DB_USER:
+            Ref: DatabaseUsername
+          DB_PASSWORD:
+            Ref: DatabasePassword
+          IMAGE_PROCESSOR_QUEUE_URL:
+            Ref: ImageProcessorQueue
+          IMAGE_PROCESSOR_TIMEOUT_SECONDS: '900'
+          IMAGE_BUCKET_NAME:
+            Ref: ImageDataBucket
+          IMAGE_PUBLIC_BASE_URL:
+            Ref: ImagePublicBaseUrl
+    Metadata:
+      BuildMethod: esbuild
+      BuildProperties:
+        Minify: true
+        Target: esnext
+        Sourcemap: true
+        EntryPoints:
+          - src/image-data/lambda-handlers/mainHandler.ts

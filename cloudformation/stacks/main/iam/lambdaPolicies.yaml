@@ -82,6 +82,56 @@ Resources:
               - 'sqs:GetQueueAttributes'
             Resource:
               'Fn::GetAtt': MapDataProcessingQueue.Arn
+  S3ImageDataBucketPolicy:
+    Type: 'AWS::IAM::ManagedPolicy'
+    Properties:
+      ManagedPolicyName:
+        'Fn::Sub': '${AWS::StackName}-s3-imagedata-put'
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Action: 's3:ListBucket'
+            Resource:
+              'Fn::GetAtt': ImageDataBucket.Arn
+          - Effect: Allow
+            Action:
+              - 's3:PutObject'
+              - 's3:PutObjectAcl'
+            Resource:
+              'Fn::Sub': '${ImageDataBucket.Arn}/*'
+  SQSImageProcessorQueuePolicy:
+    Type: 'AWS::IAM::ManagedPolicy'
+    Properties:
+      ManagedPolicyName:
+        'Fn::Sub': '${AWS::StackName}-sqs-image-processor-queue-readwrite'
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Action:
+              - 'sqs:SendMessage'
+              - 'sqs:ReceiveMessage'
+              - 'sqs:ChangeMessageVisibility'
+              - 'sqs:DeleteMessage'
+              - 'sqs:GetQueueAttributes'
+            Resource:
+              'Fn::GetAtt': ImageProcessorQueue.Arn
+  SQSImageProcessorDLQPolicy:
+    Type: 'AWS::IAM::ManagedPolicy'
+    Properties:
+      ManagedPolicyName:
+        'Fn::Sub': '${AWS::StackName}-sqs-image-processor-dlq-receive-delete'
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Action:
+              - 'sqs:ReceiveMessage'
+              - 'sqs:DeleteMessage'
+              - 'sqs:GetQueueAttributes'
+            Resource:
+              'Fn::GetAtt': ImageProcessorDLQ.Arn
   CloudFrontInvalidationPolicy:
     Type: 'AWS::IAM::ManagedPolicy'
     Condition: HasCloudFrontDistribution

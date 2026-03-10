@@ -5,14 +5,14 @@ import { makeUnnestPart } from '../../helpers/makeUnnestPart';
 
 // Insert or update images for a page.
 // ON CONFLICT (ropewikiPage, betaSection, fileUrl) DO UPDATE SET ... WHERE allowUpdates = true.
-// Returns image IDs only for images that were actually inserted or updated (locked rows are not included), in input order.
+// Returns RopewikiImage instances (fromDbRow) for images that were actually inserted or updated, in input order.
 const upsertImages = async (
     tx: db.Queryable,
     pageUuid: string,
     images: RopewikiImage[],
     betaTitleIds: { [title: string]: string },
     latestRevisionDate: Date,
-): Promise<string[]> => {
+): Promise<RopewikiImage[]> => {
     if (images.length === 0) return [];
 
     const columns = RopewikiImage.getDbInsertColumns();
@@ -37,16 +37,16 @@ const upsertImages = async (
             "updatedAt" = EXCLUDED."updatedAt",
             "deletedAt" = EXCLUDED."deletedAt"
         WHERE "RopewikiImage"."allowUpdates" = true
-        RETURNING id, "ropewikiPage", "betaSection", "fileUrl"
+        RETURNING id, "ropewikiPage", "betaSection", "fileUrl", "linkUrl", "caption", "order", "processedImage"
     `.run(tx);
 
     const byKey = new Map(
         returned.map((row) => [
             key({ ropewikiPage: row.ropewikiPage, betaSection: row.betaSection ?? null, fileUrl: row.fileUrl }),
-            row.id,
+            row,
         ]),
     );
-    return rows.filter((r) => byKey.has(key(r))).map((r) => byKey.get(key(r))!);
+    return rows.filter((r) => byKey.has(key(r))).map((r) => RopewikiImage.fromDbRow(byKey.get(key(r))!));
 };
 
 export default upsertImages;

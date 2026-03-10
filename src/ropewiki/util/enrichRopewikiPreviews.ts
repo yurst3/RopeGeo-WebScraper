@@ -2,7 +2,7 @@ import type { GetRopewikiPagePreviewRow } from 'ropegeo-common';
 import { PageDataSource, PagePreview, RegionPreview } from 'ropegeo-common';
 import type * as db from 'zapatos/db';
 import getRopewikiRegionLineage from '../database/getRopewikiRegionLineage';
-import getRegionBannerUrls from '../database/getRegionBannerUrls';
+import getRegionPreviewUrls from '../database/getRegionPreviewUrls';
 
 export type RopewikiPreviewItem = { type: 'page' | 'region'; id: string };
 
@@ -58,9 +58,9 @@ export async function enrichRopewikiPreviews(
         if (row) regionIdsNeeded.add(row.regionId);
     }
 
-    const [lineageByRegionId, bannerByRegionId] = await Promise.all([
+    const [lineageByRegionId, previewsByRegionId] = await Promise.all([
         fetchLineageByRegionId(conn, [...regionIdsNeeded]),
-        getRegionBannerUrls(conn, regionIdsFromItems),
+        getRegionPreviewUrls(conn, regionIdsFromItems),
     ]);
 
     const results: (PagePreview | RegionPreview)[] = [];
@@ -79,7 +79,7 @@ export async function enrichRopewikiPreviews(
             if (!row) continue;
             const lineage = lineageByRegionId.get(item.id) ?? [];
             const parents = lineage.slice(1).map((r) => r.name);
-            const imageUrl = bannerByRegionId.get(item.id) ?? null;
+            const imageUrl = previewsByRegionId.get(item.id) ?? null;
             results.push(
                 new RegionPreview(
                     row.id,

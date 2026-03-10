@@ -29,7 +29,7 @@ PagePreview:
       type: string
       format: uri
       nullable: true
-      description: Banner image URL (e.g. first non–beta-section image for Ropewiki)
+      description: Banner image URL (e.g. first non–beta-section image for Ropewiki). When processed, may be API URL (e.g. .../images/{id}/banner.avif); otherwise source URL.
     rating:
       type: number
       format: float

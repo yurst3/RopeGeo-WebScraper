@@ -47,6 +47,10 @@ Resources:
         Sourcemap: true
         EntryPoints:
           - src/api/getRoutes/handler.ts
+        External:
+          - sharp
+          - pdf-lib
+          - pdf-to-img
 Outputs:
   GetRoutesLambdaArn:
     Description: ARN of the GetRoutes Lambda (for OpenAPI integration resolveYamlEnvs)

@@ -6,6 +6,8 @@ export type PageRow = GetRopewikiPagePreviewRow & {
     aka: string[];
 };
 
+type SqlRow = PageRow & { pageId: string; aka?: string[] };
+
 /**
  * Fetches full page preview rows (for PagePreview) for the given page ids.
  * When includeAka is false, filters by page name similarity so only pages matching the
@@ -21,7 +23,7 @@ async function getPageRowsByIds(
 ): Promise<Map<string, PageRow>> {
     if (pageIds.length === 0) return new Map();
     const filterByPageName = options?.includeAka !== true;
-    const rows = await db.sql<db.SQL, (PageRow & { pageId: string })[]>`
+    const rows = await db.sql<db.SQL, SqlRow[]>`
         SELECT
             p.id AS "pageId",
             p.name AS title,
@@ -34,8 +36,11 @@ async function getPageRowsByIds(
             p.region AS "regionId",
             r.name AS "regionName",
             (
-                SELECT i."fileUrl"
+                SELECT d."previewUrl"
                 FROM "RopewikiImage" i
+                INNER JOIN "ImageData" d ON d.id = i."processedImage"
+                    AND d."errorMessage" IS NULL
+                    AND d."previewUrl" IS NOT NULL
                 WHERE i."ropewikiPage" = p.id
                   AND i."betaSection" IS NULL
                   AND i."deletedAt" IS NULL
@@ -57,10 +62,12 @@ async function getPageRowsByIds(
           AND p.id = ANY(${db.param(pageIds)}::uuid[])
           ${filterByPageName ? db.sql`AND word_similarity(${db.param(name)}, p.name) > ${db.param(similarityThreshold)}` : db.sql``}
     `.run(conn);
+
     const map = new Map<string, PageRow>();
     for (const row of rows) {
         map.set(row.pageId, {
             ...row,
+            bannerFileUrl: row.bannerFileUrl ?? null,
             mapData: row.mapData ?? null,
             aka: row.aka ?? [],
         });

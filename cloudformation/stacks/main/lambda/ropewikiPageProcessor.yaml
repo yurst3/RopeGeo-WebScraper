@@ -53,6 +53,8 @@ Resources:
           ROPEWIKI_PAGE_PROCESSING_QUEUE_URL:
             Ref: RopewikiPageProcessingQueue
           ROPEWIKI_PAGE_PROCESSOR_TIMEOUT_SECONDS: '900'
+          IMAGE_PROCESSOR_QUEUE_URL:
+            Ref: ImageProcessorQueue
     Metadata:
       BuildMethod: esbuild
       BuildProperties:
@@ -63,3 +65,6 @@ Resources:
           - src/ropewiki/lambda-handlers/processPageHandler.ts
         External:
           - '@sparticuz/chromium'
+          - sharp
+          - pdf-lib
+          - pdf-to-img

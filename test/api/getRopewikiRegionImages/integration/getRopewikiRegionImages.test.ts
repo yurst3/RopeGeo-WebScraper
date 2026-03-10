@@ -162,8 +162,8 @@ describe('getRopewikiRegionImages (integration)', () => {
         const second = result.results[1]!;
         expect(first.pageName).toBe('ChildPage');
         expect(second.pageName).toBe('ParentPage');
-        expect(first.url).toBe('https://ropewiki.com/images/child-banner.jpg');
-        expect(second.url).toBe('https://ropewiki.com/images/parent-banner.jpg');
+        expect(first.url).toBe(null); // no ImageData in test DB
+        expect(second.url).toBe(null);
     });
 
     it('includes images from pages in nested (descendant) regions when querying by parent region', async () => {
@@ -188,7 +188,7 @@ describe('getRopewikiRegionImages (integration)', () => {
         expect(result.results.length).toBe(1);
         expect(result.results[0]!.pageId).toBe(pageInChildId);
         expect(result.results[0]!.pageName).toBe('ChildPage');
-        expect(result.results[0]!.url).toBe('https://ropewiki.com/images/child-banner.jpg');
+        expect(result.results[0]!.url).toBe(null); // no ImageData in test DB
     });
 
     it('cursor pagination returns all items with no duplicates or skips at page boundaries', async () => {

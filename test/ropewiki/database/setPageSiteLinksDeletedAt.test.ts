@@ -25,6 +25,7 @@ describe('setPageSiteLinksDeletedAt (integration)', () => {
         await db.sql`DELETE FROM "RopewikiPageSiteLink"`.run(conn);
         await db.sql`DELETE FROM "RopewikiSiteLink"`.run(conn);
         await db.sql`DELETE FROM "RopewikiRoute"`.run(conn);
+        await db.sql`DELETE FROM "RopewikiImage"`.run(conn);
         await db.sql`DELETE FROM "RopewikiPage"`.run(conn);
         await db.sql`DELETE FROM "RopewikiRegion"`.run(conn);
 
@@ -93,6 +94,7 @@ describe('setPageSiteLinksDeletedAt (integration)', () => {
         await db.sql`DELETE FROM "RopewikiPageSiteLink"`.run(conn);
         await db.sql`DELETE FROM "RopewikiSiteLink"`.run(conn);
         await db.sql`DELETE FROM "RopewikiRoute"`.run(conn);
+        await db.sql`DELETE FROM "RopewikiImage"`.run(conn);
         await db.sql`DELETE FROM "RopewikiPage"`.run(conn);
         await db.sql`DELETE FROM "RopewikiRegion"`.run(conn);
         await pool.end();

@@ -4,11 +4,13 @@ import getRopewikiPageHtml from "../http/getRopewikiPageHtml";
 import parseRopewikiPage from "../parsers/parseRopewikiPage";
 import upsertBetaSections from "../database/upsertBetaSections";
 import upsertImages from "../database/upsertImages";
+import filterImagesToProcess from "../database/filterImagesToProcess";
 import upsertSiteLinks from "../database/upsertSiteLinks";
 import setBetaSectionsDeletedAt from "../database/setBetaSectionsDeletedAt";
 import setImagesDeletedAt from "../database/setImagesDeletedAt";
 import setPageSiteLinksDeletedAt from "../database/setPageSiteLinksDeletedAt";
 import ProgressLogger from "../../helpers/progressLogger";
+import sendImageProcessorSQSMessage from "../../image-data/sqs/sendImageProcessorSQSMessage";
 
 import RopewikiPage from "../types/page";
 
@@ -54,8 +56,16 @@ const processPage = async (
 
         // Upsert the new beta sections, images, and site links
         const betaTitleIds = await upsertBetaSections(poolClient, page.id, beta, page.latestRevisionDate);
-        await upsertImages(poolClient, page.id, images, betaTitleIds, page.latestRevisionDate);
+        const upsertedImages = await upsertImages(poolClient, page.id, images, betaTitleIds, page.latestRevisionDate);
         await upsertSiteLinks(poolClient, page.id, page.betaSites);
+
+        // Enqueue images that need processing (no processedImage, or source URL changed)
+        if (upsertedImages.length > 0 && process.env.DEV_ENVIRONMENT !== 'local') {
+            const toProcess = await filterImagesToProcess(poolClient, upsertedImages);
+            for (const img of toProcess) {
+                await sendImageProcessorSQSMessage(img.toImageDataEvent());
+            }
+        }
 
         // Release the savepoint on success
         await poolClient.query(`RELEASE SAVEPOINT ${savepointName}`);

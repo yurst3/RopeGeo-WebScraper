@@ -21,9 +21,10 @@ describe('upsertRopewikiRoutes (integration)', () => {
     const latestRevisionDate = '2025-01-01T00:00:00' as db.TimestampString;
 
     beforeAll(async () => {
-        // Ensure tables exist and are empty
+        // Ensure tables exist and are empty (RopewikiImage references RopewikiPage)
         await db.sql`DELETE FROM "RopewikiRoute"`.run(conn);
         await db.sql`DELETE FROM "Route"`.run(conn);
+        await db.sql`DELETE FROM "RopewikiImage"`.run(conn);
         await db.sql`DELETE FROM "RopewikiPage"`.run(conn);
         await db.sql`DELETE FROM "RopewikiRegion"`.run(conn);
         await db.sql`DELETE FROM "MapData"`.run(conn);
@@ -52,6 +53,7 @@ describe('upsertRopewikiRoutes (integration)', () => {
         // Clean between tests
         await db.sql`DELETE FROM "RopewikiRoute"`.run(conn);
         await db.sql`DELETE FROM "Route"`.run(conn);
+        await db.sql`DELETE FROM "RopewikiImage"`.run(conn);
         await db.sql`DELETE FROM "RopewikiPage"`.run(conn);
         await db.sql`DELETE FROM "MapData"`.run(conn);
     });
@@ -59,6 +61,7 @@ describe('upsertRopewikiRoutes (integration)', () => {
     afterAll(async () => {
         await db.sql`DELETE FROM "RopewikiRoute"`.run(conn);
         await db.sql`DELETE FROM "Route"`.run(conn);
+        await db.sql`DELETE FROM "RopewikiImage"`.run(conn);
         await db.sql`DELETE FROM "RopewikiPage"`.run(conn);
         await db.sql`DELETE FROM "RopewikiRegion"`.run(conn);
         await db.sql`DELETE FROM "MapData"`.run(conn);

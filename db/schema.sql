@@ -1,4 +1,4 @@
-\restrict yoZHxclUKb7L4wzA3OZiuT335jhKVudrNdR2EnTL70oRLGI4FJIbhO266VkSnB5
+\restrict 0vKe0Ci8ISy0A6NDPCgSdClDjraQt98F6RrCgpzsX4ybtmVyzvRUapkY9vjYz87
 
 -- Dumped from database version 18.1 (Debian 18.1-1.pgdg13+2)
 -- Dumped by pg_dump version 18.1 (Homebrew)
@@ -32,6 +32,24 @@ COMMENT ON EXTENSION pg_trgm IS 'text similarity measurement and index searching
 SET default_tablespace = '';
 
 SET default_table_access_method = heap;
+
+--
+-- Name: ImageData; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public."ImageData" (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    "previewUrl" text,
+    "bannerUrl" text,
+    "fullUrl" text,
+    "sourceUrl" text,
+    "errorMessage" text,
+    "createdAt" timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    "updatedAt" timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    "deletedAt" timestamp without time zone,
+    "allowUpdates" boolean DEFAULT true NOT NULL
+);
+
 
 --
 -- Name: MapData; Type: TABLE; Schema: public; Owner: -
@@ -103,6 +121,7 @@ CREATE TABLE public."RopewikiImage" (
     "latestRevisionDate" timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
     "order" integer,
     "allowUpdates" boolean DEFAULT true NOT NULL,
+    "processedImage" uuid,
     CONSTRAINT "chk_ropewikiImage_order_null_only_when_deleted" CHECK ((("order" IS NOT NULL) OR ("deletedAt" IS NOT NULL)))
 );
 
@@ -248,6 +267,14 @@ CREATE TABLE public."Route" (
 CREATE TABLE public.schema_migrations (
     version character varying NOT NULL
 );
+
+
+--
+-- Name: ImageData ImageData_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public."ImageData"
+    ADD CONSTRAINT "ImageData_pkey" PRIMARY KEY (id);
 
 
 --
@@ -454,6 +481,14 @@ ALTER TABLE ONLY public."RopewikiImage"
 
 
 --
+-- Name: RopewikiImage fk_ropewikiImage_processedImage; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public."RopewikiImage"
+    ADD CONSTRAINT "fk_ropewikiImage_processedImage" FOREIGN KEY ("processedImage") REFERENCES public."ImageData"(id);
+
+
+--
 -- Name: RopewikiImage fk_ropewikiImage_ropewikiPage; Type: FK CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -521,7 +556,7 @@ ALTER TABLE ONLY public."RopewikiRoute"
 -- PostgreSQL database dump complete
 --
 
-\unrestrict yoZHxclUKb7L4wzA3OZiuT335jhKVudrNdR2EnTL70oRLGI4FJIbhO266VkSnB5
+\unrestrict 0vKe0Ci8ISy0A6NDPCgSdClDjraQt98F6RrCgpzsX4ybtmVyzvRUapkY9vjYz87
 
 
 --
@@ -555,4 +590,7 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20260304100000'),
     ('20260305120000'),
     ('20260306120000'),
-    ('20260306220246');
+    ('20260306220246'),
+    ('20260310120000'),
+    ('20260310120001'),
+    ('20260310120002');

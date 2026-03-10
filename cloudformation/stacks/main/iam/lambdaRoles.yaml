@@ -167,6 +167,39 @@ Resources:
             - Ref: RdsIamAuthPolicy
             - Ref: 'AWS::NoValue'
         - Ref: SQSRopewikiPageProcessingQueuePolicy
+        - Ref: SQSImageProcessorQueuePolicy
+  ImageProcessorRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: 'sts:AssumeRole'
+      ManagedPolicyArns:
+        - Ref: LambdaExecutionPolicy
+        - 'Fn::If':
+            - HasRdsDbiResourceId
+            - Ref: RdsIamAuthPolicy
+            - Ref: 'AWS::NoValue'
+        - Ref: S3ImageDataBucketPolicy
+        - Ref: SQSImageProcessorQueuePolicy
+  ImageProcessorDLQRequeueRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: 'sts:AssumeRole'
+      ManagedPolicyArns:
+        - Ref: LambdaExecutionPolicy
+        - Ref: SQSImageProcessorQueuePolicy
+        - Ref: SQSImageProcessorDLQPolicy
   RopewikiRouteReprocessorRole:
     Type: 'AWS::IAM::Role'
     Properties:
@@ -184,3 +217,20 @@ Resources:
             - Ref: RdsIamAuthPolicy
             - Ref: 'AWS::NoValue'
         - Ref: SQSMapDataProcessingQueuePolicy
+  ReprocessRopewikiImagesRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: 'sts:AssumeRole'
+      ManagedPolicyArns:
+        - Ref: LambdaExecutionPolicy
+        - 'Fn::If':
+            - HasRdsDbiResourceId
+            - Ref: RdsIamAuthPolicy
+            - Ref: 'AWS::NoValue'
+        - Ref: SQSImageProcessorQueuePolicy

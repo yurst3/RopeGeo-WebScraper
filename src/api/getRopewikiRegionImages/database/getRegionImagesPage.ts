@@ -61,7 +61,13 @@ export async function getRegionImagesPage(
         i.id,
         i."ropewikiPage",
         p.name AS "pageName",
-        i."fileUrl",
+        (
+          SELECT d."bannerUrl"
+          FROM "ImageData" d
+          WHERE d.id = i."processedImage"
+            AND d."errorMessage" IS NULL
+            AND d."bannerUrl" IS NOT NULL
+        ) AS "fileUrl",
         i."linkUrl",
         i.caption,
         (COALESCE(p.quality, 0) * COALESCE(p."userVotes", 1))::float AS sort_key

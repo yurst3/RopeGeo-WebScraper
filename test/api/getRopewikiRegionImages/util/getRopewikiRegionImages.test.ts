@@ -83,7 +83,7 @@ describe('getRopewikiRegionImages', () => {
         expect(view.id).toBe(imageId);
         expect(view.pageId).toBe(pageId);
         expect(view.pageName).toBe('Test Page');
-        expect(view.url).toBe('https://example.com/img.jpg');
+        expect(view.url).toBe('https://example.com/img.jpg'); // fileUrl comes from getRegionImagesPage (resolved banner URL)
         expect(view.externalLink).toBe('https://example.com/File:img.jpg');
         expect(result.nextCursor).toBeNull();
     });

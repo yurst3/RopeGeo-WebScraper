@@ -165,7 +165,7 @@ describe('getRopewikiPageView (integration)', () => {
 
         expect(result).not.toBeNull();
         expect(result!.bannerImage).not.toBeNull();
-        expect(result!.bannerImage!.url).toBe('https://ropewiki.com/images/thumb/banner.jpg');
+        expect(result!.bannerImage!.url).toBe(null); // no ImageData in test DB
         expect(result!.bannerImage!.linkUrl).toBe('https://ropewiki.com/File:banner.jpg');
         expect(result!.bannerImage!.order).toBe(0);
     });

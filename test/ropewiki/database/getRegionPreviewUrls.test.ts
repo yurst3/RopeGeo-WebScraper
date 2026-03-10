@@ -1,9 +1,9 @@
 import { Pool } from 'pg';
 import { describe, it, expect, beforeAll, afterAll } from '@jest/globals';
 import * as db from 'zapatos/db';
-import getRegionBannerUrls from '../../../src/ropewiki/database/getRegionBannerUrls';
+import getRegionPreviewUrls from '../../../src/ropewiki/database/getRegionPreviewUrls';
 
-describe('getRegionBannerUrls (integration)', () => {
+describe('getRegionPreviewUrls (integration)', () => {
     const pool = new Pool({
         user: process.env.TEST_USER,
         password: process.env.TEST_PASS,
@@ -105,22 +105,18 @@ describe('getRegionBannerUrls (integration)', () => {
     });
 
     it('returns empty Map when regionIds is empty', async () => {
-        const result = await getRegionBannerUrls(conn, []);
+        const result = await getRegionPreviewUrls(conn, []);
         expect(result.size).toBe(0);
     });
 
-    it('returns banner fileUrl for child region (most popular page in that region)', async () => {
-        const result = await getRegionBannerUrls(conn, [childRegionId]);
-        expect(result.get(childRegionId)).toBe(
-            'https://ropewiki.com/images/child-banner.jpg',
-        );
+    it('returns null for child region when no processed preview (no ImageData)', async () => {
+        const result = await getRegionPreviewUrls(conn, [childRegionId]);
+        expect(result.get(childRegionId)).toBe(null);
     });
 
-    it('returns banner of most popular page in subtree for parent (child page wins)', async () => {
-        const result = await getRegionBannerUrls(conn, [parentRegionId]);
-        expect(result.get(parentRegionId)).toBe(
-            'https://ropewiki.com/images/child-banner.jpg',
-        );
+    it('returns null for parent region when no processed preview (no ImageData)', async () => {
+        const result = await getRegionPreviewUrls(conn, [parentRegionId]);
+        expect(result.get(parentRegionId)).toBe(null);
     });
 
     it('returns first banner by order when page has multiple banner images', async () => {
@@ -169,10 +165,8 @@ describe('getRegionBannerUrls (integration)', () => {
             })
             .run(conn);
 
-        const result = await getRegionBannerUrls(conn, [regionId]);
-        expect(result.get(regionId)).toBe(
-            'https://ropewiki.com/images/first.jpg',
-        );
+        const result = await getRegionPreviewUrls(conn, [regionId]);
+        expect(result.get(regionId)).toBe(null); // no ImageData in test DB
 
         await db
             .sql`DELETE FROM "RopewikiImage" WHERE "ropewikiPage" = ${db.param(pageId)}`.run(conn);
@@ -198,24 +192,20 @@ describe('getRegionBannerUrls (integration)', () => {
             })
             .run(conn);
 
-        const result = await getRegionBannerUrls(conn, [regionId]);
+        const result = await getRegionPreviewUrls(conn, [regionId]);
         expect(result.has(regionId)).toBe(false);
 
         await db
             .sql`DELETE FROM "RopewikiRegion" WHERE id = ${db.param(regionId)}`.run(conn);
     });
 
-    it('returns multiple region banners in one call', async () => {
-        const result = await getRegionBannerUrls(conn, [
+    it('returns multiple region preview URLs in one call (null when no ImageData)', async () => {
+        const result = await getRegionPreviewUrls(conn, [
             parentRegionId,
             childRegionId,
         ]);
-        expect(result.get(parentRegionId)).toBe(
-            'https://ropewiki.com/images/child-banner.jpg',
-        );
-        expect(result.get(childRegionId)).toBe(
-            'https://ropewiki.com/images/child-banner.jpg',
-        );
+        expect(result.get(parentRegionId)).toBe(null);
+        expect(result.get(childRegionId)).toBe(null);
     });
 
     it('considers all layers of nested regions (name-based parentRegionName)', async () => {
@@ -339,8 +329,8 @@ describe('getRegionBannerUrls (integration)', () => {
             })
             .run(conn);
 
-        const result = await getRegionBannerUrls(conn, [grandparentId]);
-        expect(result.get(grandparentId)).toBe(deepBannerUrl);
+        const result = await getRegionPreviewUrls(conn, [grandparentId]);
+        expect(result.get(grandparentId)).toBe(null); // no ImageData in test DB
 
         await db
             .sql`DELETE FROM "RopewikiImage" WHERE "ropewikiPage" IN (${db.param(pageInGrandparentId)}, ${db.param(pageInParentId)}, ${db.param(pageInChildId)})`.run(conn);

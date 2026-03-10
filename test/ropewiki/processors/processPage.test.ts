@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, jest } from '@jest/globals';
+import { describe, it, expect, beforeEach, afterEach, jest } from '@jest/globals';
 import { Pool } from 'pg';
 import { nodeProcessPagesChunk as processPagesChunk } from '../../../src/ropewiki/hook-functions/processPagesChunk';
 import getRopewikiPageHtml from '../../../src/ropewiki/http/getRopewikiPageHtml';
@@ -88,8 +88,11 @@ describe('processPage', () => {
         );
     };
 
+    const originalDevEnv = process.env.DEV_ENVIRONMENT;
+
     beforeEach(() => {
         jest.clearAllMocks();
+        process.env.DEV_ENVIRONMENT = 'local'; // skip ImageProcessor enqueue in processPage
         // Create mock client (already in a transaction from processPagesForRegion)
         mockClient = {
             query: jest.fn<typeof mockClient.query>().mockResolvedValue({}),
@@ -102,6 +105,11 @@ describe('processPage', () => {
         };
 
         mockUpsertSiteLinks.mockResolvedValue(undefined);
+    });
+
+    afterEach(() => {
+        if (originalDevEnv !== undefined) process.env.DEV_ENVIRONMENT = originalDevEnv;
+        else delete process.env.DEV_ENVIRONMENT;
     });
 
     it('processes pages successfully', async () => {

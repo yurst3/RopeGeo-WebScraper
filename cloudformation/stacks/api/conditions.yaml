@@ -15,3 +15,8 @@ Conditions:
     'Fn::And':
       - Condition: HasCustomDomain
       - Condition: HasCertificate
+  HasImageDataBucket:
+    'Fn::Not':
+      - 'Fn::Equals':
+          - Ref: ImageDataBucketName
+          - ''

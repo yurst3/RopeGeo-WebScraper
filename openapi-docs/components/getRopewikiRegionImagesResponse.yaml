@@ -45,7 +45,7 @@ RopewikiRegionImageView:
     url:
       type: string
       format: uri
-      description: Image file URL
+      description: Image URL. When processed, may be API URL (e.g. .../images/{id}/banner.avif); otherwise source file URL.
     externalLink:
       type: string
       format: uri

@@ -1,0 +1,40 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: SQS queues for image processor (AVIF conversion)
+
+Resources:
+  ImageProcessorDLQ:
+    Type: 'AWS::SQS::Queue'
+    Properties:
+      QueueName:
+        'Fn::Sub': '${devEnvironment}-image-processor-dlq'
+      MessageRetentionPeriod: 1209600
+  ImageProcessorDLQPolicy:
+    Type: 'AWS::SQS::QueuePolicy'
+    Properties:
+      Queues:
+        - Ref: ImageProcessorDLQ
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: sqs.amazonaws.com
+            Action: 'sqs:SendMessage'
+            Resource:
+              'Fn::GetAtt': ImageProcessorDLQ.Arn
+            Condition:
+              ArnEquals:
+                'aws:SourceArn':
+                  'Fn::GetAtt': ImageProcessorQueue.Arn
+  ImageProcessorQueue:
+    Type: 'AWS::SQS::Queue'
+    Properties:
+      QueueName:
+        'Fn::Sub': '${devEnvironment}-image-processor-queue'
+      VisibilityTimeout: 960
+      MessageRetentionPeriod: 345600
+      ReceiveMessageWaitTimeSeconds: 5
+      RedrivePolicy:
+        deadLetterTargetArn:
+          'Fn::GetAtt': ImageProcessorDLQ.Arn
+        maxReceiveCount: 5

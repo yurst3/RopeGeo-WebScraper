@@ -23,6 +23,329 @@ declare module 'zapatos/schema' {
   /* --- tables --- */
 
   /**
+   * **ImageData**
+   * - Table in database
+   */
+  export namespace ImageData {
+    export type Table = 'ImageData';
+    export interface Selectable {
+      /**
+      * **ImageData.allowUpdates**
+      * - `bool` in database
+      * - `NOT NULL`, default: `true`
+      */
+      allowUpdates: boolean;
+      /**
+      * **ImageData.bannerUrl**
+      * - `text` in database
+      * - Nullable, no default
+      */
+      bannerUrl: string | null;
+      /**
+      * **ImageData.createdAt**
+      * - `timestamp` in database
+      * - `NOT NULL`, default: `CURRENT_TIMESTAMP`
+      */
+      createdAt: Date;
+      /**
+      * **ImageData.deletedAt**
+      * - `timestamp` in database
+      * - Nullable, no default
+      */
+      deletedAt: Date | null;
+      /**
+      * **ImageData.errorMessage**
+      * - `text` in database
+      * - Nullable, no default
+      */
+      errorMessage: string | null;
+      /**
+      * **ImageData.fullUrl**
+      * - `text` in database
+      * - Nullable, no default
+      */
+      fullUrl: string | null;
+      /**
+      * **ImageData.id**
+      * - `uuid` in database
+      * - `NOT NULL`, default: `gen_random_uuid()`
+      */
+      id: string;
+      /**
+      * **ImageData.previewUrl**
+      * - `text` in database
+      * - Nullable, no default
+      */
+      previewUrl: string | null;
+      /**
+      * **ImageData.sourceUrl**
+      * - `text` in database
+      * - Nullable, no default
+      */
+      sourceUrl: string | null;
+      /**
+      * **ImageData.updatedAt**
+      * - `timestamp` in database
+      * - `NOT NULL`, default: `CURRENT_TIMESTAMP`
+      */
+      updatedAt: Date;
+    }
+    export interface JSONSelectable {
+      /**
+      * **ImageData.allowUpdates**
+      * - `bool` in database
+      * - `NOT NULL`, default: `true`
+      */
+      allowUpdates: boolean;
+      /**
+      * **ImageData.bannerUrl**
+      * - `text` in database
+      * - Nullable, no default
+      */
+      bannerUrl: string | null;
+      /**
+      * **ImageData.createdAt**
+      * - `timestamp` in database
+      * - `NOT NULL`, default: `CURRENT_TIMESTAMP`
+      */
+      createdAt: db.TimestampString;
+      /**
+      * **ImageData.deletedAt**
+      * - `timestamp` in database
+      * - Nullable, no default
+      */
+      deletedAt: db.TimestampString | null;
+      /**
+      * **ImageData.errorMessage**
+      * - `text` in database
+      * - Nullable, no default
+      */
+      errorMessage: string | null;
+      /**
+      * **ImageData.fullUrl**
+      * - `text` in database
+      * - Nullable, no default
+      */
+      fullUrl: string | null;
+      /**
+      * **ImageData.id**
+      * - `uuid` in database
+      * - `NOT NULL`, default: `gen_random_uuid()`
+      */
+      id: string;
+      /**
+      * **ImageData.previewUrl**
+      * - `text` in database
+      * - Nullable, no default
+      */
+      previewUrl: string | null;
+      /**
+      * **ImageData.sourceUrl**
+      * - `text` in database
+      * - Nullable, no default
+      */
+      sourceUrl: string | null;
+      /**
+      * **ImageData.updatedAt**
+      * - `timestamp` in database
+      * - `NOT NULL`, default: `CURRENT_TIMESTAMP`
+      */
+      updatedAt: db.TimestampString;
+    }
+    export interface Whereable {
+      /**
+      * **ImageData.allowUpdates**
+      * - `bool` in database
+      * - `NOT NULL`, default: `true`
+      */
+      allowUpdates?: boolean | db.Parameter<boolean> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, boolean | db.Parameter<boolean> | db.SQLFragment | db.ParentColumn>;
+      /**
+      * **ImageData.bannerUrl**
+      * - `text` in database
+      * - Nullable, no default
+      */
+      bannerUrl?: string | db.Parameter<string> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, string | db.Parameter<string> | db.SQLFragment | db.ParentColumn>;
+      /**
+      * **ImageData.createdAt**
+      * - `timestamp` in database
+      * - `NOT NULL`, default: `CURRENT_TIMESTAMP`
+      */
+      createdAt?: (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.SQLFragment | db.ParentColumn>;
+      /**
+      * **ImageData.deletedAt**
+      * - `timestamp` in database
+      * - Nullable, no default
+      */
+      deletedAt?: (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.SQLFragment | db.ParentColumn>;
+      /**
+      * **ImageData.errorMessage**
+      * - `text` in database
+      * - Nullable, no default
+      */
+      errorMessage?: string | db.Parameter<string> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, string | db.Parameter<string> | db.SQLFragment | db.ParentColumn>;
+      /**
+      * **ImageData.fullUrl**
+      * - `text` in database
+      * - Nullable, no default
+      */
+      fullUrl?: string | db.Parameter<string> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, string | db.Parameter<string> | db.SQLFragment | db.ParentColumn>;
+      /**
+      * **ImageData.id**
+      * - `uuid` in database
+      * - `NOT NULL`, default: `gen_random_uuid()`
+      */
+      id?: string | db.Parameter<string> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, string | db.Parameter<string> | db.SQLFragment | db.ParentColumn>;
+      /**
+      * **ImageData.previewUrl**
+      * - `text` in database
+      * - Nullable, no default
+      */
+      previewUrl?: string | db.Parameter<string> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, string | db.Parameter<string> | db.SQLFragment | db.ParentColumn>;
+      /**
+      * **ImageData.sourceUrl**
+      * - `text` in database
+      * - Nullable, no default
+      */
+      sourceUrl?: string | db.Parameter<string> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, string | db.Parameter<string> | db.SQLFragment | db.ParentColumn>;
+      /**
+      * **ImageData.updatedAt**
+      * - `timestamp` in database
+      * - `NOT NULL`, default: `CURRENT_TIMESTAMP`
+      */
+      updatedAt?: (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.SQLFragment | db.ParentColumn>;
+    }
+    export interface Insertable {
+      /**
+      * **ImageData.allowUpdates**
+      * - `bool` in database
+      * - `NOT NULL`, default: `true`
+      */
+      allowUpdates?: boolean | db.Parameter<boolean> | db.DefaultType | db.SQLFragment;
+      /**
+      * **ImageData.bannerUrl**
+      * - `text` in database
+      * - Nullable, no default
+      */
+      bannerUrl?: string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment;
+      /**
+      * **ImageData.createdAt**
+      * - `timestamp` in database
+      * - `NOT NULL`, default: `CURRENT_TIMESTAMP`
+      */
+      createdAt?: (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.DefaultType | db.SQLFragment;
+      /**
+      * **ImageData.deletedAt**
+      * - `timestamp` in database
+      * - Nullable, no default
+      */
+      deletedAt?: (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | null | db.DefaultType | db.SQLFragment;
+      /**
+      * **ImageData.errorMessage**
+      * - `text` in database
+      * - Nullable, no default
+      */
+      errorMessage?: string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment;
+      /**
+      * **ImageData.fullUrl**
+      * - `text` in database
+      * - Nullable, no default
+      */
+      fullUrl?: string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment;
+      /**
+      * **ImageData.id**
+      * - `uuid` in database
+      * - `NOT NULL`, default: `gen_random_uuid()`
+      */
+      id?: string | db.Parameter<string> | db.DefaultType | db.SQLFragment;
+      /**
+      * **ImageData.previewUrl**
+      * - `text` in database
+      * - Nullable, no default
+      */
+      previewUrl?: string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment;
+      /**
+      * **ImageData.sourceUrl**
+      * - `text` in database
+      * - Nullable, no default
+      */
+      sourceUrl?: string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment;
+      /**
+      * **ImageData.updatedAt**
+      * - `timestamp` in database
+      * - `NOT NULL`, default: `CURRENT_TIMESTAMP`
+      */
+      updatedAt?: (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.DefaultType | db.SQLFragment;
+    }
+    export interface Updatable {
+      /**
+      * **ImageData.allowUpdates**
+      * - `bool` in database
+      * - `NOT NULL`, default: `true`
+      */
+      allowUpdates?: boolean | db.Parameter<boolean> | db.DefaultType | db.SQLFragment | db.SQLFragment<any, boolean | db.Parameter<boolean> | db.DefaultType | db.SQLFragment>;
+      /**
+      * **ImageData.bannerUrl**
+      * - `text` in database
+      * - Nullable, no default
+      */
+      bannerUrl?: string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment | db.SQLFragment<any, string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment>;
+      /**
+      * **ImageData.createdAt**
+      * - `timestamp` in database
+      * - `NOT NULL`, default: `CURRENT_TIMESTAMP`
+      */
+      createdAt?: (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.DefaultType | db.SQLFragment | db.SQLFragment<any, (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.DefaultType | db.SQLFragment>;
+      /**
+      * **ImageData.deletedAt**
+      * - `timestamp` in database
+      * - Nullable, no default
+      */
+      deletedAt?: (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | null | db.DefaultType | db.SQLFragment | db.SQLFragment<any, (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | null | db.DefaultType | db.SQLFragment>;
+      /**
+      * **ImageData.errorMessage**
+      * - `text` in database
+      * - Nullable, no default
+      */
+      errorMessage?: string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment | db.SQLFragment<any, string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment>;
+      /**
+      * **ImageData.fullUrl**
+      * - `text` in database
+      * - Nullable, no default
+      */
+      fullUrl?: string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment | db.SQLFragment<any, string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment>;
+      /**
+      * **ImageData.id**
+      * - `uuid` in database
+      * - `NOT NULL`, default: `gen_random_uuid()`
+      */
+      id?: string | db.Parameter<string> | db.DefaultType | db.SQLFragment | db.SQLFragment<any, string | db.Parameter<string> | db.DefaultType | db.SQLFragment>;
+      /**
+      * **ImageData.previewUrl**
+      * - `text` in database
+      * - Nullable, no default
+      */
+      previewUrl?: string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment | db.SQLFragment<any, string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment>;
+      /**
+      * **ImageData.sourceUrl**
+      * - `text` in database
+      * - Nullable, no default
+      */
+      sourceUrl?: string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment | db.SQLFragment<any, string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment>;
+      /**
+      * **ImageData.updatedAt**
+      * - `timestamp` in database
+      * - `NOT NULL`, default: `CURRENT_TIMESTAMP`
+      */
+      updatedAt?: (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.DefaultType | db.SQLFragment | db.SQLFragment<any, (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.DefaultType | db.SQLFragment>;
+    }
+    export type UniqueIndex = 'ImageData_pkey';
+    export type Column = keyof Selectable;
+    export type OnlyCols<T extends readonly Column[]> = Pick<Selectable, T[number]>;
+    export type SQLExpression = Table | db.ColumnNames<Updatable | (keyof Updatable)[]> | db.ColumnValues<Updatable> | Whereable | Column | db.ParentColumn | db.GenericSQLExpression;
+    export type SQL = SQLExpression | SQLExpression[];
+  }
+
+  /**
    * **MapData**
    * - Table in database
    */
@@ -999,6 +1322,12 @@ declare module 'zapatos/schema' {
       */
       order: number | null;
       /**
+      * **RopewikiImage.processedImage**
+      * - `uuid` in database
+      * - Nullable, no default
+      */
+      processedImage: string | null;
+      /**
       * **RopewikiImage.ropewikiPage**
       * - `uuid` in database
       * - `NOT NULL`, no default
@@ -1072,6 +1401,12 @@ declare module 'zapatos/schema' {
       * - Nullable, no default
       */
       order: number | null;
+      /**
+      * **RopewikiImage.processedImage**
+      * - `uuid` in database
+      * - Nullable, no default
+      */
+      processedImage: string | null;
       /**
       * **RopewikiImage.ropewikiPage**
       * - `uuid` in database
@@ -1147,6 +1482,12 @@ declare module 'zapatos/schema' {
       */
       order?: number | db.Parameter<number> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, number | db.Parameter<number> | db.SQLFragment | db.ParentColumn>;
       /**
+      * **RopewikiImage.processedImage**
+      * - `uuid` in database
+      * - Nullable, no default
+      */
+      processedImage?: string | db.Parameter<string> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, string | db.Parameter<string> | db.SQLFragment | db.ParentColumn>;
+      /**
       * **RopewikiImage.ropewikiPage**
       * - `uuid` in database
       * - `NOT NULL`, no default
@@ -1221,6 +1562,12 @@ declare module 'zapatos/schema' {
       */
       order?: number | db.Parameter<number> | null | db.DefaultType | db.SQLFragment;
       /**
+      * **RopewikiImage.processedImage**
+      * - `uuid` in database
+      * - Nullable, no default
+      */
+      processedImage?: string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment;
+      /**
       * **RopewikiImage.ropewikiPage**
       * - `uuid` in database
       * - `NOT NULL`, no default
@@ -1294,6 +1641,12 @@ declare module 'zapatos/schema' {
       * - Nullable, no default
       */
       order?: number | db.Parameter<number> | null | db.DefaultType | db.SQLFragment | db.SQLFragment<any, number | db.Parameter<number> | null | db.DefaultType | db.SQLFragment>;
+      /**
+      * **RopewikiImage.processedImage**
+      * - `uuid` in database
+      * - Nullable, no default
+      */
+      processedImage?: string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment | db.SQLFragment<any, string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment>;
       /**
       * **RopewikiImage.ropewikiPage**
       * - `uuid` in database
@@ -4088,20 +4441,20 @@ declare module 'zapatos/schema' {
   /* --- aggregate types --- */
 
   export namespace public {  
-    export type Table = MapData.Table | RopewikiAkaName.Table | RopewikiBetaSection.Table | RopewikiImage.Table | RopewikiPage.Table | RopewikiPageSiteLink.Table | RopewikiRegion.Table | RopewikiRoute.Table | RopewikiSiteLink.Table | Route.Table | schema_migrations.Table;
-    export type Selectable = MapData.Selectable | RopewikiAkaName.Selectable | RopewikiBetaSection.Selectable | RopewikiImage.Selectable | RopewikiPage.Selectable | RopewikiPageSiteLink.Selectable | RopewikiRegion.Selectable | RopewikiRoute.Selectable | RopewikiSiteLink.Selectable | Route.Selectable | schema_migrations.Selectable;
-    export type JSONSelectable = MapData.JSONSelectable | RopewikiAkaName.JSONSelectable | RopewikiBetaSection.JSONSelectable | RopewikiImage.JSONSelectable | RopewikiPage.JSONSelectable | RopewikiPageSiteLink.JSONSelectable | RopewikiRegion.JSONSelectable | RopewikiRoute.JSONSelectable | RopewikiSiteLink.JSONSelectable | Route.JSONSelectable | schema_migrations.JSONSelectable;
-    export type Whereable = MapData.Whereable | RopewikiAkaName.Whereable | RopewikiBetaSection.Whereable | RopewikiImage.Whereable | RopewikiPage.Whereable | RopewikiPageSiteLink.Whereable | RopewikiRegion.Whereable | RopewikiRoute.Whereable | RopewikiSiteLink.Whereable | Route.Whereable | schema_migrations.Whereable;
-    export type Insertable = MapData.Insertable | RopewikiAkaName.Insertable | RopewikiBetaSection.Insertable | RopewikiImage.Insertable | RopewikiPage.Insertable | RopewikiPageSiteLink.Insertable | RopewikiRegion.Insertable | RopewikiRoute.Insertable | RopewikiSiteLink.Insertable | Route.Insertable | schema_migrations.Insertable;
-    export type Updatable = MapData.Updatable | RopewikiAkaName.Updatable | RopewikiBetaSection.Updatable | RopewikiImage.Updatable | RopewikiPage.Updatable | RopewikiPageSiteLink.Updatable | RopewikiRegion.Updatable | RopewikiRoute.Updatable | RopewikiSiteLink.Updatable | Route.Updatable | schema_migrations.Updatable;
-    export type UniqueIndex = MapData.UniqueIndex | RopewikiAkaName.UniqueIndex | RopewikiBetaSection.UniqueIndex | RopewikiImage.UniqueIndex | RopewikiPage.UniqueIndex | RopewikiPageSiteLink.UniqueIndex | RopewikiRegion.UniqueIndex | RopewikiRoute.UniqueIndex | RopewikiSiteLink.UniqueIndex | Route.UniqueIndex | schema_migrations.UniqueIndex;
-    export type Column = MapData.Column | RopewikiAkaName.Column | RopewikiBetaSection.Column | RopewikiImage.Column | RopewikiPage.Column | RopewikiPageSiteLink.Column | RopewikiRegion.Column | RopewikiRoute.Column | RopewikiSiteLink.Column | Route.Column | schema_migrations.Column;
+    export type Table = ImageData.Table | MapData.Table | RopewikiAkaName.Table | RopewikiBetaSection.Table | RopewikiImage.Table | RopewikiPage.Table | RopewikiPageSiteLink.Table | RopewikiRegion.Table | RopewikiRoute.Table | RopewikiSiteLink.Table | Route.Table | schema_migrations.Table;
+    export type Selectable = ImageData.Selectable | MapData.Selectable | RopewikiAkaName.Selectable | RopewikiBetaSection.Selectable | RopewikiImage.Selectable | RopewikiPage.Selectable | RopewikiPageSiteLink.Selectable | RopewikiRegion.Selectable | RopewikiRoute.Selectable | RopewikiSiteLink.Selectable | Route.Selectable | schema_migrations.Selectable;
+    export type JSONSelectable = ImageData.JSONSelectable | MapData.JSONSelectable | RopewikiAkaName.JSONSelectable | RopewikiBetaSection.JSONSelectable | RopewikiImage.JSONSelectable | RopewikiPage.JSONSelectable | RopewikiPageSiteLink.JSONSelectable | RopewikiRegion.JSONSelectable | RopewikiRoute.JSONSelectable | RopewikiSiteLink.JSONSelectable | Route.JSONSelectable | schema_migrations.JSONSelectable;
+    export type Whereable = ImageData.Whereable | MapData.Whereable | RopewikiAkaName.Whereable | RopewikiBetaSection.Whereable | RopewikiImage.Whereable | RopewikiPage.Whereable | RopewikiPageSiteLink.Whereable | RopewikiRegion.Whereable | RopewikiRoute.Whereable | RopewikiSiteLink.Whereable | Route.Whereable | schema_migrations.Whereable;
+    export type Insertable = ImageData.Insertable | MapData.Insertable | RopewikiAkaName.Insertable | RopewikiBetaSection.Insertable | RopewikiImage.Insertable | RopewikiPage.Insertable | RopewikiPageSiteLink.Insertable | RopewikiRegion.Insertable | RopewikiRoute.Insertable | RopewikiSiteLink.Insertable | Route.Insertable | schema_migrations.Insertable;
+    export type Updatable = ImageData.Updatable | MapData.Updatable | RopewikiAkaName.Updatable | RopewikiBetaSection.Updatable | RopewikiImage.Updatable | RopewikiPage.Updatable | RopewikiPageSiteLink.Updatable | RopewikiRegion.Updatable | RopewikiRoute.Updatable | RopewikiSiteLink.Updatable | Route.Updatable | schema_migrations.Updatable;
+    export type UniqueIndex = ImageData.UniqueIndex | MapData.UniqueIndex | RopewikiAkaName.UniqueIndex | RopewikiBetaSection.UniqueIndex | RopewikiImage.UniqueIndex | RopewikiPage.UniqueIndex | RopewikiPageSiteLink.UniqueIndex | RopewikiRegion.UniqueIndex | RopewikiRoute.UniqueIndex | RopewikiSiteLink.UniqueIndex | Route.UniqueIndex | schema_migrations.UniqueIndex;
+    export type Column = ImageData.Column | MapData.Column | RopewikiAkaName.Column | RopewikiBetaSection.Column | RopewikiImage.Column | RopewikiPage.Column | RopewikiPageSiteLink.Column | RopewikiRegion.Column | RopewikiRoute.Column | RopewikiSiteLink.Column | Route.Column | schema_migrations.Column;
   
-    export type AllBaseTables = [MapData.Table, RopewikiAkaName.Table, RopewikiBetaSection.Table, RopewikiImage.Table, RopewikiPage.Table, RopewikiPageSiteLink.Table, RopewikiRegion.Table, RopewikiRoute.Table, RopewikiSiteLink.Table, Route.Table, schema_migrations.Table];
+    export type AllBaseTables = [ImageData.Table, MapData.Table, RopewikiAkaName.Table, RopewikiBetaSection.Table, RopewikiImage.Table, RopewikiPage.Table, RopewikiPageSiteLink.Table, RopewikiRegion.Table, RopewikiRoute.Table, RopewikiSiteLink.Table, Route.Table, schema_migrations.Table];
     export type AllForeignTables = [];
     export type AllViews = [];
     export type AllMaterializedViews = [];
-    export type AllTablesAndViews = [MapData.Table, RopewikiAkaName.Table, RopewikiBetaSection.Table, RopewikiImage.Table, RopewikiPage.Table, RopewikiPageSiteLink.Table, RopewikiRegion.Table, RopewikiRoute.Table, RopewikiSiteLink.Table, Route.Table, schema_migrations.Table];
+    export type AllTablesAndViews = [ImageData.Table, MapData.Table, RopewikiAkaName.Table, RopewikiBetaSection.Table, RopewikiImage.Table, RopewikiPage.Table, RopewikiPageSiteLink.Table, RopewikiRegion.Table, RopewikiRoute.Table, RopewikiSiteLink.Table, Route.Table, schema_migrations.Table];
   }
 
 
@@ -4129,6 +4482,7 @@ declare module 'zapatos/schema' {
   /* === lookups === */
 
   export type SelectableForTable<T extends Table> = {
+    "ImageData": ImageData.Selectable;
     "MapData": MapData.Selectable;
     "RopewikiAkaName": RopewikiAkaName.Selectable;
     "RopewikiBetaSection": RopewikiBetaSection.Selectable;
@@ -4143,6 +4497,7 @@ declare module 'zapatos/schema' {
   }[T];
 
   export type JSONSelectableForTable<T extends Table> = {
+    "ImageData": ImageData.JSONSelectable;
     "MapData": MapData.JSONSelectable;
     "RopewikiAkaName": RopewikiAkaName.JSONSelectable;
     "RopewikiBetaSection": RopewikiBetaSection.JSONSelectable;
@@ -4157,6 +4512,7 @@ declare module 'zapatos/schema' {
   }[T];
 
   export type WhereableForTable<T extends Table> = {
+    "ImageData": ImageData.Whereable;
     "MapData": MapData.Whereable;
     "RopewikiAkaName": RopewikiAkaName.Whereable;
     "RopewikiBetaSection": RopewikiBetaSection.Whereable;
@@ -4171,6 +4527,7 @@ declare module 'zapatos/schema' {
   }[T];
 
   export type InsertableForTable<T extends Table> = {
+    "ImageData": ImageData.Insertable;
     "MapData": MapData.Insertable;
     "RopewikiAkaName": RopewikiAkaName.Insertable;
     "RopewikiBetaSection": RopewikiBetaSection.Insertable;
@@ -4185,6 +4542,7 @@ declare module 'zapatos/schema' {
   }[T];
 
   export type UpdatableForTable<T extends Table> = {
+    "ImageData": ImageData.Updatable;
     "MapData": MapData.Updatable;
     "RopewikiAkaName": RopewikiAkaName.Updatable;
     "RopewikiBetaSection": RopewikiBetaSection.Updatable;
@@ -4199,6 +4557,7 @@ declare module 'zapatos/schema' {
   }[T];
 
   export type UniqueIndexForTable<T extends Table> = {
+    "ImageData": ImageData.UniqueIndex;
     "MapData": MapData.UniqueIndex;
     "RopewikiAkaName": RopewikiAkaName.UniqueIndex;
     "RopewikiBetaSection": RopewikiBetaSection.UniqueIndex;
@@ -4213,6 +4572,7 @@ declare module 'zapatos/schema' {
   }[T];
 
   export type ColumnForTable<T extends Table> = {
+    "ImageData": ImageData.Column;
     "MapData": MapData.Column;
     "RopewikiAkaName": RopewikiAkaName.Column;
     "RopewikiBetaSection": RopewikiBetaSection.Column;
@@ -4227,6 +4587,7 @@ declare module 'zapatos/schema' {
   }[T];
 
   export type SQLForTable<T extends Table> = {
+    "ImageData": ImageData.SQL;
     "MapData": MapData.SQL;
     "RopewikiAkaName": RopewikiAkaName.SQL;
     "RopewikiBetaSection": RopewikiBetaSection.SQL;

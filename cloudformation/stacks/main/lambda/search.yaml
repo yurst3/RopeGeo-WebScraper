@@ -47,6 +47,10 @@ Resources:
         Sourcemap: true
         EntryPoints:
           - src/api/search/handler.ts
+        External:
+          - sharp
+          - pdf-lib
+          - pdf-to-img
 Outputs:
   SearchLambdaArn:
     Description: ARN of the Search Lambda (for OpenAPI integration resolveYamlEnvs)

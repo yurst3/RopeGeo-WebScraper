@@ -214,7 +214,7 @@ describe('getRopewikiPagePreview (integration)', () => {
         const ropewikiRoute = new RopewikiRoute(routeId, pageId);
         const result = await getRopewikiPagePreview(conn, ropewikiRoute);
 
-        expect(result.imageUrl).toBe(bannerUrl);
+        expect(result.imageUrl).toBe(null); // no ImageData in test DB
         expect(result.permit).toBe('Restricted');
     });
 

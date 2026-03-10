@@ -103,12 +103,12 @@ describe('upsertImages (integration)', () => {
 
         const result = await upsertImages(conn, testPageUuid, images, betaTitleIds, latestRevisionDate);
 
-        // Verify all IDs were returned
+        // Verify RopewikiImage instances were returned with ids
         expect(result).toHaveLength(3);
-        expect(result.every(id => typeof id === 'string')).toBe(true);
-        expect(result.every(id => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id))).toBe(true);
+        expect(result.every(img => img instanceof RopewikiImage && img.id != null)).toBe(true);
+        expect(result.every(img => /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(img.id!))).toBe(true);
         // Verify all IDs are unique
-        expect(new Set(result).size).toBe(3);
+        expect(new Set(result.map(img => img.id)).size).toBe(3);
 
         const rows = await db
             .select('RopewikiImage', { ropewikiPage: testPageUuid })
@@ -120,9 +120,9 @@ describe('upsertImages (integration)', () => {
         const image3 = rows.find((r) => r.fileUrl === 'https://ropewiki.com/files/Image3.jpg') as s.RopewikiImage.JSONSelectable;
 
         // Verify returned IDs match database IDs
-        expect(result).toContain(image1.id);
-        expect(result).toContain(image2.id);
-        expect(result).toContain(image3.id);
+        expect(result.map((img) => img.id)).toContain(image1.id);
+        expect(result.map((img) => img.id)).toContain(image2.id);
+        expect(result.map((img) => img.id)).toContain(image3.id);
 
         expect(image1.betaSection).toBe(betaTitleIds.Introduction);
         expect(image1.linkUrl).toBe('https://ropewiki.com/Image1');
@@ -158,17 +158,17 @@ describe('upsertImages (integration)', () => {
 
         const initialResult = await upsertImages(conn, testPageUuid, initialImages, betaTitleIds, initialRevisionDate);
 
-        // Verify the initial insert returned IDs
+        // Verify the initial insert returned RopewikiImage instances with ids
         expect(initialResult).toHaveLength(2);
-        expect(initialResult.every(id => typeof id === 'string')).toBe(true);
+        expect(initialResult.every(img => img instanceof RopewikiImage && img.id != null)).toBe(true);
 
         // Verify the images were inserted
         const initialRows = await db
             .select('RopewikiImage', { ropewikiPage: testPageUuid })
             .run(conn);
         expect(initialRows).toHaveLength(2);
-        expect(initialResult).toContain(initialRows[0]?.id);
-        expect(initialResult).toContain(initialRows[1]?.id);
+        expect(initialResult.map(img => img.id)).toContain(initialRows[0]?.id);
+        expect(initialResult.map(img => img.id)).toContain(initialRows[1]?.id);
 
         // Now update the same images with new data
         const updatedImages: RopewikiImage[] = [
@@ -178,11 +178,11 @@ describe('upsertImages (integration)', () => {
 
         const updatedResult = await upsertImages(conn, testPageUuid, updatedImages, betaTitleIds, updatedRevisionDate);
 
-        // Verify the update returned IDs (should be the same IDs)
+        // Verify the update returned RopewikiImage instances (should be the same IDs)
         expect(updatedResult).toHaveLength(2);
-        expect(updatedResult.every(id => typeof id === 'string')).toBe(true);
+        expect(updatedResult.every(img => img instanceof RopewikiImage && img.id != null)).toBe(true);
         // The IDs should match the initial IDs since we're updating the same images
-        expect(updatedResult.sort()).toEqual(initialResult.sort());
+        expect(updatedResult.map(img => img.id).sort()).toEqual(initialResult.map(img => img.id).sort());
 
         // Verify the images were updated
         const updatedRows = await db
@@ -194,8 +194,8 @@ describe('upsertImages (integration)', () => {
         const image2 = updatedRows.find((r) => r.fileUrl === 'https://ropewiki.com/files/Image2.jpg') as s.RopewikiImage.JSONSelectable;
 
         // Verify returned IDs match database IDs
-        expect(updatedResult).toContain(image1.id);
-        expect(updatedResult).toContain(image2.id);
+        expect(updatedResult.map(img => img.id)).toContain(image1.id);
+        expect(updatedResult.map(img => img.id)).toContain(image2.id);
 
         expect(image1.betaSection).toBe(betaTitleIds.Introduction);
         expect(image1.linkUrl).toBe('https://ropewiki.com/Image1_Updated');

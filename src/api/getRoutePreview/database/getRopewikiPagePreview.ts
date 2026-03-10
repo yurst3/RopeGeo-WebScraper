@@ -6,9 +6,11 @@ import getRopewikiRegionLineage from '../../../ropewiki/database/getRopewikiRegi
 
 export type { GetRopewikiPagePreviewRow };
 
+type Row = GetRopewikiPagePreviewRow & { aka?: string[] };
+
 /**
  * Returns a single PagePreview for the given RopewikiRoute (uses its ropewikiPage id).
- * Banner image is the first image for the page that does not belong to a beta section.
+ * Image URL is the processed preview.avif when available, otherwise null.
  */
 const getRopewikiPagePreview = async (
     conn: db.Queryable,
@@ -16,7 +18,7 @@ const getRopewikiPagePreview = async (
 ): Promise<PagePreview> => {
     const pageId = ropewikiRoute.page;
 
-    const rows = await db.sql<db.SQL, GetRopewikiPagePreviewRow[]>`
+    const rows = await db.sql<db.SQL, Row[]>`
         SELECT
             p.id AS "pageId",
             p.name AS title,
@@ -31,8 +33,11 @@ const getRopewikiPagePreview = async (
             p.url,
             p.permits,
             (
-                SELECT i."fileUrl"
+                SELECT d."previewUrl"
                 FROM "RopewikiImage" i
+                INNER JOIN "ImageData" d ON d.id = i."processedImage"
+                    AND d."errorMessage" IS NULL
+                    AND d."previewUrl" IS NOT NULL
                 WHERE i."ropewikiPage" = p.id
                   AND i."betaSection" IS NULL
                   AND i."deletedAt" IS NULL
@@ -58,8 +63,13 @@ const getRopewikiPagePreview = async (
     const regionLineage = await getRopewikiRegionLineage(conn, row.regionId);
     const regions =
         regionLineage.length > 0 ? regionLineage.map((r) => r.name) : [row.regionName];
-    const aka = (row as GetRopewikiPagePreviewRow & { aka?: string[] }).aka ?? [];
-    return PagePreview.fromDbRow(row, ropewikiRoute.mapData ?? null, regions, aka);
+    const aka = row.aka ?? [];
+    return PagePreview.fromDbRow(
+        { ...row, bannerFileUrl: row.bannerFileUrl ?? null },
+        ropewikiRoute.mapData ?? null,
+        regions,
+        aka,
+    );
 };
 
 export default getRopewikiPagePreview;
