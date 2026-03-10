@@ -1,28 +1,11 @@
-import { readFile } from 'fs/promises';
 import { mkdir, writeFile } from 'fs/promises';
 import { join } from 'path';
 import { pathToFileURL } from 'url';
 import ImageData from '../types/imageData';
 import ProgressLogger from '../../helpers/progressLogger';
-import putS3Object from '../../helpers/s3/putS3Object';
+import uploadImageDataToS3, { buildImagePublicUrl } from '../s3/uploadImageDataToS3';
 
 const SAVED_IMAGE_DATA_DIR = '.savedImageData';
-
-const IMAGE_AVIF_CONTENT_TYPE = 'image/avif';
-
-/**
- * Builds the public API URL for an image object.
- * When IMAGE_PUBLIC_BASE_URL is set (e.g. CloudFront), returns base + "/images/" + key
- * so requests go through CloudFront /images/* behavior. Otherwise returns S3 URL.
- */
-const buildImagePublicUrl = (bucket: string, key: string): string => {
-    const base = process.env.IMAGE_PUBLIC_BASE_URL;
-    if (base) {
-        const normalized = base.replace(/\/$/, '');
-        return `${normalized}/images/${key}`;
-    }
-    return `https://${bucket}.s3.amazonaws.com/${key}`;
-};
 
 export type SaveImageDataHookFn = (
     imageDataId: string,
@@ -67,32 +50,14 @@ export const lambdaSaveImageData: SaveImageDataHookFn = async (
     const prefix = `${imageDataId}`;
     const uploadErrors: string[] = [];
 
-    const uploadOne = async (
-        key: string,
-        body: Buffer,
-    ): Promise<string> => {
-        try {
-            await putS3Object(bucket, key, body, IMAGE_AVIF_CONTENT_TYPE);
-            return buildImagePublicUrl(bucket, key);
-        } catch (error) {
-            const msg = error instanceof Error ? error.message : String(error);
-            uploadErrors.push(`${key}: ${msg}`);
-            throw error;
-        }
-    };
+    const [previewUrl, bannerUrl, fullUrl] = await Promise.all([
+        uploadImageDataToS3(`${prefix}/preview.avif`, previewBuffer, undefined, uploadErrors),
+        uploadImageDataToS3(`${prefix}/banner.avif`, bannerBuffer, undefined, uploadErrors),
+        uploadImageDataToS3(`${prefix}/full.avif`, fullBuffer, undefined, uploadErrors),
+    ]);
 
-    let previewUrl: string | undefined;
-    let bannerUrl: string | undefined;
-    let fullUrl: string | undefined;
-
-    try {
-        [previewUrl, bannerUrl, fullUrl] = await Promise.all([
-            uploadOne(`${prefix}/preview.avif`, previewBuffer),
-            uploadOne(`${prefix}/banner.avif`, bannerBuffer),
-            uploadOne(`${prefix}/full.avif`, fullBuffer),
-        ]);
-    } catch {
-        const errorMessage = uploadErrors.length ? uploadErrors.join('; ') : 'Upload failed';
+    if (uploadErrors.length > 0) {
+        const errorMessage = uploadErrors.join('; ');
         logger.logError(`Image data ${imageDataId}: ${errorMessage}`);
         return new ImageData(
             undefined,

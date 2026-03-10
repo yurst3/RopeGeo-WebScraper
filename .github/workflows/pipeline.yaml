@@ -130,7 +130,7 @@ jobs:
 
       # MapDataProcessor is arm64 and includes a native tippecanoe binary; it must be built in an arm64 container.
       - name: Build resources
-        run: sam build --template cloudformation/stacks/mergedMainTemplate.yaml --use-container --build-image public.ecr.aws/sam/build-nodejs22.x --build-image MapDataProcessor=public.ecr.aws/sam/build-nodejs22.x:latest-arm64
+        run: sam build --template cloudformation/stacks/mergedMainTemplate.yaml --use-container --build-image public.ecr.aws/sam/build-nodejs22.x --build-image MapDataProcessor=public.ecr.aws/sam/build-nodejs22.x:latest-arm64 --build-image ImageProcessor=public.ecr.aws/sam/build-nodejs22.x:latest-arm64
 
       - name: Assume the testing pipeline user role
         uses: aws-actions/configure-aws-credentials@v4

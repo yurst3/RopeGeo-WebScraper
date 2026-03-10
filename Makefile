@@ -55,3 +55,30 @@ build-MapDataProcessor:
 		echo "ERROR: tippecanoe not found. MapDataProcessor needs it for vector tile conversion. Install it (e.g. brew install tippecanoe) or ensure the build environment installs it from source."; \
 		exit 1; \
 	fi
+
+# ImageProcessor build: sharp has native bindings (linux-arm64) and cannot be bundled by esbuild.
+# We mark sharp as external, build the bundle, then copy node_modules/sharp and node_modules/@img
+# into the artifact so Lambda can load the correct platform binary at runtime.
+# IMPORTANT: This Lambda is arm64. When using --use-container, the build image for ImageProcessor
+# MUST be the arm64 variant (e.g. ...:latest-arm64), otherwise sharp loads the wrong binary and
+# you get "Could not load the sharp module using the linux-arm64 runtime" in production.
+build-ImageProcessor:
+	@echo "Installing npm dependencies for container architecture (sharp needs linux-arm64 in CI)..."
+	@npm ci
+
+	@echo "Building TypeScript code with esbuild (sharp as external)..."
+	@mkdir -p $(ARTIFACTS_DIR)/src/image-data/lambda-handlers
+	@npx esbuild src/image-data/lambda-handlers/mainHandler.ts \
+		--bundle \
+		--platform=node \
+		--target=esnext \
+		--outfile=$(ARTIFACTS_DIR)/src/image-data/lambda-handlers/mainHandler.js \
+		--minify \
+		--sourcemap \
+		--external:sharp
+
+	@echo "Copying sharp and platform binaries into artifact..."
+	@mkdir -p $(ARTIFACTS_DIR)/node_modules
+	@cp -r node_modules/sharp $(ARTIFACTS_DIR)/node_modules/
+	@if [ -d node_modules/@img ]; then cp -r node_modules/@img $(ARTIFACTS_DIR)/node_modules/; fi
+	@echo "ImageProcessor artifact ready (sharp excluded from bundle, copied as node_modules)."

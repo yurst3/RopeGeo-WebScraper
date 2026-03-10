@@ -4,8 +4,8 @@ Description: Lambda that processes images (download, convert to AVIF, upload to 
 Parameters:
   ImagePublicBaseUrl:
     Type: String
-    Description: 'Public base URL for processed images (e.g. https://cloudfront-domain/images). When set, stored URLs use this so traffic goes through CloudFront.'
-    Default: ''
+    Description: 'Public base URL for the API (e.g. https://api.webscraper.ropegeo.com). Stored image URLs are built as base + /images/ + key so traffic goes through CloudFront. Leave blank to use S3 URLs.'
+    Default: 'https://api.webscraper.ropegeo.com'
 Resources:
   ImageProcessor:
     Type: 'AWS::Serverless::Function'
@@ -61,10 +61,4 @@ Resources:
           IMAGE_PUBLIC_BASE_URL:
             Ref: ImagePublicBaseUrl
     Metadata:
-      BuildMethod: esbuild
-      BuildProperties:
-        Minify: true
-        Target: esnext
-        Sourcemap: true
-        EntryPoints:
-          - src/image-data/lambda-handlers/mainHandler.ts
+      BuildMethod: makefile
