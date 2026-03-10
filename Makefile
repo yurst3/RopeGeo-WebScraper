@@ -77,9 +77,10 @@ build-ImageProcessor:
 		--sourcemap \
 		--external:sharp
 
-	@echo "Copying sharp, detect-libc, and platform binaries into artifact..."
+	@echo "Copying sharp, detect-libc, semver, and platform binaries into artifact..."
 	@mkdir -p $(ARTIFACTS_DIR)/node_modules
 	@cp -r node_modules/sharp $(ARTIFACTS_DIR)/node_modules/
 	@if [ -d node_modules/detect-libc ]; then cp -r node_modules/detect-libc $(ARTIFACTS_DIR)/node_modules/; fi
+	@if [ -d node_modules/semver ]; then cp -r node_modules/semver $(ARTIFACTS_DIR)/node_modules/; fi
 	@if [ -d node_modules/@img ]; then cp -r node_modules/@img $(ARTIFACTS_DIR)/node_modules/; fi
 	@echo "ImageProcessor artifact ready (sharp excluded from bundle, copied as node_modules)."
