@@ -80,7 +80,7 @@ export async function getRegionImagesPage(
     filtered AS (
       SELECT id, "ropewikiPage", "pageName", "fileUrl", "linkUrl", caption, sort_key
       FROM images_with_score
-      WHERE 1=1
+      WHERE "fileUrl" IS NOT NULL
       ${cursorCondition}
     )
     SELECT id, "ropewikiPage", "pageName", "fileUrl", "linkUrl", caption, sort_key

@@ -25,6 +25,8 @@ describe('getRopewikiRegionImages (integration)', () => {
     const bannerImageChildId = 'e3000002-0002-4000-8000-000000000002';
     const nonBannerImageId = 'e3000003-0003-4000-8000-000000000003';
     const betaSectionId = 'e4000001-0001-4000-8000-000000000001';
+    const imageDataParentId = 'e4000002-0002-4000-8000-000000000002';
+    const imageDataChildId = 'e4000003-0003-4000-8000-000000000003';
 
     beforeAll(async () => {
         await db
@@ -35,6 +37,8 @@ describe('getRopewikiRegionImages (integration)', () => {
             .sql`DELETE FROM "RopewikiPage" WHERE id IN (${db.param(pageInParentId)}, ${db.param(pageInChildId)})`.run(conn);
         await db
             .sql`DELETE FROM "RopewikiRegion" WHERE id IN (${db.param(parentRegionId)}, ${db.param(childRegionId)})`.run(conn);
+        await db
+            .sql`DELETE FROM "ImageData" WHERE id IN (${db.param(imageDataParentId)}, ${db.param(imageDataChildId)})`.run(conn);
 
         await db
             .insert('RopewikiRegion', {
@@ -95,6 +99,18 @@ describe('getRopewikiRegionImages (integration)', () => {
             })
             .run(conn);
         await db
+            .insert('ImageData', {
+                id: imageDataParentId,
+                bannerUrl: 'https://api.example.com/images/parent-banner.avif',
+            })
+            .run(conn);
+        await db
+            .insert('ImageData', {
+                id: imageDataChildId,
+                bannerUrl: 'https://api.example.com/images/child-banner.avif',
+            })
+            .run(conn);
+        await db
             .insert('RopewikiImage', {
                 id: bannerImageParentId,
                 ropewikiPage: pageInParentId,
@@ -102,6 +118,7 @@ describe('getRopewikiRegionImages (integration)', () => {
                 linkUrl: 'https://ropewiki.com/File:parent-banner.jpg',
                 fileUrl: 'https://ropewiki.com/images/parent-banner.jpg',
                 order: 1,
+                processedImage: imageDataParentId,
             })
             .run(conn);
         await db
@@ -122,6 +139,7 @@ describe('getRopewikiRegionImages (integration)', () => {
                 linkUrl: 'https://ropewiki.com/File:child-banner.jpg',
                 fileUrl: 'https://ropewiki.com/images/child-banner.jpg',
                 order: 1,
+                processedImage: imageDataChildId,
             })
             .run(conn);
     });
@@ -135,6 +153,8 @@ describe('getRopewikiRegionImages (integration)', () => {
             .sql`DELETE FROM "RopewikiPage" WHERE id IN (${db.param(pageInParentId)}, ${db.param(pageInChildId)})`.run(conn);
         await db
             .sql`DELETE FROM "RopewikiRegion" WHERE id IN (${db.param(childRegionId)}, ${db.param(parentRegionId)})`.run(conn);
+        await db
+            .sql`DELETE FROM "ImageData" WHERE id IN (${db.param(imageDataParentId)}, ${db.param(imageDataChildId)})`.run(conn);
         await pool.end();
     });
 
@@ -162,8 +182,8 @@ describe('getRopewikiRegionImages (integration)', () => {
         const second = result.results[1]!;
         expect(first.pageName).toBe('ChildPage');
         expect(second.pageName).toBe('ParentPage');
-        expect(first.url).toBe(null); // no ImageData in test DB
-        expect(second.url).toBe(null);
+        expect(first.url).toBe('https://api.example.com/images/child-banner.avif');
+        expect(second.url).toBe('https://api.example.com/images/parent-banner.avif');
     });
 
     it('includes images from pages in nested (descendant) regions when querying by parent region', async () => {
@@ -188,7 +208,7 @@ describe('getRopewikiRegionImages (integration)', () => {
         expect(result.results.length).toBe(1);
         expect(result.results[0]!.pageId).toBe(pageInChildId);
         expect(result.results[0]!.pageName).toBe('ChildPage');
-        expect(result.results[0]!.url).toBe(null); // no ImageData in test DB
+        expect(result.results[0]!.url).toBe('https://api.example.com/images/child-banner.avif');
     });
 
     it('cursor pagination returns all items with no duplicates or skips at page boundaries', async () => {
@@ -200,6 +220,13 @@ describe('getRopewikiRegionImages (integration)', () => {
             'e5000003-0003-4000-8000-000000000003',
             'e5000003-0003-4000-8000-000000000004',
             'e5000003-0003-4000-8000-000000000005',
+        ] as const;
+        const paginationImageDataIds = [
+            'e5000004-0004-4000-8000-000000000001',
+            'e5000004-0004-4000-8000-000000000002',
+            'e5000004-0004-4000-8000-000000000003',
+            'e5000004-0004-4000-8000-000000000004',
+            'e5000004-0004-4000-8000-000000000005',
         ] as const;
 
         try {
@@ -229,6 +256,13 @@ describe('getRopewikiRegionImages (integration)', () => {
                 .run(conn);
             for (let i = 0; i < imageIds.length; i++) {
                 const imageId = imageIds[i]!;
+                const imageDataId = paginationImageDataIds[i]!;
+                await db
+                    .insert('ImageData', {
+                        id: imageDataId,
+                        bannerUrl: `https://api.example.com/images/pag-${i}-banner.avif`,
+                    })
+                    .run(conn);
                 await db
                     .insert('RopewikiImage', {
                         id: imageId,
@@ -237,6 +271,7 @@ describe('getRopewikiRegionImages (integration)', () => {
                         linkUrl: `https://ropewiki.com/File:pag-${i}.jpg`,
                         fileUrl: `https://ropewiki.com/images/pag-${i}.jpg`,
                         order: i,
+                        processedImage: imageDataId,
                     })
                     .run(conn);
             }
@@ -272,6 +307,8 @@ describe('getRopewikiRegionImages (integration)', () => {
         } finally {
             await db
                 .sql`DELETE FROM "RopewikiImage" WHERE id = ANY(${db.param(imageIds)}::uuid[])`.run(conn);
+            await db
+                .sql`DELETE FROM "ImageData" WHERE id = ANY(${db.param(paginationImageDataIds)}::uuid[])`.run(conn);
             await db
                 .sql`DELETE FROM "RopewikiPage" WHERE id = ${db.param(paginationPageId)}`.run(conn);
             await db

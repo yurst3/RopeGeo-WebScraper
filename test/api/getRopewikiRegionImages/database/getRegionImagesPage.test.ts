@@ -22,12 +22,14 @@ describe('getRegionImagesPage (integration)', () => {
         await db.sql`DELETE FROM "RopewikiImage"`.run(conn);
         await db.sql`DELETE FROM "RopewikiPage"`.run(conn);
         await db.sql`DELETE FROM "RopewikiRegion"`.run(conn);
+        await db.sql`DELETE FROM "ImageData"`.run(conn);
     });
 
     afterEach(async () => {
         await db.sql`DELETE FROM "RopewikiImage"`.run(conn);
         await db.sql`DELETE FROM "RopewikiPage"`.run(conn);
         await db.sql`DELETE FROM "RopewikiRegion"`.run(conn);
+        await db.sql`DELETE FROM "ImageData"`.run(conn);
     });
 
     afterAll(async () => {
@@ -40,6 +42,8 @@ describe('getRegionImagesPage (integration)', () => {
         const page2Id = 'd2000002-0002-4000-8000-000000000002';
         const image1Id = 'd3000001-0001-4000-8000-000000000001';
         const image2Id = 'd3000002-0002-4000-8000-000000000002';
+        const imageData1Id = 'd4000001-0001-4000-8000-000000000001';
+        const imageData2Id = 'd4000002-0002-4000-8000-000000000002';
 
         await db
             .insert('RopewikiRegion', {
@@ -78,6 +82,18 @@ describe('getRegionImagesPage (integration)', () => {
             })
             .run(conn);
         await db
+            .insert('ImageData', {
+                id: imageData1Id,
+                bannerUrl: 'https://api.example.com/images/img1-banner.avif',
+            })
+            .run(conn);
+        await db
+            .insert('ImageData', {
+                id: imageData2Id,
+                bannerUrl: 'https://api.example.com/images/img2-banner.avif',
+            })
+            .run(conn);
+        await db
             .insert('RopewikiImage', {
                 id: image1Id,
                 ropewikiPage: page1Id,
@@ -85,6 +101,7 @@ describe('getRegionImagesPage (integration)', () => {
                 linkUrl: 'https://ropewiki.com/File:img1.jpg',
                 fileUrl: 'https://ropewiki.com/images/img1.jpg',
                 order: 1,
+                processedImage: imageData1Id,
             })
             .run(conn);
         await db
@@ -95,6 +112,7 @@ describe('getRegionImagesPage (integration)', () => {
                 linkUrl: 'https://ropewiki.com/File:img2.jpg',
                 fileUrl: 'https://ropewiki.com/images/img2.jpg',
                 order: 1,
+                processedImage: imageData2Id,
             })
             .run(conn);
 
@@ -104,7 +122,7 @@ describe('getRegionImagesPage (integration)', () => {
 
         expect(items.length).toBe(2);
         expect(items.every((r) => r.id && r.ropewikiPage && r.pageName && r.linkUrl)).toBe(true);
-        // fileUrl may be null when no processed ImageData
+        expect(items.every((r) => r.fileUrl != null)).toBe(true);
         expect(Number(items[0]!.sort_key)).toBeGreaterThanOrEqual(Number(items[1]!.sort_key));
         expect(items[0]!.pageName).toBe('RegionImagesPage1');
         expect(items[1]!.pageName).toBe('RegionImagesPage2');
@@ -139,6 +157,13 @@ describe('getRegionImagesPage (integration)', () => {
             })
             .run(conn);
         for (let i = 0; i < 3; i++) {
+            const imageDataId = `d4000003-0003-4000-8000-00000000000${i + 1}`;
+            await db
+                .insert('ImageData', {
+                    id: imageDataId,
+                    bannerUrl: `https://api.example.com/images/limit-${i}-banner.avif`,
+                })
+                .run(conn);
             await db
                 .insert('RopewikiImage', {
                     ropewikiPage: pageId,
@@ -146,6 +171,7 @@ describe('getRegionImagesPage (integration)', () => {
                     linkUrl: `https://ropewiki.com/File:limit-${i}.jpg`,
                     fileUrl: `https://ropewiki.com/images/limit-${i}.jpg`,
                     order: i,
+                    processedImage: imageDataId,
                 })
                 .run(conn);
         }
@@ -154,7 +180,78 @@ describe('getRegionImagesPage (integration)', () => {
         const { items, hasMore } = await getRegionImagesPage(conn, [regionId], params);
 
         expect(items.length).toBe(2);
+        expect(items.every((r) => r.fileUrl != null)).toBe(true);
         expect(hasMore).toBe(true);
+    });
+
+    it('returns only items with non-null fileUrl (omits images without processed banner)', async () => {
+        const regionId = 'd1000004-0004-4000-8000-000000000004';
+        const pageId = 'd2000004-0004-4000-8000-000000000004';
+        const imageWithBannerId = 'd3000004-0004-4000-8000-000000000004';
+        const imageNoBannerId = 'd3000005-0005-4000-8000-000000000005';
+        const imageDataId = 'd4000004-0004-4000-8000-000000000004';
+
+        await db
+            .insert('RopewikiRegion', {
+                id: regionId,
+                parentRegionName: null,
+                name: 'RegionImagesNullFileUrl',
+                latestRevisionDate: '2025-01-01T00:00:00' as db.TimestampString,
+                rawPageCount: 0,
+                level: 0,
+                bestMonths: [],
+                url: 'https://ropewiki.com/RegionImagesNullFileUrl',
+            })
+            .run(conn);
+        await db
+            .insert('RopewikiPage', {
+                id: pageId,
+                pageId: 'region-images-null-page',
+                name: 'RegionImagesNullPage',
+                region: regionId,
+                url: 'https://ropewiki.com/RegionImagesNullPage',
+                latestRevisionDate: '2025-01-01T00:00:00' as db.TimestampString,
+                quality: 1,
+                userVotes: 1,
+            })
+            .run(conn);
+        await db
+            .insert('ImageData', {
+                id: imageDataId,
+                bannerUrl: 'https://api.example.com/images/with-banner.avif',
+            })
+            .run(conn);
+        await db
+            .insert('RopewikiImage', {
+                id: imageWithBannerId,
+                ropewikiPage: pageId,
+                betaSection: null,
+                linkUrl: 'https://ropewiki.com/File:with.jpg',
+                fileUrl: 'https://ropewiki.com/images/with.jpg',
+                order: 0,
+                processedImage: imageDataId,
+            })
+            .run(conn);
+        await db
+            .insert('RopewikiImage', {
+                id: imageNoBannerId,
+                ropewikiPage: pageId,
+                betaSection: null,
+                linkUrl: 'https://ropewiki.com/File:nobanner.jpg',
+                fileUrl: 'https://ropewiki.com/images/nobanner.jpg',
+                order: 1,
+                processedImage: null,
+            })
+            .run(conn);
+
+        const params = RopewikiRegionImagesParams.fromQueryStringParams({ limit: '10' });
+        const { items, hasMore } = await getRegionImagesPage(conn, [regionId], params);
+
+        expect(items.length).toBe(1);
+        expect(items.every((r) => r.fileUrl != null)).toBe(true);
+        expect(items[0]!.id).toBe(imageWithBannerId);
+        expect(items[0]!.fileUrl).toBe('https://api.example.com/images/with-banner.avif');
+        expect(hasMore).toBe(false);
     });
 
     it('cursorFromRow produces a RegionImagesCursor with sortKey, pageId, imageId', () => {
