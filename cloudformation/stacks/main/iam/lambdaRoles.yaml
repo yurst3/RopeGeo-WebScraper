@@ -186,7 +186,7 @@ Resources:
             - Ref: 'AWS::NoValue'
         - Ref: S3ImageDataBucketPolicy
         - Ref: SQSImageProcessorQueuePolicy
-  ImageProcessorDLQRequeueRole:
+  SqsDlqRedriveRole:
     Type: 'AWS::IAM::Role'
     Properties:
       AssumeRolePolicyDocument:
@@ -198,8 +198,7 @@ Resources:
             Action: 'sts:AssumeRole'
       ManagedPolicyArns:
         - Ref: LambdaExecutionPolicy
-        - Ref: SQSImageProcessorQueuePolicy
-        - Ref: SQSImageProcessorDLQPolicy
+        - Ref: SQSDlqRedrivePolicy
   RopewikiRouteReprocessorRole:
     Type: 'AWS::IAM::Role'
     Properties:

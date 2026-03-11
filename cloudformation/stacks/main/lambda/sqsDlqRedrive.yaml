@@ -1,0 +1,40 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Lambda that starts SQS DLQ message move tasks on a schedule (redrive to source queues)
+
+Resources:
+  SqsDlqRedrive:
+    Type: 'AWS::Serverless::Function'
+    Properties:
+      Description: Starts StartMessageMoveTask for all configured DLQs every 24h at noon UTC so messages redrive to source queues.
+      Runtime: nodejs22.x
+      Architectures:
+        - arm64
+      CodeUri: ../../
+      Handler: src/sqs-dlq-redrive/handler.handler
+      Events:
+        Schedule:
+          Type: Schedule
+          Properties:
+            Schedule: cron(0 12 * * ? *)
+            Enabled: true
+            Description: Start DLQ redrive for all DLQs daily at noon UTC
+      MemorySize: 256
+      Timeout: 60
+      Role:
+        'Fn::GetAtt': SqsDlqRedriveRole.Arn
+      Environment:
+        Variables:
+          SQS_DLQ_ARNS:
+            'Fn::Join':
+              - ','
+              - - 'Fn::GetAtt': ImageProcessorDLQ.Arn
+                - 'Fn::GetAtt': MapDataProcessingDLQ.Arn
+                - 'Fn::GetAtt': RopewikiPageProcessingDLQ.Arn
+    Metadata:
+      BuildMethod: esbuild
+      BuildProperties:
+        Minify: true
+        Target: esnext
+        Sourcemap: true
+        EntryPoints:
+          - src/sqs-dlq-redrive/handler.ts

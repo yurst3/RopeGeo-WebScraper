@@ -23,7 +23,7 @@ Resources:
             Queue:
               'Fn::GetAtt': ImageProcessorQueue.Arn
             BatchSize: 3
-      MemorySize: 1024
+      MemorySize: 3008
       Timeout: 900
       VpcConfig:
         SecurityGroupIds:

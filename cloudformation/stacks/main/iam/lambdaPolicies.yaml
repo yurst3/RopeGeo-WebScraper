@@ -117,21 +117,33 @@ Resources:
               - 'sqs:GetQueueAttributes'
             Resource:
               'Fn::GetAtt': ImageProcessorQueue.Arn
-  SQSImageProcessorDLQPolicy:
+  SQSDlqRedrivePolicy:
     Type: 'AWS::IAM::ManagedPolicy'
     Properties:
       ManagedPolicyName:
-        'Fn::Sub': '${AWS::StackName}-sqs-image-processor-dlq-receive-delete'
+        'Fn::Sub': '${AWS::StackName}-sqs-dlq-redrive'
       PolicyDocument:
         Version: '2012-10-17'
         Statement:
           - Effect: Allow
             Action:
+              - 'sqs:StartMessageMoveTask'
+              - 'sqs:CancelMessageMoveTask'
+              - 'sqs:ListMessageMoveTasks'
               - 'sqs:ReceiveMessage'
               - 'sqs:DeleteMessage'
               - 'sqs:GetQueueAttributes'
+              - 'sqs:ListDeadLetterSourceQueues'
             Resource:
-              'Fn::GetAtt': ImageProcessorDLQ.Arn
+              - 'Fn::GetAtt': ImageProcessorDLQ.Arn
+              - 'Fn::GetAtt': MapDataProcessingDLQ.Arn
+              - 'Fn::GetAtt': RopewikiPageProcessingDLQ.Arn
+          - Effect: Allow
+            Action: 'sqs:SendMessage'
+            Resource:
+              - 'Fn::GetAtt': ImageProcessorQueue.Arn
+              - 'Fn::GetAtt': MapDataProcessingQueue.Arn
+              - 'Fn::GetAtt': RopewikiPageProcessingQueue.Arn
   CloudFrontInvalidationPolicy:
     Type: 'AWS::IAM::ManagedPolicy'
     Condition: HasCloudFrontDistribution

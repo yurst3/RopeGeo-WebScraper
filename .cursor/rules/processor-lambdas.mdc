@@ -1,0 +1,41 @@
+---
+description: How to implement processor Lambdas (ImageProcessor, MapDataProcessor, RopewikiPageProcessor) that read from SQS, download data, process, and save.
+globs: src/**/lambda-handlers/*.ts, src/**/sqs/handle*.ts, src/**/main.ts, src/**/processors/*.ts, src/helpers/timeoutAfter.ts, cloudformation/stacks/main/sqs/*.yaml, cloudformation/stacks/main/lambda/sqsDlqRedrive.yaml
+alwaysApply: false
+---
+# Processor Lambdas
+
+Use this rule when adding or changing **processor** Lambdas: those that read from a processor queue (e.g. ImageProcessorQueue, MapDataProcessingQueue, RopewikiPageProcessingQueue), download data, run compute-intensive work, and save results.
+
+## 1. Queues and DLQ
+
+- **Processor queue**: One SQS queue per processor; Lambda is triggered by it (batch of messages).
+- **Dead-letter queue (DLQ)**: Attach a DLQ to the processor queue for messages that fail after max receives. The DLQ is for **transient** failures (e.g. HTTP timeouts, 403/500, temporary network errors), not **state** errors (invalid message body, or processing failure on already-downloaded data—those should be handled and the message deleted or failed explicitly).
+- **SqsDlqRedrive**: Add the processor’s DLQ to **SQS_DLQ_ARNS** in `cloudformation/stacks/main/lambda/sqsDlqRedrive.yaml` (in the `Fn::Join` list of DLQ ARNs) so the scheduled SqsDlqRedrive Lambda can move messages back to the source queue. Add the Lambda’s IAM policy to allow `StartMessageMoveTask` (and related) on the new DLQ and `SendMessage` on the processor queue if not already covered.
+
+## 2. Per-message timeout and Lambda remaining time
+
+- **Strict per-message timeout**: Allocate a fixed budget per message so the Lambda doesn’t time out (e.g. `processMessageTimeoutMs = Math.floor(lambdaTimeoutMs / totalRecords)`). Run each message’s work inside `timeoutAfter(processMessageTimeoutMs, (abortSignal) => ...)` from `src/helpers/timeoutAfter.ts`.
+- **Don’t start if insufficient time**: Before starting the next message, check `getRemainingTimeInMillis()`. If `totalRecords > 1` and `remainingMs < processMessageTimeoutMs`, **stop** starting new work (log and break). Unprocessed messages will become visible again and retry. Exception: when the batch has only one message, still attempt it (so the single message gets a chance to use remaining time).
+- **Visibility timeout**: At the start of the invocation, set each received message’s **visibility timeout** to the Lambda’s timeout (e.g. via `*_PROCESSOR_TIMEOUT_SECONDS` env). Use the shared helper (e.g. `changeSQSMessageVisibilityTimeout`) so messages don’t become visible again before the Lambda finishes.
+
+## 3. AbortSignal for cancellation
+
+- **Pass `abortSignal` from `timeoutAfter`** into the message-processing path so that when the per-message timeout fires, in-flight work can be cancelled.
+- **HTTP/download**: Use `abortSignal` in all download calls (e.g. `httpRequest(url, retryCount, abortSignal)`, and in any wrapper like `downloadSourceFile` / `downloadSourceImage`).
+- **Long-running CPU work**: For heavy work (e.g. image conversion with Sharp), either run it in a worker and terminate the worker on `abortSignal`, or periodically check `abortSignal.aborted` and throw so `timeoutAfter` can reject. Thread `abortSignal` from the handler → message loop → `main()` → `processMapData` / `processImageData` / `processPage` → download and conversion helpers.
+- **After timeout**: If the callback passed to `timeoutAfter` is still running when the timer fires, the AbortSignal aborts; the promise from `timeoutAfter` rejects. Do not delete the SQS message on timeout so it can retry or go to the DLQ.
+
+## 4. Error handling and message deletion
+
+- **Parse/validation errors** (e.g. invalid SQS body): Log, (optionally) delete message or send to a separate failure path so bad messages don’t spin in the DLQ.
+- **Transient errors** (download/HTTP failure, timeout): Log, **do not delete** the message so it becomes visible again for retry and eventually moves to the DLQ after max receives.
+- **Processing failure on valid data** (e.g. conversion fails on downloaded file): Handle according to product rules (e.g. save error state and delete message, or don’t delete for retry). Distinguish from transient so DLQ isn’t filled with non-retryable state errors.
+- **Success**: Delete the message from the processor queue after processing and any DB/save steps succeed.
+
+## 5. Reference implementations
+
+- **ImageProcessor**: `src/image-data/sqs/handleImageProcessorSQSMessages.ts`, `src/image-data/main.ts`, `src/image-data/util/convertToAvif.ts` (worker + abortSignal).
+- **MapDataProcessor**: `src/map-data/sqs/handleMapDataSQSMessages.ts`, `src/map-data/main.ts`, `src/map-data/processors/processMapData.ts`, `src/map-data/http/downloadSourceFile.ts` (abortSignal → `httpRequest`).
+- **RopewikiPageProcessor**: `src/ropewiki/sqs/handleProcessPageSQSMessages.ts`, `src/ropewiki/processors/processPage.ts`.
+- **Helper**: `src/helpers/timeoutAfter.ts`, `src/helpers/httpRequest.ts` (abortSignal support).
