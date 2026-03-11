@@ -77,6 +77,15 @@ build-ImageProcessor:
 		--sourcemap \
 		--external:sharp
 
+	@echo "Building convertToAvifWorker (sharp as external)..."
+	@mkdir -p $(ARTIFACTS_DIR)/src/image-data/util
+	@npx esbuild src/image-data/util/convertToAvifWorker.ts \
+		--bundle \
+		--platform=node \
+		--target=esnext \
+		--outfile=$(ARTIFACTS_DIR)/src/image-data/util/convertToAvifWorker.js \
+		--external:sharp
+
 	@echo "Copying sharp, detect-libc, semver, and platform binaries into artifact..."
 	@mkdir -p $(ARTIFACTS_DIR)/node_modules
 	@cp -r node_modules/sharp $(ARTIFACTS_DIR)/node_modules/

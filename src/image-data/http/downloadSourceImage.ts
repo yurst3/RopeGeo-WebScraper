@@ -9,14 +9,16 @@ import httpRequest from '../../helpers/httpRequest';
  * @param sourceImageUrl - URL of the image to download
  * @param tempDir - Temporary directory where the file should be saved
  * @param imageDataId - UUID for the image data (used for file name)
+ * @param abortSignal - Optional AbortSignal; when aborted, the request is cancelled
  * @returns Promise that resolves to the local file path
  */
 export async function downloadSourceImage(
     sourceImageUrl: string,
     tempDir: string,
     imageDataId: string,
+    abortSignal?: AbortSignal,
 ): Promise<string> {
-    const response = await httpRequest(sourceImageUrl);
+    const response = await httpRequest(sourceImageUrl, 5, abortSignal);
     const arrayBuffer = await response.arrayBuffer();
     const buffer = Buffer.from(arrayBuffer);
 

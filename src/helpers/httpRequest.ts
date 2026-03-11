@@ -55,8 +55,13 @@ const REQUEST_TIMEOUT_MS_NO_PROXY = 60_000;
  * Throws an Error with detailed message on non-OK response or failed request.
  * Retries on fetch errors or 5XX (except 502) / 403 responses up to retryCount times (default 5).
  * Every attempt has a request timeout so the Lambda does not hang (30s with proxy, 60s without).
+ * If abortSignal is provided and aborts, the request is cancelled and retries are not attempted.
  */
-export async function httpRequest(url: string | URL, retryCount = 5): Promise<Response> {
+export async function httpRequest(
+    url: string | URL,
+    retryCount = 5,
+    abortSignal?: AbortSignal,
+): Promise<Response> {
     const requestUrl = typeof url === 'string' ? url : url.toString();
     const dispatcher = shouldUseProxy() ? getProxyDispatcher() : undefined;
     const timeoutMs = dispatcher ? REQUEST_TIMEOUT_MS_PROXY : REQUEST_TIMEOUT_MS_NO_PROXY;
@@ -65,10 +70,21 @@ export async function httpRequest(url: string | URL, retryCount = 5): Promise<Re
     const maxAttempts = retryCount + 1;
 
     for (let attempt = 0; attempt < maxAttempts; attempt++) {
+        if (abortSignal?.aborted) {
+            const err = abortSignal.reason instanceof Error ? abortSignal.reason : new Error(String(abortSignal.reason));
+            throw new Error(`httpRequest aborted: requestUrl=${requestUrl} error=${err.message}`);
+        }
+
+        const timeoutSignal = AbortSignal.timeout(timeoutMs);
+        const requestSignal =
+            abortSignal != null
+                ? AbortSignal.any([abortSignal, timeoutSignal])
+                : timeoutSignal;
+
         const requestOptions = {
             headers: DEFAULT_HEADERS,
             ...(dispatcher ? { dispatcher } : {}),
-            signal: AbortSignal.timeout(timeoutMs),
+            signal: requestSignal,
         };
 
         let response: Response;
@@ -76,6 +92,9 @@ export async function httpRequest(url: string | URL, retryCount = 5): Promise<Re
             response = (await undiciFetch(requestUrl, requestOptions as Parameters<typeof undiciFetch>[1])) as Response;
         } catch (error) {
             lastError = new Error(`httpRequest failed: requestUrl=${requestUrl} error=${error}`);
+            if (abortSignal?.aborted) {
+                throw lastError;
+            }
             if (attempt < maxAttempts - 1) {
                 console.warn(
                     `httpRequest retry ${attempt + 1}/${retryCount}: fetch failed - ${error}`,
@@ -89,6 +108,9 @@ export async function httpRequest(url: string | URL, retryCount = 5): Promise<Re
             const message = await buildNonOkMessage(response, requestUrl);
             lastError = new Error(message);
             const isRetryableStatus = (response.status >= 500 && response.status !== 502) || response.status === 403;
+            if (abortSignal?.aborted) {
+                throw lastError;
+            }
             if (isRetryableStatus && attempt < maxAttempts - 1) {
                 console.warn(
                     `httpRequest retry ${attempt + 1}/${retryCount}: status ${response.status} ${response.statusText}`,

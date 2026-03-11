@@ -22,7 +22,7 @@ Resources:
           Properties:
             Queue:
               'Fn::GetAtt': ImageProcessorQueue.Arn
-            BatchSize: 10
+            BatchSize: 3
       MemorySize: 1024
       Timeout: 900
       VpcConfig:

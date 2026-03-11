@@ -47,8 +47,8 @@ const handleImageProcessorSQSMessages = async (
         }
 
         try {
-            await timeoutAfter(processMessageTimeoutMs, () =>
-                main(event!, lambdaSaveImageData, logger, client),
+            await timeoutAfter(processMessageTimeoutMs, (abortSignal) =>
+                main(event!, lambdaSaveImageData, logger, client, abortSignal),
             );
             await deleteImageProcessorSQSMessage(record.receiptHandle);
         } catch (error) {

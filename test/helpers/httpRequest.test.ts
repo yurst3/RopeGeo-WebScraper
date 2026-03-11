@@ -251,4 +251,63 @@ describe('httpRequest', () => {
     expect((err as Error).message).toContain('status=502');
     expect(mockFetch).toHaveBeenCalledTimes(1);
   });
+
+  describe('abortSignal', () => {
+    it('throws immediately without calling fetch when abortSignal is already aborted', async () => {
+      const controller = new AbortController();
+      controller.abort();
+
+      const err = await httpRequest('https://example.com/', 2, controller.signal).catch((e) => e);
+
+      expect(err).toBeInstanceOf(Error);
+      expect((err as Error).message).toContain('httpRequest aborted:');
+      expect((err as Error).message).toContain('requestUrl=https://example.com/');
+      expect(mockFetch).not.toHaveBeenCalled();
+    });
+
+    it('throws with abort reason when abortSignal is already aborted with reason', async () => {
+      const controller = new AbortController();
+      const reason = new Error('Cancelled by caller');
+      controller.abort(reason);
+
+      const err = await httpRequest('https://example.com/', 2, controller.signal).catch((e) => e);
+
+      expect(err).toBeInstanceOf(Error);
+      expect((err as Error).message).toContain('httpRequest aborted:');
+      expect((err as Error).message).toContain('Cancelled by caller');
+      expect(mockFetch).not.toHaveBeenCalled();
+    });
+
+    it('does not retry when abortSignal aborts after first attempt fails', async () => {
+      const controller = new AbortController();
+      mockFetch.mockImplementation(() => {
+        if (!controller.signal.aborted) {
+          queueMicrotask(() => controller.abort());
+        }
+        return Promise.reject(new Error('network failure'));
+      });
+
+      const err = await httpRequest('https://example.com/', 2, controller.signal).catch((e) => e);
+
+      expect(err).toBeInstanceOf(Error);
+      expect((err as Error).message).toContain('httpRequest failed:');
+      expect(mockFetch).toHaveBeenCalledTimes(1);
+    });
+
+    it('passes combined signal to fetch when abortSignal is provided', async () => {
+      const controller = new AbortController();
+      mockFetch.mockResolvedValue({
+        ok: true,
+        status: 200,
+        statusText: 'OK',
+      } as Response);
+
+      await httpRequest('https://example.com/', 5, controller.signal);
+
+      expect(mockFetch).toHaveBeenCalledTimes(1);
+      const init = mockFetch.mock.calls[0]![1] as RequestInit;
+      expect(init.signal).toBeDefined();
+      expect(init.signal).toBeInstanceOf(AbortSignal);
+    });
+  });
 });

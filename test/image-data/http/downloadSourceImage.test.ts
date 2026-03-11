@@ -36,10 +36,21 @@ describe('downloadSourceImage', () => {
 
         const path = await downloadSourceImage(sourceUrl, tempDir, imageDataId);
 
-        expect(mockHttpRequest).toHaveBeenCalledWith(sourceUrl);
+        expect(mockHttpRequest).toHaveBeenCalledWith(sourceUrl, 5, undefined);
         expect(path).toBe(join(tempDir, `${imageDataId}-source.png`));
         const content = await readFile(path);
         expect(content).toEqual(Buffer.from(body));
+    });
+
+    it('passes abortSignal through to httpRequest when provided', async () => {
+        const imageDataId = '22222222-2222-2222-2222-222222222222';
+        const sourceUrl = 'https://example.com/images/photo.png';
+        const abortSignal = new AbortController().signal;
+        mockHttpRequest.mockResolvedValue({ arrayBuffer: () => Promise.resolve(new ArrayBuffer(0)) });
+
+        await downloadSourceImage(sourceUrl, tempDir, imageDataId, abortSignal);
+
+        expect(mockHttpRequest).toHaveBeenCalledWith(sourceUrl, 5, abortSignal);
     });
 
     it('uses jpg as default extension when URL has no extension', async () => {
@@ -49,6 +60,7 @@ describe('downloadSourceImage', () => {
 
         const path = await downloadSourceImage(sourceUrl, tempDir, imageDataId);
 
+        expect(mockHttpRequest).toHaveBeenCalledWith(sourceUrl, 5, undefined);
         expect(path).toBe(join(tempDir, `${imageDataId}-source.jpg`));
     });
 
@@ -59,6 +71,7 @@ describe('downloadSourceImage', () => {
 
         const path = await downloadSourceImage(sourceUrl, tempDir, imageDataId);
 
+        expect(mockHttpRequest).toHaveBeenCalledWith(sourceUrl, 5, undefined);
         expect(path).toContain('-source.jpeg');
     });
 });

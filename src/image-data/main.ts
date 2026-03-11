@@ -16,19 +16,30 @@ import ProgressLogger from '../helpers/progressLogger';
  * @param saveImageDataHookFn - Hook to persist AVIF buffers and return ImageData
  * @param logger - Progress logger
  * @param client - Database client
+ * @param abortSignal - Optional AbortSignal; when aborted, the download is cancelled (e.g. on message timeout)
  */
 export const main = async (
     imageDataEvent: ImageDataEvent,
     saveImageDataHookFn: SaveImageDataHookFn,
     logger: ProgressLogger,
     client: PoolClient,
+    abortSignal?: AbortSignal,
 ): Promise<void> => {
     const imageData = await processImageData(
         imageDataEvent.source,
         saveImageDataHookFn,
         undefined,
         logger,
+        abortSignal,
     );
+
+    if (abortSignal?.aborted) {
+        const reason =
+            abortSignal.reason instanceof Error
+                ? abortSignal.reason
+                : new Error(String(abortSignal.reason));
+        throw reason;
+    }
 
     const upserted = await upsertImageData(client, imageData);
     const imageDataId = upserted.id;

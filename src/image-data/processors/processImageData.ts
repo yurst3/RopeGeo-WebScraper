@@ -23,6 +23,7 @@ import ProgressLogger from '../../helpers/progressLogger';
  * @param saveImageDataHookFn - Hook to persist AVIF buffers and return ImageData with URLs
  * @param imageDataId - Optional UUID for ImageData. If not provided, a new UUID is generated.
  * @param logger - Progress logger
+ * @param abortSignal - Optional AbortSignal; when aborted, the download is cancelled
  * @returns Promise that resolves to ImageData (with URLs or errorMessage)
  */
 export const processImageData = async (
@@ -30,6 +31,7 @@ export const processImageData = async (
     saveImageDataHookFn: SaveImageDataHookFn,
     imageDataId: string | null | undefined,
     logger: ProgressLogger,
+    abortSignal?: AbortSignal,
 ): Promise<ImageData> => {
     const tempDir = await mkdtemp(join(tmpdir(), 'image-data-'));
     const finalImageDataId = imageDataId ?? randomUUID();
@@ -39,6 +41,7 @@ export const processImageData = async (
             sourceImageUrl,
             tempDir,
             finalImageDataId,
+            abortSignal,
         );
 
         const sourceBuffer = await readFile(sourceFilePath);
@@ -61,7 +64,7 @@ export const processImageData = async (
             }
             try {
                 const firstPageBuffer = await renderPdfFirstPageToBuffer(sourceFilePath);
-                const outputs = await convertToAvif(firstPageBuffer);
+                const outputs = await convertToAvif(firstPageBuffer, abortSignal);
                 return await saveImageDataHookFn(
                     finalImageDataId,
                     sourceImageUrl,
@@ -94,7 +97,7 @@ export const processImageData = async (
         let fullBuffer: Buffer;
 
         try {
-            const outputs = await convertToAvif(sourceFilePath);
+            const outputs = await convertToAvif(sourceFilePath, abortSignal);
             previewBuffer = outputs.preview;
             bannerBuffer = outputs.banner;
             fullBuffer = outputs.full;
