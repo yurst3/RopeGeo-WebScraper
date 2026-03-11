@@ -108,6 +108,22 @@ describe('handleMapDataSQSMessages', () => {
         });
     });
 
+    it('calls main with abortSignal as fifth argument', async () => {
+        const record = createSqsRecord(createMapDataEventBody('route-1', 'page-1'), 'receipt-1');
+        mockLogger.getResults.mockReturnValue({
+            successes: 1,
+            errors: 0,
+            remaining: 0,
+        });
+
+        await handleMapDataSQSMessages([record], mockClient, LAMBDA_TIMEOUT_MS, () => LAMBDA_TIMEOUT_MS);
+
+        expect(mockMain).toHaveBeenCalledTimes(1);
+        const mainCallArgs = mockMain.mock.calls[0]!;
+        expect(mainCallArgs).toHaveLength(5);
+        expect(mainCallArgs[4]).toBeInstanceOf(AbortSignal);
+    });
+
     it('successfully processes multiple records', async () => {
         const records = [
             createSqsRecord(createMapDataEventBody('route-1', 'page-1'), 'receipt-1'),

@@ -17,6 +17,7 @@ import ProgressLogger from '../../helpers/progressLogger';
  * @param saveMapDataHookFn - Hook function to persist produced files and return URLs.
  * @param mapDataId - Optional UUID for the map data. If not provided, a new UUID will be generated.
  * @param logger - Progress logger for tracking processing progress
+ * @param abortSignal - Optional AbortSignal; when aborted, the download is cancelled
  * @returns Promise that resolves to a MapData object with S3 URLs
  */
 export const processMapData = async (
@@ -24,6 +25,7 @@ export const processMapData = async (
     saveMapDataHookFn: SaveMapDataHookFn,
     mapDataId: string | null | undefined,
     logger: ProgressLogger,
+    abortSignal?: AbortSignal,
 ): Promise<MapData> => {
     // Create temporary directory for processing
     const tempDir = await mkdtemp(join(tmpdir(), 'map-data-'));
@@ -53,7 +55,7 @@ export const processMapData = async (
         let errorMessage: string | undefined;
 
         // Step 1: Download source file
-        const { filePath: sourceFilePath, content: sourceFileContent } = await downloadSourceFile(sourceFileUrl, tempDir, finalMapDataId, isKml);
+        const { filePath: sourceFilePath, content: sourceFileContent } = await downloadSourceFile(sourceFileUrl, tempDir, finalMapDataId, isKml, abortSignal);
 
         // Step 2: Convert to GeoJSON
         let geoJsonFilePath: string | undefined;
@@ -67,6 +69,14 @@ export const processMapData = async (
             const { filePath, error } = await convertToVectorTiles(geoJsonFilePath, tempDir, finalMapDataId);
             vectorTileFilePath = filePath;
             errorMessage = error;
+        }
+
+        if (abortSignal?.aborted) {
+            const reason =
+                abortSignal.reason instanceof Error
+                    ? abortSignal.reason
+                    : new Error(String(abortSignal.reason));
+            throw reason;
         }
 
         // Save files via hook (Lambda uploads to S3; Node moves locally)

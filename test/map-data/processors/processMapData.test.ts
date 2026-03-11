@@ -87,7 +87,7 @@ describe('processMapData', () => {
         // Mock utility functions with successful responses
         // Use mockImplementation to construct file path based on isKml parameter
         mockDownloadSourceFile.mockImplementation(
-            async (sourceFileUrl: string, tempDir: string, mapDataId: string, isKml: boolean) => {
+            async (sourceFileUrl: string, tempDir: string, mapDataId: string, isKml: boolean, _abortSignal?: AbortSignal) => {
                 const fileExtension = isKml ? 'kml' : 'gpx';
                 const filePath = join(tempDir, `${mapDataId}.${fileExtension}`);
                 return {
@@ -226,7 +226,38 @@ describe('processMapData', () => {
                 mockTempDir,
                 mockMapDataId,
                 true, // isKml
+                undefined,
             );
+        });
+
+        it('passes abortSignal through to downloadSourceFile when provided', async () => {
+            const sourceFileUrl = 'https://example.com/test.kml';
+            const abortSignal = new AbortController().signal;
+
+            await processMapData(sourceFileUrl, mockSaveMapDataHookFn, undefined, mockLogger, abortSignal);
+
+            expect(mockDownloadSourceFile).toHaveBeenCalledWith(
+                sourceFileUrl,
+                mockTempDir,
+                mockMapDataId,
+                true,
+                abortSignal,
+            );
+        });
+
+        it('does not call saveMapDataHookFn when abortSignal is aborted after conversion steps', async () => {
+            const sourceFileUrl = 'https://example.com/test.kml';
+            const controller = new AbortController();
+            mockConvertToVectorTiles.mockImplementation(async () => {
+                controller.abort(new Error('Timed out'));
+                return { filePath: mockVectorTileFilePath, error: undefined };
+            });
+
+            await expect(
+                processMapData(sourceFileUrl, mockSaveMapDataHookFn, undefined, mockLogger, controller.signal),
+            ).rejects.toThrow('Timed out');
+
+            expect(mockSaveMapDataHookFn).not.toHaveBeenCalled();
         });
 
         it('calls convertToGeoJson with correct parameters', async () => {
@@ -305,6 +336,7 @@ describe('processMapData', () => {
                 mockTempDir,
                 mockMapDataId,
                 false, // isKml
+                undefined,
             );
             expect(mockConvertToGeoJson).toHaveBeenCalledWith(
                 mockSourceFileContent,

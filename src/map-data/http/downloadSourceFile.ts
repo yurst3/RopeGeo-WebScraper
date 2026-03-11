@@ -9,6 +9,7 @@ import httpRequest from '../../helpers/httpRequest';
  * @param tempDir - Temporary directory where the file should be saved
  * @param mapDataId - UUID for the map data
  * @param isKml - Whether the source file is KML (true) or GPX (false)
+ * @param abortSignal - Optional AbortSignal; when aborted, the request is cancelled
  * @returns Promise that resolves to an object with file path and content
  * @throws Error if the source file cannot be downloaded
  */
@@ -17,12 +18,13 @@ export async function downloadSourceFile(
     tempDir: string,
     mapDataId: string,
     isKml: boolean,
+    abortSignal?: AbortSignal,
 ): Promise<{ filePath: string; content: string }> {
     const fileExtension = isKml ? 'kml' : 'gpx';
     const sourceFileName = `${mapDataId}.${fileExtension}`;
     const sourceFilePath = join(tempDir, sourceFileName);
 
-    const sourceResponse = await httpRequest(sourceFileUrl);
+    const sourceResponse = await httpRequest(sourceFileUrl, 5, abortSignal);
     const sourceFileContent = await sourceResponse.text();
     await writeFile(sourceFilePath, sourceFileContent, 'utf-8');
     

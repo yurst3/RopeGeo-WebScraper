@@ -40,7 +40,7 @@ describe('downloadSourceFile', () => {
             content: mockSourceFileContent,
         });
         expect(mockHttpRequest).toHaveBeenCalledTimes(1);
-        expect(mockHttpRequest).toHaveBeenCalledWith(mockSourceFileUrl);
+        expect(mockHttpRequest).toHaveBeenCalledWith(mockSourceFileUrl, 5, undefined);
         expect(writeFile).toHaveBeenCalledTimes(1);
         expect(writeFile).toHaveBeenCalledWith(
             join(mockTempDir, `${mockMapDataId}.kml`),
@@ -63,7 +63,7 @@ describe('downloadSourceFile', () => {
             content: mockSourceFileContent,
         });
         expect(mockHttpRequest).toHaveBeenCalledTimes(1);
-        expect(mockHttpRequest).toHaveBeenCalledWith(mockSourceFileUrl);
+        expect(mockHttpRequest).toHaveBeenCalledWith(mockSourceFileUrl, 5, undefined);
         expect(writeFile).toHaveBeenCalledWith(
             join(mockTempDir, `${mockMapDataId}.gpx`),
             mockSourceFileContent,
@@ -122,6 +122,19 @@ describe('downloadSourceFile', () => {
         );
         expect(mockHttpRequest).toHaveBeenCalledTimes(1);
         expect(writeFile).not.toHaveBeenCalled();
+    });
+
+    it('passes abortSignal through to httpRequest when provided', async () => {
+        const abortSignal = new AbortController().signal;
+        mockHttpRequest.mockResolvedValue({
+            ok: true,
+            text: () => Promise.resolve(mockSourceFileContent),
+        } as unknown as Response);
+        (writeFile as jest.MockedFunction<typeof writeFile>).mockResolvedValue(undefined);
+
+        await downloadSourceFile(mockSourceFileUrl, mockTempDir, mockMapDataId, true, abortSignal);
+
+        expect(mockHttpRequest).toHaveBeenCalledWith(mockSourceFileUrl, 5, abortSignal);
     });
 
     it('throws error for non-Error thrown values', async () => {

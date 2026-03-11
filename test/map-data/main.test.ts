@@ -160,6 +160,7 @@ describe('main', () => {
             mockSaveMapDataHookFn,
             mapDataId,
             mockLogger,
+            undefined,
         );
         expect(mockUpsertMapData).toHaveBeenCalledWith(mockClient, processedMapData);
         expect(mockUpsertPageRoute).toHaveBeenCalledWith(
@@ -200,6 +201,7 @@ describe('main', () => {
             mockSaveMapDataHookFn,
             mapDataId,
             mockLogger,
+            undefined,
         );
     });
 
@@ -216,6 +218,7 @@ describe('main', () => {
             mockSaveMapDataHookFn,
             undefined,
             mockLogger,
+            undefined,
         );
     });
 
@@ -305,6 +308,63 @@ describe('main', () => {
         ).rejects.toThrow('Failed to upsert page route');
     });
 
+    it('calls processMapData with abortSignal when provided and not aborted', async () => {
+        const sourceFileUrl = 'https://example.com/file.kml';
+        const mapDataEvent = createMapDataEvent();
+        const upsertedMapData = new MapData(
+            undefined,
+            'https://s3.amazonaws.com/bucket/source/file.kml',
+            'https://s3.amazonaws.com/bucket/geojson/file.geojson',
+            'https://s3.amazonaws.com/bucket/vector-tiles/file.mbtiles',
+            'new-map-data-id',
+        );
+
+        mockGetSourceFileUrl.mockResolvedValue(sourceFileUrl);
+        mockUpsertMapData.mockResolvedValue(upsertedMapData);
+
+        const controller = new AbortController();
+        await main(mapDataEvent, mockSaveMapDataHookFn, mockLogger, mockClient, controller.signal);
+
+        expect(mockProcessMapData).toHaveBeenCalledWith(
+            sourceFileUrl,
+            mockSaveMapDataHookFn,
+            undefined,
+            mockLogger,
+            controller.signal,
+        );
+        expect(mockUpsertMapData).toHaveBeenCalled();
+        expect(mockUpsertPageRoute).toHaveBeenCalled();
+    });
+
+    it('calls upsertMapData and upsertPageRoute when abortSignal is aborted after processMapData returns', async () => {
+        const sourceFileUrl = 'https://example.com/file.kml';
+        const mapDataEvent = createMapDataEvent();
+        const controller = new AbortController();
+        const upsertedMapData = new MapData(
+            undefined,
+            'https://s3.amazonaws.com/bucket/source/file.kml',
+            'https://s3.amazonaws.com/bucket/geojson/file.geojson',
+            'https://s3.amazonaws.com/bucket/vector-tiles/file.mbtiles',
+            'new-map-data-id',
+        );
+        mockGetSourceFileUrl.mockResolvedValue(sourceFileUrl);
+        mockProcessMapData.mockImplementation(async () => {
+            controller.abort(new Error('Timed out'));
+            return new MapData(
+                undefined,
+                'https://s3.amazonaws.com/bucket/source/file.kml',
+                'https://s3.amazonaws.com/bucket/geojson/file.geojson',
+                'https://s3.amazonaws.com/bucket/vector-tiles/file.mbtiles',
+            );
+        });
+        mockUpsertMapData.mockResolvedValue(upsertedMapData);
+
+        await main(mapDataEvent, mockSaveMapDataHookFn, mockLogger, mockClient, controller.signal);
+
+        expect(mockUpsertMapData).toHaveBeenCalled();
+        expect(mockUpsertPageRoute).toHaveBeenCalled();
+    });
+
     it('handles case where MapDataEvent has no mapDataId', async () => {
         const mapDataEvent = createMapDataEvent(); // No mapDataId
         const sourceFileUrl = 'https://example.com/file.kml';
@@ -326,6 +386,7 @@ describe('main', () => {
             mockSaveMapDataHookFn,
             undefined,
             mockLogger,
+            undefined,
         );
         expect(mockUpsertPageRoute).toHaveBeenCalledWith(
             mockClient,

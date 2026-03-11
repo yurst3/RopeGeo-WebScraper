@@ -54,8 +54,8 @@ const handleMapDataSQSMessages = async (
         }
 
         try {
-            await timeoutAfter(processMessageTimeoutMs, () =>
-                main(mapDataEvent!, lambdaSaveMapData, logger, client),
+            await timeoutAfter(processMessageTimeoutMs, (abortSignal) =>
+                main(mapDataEvent!, lambdaSaveMapData, logger, client, abortSignal),
             );
             await deleteMapDataSQSMessage(record.receiptHandle);
         } catch (error) {
