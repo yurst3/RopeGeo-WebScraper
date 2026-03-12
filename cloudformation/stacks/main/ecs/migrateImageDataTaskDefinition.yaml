@@ -52,6 +52,9 @@ Resources:
             - Name: IMAGE_PUBLIC_BASE_URL
               Value:
                 Ref: ImagePublicBaseUrl
+            - Name: PROXY_URL
+              Value:
+                Ref: ProxyUrl
           LogConfiguration:
             LogDriver: awslogs
             Options:
