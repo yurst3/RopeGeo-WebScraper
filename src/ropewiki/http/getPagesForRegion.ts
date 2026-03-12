@@ -1,11 +1,13 @@
 import httpRequest from '../../helpers/httpRequest';
 import RopewikiPage from '../types/page';
 
+const RETRIES = 3;
+
 const encode = (input: string) => {
     return encodeURIComponent(input).replace(/%/g, '-');
 }
 
-const getRopewikiPageForRegion = async (
+const getPagesForRegion = async (
     region: string,
     offset: number,
     limit: number,
@@ -35,7 +37,7 @@ const getRopewikiPageForRegion = async (
         url.searchParams.append('limit', limit.toString());
         url.searchParams.append('offset', offset.toString());
 
-        const response = await httpRequest(url);
+        const response = await httpRequest(url, RETRIES);
         const body = await response.json();
 
         return Object.values(body.results).map((result: unknown) => RopewikiPage.fromResponseBody(result, regionNameIds));
@@ -44,4 +46,4 @@ const getRopewikiPageForRegion = async (
     }
 }
 
-export default getRopewikiPageForRegion;
+export default getPagesForRegion;

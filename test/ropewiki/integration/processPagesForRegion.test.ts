@@ -4,13 +4,13 @@ import { describe, it, expect, afterEach, beforeAll, afterAll, beforeEach, jest 
 import type { ProcessPagesChunkHookFn } from '../../../src/ropewiki/hook-functions/processPagesChunk';
 import RopewikiPage from '../../../src/ropewiki/types/page';
 
-jest.mock('../../../src/ropewiki/http/getRopewikiPageForRegion');
+jest.mock('../../../src/ropewiki/http/getPagesForRegion');
 
-import getRopewikiPageForRegion from '../../../src/ropewiki/http/getRopewikiPageForRegion';
+import getPagesForRegion from '../../../src/ropewiki/http/getPagesForRegion';
 import { getProcessPagesForRegionFn } from '../../../src/ropewiki/processors/processPagesForRegion';
 import upsertPages from '../../../src/ropewiki/database/upsertPages';
 
-const mockGetRopewikiPageForRegion = getRopewikiPageForRegion as jest.MockedFunction<typeof getRopewikiPageForRegion>;
+const mockGetPagesForRegion = getPagesForRegion as jest.MockedFunction<typeof getPagesForRegion>;
 
 describe('processPagesForRegion (integration)', () => {
     const pool = new Pool({
@@ -87,7 +87,7 @@ describe('processPagesForRegion (integration)', () => {
         );
     };
 
-    it('pages in the database not returned by getRopewikiPageForRegion remain deleted after run', async () => {
+    it('pages in the database not returned by getPagesForRegion remain deleted after run', async () => {
         const pageARevision = new Date('2025-01-01T00:00:00Z');
         const pageBRevision = new Date('2025-01-01T00:00:00Z');
 
@@ -112,7 +112,7 @@ describe('processPagesForRegion (integration)', () => {
             ])
             .run(conn);
 
-        mockGetRopewikiPageForRegion.mockResolvedValue([
+        mockGetPagesForRegion.mockResolvedValue([
             createValidPage('1002', 'Page B', pageBRevision),
         ]);
 
@@ -155,7 +155,7 @@ describe('processPagesForRegion (integration)', () => {
             )
             .run(conn);
 
-        mockGetRopewikiPageForRegion.mockResolvedValue([
+        mockGetPagesForRegion.mockResolvedValue([
             newPage,
             createValidPage('2002', 'Updated Page', updatedPageRevision),
             createValidPage('2003', 'Stale Page', stalePageRevision),

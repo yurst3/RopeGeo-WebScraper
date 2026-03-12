@@ -1,6 +1,6 @@
 import { Pool, PoolClient } from 'pg';
 import { Queryable } from "zapatos/db";
-import getRopewikiPageForRegion from "../http/getRopewikiPageForRegion";
+import getPagesForRegion from "../http/getPagesForRegion";
 import RopewikiPage from "../types/page";
 import updateLengthsForPages from "../util/updateLengthsForPages";
 import getUpdatedDatesForPages from "../database/getUpdatedDatesForPages";
@@ -11,8 +11,6 @@ import ProgressLogger from "../../helpers/progressLogger";
 import type { ProcessPagesChunkHookFn } from "../hook-functions/processPagesChunk";
 
 const CHUNK_SIZE = 2000; // DO NOT EXCEED 2000
-
-const isLambda = !!process.env.AWS_LAMBDA_FUNCTION_NAME || !!process.env.LAMBDA_TASK_ROOT;
 
 type ProcessPagesForRegionFn = (regionName: string, regionPageCount: number, regionNameIds: {[name: string]: string}) => Promise<RopewikiPage[]>;
 
@@ -74,7 +72,7 @@ export const getProcessPagesForRegionFn = (
         const client = await pool.connect();
 
         try {
-            if (!isLambda) await client.query('BEGIN');
+            await client.query('BEGIN');
 
             const regionUuid = regionNameIds[regionName];
             if (!regionUuid) {
@@ -89,7 +87,7 @@ export const getProcessPagesForRegionFn = (
             for (let offset = 0; offset < regionPageCount; offset += CHUNK_SIZE) {
                 console.log(`Getting pages ${offset + 1} to ${Math.min(offset + CHUNK_SIZE, regionPageCount)} in "${regionName}" (${regionPageCount} total pages)...`)
                 // Has a limit of 2000 pages per request
-                const pages: RopewikiPage[] = await getRopewikiPageForRegion(regionName, offset, CHUNK_SIZE, regionNameIds);
+                const pages: RopewikiPage[] = await getPagesForRegion(regionName, offset, CHUNK_SIZE, regionNameIds);
 
                 // We only want to store valid pages (must have a pageid, name, region, url, and latestRevisionDate)
                 const validPages: RopewikiPage[] = pages.filter(page => page.isValid);
@@ -120,11 +118,11 @@ export const getProcessPagesForRegionFn = (
                 }
             }
 
-            if (!isLambda) await client.query('COMMIT');
+            await client.query('COMMIT');
         } catch (error) {
-            if (!isLambda) await client.query('ROLLBACK');
+            await client.query('ROLLBACK');
             console.error(`Error processing region "${regionName}", transaction rolled back:`, error);
-            throw error;
+            return [];
         } finally {
             client.release();
         }

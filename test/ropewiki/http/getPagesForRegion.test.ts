@@ -1,7 +1,7 @@
 import { describe, it, expect, afterEach, jest } from '@jest/globals';
 import fs from 'fs';
 import path from 'path';
-import getRopewikiPageForRegion from '../../../src/ropewiki/http/getRopewikiPageForRegion';
+import getPagesForRegion from '../../../src/ropewiki/http/getPagesForRegion';
 import httpRequest from '../../../src/helpers/httpRequest';
 
 jest.mock('../../../src/helpers/httpRequest', () => ({
@@ -26,7 +26,7 @@ expectedResults.forEach((result: { region: string }) => {
 
 const mockHttpRequest = jest.mocked(httpRequest);
 
-describe('getRopewikiPageForRegion', () => {
+describe('getPagesForRegion', () => {
     afterEach(() => {
         mockHttpRequest.mockClear();
     });
@@ -42,7 +42,7 @@ describe('getRopewikiPageForRegion', () => {
             json: async () => responseFixture,
         } as Response);
 
-        const pageInfos = await getRopewikiPageForRegion(region, offset, limit, regionNameIds);
+        const pageInfos = await getPagesForRegion(region, offset, limit, regionNameIds);
 
         // Convert pageInfos to JSON-compatible format for comparison
         const reverseRegionMapping = Object.fromEntries(
@@ -70,7 +70,7 @@ describe('getRopewikiPageForRegion', () => {
             new Error('httpRequest non-OK: status=500 statusText=Internal Server Error')
         );
 
-        const err = await getRopewikiPageForRegion(region, offset, limit, {}).catch((e) => e);
+        const err = await getPagesForRegion(region, offset, limit, {}).catch((e) => e);
         expect(err).toBeInstanceOf(Error);
         expect((err as Error).message).toContain('Error getting pages info for region World offset 0 limit 10');
         expect((err as Error).message).toContain('500');
@@ -83,7 +83,7 @@ describe('getRopewikiPageForRegion', () => {
         const limit = 10;
         mockHttpRequest.mockRejectedValue(new Error('network failure'));
 
-        const err = await getRopewikiPageForRegion(region, offset, limit, {}).catch((e) => e);
+        const err = await getPagesForRegion(region, offset, limit, {}).catch((e) => e);
         expect(err).toBeInstanceOf(Error);
         expect((err as Error).message).toContain('Error getting pages info for region World offset 0 limit 10');
         expect((err as Error).message).toContain('network failure');
@@ -95,7 +95,7 @@ describe('getRopewikiPageForRegion', () => {
         const offset = 0;
         const limit = 2001;
 
-        await expect(getRopewikiPageForRegion(region, offset, limit, {})).rejects.toThrow(
+        await expect(getPagesForRegion(region, offset, limit, {})).rejects.toThrow(
             'Limit must be less than or equal to 2000, got 2001'
         );
     });
@@ -111,7 +111,7 @@ describe('getRopewikiPageForRegion', () => {
             json: async () => ({ results: {} }),
         } as Response);
 
-        await getRopewikiPageForRegion(region, offset, limit, {});
+        await getPagesForRegion(region, offset, limit, {});
 
         expect(mockHttpRequest).toHaveBeenCalledTimes(1);
     });
@@ -121,7 +121,7 @@ describe('getRopewikiPageForRegion', () => {
         const offset = 5001;
         const limit = 10;
 
-        await expect(getRopewikiPageForRegion(region, offset, limit, {})).rejects.toThrow(
+        await expect(getPagesForRegion(region, offset, limit, {})).rejects.toThrow(
             'Offset must be less than or equal to 5000, got 5001'
         );
     });
@@ -137,7 +137,7 @@ describe('getRopewikiPageForRegion', () => {
             json: async () => ({ results: {} }),
         } as Response);
 
-        await getRopewikiPageForRegion(region, offset, limit, {});
+        await getPagesForRegion(region, offset, limit, {});
 
         expect(mockHttpRequest).toHaveBeenCalledTimes(1);
     });
@@ -153,7 +153,7 @@ describe('getRopewikiPageForRegion', () => {
             json: async () => ({ results: {} }),
         } as Response);
 
-        await getRopewikiPageForRegion(region, offset, limit, {});
+        await getPagesForRegion(region, offset, limit, {});
 
         expect(mockHttpRequest).toHaveBeenCalledTimes(1);
     });
