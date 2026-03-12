@@ -2,6 +2,7 @@ import { mkdir, writeFile } from 'fs/promises';
 import { join } from 'path';
 import { pathToFileURL } from 'url';
 import ImageData from '../types/imageData';
+import type { Metadata } from '../types/metadata';
 import ProgressLogger from '../../helpers/progressLogger';
 import uploadImageDataToS3, { buildImagePublicUrl } from '../s3/uploadImageDataToS3';
 
@@ -13,11 +14,13 @@ export type SaveImageDataHookFn = (
     previewBuffer: Buffer,
     bannerBuffer: Buffer,
     fullBuffer: Buffer,
+    losslessBuffer: Buffer,
+    metadata: Metadata,
     logger: ProgressLogger,
 ) => Promise<ImageData>;
 
 /**
- * Lambda save hook: uploads preview, banner, and full AVIF to S3 and returns ImageData with API URLs.
+ * Lambda save hook: uploads preview, banner, full, and lossless AVIF to S3 and returns ImageData with API URLs.
  * When DEV_ENVIRONMENT is "local", skips S3 and returns ImageData with placeholder URLs.
  */
 export const lambdaSaveImageData: SaveImageDataHookFn = async (
@@ -26,6 +29,8 @@ export const lambdaSaveImageData: SaveImageDataHookFn = async (
     previewBuffer: Buffer,
     bannerBuffer: Buffer,
     fullBuffer: Buffer,
+    losslessBuffer: Buffer,
+    metadata: Metadata,
     logger: ProgressLogger,
 ): Promise<ImageData> => {
     const bucket = process.env.IMAGE_BUCKET_NAME;
@@ -41,19 +46,22 @@ export const lambdaSaveImageData: SaveImageDataHookFn = async (
             buildImagePublicUrl(bucket, `${prefix}/preview.avif`),
             buildImagePublicUrl(bucket, `${prefix}/banner.avif`),
             buildImagePublicUrl(bucket, `${prefix}/full.avif`),
+            buildImagePublicUrl(bucket, `${prefix}/lossless.avif`),
             sourceUrl,
             undefined,
             imageDataId,
+            metadata,
         );
     }
 
     const prefix = `${imageDataId}`;
     const uploadErrors: string[] = [];
 
-    const [previewUrl, bannerUrl, fullUrl] = await Promise.all([
+    const [previewUrl, bannerUrl, fullUrl, losslessUrl] = await Promise.all([
         uploadImageDataToS3(`${prefix}/preview.avif`, previewBuffer, undefined, uploadErrors),
         uploadImageDataToS3(`${prefix}/banner.avif`, bannerBuffer, undefined, uploadErrors),
         uploadImageDataToS3(`${prefix}/full.avif`, fullBuffer, undefined, uploadErrors),
+        uploadImageDataToS3(`${prefix}/lossless.avif`, losslessBuffer, undefined, uploadErrors),
     ]);
 
     if (uploadErrors.length > 0) {
@@ -63,18 +71,29 @@ export const lambdaSaveImageData: SaveImageDataHookFn = async (
             undefined,
             undefined,
             undefined,
+            undefined,
             sourceUrl,
             errorMessage,
             imageDataId,
+            metadata,
         );
     }
 
     logger.logProgress(`Image data ${imageDataId} uploaded successfully`);
-    return new ImageData(previewUrl, bannerUrl, fullUrl, sourceUrl, undefined, imageDataId);
+    return new ImageData(
+        previewUrl,
+        bannerUrl,
+        fullUrl,
+        losslessUrl,
+        sourceUrl,
+        undefined,
+        imageDataId,
+        metadata,
+    );
 };
 
 /**
- * Node save hook: writes preview, banner, and full AVIF to .savedImageData/<imageDataId>/ in the
+ * Node save hook: writes preview, banner, full, and lossless AVIF to .savedImageData/<imageDataId>/ in the
  * project root and returns ImageData with file:// URLs. For local testing of file processing.
  */
 export const nodeSaveImageData: SaveImageDataHookFn = async (
@@ -83,6 +102,8 @@ export const nodeSaveImageData: SaveImageDataHookFn = async (
     previewBuffer: Buffer,
     bannerBuffer: Buffer,
     fullBuffer: Buffer,
+    losslessBuffer: Buffer,
+    metadata: Metadata,
     logger: ProgressLogger,
 ): Promise<ImageData> => {
     const projectRoot = process.cwd();
@@ -92,6 +113,7 @@ export const nodeSaveImageData: SaveImageDataHookFn = async (
     const previewPath = join(dir, 'preview.avif');
     const bannerPath = join(dir, 'banner.avif');
     const fullPath = join(dir, 'full.avif');
+    const losslessPath = join(dir, 'lossless.avif');
 
     const writeErrors: string[] = [];
 
@@ -103,6 +125,7 @@ export const nodeSaveImageData: SaveImageDataHookFn = async (
     let previewUrl: string | undefined;
     let bannerUrl: string | undefined;
     let fullUrl: string | undefined;
+    let losslessUrl: string | undefined;
 
     try {
         previewUrl = await writeOne(previewPath, previewBuffer);
@@ -122,6 +145,12 @@ export const nodeSaveImageData: SaveImageDataHookFn = async (
         const msg = error instanceof Error ? error.message : String(error);
         writeErrors.push(`full.avif: ${msg}`);
     }
+    try {
+        losslessUrl = await writeOne(losslessPath, losslessBuffer);
+    } catch (error) {
+        const msg = error instanceof Error ? error.message : String(error);
+        writeErrors.push(`lossless.avif: ${msg}`);
+    }
 
     const errorMessage = writeErrors.length ? writeErrors.join('; ') : undefined;
     if (errorMessage) {
@@ -130,5 +159,14 @@ export const nodeSaveImageData: SaveImageDataHookFn = async (
         logger.logProgress(`Image data ${imageDataId} saved to ${dir}`);
     }
 
-    return new ImageData(previewUrl, bannerUrl, fullUrl, sourceUrl, errorMessage, imageDataId);
+    return new ImageData(
+        previewUrl,
+        bannerUrl,
+        fullUrl,
+        losslessUrl,
+        sourceUrl,
+        errorMessage,
+        imageDataId,
+        metadata,
+    );
 };

@@ -13,14 +13,16 @@ const upsertImageData = async (
     const row = imageData.toDbRow();
 
     const returned = await db.sql<db.SQL, (s.ImageData.JSONSelectable)[]>`
-        INSERT INTO "ImageData" ("id", "previewUrl", "bannerUrl", "fullUrl", "sourceUrl", "errorMessage", "updatedAt", "deletedAt")
+        INSERT INTO "ImageData" ("id", "previewUrl", "bannerUrl", "fullUrl", "losslessUrl", "sourceUrl", "errorMessage", "metadata", "updatedAt", "deletedAt")
         VALUES (
             COALESCE(${db.param(row.id)}::uuid, gen_random_uuid()),
             ${db.param(row.previewUrl)},
             ${db.param(row.bannerUrl)},
             ${db.param(row.fullUrl)},
+            ${db.param(row.losslessUrl)},
             ${db.param(row.sourceUrl)},
             ${db.param(row.errorMessage)},
+            ${db.param(row.metadata)}::jsonb,
             ${db.param(row.updatedAt)},
             ${db.param(row.deletedAt)}
         )
@@ -28,8 +30,10 @@ const upsertImageData = async (
             "previewUrl" = EXCLUDED."previewUrl",
             "bannerUrl" = EXCLUDED."bannerUrl",
             "fullUrl" = EXCLUDED."fullUrl",
+            "losslessUrl" = EXCLUDED."losslessUrl",
             "sourceUrl" = EXCLUDED."sourceUrl",
             "errorMessage" = EXCLUDED."errorMessage",
+            "metadata" = EXCLUDED."metadata",
             "updatedAt" = EXCLUDED."updatedAt"
         WHERE "ImageData"."allowUpdates" = true
         RETURNING *

@@ -51,6 +51,7 @@ describe('image-data main', () => {
             'https://example.com/preview.avif',
             'https://example.com/banner.avif',
             'https://example.com/full.avif',
+            'https://example.com/lossless.avif',
             event.source,
             undefined,
             undefined,
@@ -61,6 +62,7 @@ describe('image-data main', () => {
             imageData.previewUrl,
             imageData.bannerUrl,
             imageData.fullUrl,
+            imageData.losslessUrl,
             imageData.sourceUrl,
             undefined,
             '22222222-2222-2222-2222-222222222222',
@@ -91,10 +93,10 @@ describe('image-data main', () => {
     it('calls upsertImageData and updateProcessedImageForSource when abortSignal provided but not aborted', async () => {
         const controller = new AbortController();
         mockProcessImageData.mockResolvedValue(
-            new ImageData('p', 'b', 'f', event.source, undefined, 'img-id'),
+            new ImageData('p', 'b', 'f', 'l', event.source, undefined, 'img-id'),
         );
         mockUpsertImageData.mockResolvedValue(
-            new ImageData('p', 'b', 'f', event.source, undefined, 'img-id'),
+            new ImageData('p', 'b', 'f', 'l', event.source, undefined, 'img-id'),
         );
 
         await main(event, mockSaveImageDataHookFn, logger, mockClient, controller.signal);
@@ -107,7 +109,7 @@ describe('image-data main', () => {
         const controller = new AbortController();
         mockProcessImageData.mockImplementation(async () => {
             controller.abort(new Error('Timed out'));
-            return new ImageData('p', 'b', 'f', event.source, undefined, undefined);
+            return new ImageData('p', 'b', 'f', 'l', event.source, undefined, undefined);
         });
 
         await expect(
@@ -144,7 +146,7 @@ describe('image-data main', () => {
 
     it('throws when upsertImageData returns ImageData without id', async () => {
         mockUpsertImageData.mockResolvedValue(
-            new ImageData('p', 'b', 'f', event.source, undefined, undefined),
+            new ImageData('p', 'b', 'f', 'l', event.source, undefined, undefined),
         );
 
         await expect(

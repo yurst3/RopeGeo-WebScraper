@@ -32,6 +32,7 @@ describe('upsertImageData (integration)', () => {
             'https://example.com/preview.avif',
             'https://example.com/banner.avif',
             'https://example.com/full.avif',
+            'https://example.com/lossless.avif',
             'https://example.com/source.jpg',
         );
 
@@ -42,6 +43,7 @@ describe('upsertImageData (integration)', () => {
         expect(result.previewUrl).toBe('https://example.com/preview.avif');
         expect(result.bannerUrl).toBe('https://example.com/banner.avif');
         expect(result.fullUrl).toBe('https://example.com/full.avif');
+        expect(result.losslessUrl).toBe('https://example.com/lossless.avif');
         expect(result.sourceUrl).toBe('https://example.com/source.jpg');
         expect(result.errorMessage).toBeUndefined();
 
@@ -50,6 +52,8 @@ describe('upsertImageData (integration)', () => {
         const dbRow = await db.selectOne('ImageData', { id: resultId }).run(conn);
         expect(dbRow).toBeDefined();
         expect(dbRow!.previewUrl).toBe('https://example.com/preview.avif');
+        expect(dbRow!.fullUrl).toBe('https://example.com/full.avif');
+        expect(dbRow!.losslessUrl).toBe('https://example.com/lossless.avif');
         expect(dbRow!.sourceUrl).toBe('https://example.com/source.jpg');
     });
 
@@ -59,6 +63,7 @@ describe('upsertImageData (integration)', () => {
             'https://example.com/preview.avif',
             'https://example.com/banner.avif',
             'https://example.com/full.avif',
+            'https://example.com/lossless.avif',
             'https://example.com/source.jpg',
             undefined,
             imageDataId,
@@ -69,6 +74,7 @@ describe('upsertImageData (integration)', () => {
         expect(result).toBeInstanceOf(ImageData);
         expect(result.id).toBe(imageDataId);
         expect(result.previewUrl).toBe('https://example.com/preview.avif');
+        expect(result.losslessUrl).toBe('https://example.com/lossless.avif');
         expect(result.sourceUrl).toBe('https://example.com/source.jpg');
     });
 
@@ -78,6 +84,7 @@ describe('upsertImageData (integration)', () => {
             'https://example.com/old-preview.avif',
             'https://example.com/old-banner.avif',
             'https://example.com/old-full.avif',
+            'https://example.com/old-lossless.avif',
             'https://example.com/old-source.jpg',
             undefined,
             imageDataId,
@@ -90,6 +97,7 @@ describe('upsertImageData (integration)', () => {
             'https://example.com/new-preview.avif',
             'https://example.com/new-banner.avif',
             'https://example.com/new-full.avif',
+            'https://example.com/new-lossless.avif',
             'https://example.com/new-source.jpg',
             undefined,
             imageDataId,
@@ -100,10 +108,12 @@ describe('upsertImageData (integration)', () => {
         expect(result.previewUrl).toBe('https://example.com/new-preview.avif');
         expect(result.bannerUrl).toBe('https://example.com/new-banner.avif');
         expect(result.fullUrl).toBe('https://example.com/new-full.avif');
+        expect(result.losslessUrl).toBe('https://example.com/new-lossless.avif');
         expect(result.sourceUrl).toBe('https://example.com/new-source.jpg');
 
         const dbRow = await db.selectOne('ImageData', { id: imageDataId }).run(conn);
         expect(dbRow!.previewUrl).toBe('https://example.com/new-preview.avif');
+        expect(dbRow!.losslessUrl).toBe('https://example.com/new-lossless.avif');
         expect(dbRow!.sourceUrl).toBe('https://example.com/new-source.jpg');
     });
 
@@ -113,6 +123,7 @@ describe('upsertImageData (integration)', () => {
             'https://example.com/original-preview.avif',
             'https://example.com/original-banner.avif',
             'https://example.com/original-full.avif',
+            'https://example.com/original-lossless.avif',
             'https://example.com/original-source.jpg',
             undefined,
             imageDataId,
@@ -130,6 +141,7 @@ describe('upsertImageData (integration)', () => {
             'https://example.com/should-not-apply.avif',
             'https://example.com/should-not-apply.avif',
             'https://example.com/should-not-apply.avif',
+            'https://example.com/should-not-apply.avif',
             'https://example.com/should-not-apply.jpg',
             undefined,
             imageDataId,
@@ -138,6 +150,7 @@ describe('upsertImageData (integration)', () => {
 
         expect(result.id).toBe(imageDataId);
         expect(result.previewUrl).toBe('https://example.com/original-preview.avif');
+        expect(result.losslessUrl).toBe('https://example.com/original-lossless.avif');
         expect(result.sourceUrl).toBe('https://example.com/original-source.jpg');
         expect(warnSpy).toHaveBeenCalledWith(
             `ImageData row ${imageDataId} not updated: allowUpdates is false`,

@@ -1,4 +1,4 @@
-\restrict ngiJXajBI1zRneNOggb8nedkCTU5UTgXc8JjDsfMQbOwm9d5Uv6GSCeGwH74Qvc
+\restrict by0sGE9CC9f4BT7b9e7E7UmXjZBIuJMtzmRfSPyGuisPfhDE7fV5JCgZOl6LHnJ
 
 -- Dumped from database version 18.1 (Debian 18.1-1.pgdg13+2)
 -- Dumped by pg_dump version 18.1 (Homebrew)
@@ -41,13 +41,15 @@ CREATE TABLE public."ImageData" (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
     "previewUrl" text,
     "bannerUrl" text,
-    "fullUrl" text,
+    "losslessUrl" text,
     "sourceUrl" text,
     "errorMessage" text,
     "createdAt" timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
     "updatedAt" timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
     "deletedAt" timestamp without time zone,
-    "allowUpdates" boolean DEFAULT true NOT NULL
+    "allowUpdates" boolean DEFAULT true NOT NULL,
+    "fullUrl" text,
+    metadata jsonb
 );
 
 
@@ -556,7 +558,7 @@ ALTER TABLE ONLY public."RopewikiRoute"
 -- PostgreSQL database dump complete
 --
 
-\unrestrict ngiJXajBI1zRneNOggb8nedkCTU5UTgXc8JjDsfMQbOwm9d5Uv6GSCeGwH74Qvc
+\unrestrict by0sGE9CC9f4BT7b9e7E7UmXjZBIuJMtzmRfSPyGuisPfhDE7fV5JCgZOl6LHnJ
 
 
 --
@@ -594,4 +596,5 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20260310120000'),
     ('20260310120001'),
     ('20260310120002'),
-    ('20260311120000');
+    ('20260311120000'),
+    ('20260311140000');

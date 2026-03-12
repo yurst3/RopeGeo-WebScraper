@@ -72,6 +72,18 @@ declare module 'zapatos/schema' {
       */
       id: string;
       /**
+      * **ImageData.losslessUrl**
+      * - `text` in database
+      * - Nullable, no default
+      */
+      losslessUrl: string | null;
+      /**
+      * **ImageData.metadata**
+      * - `jsonb` in database
+      * - Nullable, no default
+      */
+      metadata: db.JSONValue | null;
+      /**
       * **ImageData.previewUrl**
       * - `text` in database
       * - Nullable, no default
@@ -133,6 +145,18 @@ declare module 'zapatos/schema' {
       * - `NOT NULL`, default: `gen_random_uuid()`
       */
       id: string;
+      /**
+      * **ImageData.losslessUrl**
+      * - `text` in database
+      * - Nullable, no default
+      */
+      losslessUrl: string | null;
+      /**
+      * **ImageData.metadata**
+      * - `jsonb` in database
+      * - Nullable, no default
+      */
+      metadata: db.JSONValue | null;
       /**
       * **ImageData.previewUrl**
       * - `text` in database
@@ -196,6 +220,18 @@ declare module 'zapatos/schema' {
       */
       id?: string | db.Parameter<string> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, string | db.Parameter<string> | db.SQLFragment | db.ParentColumn>;
       /**
+      * **ImageData.losslessUrl**
+      * - `text` in database
+      * - Nullable, no default
+      */
+      losslessUrl?: string | db.Parameter<string> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, string | db.Parameter<string> | db.SQLFragment | db.ParentColumn>;
+      /**
+      * **ImageData.metadata**
+      * - `jsonb` in database
+      * - Nullable, no default
+      */
+      metadata?: db.JSONValue | db.Parameter<db.JSONValue> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, db.JSONValue | db.Parameter<db.JSONValue> | db.SQLFragment | db.ParentColumn>;
+      /**
       * **ImageData.previewUrl**
       * - `text` in database
       * - Nullable, no default
@@ -258,6 +294,18 @@ declare module 'zapatos/schema' {
       */
       id?: string | db.Parameter<string> | db.DefaultType | db.SQLFragment;
       /**
+      * **ImageData.losslessUrl**
+      * - `text` in database
+      * - Nullable, no default
+      */
+      losslessUrl?: string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment;
+      /**
+      * **ImageData.metadata**
+      * - `jsonb` in database
+      * - Nullable, no default
+      */
+      metadata?: db.JSONValue | db.Parameter<db.JSONValue> | null | db.DefaultType | db.SQLFragment;
+      /**
       * **ImageData.previewUrl**
       * - `text` in database
       * - Nullable, no default
@@ -319,6 +367,18 @@ declare module 'zapatos/schema' {
       * - `NOT NULL`, default: `gen_random_uuid()`
       */
       id?: string | db.Parameter<string> | db.DefaultType | db.SQLFragment | db.SQLFragment<any, string | db.Parameter<string> | db.DefaultType | db.SQLFragment>;
+      /**
+      * **ImageData.losslessUrl**
+      * - `text` in database
+      * - Nullable, no default
+      */
+      losslessUrl?: string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment | db.SQLFragment<any, string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment>;
+      /**
+      * **ImageData.metadata**
+      * - `jsonb` in database
+      * - Nullable, no default
+      */
+      metadata?: db.JSONValue | db.Parameter<db.JSONValue> | null | db.DefaultType | db.SQLFragment | db.SQLFragment<any, db.JSONValue | db.Parameter<db.JSONValue> | null | db.DefaultType | db.SQLFragment>;
       /**
       * **ImageData.previewUrl**
       * - `text` in database

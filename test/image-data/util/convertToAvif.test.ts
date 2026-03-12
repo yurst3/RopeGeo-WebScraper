@@ -1,7 +1,15 @@
 import { describe, it, expect, beforeEach, jest } from '@jest/globals';
 import { convertToAvif } from '../../../src/image-data/util/convertToAvif';
+import { Metadata } from '../../../src/image-data/types/metadata';
 
-let messageHandler: ((msg: { preview?: Buffer; banner?: Buffer; full?: Buffer; error?: string }) => void) | null = null;
+let messageHandler: ((msg: {
+    preview?: Buffer;
+    banner?: Buffer;
+    full?: Buffer;
+    lossless?: Buffer;
+    metadata?: unknown;
+    error?: string;
+}) => void) | null = null;
 let errorHandler: ((err: Error) => void) | null = null;
 let exitHandler: ((code: number | null) => void) | null = null;
 const mockTerminate = jest.fn().mockResolvedValue(undefined);
@@ -32,10 +40,13 @@ const mockExistsSync = require('fs').existsSync as jest.MockedFunction<typeof im
 const mockRunAvifPipeline = require('../../../src/image-data/util/runAvifPipeline')
     .runAvifPipeline as jest.MockedFunction<typeof import('../../../src/image-data/util/runAvifPipeline').runAvifPipeline>;
 
+const defaultMetadata = new Metadata();
+
 describe('convertToAvif', () => {
     const previewBuffer = Buffer.from([1]);
     const bannerBuffer = Buffer.from([2]);
     const fullBuffer = Buffer.from([3]);
+    const losslessBuffer = Buffer.from([4]);
 
     beforeEach(() => {
         jest.clearAllMocks();
@@ -47,6 +58,8 @@ describe('convertToAvif', () => {
             preview: previewBuffer,
             banner: bannerBuffer,
             full: fullBuffer,
+            lossless: losslessBuffer,
+            metadata: defaultMetadata,
         });
     });
 
@@ -56,11 +69,11 @@ describe('convertToAvif', () => {
             const result = await convertToAvif(source);
 
             expect(mockRunAvifPipeline).toHaveBeenCalledWith(source);
-            expect(result).toEqual({
-                preview: previewBuffer,
-                banner: bannerBuffer,
-                full: fullBuffer,
-            });
+            expect(result.preview).toEqual(previewBuffer);
+            expect(result.banner).toEqual(bannerBuffer);
+            expect(result.full).toEqual(fullBuffer);
+            expect(result.lossless).toEqual(losslessBuffer);
+            expect(result.metadata).toEqual(defaultMetadata);
         });
 
         it('calls runAvifPipeline when source is buffer', async () => {
@@ -92,13 +105,16 @@ describe('convertToAvif', () => {
                 preview: previewBuffer,
                 banner: bannerBuffer,
                 full: fullBuffer,
+                lossless: losslessBuffer,
+                metadata: defaultMetadata.toJSON(),
             });
 
-            await expect(promise).resolves.toEqual({
-                preview: previewBuffer,
-                banner: bannerBuffer,
-                full: fullBuffer,
-            });
+            const result = await promise;
+            expect(result.preview).toEqual(previewBuffer);
+            expect(result.banner).toEqual(bannerBuffer);
+            expect(result.full).toEqual(fullBuffer);
+            expect(result.lossless).toEqual(losslessBuffer);
+            expect(result.metadata).toBeInstanceOf(Metadata);
         });
 
         it('passes sourcePath in workerData when source is string', async () => {
@@ -116,6 +132,8 @@ describe('convertToAvif', () => {
                 preview: previewBuffer,
                 banner: bannerBuffer,
                 full: fullBuffer,
+                lossless: losslessBuffer,
+                metadata: defaultMetadata.toJSON(),
             });
             await promise;
         });
@@ -135,6 +153,8 @@ describe('convertToAvif', () => {
                 preview: previewBuffer,
                 banner: bannerBuffer,
                 full: fullBuffer,
+                lossless: losslessBuffer,
+                metadata: defaultMetadata.toJSON(),
             });
             await promise;
         });
@@ -152,7 +172,12 @@ describe('convertToAvif', () => {
             const controller = new AbortController();
             const promise = convertToAvif('/path', controller.signal);
 
-            messageHandler!({ banner: bannerBuffer, full: fullBuffer });
+            messageHandler!({
+                banner: bannerBuffer,
+                full: fullBuffer,
+                lossless: losslessBuffer,
+                metadata: defaultMetadata.toJSON(),
+            });
 
             await expect(promise).rejects.toThrow('convertToAvifWorker: invalid message');
         });
@@ -203,14 +228,16 @@ describe('convertToAvif', () => {
                 preview: previewBuffer,
                 banner: bannerBuffer,
                 full: fullBuffer,
+                lossless: losslessBuffer,
+                metadata: defaultMetadata.toJSON(),
             });
             exitHandler!(1);
 
-            await expect(promise).resolves.toEqual({
-                preview: previewBuffer,
-                banner: bannerBuffer,
-                full: fullBuffer,
-            });
+            const result = await promise;
+            expect(result.preview).toEqual(previewBuffer);
+            expect(result.banner).toEqual(bannerBuffer);
+            expect(result.full).toEqual(fullBuffer);
+            expect(result.lossless).toEqual(losslessBuffer);
         });
 
         it('calls worker.terminate() and rejects when abortSignal aborts', async () => {

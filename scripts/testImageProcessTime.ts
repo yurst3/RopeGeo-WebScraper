@@ -28,8 +28,9 @@ async function testImageProcessTime() {
 
     const start = performance.now();
 
+    let imageData;
     try {
-        await processImageData(url, nodeSaveImageData, undefined, logger);
+        imageData = await processImageData(url, nodeSaveImageData, undefined, logger);
     } catch (error) {
         console.error('Error processing image:', error);
         process.exit(1);
@@ -38,6 +39,11 @@ async function testImageProcessTime() {
     const elapsedMs = performance.now() - start;
 
     console.log(`\nProcessed in ${formatElapsed(elapsedMs)}`);
+
+    if (imageData.metadata) {
+        console.log('\nMetadata:');
+        console.log(JSON.stringify(imageData.metadata.toJSON(), null, 2));
+    }
 }
 
 if (require.main === module) {

@@ -2,6 +2,7 @@ import { Worker } from 'worker_threads';
 import { existsSync } from 'fs';
 import { join } from 'path';
 import { runAvifPipeline, type AvifOutputs } from './runAvifPipeline';
+import { Metadata } from '../types/metadata';
 
 export type { AvifOutputs };
 
@@ -17,17 +18,18 @@ function getWorkerPath(): string {
 }
 
 /**
- * Converts an image (file path or buffer) to three AVIF variants using Sharp.
+ * Converts an image (file path or buffer) to four AVIF variants using Sharp.
  * - Preview: resized to 256x256 (fit inside), quality 50
- * - Banner: same dimensions as source, quality 75
- * - Full: same dimensions, lossless
+ * - Banner: resized to 512 (fit inside), quality 75
+ * - Full: original dimensions, quality 75
+ * - Lossless: original dimensions, lossless
  *
  * When abortSignal is provided, conversion runs in a worker thread (worker must exist at build path);
  * on abort, the worker is terminated to stop Sharp. When abortSignal is not provided, runs in the main thread.
  *
  * @param source - Path to the source image file, or buffer (e.g. PNG from single-page PDF)
  * @param abortSignal - Optional AbortSignal; when aborted, the worker is terminated (if used)
- * @returns Buffers for preview.avif, banner.avif, full.avif
+ * @returns Buffers for preview.avif, banner.avif, full.avif, lossless.avif and metadata
  */
 export async function convertToAvif(
     source: string | Buffer,
@@ -74,13 +76,28 @@ export async function convertToAvif(
             return;
         }
 
-        worker.on('message', (msg: { preview?: Buffer; banner?: Buffer; full?: Buffer; error?: string }) => {
+        worker.on('message', (msg: {
+            preview?: Buffer;
+            banner?: Buffer;
+            full?: Buffer;
+            lossless?: Buffer;
+            metadata?: unknown;
+            error?: string;
+        }) => {
             abortSignal.removeEventListener('abort', onAbort);
             if (msg.error != null) {
                 settle(() => reject(new Error(msg.error)));
-            } else if (msg.preview != null && msg.banner != null && msg.full != null) {
-                const { preview, banner, full } = msg;
-                settle(() => resolve({ preview, banner, full }));
+            } else if (
+                msg.preview != null && msg.banner != null && msg.full != null && msg.lossless != null && msg.metadata != null
+            ) {
+                const { preview, banner, full, lossless, metadata } = msg;
+                settle(() => resolve({
+                    preview,
+                    banner,
+                    full,
+                    lossless,
+                    metadata: Metadata.fromJSON(metadata),
+                }));
             } else {
                 settle(() => reject(new Error('convertToAvifWorker: invalid message')));
             }

@@ -57,6 +57,7 @@ export const processImageData = async (
                     undefined,
                     undefined,
                     undefined,
+                    undefined,
                     sourceImageUrl,
                     MULTI_PAGE_PDF_ERROR_MESSAGE,
                     finalImageDataId,
@@ -71,6 +72,8 @@ export const processImageData = async (
                     outputs.preview,
                     outputs.banner,
                     outputs.full,
+                    outputs.lossless,
+                    outputs.metadata,
                     logger,
                 );
             } catch (pdfConversionError) {
@@ -85,6 +88,7 @@ export const processImageData = async (
                     undefined,
                     undefined,
                     undefined,
+                    undefined,
                     sourceImageUrl,
                     errorMessage,
                     finalImageDataId,
@@ -92,15 +96,10 @@ export const processImageData = async (
             }
         }
 
-        let previewBuffer: Buffer;
-        let bannerBuffer: Buffer;
-        let fullBuffer: Buffer;
+        let outputs: Awaited<ReturnType<typeof convertToAvif>>;
 
         try {
-            const outputs = await convertToAvif(sourceFilePath, abortSignal);
-            previewBuffer = outputs.preview;
-            bannerBuffer = outputs.banner;
-            fullBuffer = outputs.full;
+            outputs = await convertToAvif(sourceFilePath, abortSignal);
         } catch (conversionError) {
             const errorMessage =
                 conversionError instanceof Error
@@ -108,6 +107,7 @@ export const processImageData = async (
                     : String(conversionError);
             logger.logError(`Image conversion failed for ${finalImageDataId}: ${errorMessage}`);
             return new ImageData(
+                undefined,
                 undefined,
                 undefined,
                 undefined,
@@ -120,9 +120,11 @@ export const processImageData = async (
         return await saveImageDataHookFn(
             finalImageDataId,
             sourceImageUrl,
-            previewBuffer,
-            bannerBuffer,
-            fullBuffer,
+            outputs.preview,
+            outputs.banner,
+            outputs.full,
+            outputs.lossless,
+            outputs.metadata,
             logger,
         );
     } finally {
