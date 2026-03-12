@@ -22,6 +22,16 @@ Resources:
           {"rules":[{"rulePriority":1,"description":"Keep last 2 images","selection":{"tagStatus":"any","countType":"imageCountMoreThan","countNumber":2},"action":{"type":"expire"}}]}
       ImageTagMutability: MUTABLE
       EmptyOnDelete: true
+  MigrateImageDataRepository:
+    Type: 'AWS::ECR::Repository'
+    Properties:
+      RepositoryName:
+        'Fn::Sub': '${devEnvironment}-migrate-image-data'
+      LifecyclePolicy:
+        LifecyclePolicyText: |
+          {"rules":[{"rulePriority":1,"description":"Keep last 2 images","selection":{"tagStatus":"any","countType":"imageCountMoreThan","countNumber":2},"action":{"type":"expire"}}]}
+      ImageTagMutability: MUTABLE
+      EmptyOnDelete: true
 Outputs:
   GenerateRouteMarkerTilesRepositoryUri:
     Description: ECR repository URI for the generate route marker tiles task image (build and push with this tag)
@@ -31,3 +41,7 @@ Outputs:
     Description: ECR repository URI for the generate trail tiles task image (build and push with this tag)
     Value:
       'Fn::Sub': '${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/${GenerateTrailTilesRepository}:latest'
+  MigrateImageDataRepositoryUri:
+    Description: ECR repository URI for the migrate ImageData task image (one-off migration; build and push with this tag)
+    Value:
+      'Fn::Sub': '${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/${MigrateImageDataRepository}:latest'

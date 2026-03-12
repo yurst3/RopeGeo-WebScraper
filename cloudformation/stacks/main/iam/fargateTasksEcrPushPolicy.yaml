@@ -25,6 +25,7 @@ Resources:
             Resource:
               - 'Fn::Sub': 'arn:aws:ecr:${AWS::Region}:${AWS::AccountId}:repository/${GenerateRouteMarkerTilesRepository}'
               - 'Fn::Sub': 'arn:aws:ecr:${AWS::Region}:${AWS::AccountId}:repository/${GenerateTrailTilesRepository}'
+              - 'Fn::Sub': 'arn:aws:ecr:${AWS::Region}:${AWS::AccountId}:repository/${MigrateImageDataRepository}'
       Roles:
         'Fn::If':
           - HasPipelineExecutionRoleName

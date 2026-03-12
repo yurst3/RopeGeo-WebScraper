@@ -23,6 +23,7 @@
     "typecheck": "tsc --noEmit -p tsconfig.typecheck.json",
     "run:generateTrailTiles": "npx ts-node --project tsconfig.json --files src/fargate-tasks/generateTrailTiles/main.ts",
     "run:generateRouteMarkerTiles": "npx ts-node --project tsconfig.json --files src/fargate-tasks/generateRouteMarkerTiles/main.ts",
+    "run:migrateImageData": "npx ts-node --project tsconfig.json --files src/fargate-tasks/migrateImageData/main.ts",
     "lint:dev": "npx eslint --fix ./src",
     "merge:main-template": "npx ts-node --files scripts/mergeTemplate.ts cloudformation/stacks/main cloudformation/stacks/mergedMainTemplate.yaml WebScraper --fix-transform",
     "merge:api-template": "npx ts-node --files scripts/mergeTemplate.ts cloudformation/stacks/api cloudformation/stacks/mergedApiTemplate.yaml \"WebScraper HTTP API and CloudFront (OpenAPI from docs bucket)\"",

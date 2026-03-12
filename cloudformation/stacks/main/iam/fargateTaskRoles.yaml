@@ -61,6 +61,34 @@ Resources:
                 Condition:
                   StringLike:
                     'iam:PassedToService': ecs-tasks.amazonaws.com
+  MigrateImageDataTaskRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: ecs-tasks.amazonaws.com
+            Action: 'sts:AssumeRole'
+      ManagedPolicyArns:
+        - 'Fn::If':
+            - HasRdsDbiResourceId
+            - Ref: RdsIamAuthPolicy
+            - Ref: 'AWS::NoValue'
+        - Ref: S3ImageDataBucketMigrationPolicy
+  MigrateImageDataExecutionRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: ecs-tasks.amazonaws.com
+            Action: 'sts:AssumeRole'
+      ManagedPolicyArns:
+        - 'arn:aws:iam::aws:policy/service-role/AmazonECSTaskExecutionRolePolicy'
   GenerateTrailTilesTaskRole:
     Type: 'AWS::IAM::Role'
     Properties:

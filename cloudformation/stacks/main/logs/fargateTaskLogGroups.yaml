@@ -14,3 +14,9 @@ Resources:
       LogGroupName:
         'Fn::Sub': '/ecs/${devEnvironment}-generate-trail-tiles'
       RetentionInDays: 30
+  MigrateImageDataLogGroup:
+    Type: 'AWS::Logs::LogGroup'
+    Properties:
+      LogGroupName:
+        'Fn::Sub': '/ecs/${devEnvironment}-migrate-image-data'
+      RetentionInDays: 30

@@ -100,6 +100,25 @@ Resources:
               - 's3:PutObjectAcl'
             Resource:
               'Fn::Sub': '${ImageDataBucket.Arn}/*'
+  S3ImageDataBucketMigrationPolicy:
+    Type: 'AWS::IAM::ManagedPolicy'
+    Properties:
+      ManagedPolicyName:
+        'Fn::Sub': '${AWS::StackName}-s3-imagedata-migration-readwrite'
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Action: 's3:ListBucket'
+            Resource:
+              'Fn::GetAtt': ImageDataBucket.Arn
+          - Effect: Allow
+            Action:
+              - 's3:GetObject'
+              - 's3:PutObject'
+              - 's3:PutObjectAcl'
+            Resource:
+              'Fn::Sub': '${ImageDataBucket.Arn}/*'
   SQSImageProcessorQueuePolicy:
     Type: 'AWS::IAM::ManagedPolicy'
     Properties:

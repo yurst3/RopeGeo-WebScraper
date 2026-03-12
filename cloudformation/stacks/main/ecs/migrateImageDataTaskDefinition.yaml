@@ -1,0 +1,62 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: ECS task definition for one-off migrate ImageData Fargate task
+
+Resources:
+  MigrateImageDataTaskDefinition:
+    Type: 'AWS::ECS::TaskDefinition'
+    Properties:
+      Family:
+        'Fn::Sub': '${devEnvironment}-migrate-image-data'
+      NetworkMode: awsvpc
+      RequiresCompatibilities:
+        - FARGATE
+      Cpu: '4096'
+      Memory: '8192'
+      ExecutionRoleArn:
+        'Fn::GetAtt': MigrateImageDataExecutionRole.Arn
+      TaskRoleArn:
+        'Fn::GetAtt': MigrateImageDataTaskRole.Arn
+      ContainerDefinitions:
+        - Name: migrate-image-data
+          Image:
+            'Fn::Sub': '${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/${MigrateImageDataRepository}:latest'
+          Essential: true
+          Environment:
+            - Name: DEV_ENVIRONMENT
+              Value:
+                Ref: devEnvironment
+            - Name: DB_HOST
+              Value:
+                'Fn::If':
+                  - UseDatabaseProxyInProd
+                  - 'Fn::GetAtt': RDSProxy.Endpoint
+                  - 'Fn::GetAtt': Database.Endpoint.Address
+            - Name: DB_PORT
+              Value:
+                'Fn::GetAtt': Database.Endpoint.Port
+            - Name: DB_NAME
+              Value:
+                'Fn::Sub': '${devEnvironment}db'
+            - Name: DB_USER
+              Value:
+                Ref: DatabaseUsername
+            - Name: DB_PASSWORD
+              Value:
+                Ref: DatabasePassword
+            - Name: USE_DATABASE_PROXY
+              Value:
+                Ref: UseDatabaseProxy
+            - Name: IMAGE_BUCKET_NAME
+              Value:
+                Ref: ImageDataBucket
+            - Name: IMAGE_PUBLIC_BASE_URL
+              Value:
+                Ref: ImagePublicBaseUrl
+          LogConfiguration:
+            LogDriver: awslogs
+            Options:
+              awslogs-group:
+                Ref: MigrateImageDataLogGroup
+              awslogs-region:
+                Ref: 'AWS::Region'
+              awslogs-stream-prefix: ecs
