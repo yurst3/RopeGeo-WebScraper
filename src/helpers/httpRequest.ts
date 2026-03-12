@@ -51,19 +51,24 @@ const REQUEST_TIMEOUT_MS_PROXY = 30_000;
 const REQUEST_TIMEOUT_MS_NO_PROXY = 60_000;
 
 /**
- * Send an HTTP request with default headers and optional proxy (Lambda + dev/prod only).
+ * Send an HTTP request with default headers and optional proxy (Lambda + dev/prod only by default).
  * Throws an Error with detailed message on non-OK response or failed request.
  * Retries on fetch errors or 5XX (except 502) / 403 responses up to retryCount times (default 5).
- * Every attempt has a request timeout so the Lambda does not hang (30s with proxy, 60s without).
+ * Every attempt has a request timeout (30s with proxy, 60s without).
  * If abortSignal is provided and aborts, the request is cancelled and retries are not attempted.
+ * Pass init.method e.g. 'HEAD' for HEAD requests.
+ * When useProxy is provided it overrides the default (isLambda + dev/prod) and forces proxy on (true) or off (false).
  */
 export async function httpRequest(
     url: string | URL,
     retryCount = 5,
     abortSignal?: AbortSignal,
+    init?: RequestInit,
+    useProxy?: boolean,
 ): Promise<Response> {
     const requestUrl = typeof url === 'string' ? url : url.toString();
-    const dispatcher = shouldUseProxy() ? getProxyDispatcher() : undefined;
+    const useProxyResolved = useProxy === undefined ? shouldUseProxy() : useProxy;
+    const dispatcher = useProxyResolved ? getProxyDispatcher() : undefined;
     const timeoutMs = dispatcher ? REQUEST_TIMEOUT_MS_PROXY : REQUEST_TIMEOUT_MS_NO_PROXY;
 
     let lastError: Error | null = null;
@@ -85,6 +90,7 @@ export async function httpRequest(
             headers: DEFAULT_HEADERS,
             ...(dispatcher ? { dispatcher } : {}),
             signal: requestSignal,
+            ...init,
         };
 
         let response: Response;

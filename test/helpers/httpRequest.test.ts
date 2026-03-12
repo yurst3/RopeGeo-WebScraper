@@ -131,6 +131,40 @@ describe('httpRequest', () => {
     expect(init).not.toHaveProperty('dispatcher');
   });
 
+  it('uses proxy when useProxy is true even when not in Lambda', async () => {
+    delete process.env.AWS_LAMBDA_FUNCTION_NAME;
+    process.env.DEV_ENVIRONMENT = 'dev';
+    process.env.PROXY_URL = 'http://proxy.example.com:8080';
+    mockFetch.mockResolvedValue({
+      ok: true,
+      status: 200,
+      statusText: 'OK',
+    } as Response);
+
+    await httpRequest('https://example.com/', 5, undefined, undefined, true);
+
+    expect(mockFetch).toHaveBeenCalledTimes(1);
+    const init = mockFetch.mock.calls[0]![1] as RequestInit;
+    expect(init).toHaveProperty('dispatcher');
+  });
+
+  it('does not use proxy when useProxy is false even when in Lambda with dev', async () => {
+    process.env.AWS_LAMBDA_FUNCTION_NAME = 'test-function';
+    process.env.DEV_ENVIRONMENT = 'dev';
+    process.env.PROXY_URL = 'http://proxy.example.com:8080';
+    mockFetch.mockResolvedValue({
+      ok: true,
+      status: 200,
+      statusText: 'OK',
+    } as Response);
+
+    await httpRequest('https://example.com/', 5, undefined, undefined, false);
+
+    expect(mockFetch).toHaveBeenCalledTimes(1);
+    const init = mockFetch.mock.calls[0]![1] as RequestInit;
+    expect(init).not.toHaveProperty('dispatcher');
+  });
+
   it('retries on 500 and succeeds on second attempt', async () => {
     mockFetch
       .mockResolvedValueOnce({

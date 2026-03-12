@@ -60,7 +60,7 @@ export async function main(): Promise<void> {
             }
 
             try {
-                const headResult = await headSourceSizeKb(sourceUrl ?? '');
+                const headResult = await headSourceSizeKb(sourceUrl ?? '', true);
 
                 const outputs = await runAvifPipeline(tempPath);
                 if (headResult !== null) {

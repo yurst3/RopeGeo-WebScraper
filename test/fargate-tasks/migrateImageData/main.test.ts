@@ -98,7 +98,7 @@ describe('main (migrateImageData)', () => {
         expect(getDatabaseConnection).toHaveBeenCalledTimes(1);
         expect(getImageDataToMigrate).toHaveBeenCalledWith(expect.anything());
         expect(getS3ObjectToFile).toHaveBeenCalledWith('test-image-bucket', `${rowId}/full.avif`, expect.stringContaining('migrate-'));
-        expect(headSourceSizeKb).toHaveBeenCalledWith('https://example.com/source.jpg');
+        expect(headSourceSizeKb).toHaveBeenCalledWith('https://example.com/source.jpg', true);
         expect(runAvifPipeline).toHaveBeenCalledWith(expect.stringContaining('migrate-'));
         expect(uploadImageDataToS3).toHaveBeenCalledTimes(4);
         expect(upsertImageData).toHaveBeenCalledTimes(1);

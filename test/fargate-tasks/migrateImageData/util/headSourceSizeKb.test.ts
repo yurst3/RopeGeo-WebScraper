@@ -1,103 +1,83 @@
-import { describe, it, expect, beforeEach, afterEach, jest } from '@jest/globals';
+import { describe, it, expect, beforeEach, jest } from '@jest/globals';
 import { headSourceSizeKb } from '../../../../src/fargate-tasks/migrateImageData/util/headSourceSizeKb';
+import httpRequest from '../../../../src/helpers/httpRequest';
+
+jest.mock('../../../../src/helpers/httpRequest', () => ({ __esModule: true, default: jest.fn() }));
 
 describe('headSourceSizeKb', () => {
-    const mockFetch = jest.fn();
-    let originalFetch: typeof globalThis.fetch;
-
     beforeEach(() => {
-        jest.useFakeTimers();
-        originalFetch = globalThis.fetch;
-        (globalThis as unknown as { fetch: typeof jest.fn }).fetch = mockFetch;
+        jest.mocked(httpRequest).mockReset();
     });
 
-    afterEach(() => {
-        (globalThis as unknown as { fetch: typeof originalFetch }).fetch = originalFetch;
-        jest.useRealTimers();
-        mockFetch.mockReset();
-    });
-
-    it('returns sizeKB from Content-Length when response is ok', async () => {
-        mockFetch.mockResolvedValueOnce({
-            ok: true,
+    it('returns sizeKB from Content-Length when httpRequest succeeds', async () => {
+        jest.mocked(httpRequest).mockResolvedValueOnce({
             headers: new Headers({ 'Content-Length': '2048' }),
-        });
+        } as Response);
 
-        const promise = headSourceSizeKb('https://example.com/image.jpg');
-        await jest.runAllTimersAsync();
-        const result = await promise;
+        const result = await headSourceSizeKb('https://example.com/image.jpg');
 
         expect(result).toEqual({ sizeKB: 2 });
-        expect(mockFetch).toHaveBeenCalledTimes(1);
-        expect(mockFetch).toHaveBeenCalledWith('https://example.com/image.jpg', { method: 'HEAD' });
+        expect(httpRequest).toHaveBeenCalledTimes(1);
+        expect(httpRequest).toHaveBeenCalledWith(
+            'https://example.com/image.jpg',
+            5,
+            undefined,
+            { method: 'HEAD' },
+            undefined,
+        );
     });
 
     it('rounds sizeKB to two decimal places', async () => {
-        mockFetch.mockResolvedValueOnce({
-            ok: true,
-            headers: new Headers({ 'Content-Length': '1536' }), // 1.5 KB
-        });
+        jest.mocked(httpRequest).mockResolvedValueOnce({
+            headers: new Headers({ 'Content-Length': '1536' }),
+        } as Response);
 
-        const promise = headSourceSizeKb('https://example.com/img');
-        await jest.runAllTimersAsync();
-        const result = await promise;
+        const result = await headSourceSizeKb('https://example.com/img');
 
         expect(result).toEqual({ sizeKB: 1.5 });
     });
 
     it('returns null when Content-Length header is missing', async () => {
-        mockFetch.mockResolvedValueOnce({
-            ok: true,
+        jest.mocked(httpRequest).mockResolvedValueOnce({
             headers: new Headers({}),
-        });
+        } as Response);
 
-        const promise = headSourceSizeKb('https://example.com/img');
-        await jest.runAllTimersAsync();
-        const result = await promise;
+        const result = await headSourceSizeKb('https://example.com/img');
 
         expect(result).toBeNull();
     });
 
-    it('returns null when response is not ok', async () => {
-        mockFetch.mockResolvedValueOnce({
-            ok: false,
-            status: 404,
-            headers: new Headers({}),
-        });
+    it('returns null when httpRequest throws', async () => {
+        jest.mocked(httpRequest).mockRejectedValueOnce(new Error('httpRequest non-OK: status=404'));
 
-        const promise = headSourceSizeKb('https://example.com/missing');
-        await jest.runAllTimersAsync();
-        const result = await promise;
+        const result = await headSourceSizeKb('https://example.com/missing');
 
         expect(result).toBeNull();
-        expect(mockFetch).toHaveBeenCalledTimes(5);
     });
 
-    it('retries on fetch failure and returns null after 5 attempts', async () => {
-        mockFetch.mockRejectedValue(new Error('Network error'));
+    it('returns null when Content-Length is invalid', async () => {
+        jest.mocked(httpRequest).mockResolvedValueOnce({
+            headers: new Headers({ 'Content-Length': 'not-a-number' }),
+        } as Response);
 
-        const promise = headSourceSizeKb('https://example.com/img');
-        await jest.runAllTimersAsync();
-        const result = await promise;
+        const result = await headSourceSizeKb('https://example.com/img');
 
         expect(result).toBeNull();
-        expect(mockFetch).toHaveBeenCalledTimes(5);
     });
 
-    it('returns result on retry after initial failure', async () => {
-        mockFetch
-            .mockRejectedValueOnce(new Error('Network error'))
-            .mockRejectedValueOnce(new Error('Network error'))
-            .mockResolvedValueOnce({
-                ok: true,
-                headers: new Headers({ 'Content-Length': '1024' }),
-            });
+    it('passes useProxy through to httpRequest when provided', async () => {
+        jest.mocked(httpRequest).mockResolvedValueOnce({
+            headers: new Headers({ 'Content-Length': '1024' }),
+        } as Response);
 
-        const promise = headSourceSizeKb('https://example.com/img');
-        await jest.runAllTimersAsync();
-        const result = await promise;
+        await headSourceSizeKb('https://example.com/img', true);
 
-        expect(result).toEqual({ sizeKB: 1 });
-        expect(mockFetch).toHaveBeenCalledTimes(3);
+        expect(httpRequest).toHaveBeenCalledWith(
+            'https://example.com/img',
+            5,
+            undefined,
+            { method: 'HEAD' },
+            true,
+        );
     });
 });
