@@ -55,6 +55,8 @@ Resources:
             - Name: PROXY_URL
               Value:
                 Ref: ProxyUrl
+            - Name: MIGRATE_IMAGE_DATA_CHUNK_SIZE
+              Value: '2'
           LogConfiguration:
             LogDriver: awslogs
             Options:

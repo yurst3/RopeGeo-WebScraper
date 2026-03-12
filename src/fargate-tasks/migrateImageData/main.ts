@@ -5,7 +5,7 @@
  * generate preview, banner, full (q75), and lossless, gets source size via HEAD
  * to sourceUrl (with retries; on failure sets metadata.source = null), uploads
  * the four AVIFs to S3, and upserts the row with fullUrl and metadata.
- * Processes rows in chunks of 10 in parallel within each chunk.
+ * Processes rows in chunks (size from MIGRATE_IMAGE_DATA_CHUNK_SIZE, default 10) in parallel within each chunk.
  *
  * Requires: IMAGE_BUCKET_NAME, IMAGE_PUBLIC_BASE_URL, DB_*, DEV_ENVIRONMENT.
  */
@@ -26,7 +26,18 @@ import upsertImageData from '../../image-data/database/upsertImageData';
 import ImageData from '../../image-data/types/imageData';
 import type { PoolClient } from 'pg';
 
-const CHUNK_SIZE = 10;
+const DEFAULT_CHUNK_SIZE = 10;
+const MIN_CHUNK_SIZE = 1;
+const MAX_CHUNK_SIZE = 100;
+
+function getChunkSize(): number {
+    const raw = process.env.MIGRATE_IMAGE_DATA_CHUNK_SIZE;
+    if (raw == null || raw === '') return DEFAULT_CHUNK_SIZE;
+    const n = parseInt(raw, 10);
+    if (Number.isNaN(n) || n < MIN_CHUNK_SIZE) return DEFAULT_CHUNK_SIZE;
+    if (n > MAX_CHUNK_SIZE) return MAX_CHUNK_SIZE;
+    return n;
+}
 
 function assertRequiredEnv(): void {
     if (!process.env.IMAGE_BUCKET_NAME) {
@@ -109,9 +120,10 @@ export async function main(): Promise<void> {
         }
 
         const logger = new ProgressLogger('Migrating ImageData', rows.length);
+        const chunkSize = getChunkSize();
 
         let offset = 0;
-        for (const chunkRows of chunk(rows, CHUNK_SIZE)) {
+        for (const chunkRows of chunk(rows, chunkSize)) {
             const chunkStart = offset;
             const chunkEnd = offset + chunkRows.length - 1;
             logger.setChunk(chunkStart, chunkEnd);
