@@ -73,19 +73,20 @@ describe('getRopewikiRegionView handler', () => {
 
     it('returns 200 and RopewikiRegionView with CORS headers', async () => {
         const id = 'a1b2c3d4-e5f6-7890-abcd-ef1234567890';
-        const mockView = new RopewikiRegionView({
-            name: 'North America',
-            parentRegionId: 'b2c3d4e5-f6a7-8901-bcde-f23456789012',
-            parentRegionName: 'World',
-            rawPageCount: 120,
-            truePageCount: 45,
-            trueRegionCount: 12,
-            overview: 'Canyoneering regions.',
-            bestMonths: ['April', 'May'],
-            isMajorRegion: true,
-            latestRevisionDate: new Date('2025-01-15T00:00:00.000Z'),
-            url: 'https://ropewiki.com/North_America',
-        });
+        const mockView = new RopewikiRegionView(
+            'North America',
+            new Date('2025-01-15T00:00:00.000Z'),
+            'https://ropewiki.com/North_America',
+            new Date('2025-01-10T08:00:00.000Z'),
+            [{ id: 'b2c3d4e5-f6a7-8901-bcde-f23456789012', name: 'World' }],
+            120,
+            45,
+            12,
+            380,
+            'Canyoneering regions.',
+            ['April', 'May'],
+            true,
+        );
         mockGetRopewikiRegionView.mockResolvedValue(mockView);
 
         const result = await handler({ pathParameters: { id } }, {});
@@ -100,7 +101,12 @@ describe('getRopewikiRegionView handler', () => {
         const body = JSON.parse(result.body);
         expect(body.name).toBe('North America');
         expect(body.externalLink).toBe('https://ropewiki.com/North_America');
-        expect(body.parentRegion).toEqual({ id: 'b2c3d4e5-f6a7-8901-bcde-f23456789012', name: 'World' });
+        expect(body.regions).toEqual([{ id: 'b2c3d4e5-f6a7-8901-bcde-f23456789012', name: 'World' }]);
+        expect(body.regionCount).toBe(12);
+        expect(body.topLevelPageCount).toBe(45);
+        expect(body.pageCount).toBe(120);
+        expect(body.totalPageCount).toBe(380);
+        expect(body.syncDate).toBe('2025-01-10T08:00:00.000Z');
     });
 
     it('returns 404 when no region exists with the given id', async () => {

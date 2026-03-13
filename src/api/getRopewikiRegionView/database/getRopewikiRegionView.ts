@@ -1,23 +1,50 @@
-import type { RopewikiRegionViewRow } from 'ropegeo-common';
 import { RopewikiRegionView } from 'ropegeo-common';
 import * as db from 'zapatos/db';
 
+interface GetRopewikiRegionViewRow {
+    name: string;
+    rawPageCount: number | null;
+    truePageCount: number | null;
+    trueRegionCount: number | null;
+    truePageCountWithDescendents: number | null;
+    overview: string | null;
+    bestMonths: string[] | null;
+    isMajorRegion: boolean | null;
+    latestRevisionDate: Date;
+    url: string;
+    updatedAt: Date;
+    /** JSON array of { id, name } from immediate parent up to root. */
+    regionsJson: string;
+}
+
 /**
  * Fetches a single non-deleted RopewikiRegion by id and builds a RopewikiRegionView.
- * Resolves parent region id/name via left join. Returns null if the region does not exist or is deleted.
+ * Resolves full parent lineage (immediate parent up to root) via recursive CTE.
+ * Returns null if the region does not exist or is deleted.
  */
 const getRopewikiRegionView = async (
     conn: db.Queryable,
     regionId: string,
 ): Promise<RopewikiRegionView | null> => {
-    const rows = await db.sql<
-        db.SQL,
-        (RopewikiRegionViewRow & { latestRevisionDate: Date })[]
-    >`
+    const rows = await db.sql<db.SQL, GetRopewikiRegionViewRow[]>`
+        WITH RECURSIVE ancestors(depth, id, name, "parentRegionName") AS (
+            SELECT 1, parent.id, parent.name, parent."parentRegionName"
+            FROM "RopewikiRegion" r
+            JOIN "RopewikiRegion" parent ON (
+                (parent.name = r."parentRegionName" OR parent.id::text = r."parentRegionName")
+                AND parent."deletedAt" IS NULL
+            )
+            WHERE r.id = ${db.param(regionId)}::uuid AND r."deletedAt" IS NULL
+            UNION ALL
+            SELECT a.depth + 1, p.id, p.name, p."parentRegionName"
+            FROM "RopewikiRegion" p
+            INNER JOIN ancestors a ON (
+                (p.name = a."parentRegionName" OR p.id::text = a."parentRegionName")
+                AND p."deletedAt" IS NULL
+            )
+        )
         SELECT
             r.name,
-            parent.id AS "parentRegionId",
-            parent.name AS "parentRegionName",
             r."rawPageCount",
             r."truePageCount",
             r."trueRegionCount",
@@ -26,12 +53,14 @@ const getRopewikiRegionView = async (
             r."bestMonths",
             r."isMajorRegion",
             r."latestRevisionDate",
-            r.url
+            r.url,
+            r."updatedAt",
+            COALESCE(
+                (SELECT json_agg(json_build_object('id', an.id, 'name', an.name) ORDER BY an.depth)
+                 FROM ancestors an),
+                '[]'::json
+            )::text AS "regionsJson"
         FROM "RopewikiRegion" r
-        LEFT JOIN "RopewikiRegion" parent ON (
-            (parent.name = r."parentRegionName" OR parent.id::text = r."parentRegionName")
-            AND parent."deletedAt" IS NULL
-        )
         WHERE r.id = ${db.param(regionId)}::uuid
           AND r."deletedAt" IS NULL
     `.run(conn);
@@ -39,21 +68,24 @@ const getRopewikiRegionView = async (
     const row = rows[0];
     if (!row) return null;
 
-    const viewRow: RopewikiRegionViewRow = {
-        name: row.name,
-        parentRegionId: row.parentRegionId ?? null,
-        parentRegionName: row.parentRegionName ?? null,
-        rawPageCount: row.rawPageCount ?? null,
-        truePageCount: row.truePageCount ?? null,
-        trueRegionCount: row.trueRegionCount ?? null,
-        truePageCountWithDescendents: row.truePageCountWithDescendents ?? null,
-        overview: row.overview ?? null,
-        bestMonths: row.bestMonths ?? null,
-        isMajorRegion: row.isMajorRegion ?? null,
-        latestRevisionDate: row.latestRevisionDate,
-        url: row.url,
-    };
-    return new RopewikiRegionView(viewRow);
+    const regionsParsed = JSON.parse(row.regionsJson) as { id: string; name: string }[];
+    const regions =
+        Array.isArray(regionsParsed) && regionsParsed.length > 0 ? regionsParsed : undefined;
+
+    return new RopewikiRegionView(
+        row.name,
+        row.latestRevisionDate,
+        row.url,
+        row.updatedAt,
+        regions,
+        row.rawPageCount ?? null,
+        row.truePageCount ?? null,
+        row.trueRegionCount ?? null,
+        row.truePageCountWithDescendents ?? null,
+        row.overview ?? null,
+        row.bestMonths ?? null,
+        row.isMajorRegion ?? null,
+    );
 };
 
 export default getRopewikiRegionView;

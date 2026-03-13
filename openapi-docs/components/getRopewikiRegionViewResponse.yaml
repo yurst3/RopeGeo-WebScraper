@@ -6,34 +6,37 @@ RopewikiRegionView:
   description: Region view for GET /ropewiki/region/{id} (RopewikiRegionView from ropegeo-common)
   required:
     - name
-    - parentRegion
+    - regions
     - regionCount
     - topLevelPageCount
     - pageCount
+    - totalPageCount
     - overview
     - bestMonths
     - isMajorRegion
     - latestRevisionDate
+    - syncDate
     - externalLink
   properties:
     name:
       type: string
       description: Region name
-    parentRegion:
-      type: object
-      nullable: true
-      description: Parent region id and name, or null if top-level
-      required:
-        - id
-        - name
-      properties:
-        id:
-          type: string
-          format: uuid
-          description: Parent region uuid
-        name:
-          type: string
-          description: Parent region name
+    regions:
+      type: array
+      description: Full lineage of parent regions from immediate parent up to root (same shape as RopewikiPageView.regions)
+      items:
+        type: object
+        required:
+          - id
+          - name
+        properties:
+          id:
+            type: string
+            format: uuid
+            description: Region uuid
+          name:
+            type: string
+            description: Region name
     regionCount:
       type: integer
       description: Number of descendant regions (trueRegionCount)
@@ -43,6 +46,9 @@ RopewikiRegionView:
     pageCount:
       type: integer
       description: Raw page count from source (rawPageCount)
+    totalPageCount:
+      type: integer
+      description: Pages in this region and all descendants (truePageCountWithDescendents)
     overview:
       type: string
       nullable: true
@@ -59,6 +65,10 @@ RopewikiRegionView:
       type: string
       format: date-time
       description: Last revision date
+    syncDate:
+      type: string
+      format: date-time
+      description: When the region was last synced (updatedAt)
     externalLink:
       type: string
       format: uri
