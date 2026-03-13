@@ -52,7 +52,7 @@ RopewikiRegionView:
     overview:
       oneOf:
         - $ref: "./getRopewikiPageViewResponse.yaml#/BetaSection"
-        - type: "null"
+        - enum: [null]
       description: Region overview as a beta section (title, text, images, etc.), or null
     bestMonths:
       type: array
