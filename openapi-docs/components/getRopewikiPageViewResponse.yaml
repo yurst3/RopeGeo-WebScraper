@@ -180,16 +180,16 @@ RopewikiPageView:
       format: date-time
       description: Last revision date
     bannerImage:
-      $ref: "#/RopewikiImageView"
+      $ref: "#/BetaSectionImage"
       nullable: true
       description: Banner image (first non–beta-section image)
     betaSections:
       type: array
       items:
-        $ref: "#/RopewikiBetaSectionView"
+        $ref: "#/BetaSection"
       description: Beta sections with text and images
 
-RopewikiImageView:
+BetaSectionImage:
   type: object
   description: Image view (banner or beta-section image)
   required:
@@ -215,7 +215,7 @@ RopewikiImageView:
       type: string
       format: date-time
 
-RopewikiBetaSectionView:
+BetaSection:
   type: object
   description: Beta section with title, text, and images
   required:
@@ -234,7 +234,7 @@ RopewikiBetaSectionView:
     images:
       type: array
       items:
-        $ref: "#/RopewikiImageView"
+        $ref: "#/BetaSectionImage"
     latestRevisionDate:
       type: string
       format: date-time

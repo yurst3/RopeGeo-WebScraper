@@ -107,6 +107,38 @@ describe('getRopewikiRegionView handler', () => {
         expect(body.pageCount).toBe(120);
         expect(body.totalPageCount).toBe(380);
         expect(body.syncDate).toBe('2025-01-10T08:00:00.000Z');
+        expect(body.overview).toEqual({
+            order: 1,
+            title: 'Overview',
+            text: 'Canyoneering regions.',
+            images: [],
+            latestRevisionDate: '2025-01-15T00:00:00.000Z',
+        });
+    });
+
+    it('returns 200 with null overview when region has no overview', async () => {
+        const id = 'a1b2c3d4-e5f6-7890-abcd-ef1234567890';
+        const mockView = new RopewikiRegionView(
+            'North America',
+            new Date('2025-01-15T00:00:00.000Z'),
+            'https://ropewiki.com/North_America',
+            new Date('2025-01-10T08:00:00.000Z'),
+            [{ id: 'b2c3d4e5-f6a7-8901-bcde-f23456789012', name: 'World' }],
+            120,
+            45,
+            12,
+            380,
+            null,
+            ['April', 'May'],
+            true,
+        );
+        mockGetRopewikiRegionView.mockResolvedValue(mockView);
+
+        const result = await handler({ pathParameters: { id } }, {});
+
+        expect(result.statusCode).toBe(200);
+        const body = JSON.parse(result.body);
+        expect(body.overview).toBeNull();
     });
 
     it('returns 404 when no region exists with the given id', async () => {

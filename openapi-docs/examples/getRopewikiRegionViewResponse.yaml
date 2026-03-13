@@ -9,7 +9,12 @@ value:
   topLevelPageCount: 45
   pageCount: 120
   totalPageCount: 380
-  overview: Canyoneering regions across North America.
+  overview:
+    order: 1
+    title: Overview
+    text: Canyoneering regions across North America.
+    images: []
+    latestRevisionDate: "2025-01-15T00:00:00.000Z"
   bestMonths:
     - April
     - May

@@ -50,9 +50,10 @@ RopewikiRegionView:
       type: integer
       description: Pages in this region and all descendants (truePageCountWithDescendents)
     overview:
-      type: string
-      nullable: true
-      description: Region overview text
+      oneOf:
+        - $ref: "./getRopewikiPageViewResponse.yaml#/BetaSection"
+        - type: "null"
+      description: Region overview as a beta section (title, text, images, etc.), or null
     bestMonths:
       type: array
       items:
