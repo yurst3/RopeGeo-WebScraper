@@ -467,17 +467,17 @@ declare module 'zapatos/schema' {
       */
       sourceFileUrl: string;
       /**
+      * **MapData.tiles**
+      * - `text` in database
+      * - Nullable, no default
+      */
+      tiles: string | null;
+      /**
       * **MapData.updatedAt**
       * - `timestamp` in database
       * - `NOT NULL`, default: `CURRENT_TIMESTAMP`
       */
       updatedAt: Date;
-      /**
-      * **MapData.vectorTile**
-      * - `text` in database
-      * - Nullable, no default
-      */
-      vectorTile: string | null;
     }
     export interface JSONSelectable {
       /**
@@ -535,17 +535,17 @@ declare module 'zapatos/schema' {
       */
       sourceFileUrl: string;
       /**
+      * **MapData.tiles**
+      * - `text` in database
+      * - Nullable, no default
+      */
+      tiles: string | null;
+      /**
       * **MapData.updatedAt**
       * - `timestamp` in database
       * - `NOT NULL`, default: `CURRENT_TIMESTAMP`
       */
       updatedAt: db.TimestampString;
-      /**
-      * **MapData.vectorTile**
-      * - `text` in database
-      * - Nullable, no default
-      */
-      vectorTile: string | null;
     }
     export interface Whereable {
       /**
@@ -603,17 +603,17 @@ declare module 'zapatos/schema' {
       */
       sourceFileUrl?: string | db.Parameter<string> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, string | db.Parameter<string> | db.SQLFragment | db.ParentColumn>;
       /**
+      * **MapData.tiles**
+      * - `text` in database
+      * - Nullable, no default
+      */
+      tiles?: string | db.Parameter<string> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, string | db.Parameter<string> | db.SQLFragment | db.ParentColumn>;
+      /**
       * **MapData.updatedAt**
       * - `timestamp` in database
       * - `NOT NULL`, default: `CURRENT_TIMESTAMP`
       */
       updatedAt?: (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.SQLFragment | db.ParentColumn>;
-      /**
-      * **MapData.vectorTile**
-      * - `text` in database
-      * - Nullable, no default
-      */
-      vectorTile?: string | db.Parameter<string> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, string | db.Parameter<string> | db.SQLFragment | db.ParentColumn>;
     }
     export interface Insertable {
       /**
@@ -671,17 +671,17 @@ declare module 'zapatos/schema' {
       */
       sourceFileUrl?: string | db.Parameter<string> | db.DefaultType | db.SQLFragment;
       /**
+      * **MapData.tiles**
+      * - `text` in database
+      * - Nullable, no default
+      */
+      tiles?: string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment;
+      /**
       * **MapData.updatedAt**
       * - `timestamp` in database
       * - `NOT NULL`, default: `CURRENT_TIMESTAMP`
       */
       updatedAt?: (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.DefaultType | db.SQLFragment;
-      /**
-      * **MapData.vectorTile**
-      * - `text` in database
-      * - Nullable, no default
-      */
-      vectorTile?: string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment;
     }
     export interface Updatable {
       /**
@@ -739,17 +739,17 @@ declare module 'zapatos/schema' {
       */
       sourceFileUrl?: string | db.Parameter<string> | db.DefaultType | db.SQLFragment | db.SQLFragment<any, string | db.Parameter<string> | db.DefaultType | db.SQLFragment>;
       /**
+      * **MapData.tiles**
+      * - `text` in database
+      * - Nullable, no default
+      */
+      tiles?: string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment | db.SQLFragment<any, string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment>;
+      /**
       * **MapData.updatedAt**
       * - `timestamp` in database
       * - `NOT NULL`, default: `CURRENT_TIMESTAMP`
       */
       updatedAt?: (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.DefaultType | db.SQLFragment | db.SQLFragment<any, (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.DefaultType | db.SQLFragment>;
-      /**
-      * **MapData.vectorTile**
-      * - `text` in database
-      * - Nullable, no default
-      */
-      vectorTile?: string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment | db.SQLFragment<any, string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment>;
     }
     export type UniqueIndex = 'MapData_pkey';
     export type Column = keyof Selectable;

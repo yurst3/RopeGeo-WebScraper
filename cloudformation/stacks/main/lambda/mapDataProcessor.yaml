@@ -10,7 +10,7 @@ Resources:
   MapDataProcessor:
     Type: 'AWS::Serverless::Function'
     Properties:
-      Description: A Lambda function that processes map data by converting KML files to MBTiles
+      Description: A Lambda function that processes map data by converting KML/GPX to GeoJSON and tile directories (z/x/y.pbf)
       Runtime: nodejs22.x
       Architectures:
         - arm64
@@ -22,9 +22,11 @@ Resources:
           Properties:
             Queue:
               'Fn::GetAtt': MapDataProcessingQueue.Arn
-            BatchSize: 10
-      MemorySize: 1024
+            BatchSize: 3
+      MemorySize: 3008
       Timeout: 900
+      EphemeralStorage:
+        Size: 2048
       VpcConfig:
         SecurityGroupIds:
           - Ref: LambdaSecurityGroup

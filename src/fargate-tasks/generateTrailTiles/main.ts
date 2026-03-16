@@ -20,6 +20,7 @@ import { uploadTilesToS3 } from './s3/uploadTilesToS3';
 
 const GEOJSON_DIR = 'geojson';
 const TILES_DIR = 'trails';
+const S3_TILES_PREFIX = 'tiles/trails';
 
 export async function main(): Promise<void> {
     let pool;
@@ -39,9 +40,9 @@ export async function main(): Promise<void> {
         await processGeojsons(ids, GEOJSON_DIR, bucket);
 
         await makeTiles(GEOJSON_DIR, TILES_DIR);
-        await uploadTilesToS3(TILES_DIR, bucket);
+        await uploadTilesToS3(TILES_DIR, S3_TILES_PREFIX, bucket);
 
-        await invalidateCloudFrontCache(distributionArn, TILES_DIR);
+        await invalidateCloudFrontCache(distributionArn, S3_TILES_PREFIX);
     } catch (err) {
         console.error(err);
         throw err;

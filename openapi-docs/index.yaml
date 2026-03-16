@@ -13,7 +13,7 @@ info:
 
 servers:
   - url: https://api.webscraper.ropegeo.com
-    description: API Gateway base URL (override at deployment)
+    description: Production url
 
 paths:
   /:

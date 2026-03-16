@@ -66,7 +66,7 @@ You can run a Fargate task once from the ECS console (e.g. to re-run a tile task
 
 1. In **AWS Console** go to **ECS** → **Clusters** → select the cluster that hosts the task (e.g. the one created by the WebScraper stack).
 2. Open the **Tasks** tab, click **Run new task**.
-3. Choose **Fargate**, the correct **Task definition** (e.g. `generateTrailTiles` or `generateRouteMarkerTiles`), the right **Cluster**, and **Launch type** Fargate.
+3. Choose **Fargate**, the correct **Task definition** (e.g. `generateTrailTiles`), the right **Cluster**, and **Launch type** Fargate.
 4. Under **Networking** (or **VPC and security groups**), set:
    - **VPC:** `WebScraperVPC`
    - **Security group:** `WebScraper-Prod-LambdaSecurityGroup`  

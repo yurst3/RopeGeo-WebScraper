@@ -1,5 +1,5 @@
 # Build and run the trail pmtiles job (Tippecanoe). Requires tippecanoe 2.17+ for .pmtiles output.
-# tippecanoe is not in Alpine repos; build from source (same approach as generateRouteMarkerTiles).
+# tippecanoe is not in Alpine repos; build from source.
 FROM node:22-alpine
 
 RUN apk add --no-cache \

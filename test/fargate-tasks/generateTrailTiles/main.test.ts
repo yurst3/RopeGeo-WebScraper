@@ -77,12 +77,12 @@ describe('main (generateTrailTiles)', () => {
         expect(processGeojsons).toHaveBeenCalledTimes(1);
         expect(processGeojsons).toHaveBeenCalledWith(mockMapDataIds, 'geojson', 'test-map-data-bucket');
         expect(makeTiles).toHaveBeenCalledWith('geojson', 'trails');
-        expect(uploadTilesToS3).toHaveBeenCalledWith('trails', 'test-map-data-bucket');
+        expect(uploadTilesToS3).toHaveBeenCalledWith('trails', 'tiles/trails', 'test-map-data-bucket');
         expect(mockRelease).toHaveBeenCalledTimes(1);
         expect(mockPoolEnd).toHaveBeenCalledTimes(1);
         expect(invalidateCloudFrontCache).toHaveBeenCalledWith(
             'arn:aws:cloudfront::123:distribution/E2',
-            'trails'
+            'tiles/trails'
         );
     });
 
@@ -107,7 +107,7 @@ describe('main (generateTrailTiles)', () => {
         expect(invalidateCloudFrontCache).toHaveBeenCalledTimes(1);
         expect(invalidateCloudFrontCache).toHaveBeenCalledWith(
             'arn:aws:cloudfront::123456789012:distribution/E2ABC123',
-            'trails'
+            'tiles/trails'
         );
     });
 

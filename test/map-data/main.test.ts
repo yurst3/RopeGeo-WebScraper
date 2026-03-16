@@ -84,7 +84,7 @@ describe('main', () => {
                 undefined, // gpx
                 'https://s3.amazonaws.com/bucket/source/file.kml', // kml
                 'https://s3.amazonaws.com/bucket/geojson/file.geojson', // geoJson
-                'https://s3.amazonaws.com/bucket/vector-tiles/file.mbtiles', // vectorTile
+                'https://api.example.com/mapdata/tiles/file-id/', // tiles
             ),
         );
 

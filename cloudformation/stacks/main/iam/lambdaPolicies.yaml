@@ -42,12 +42,14 @@ Resources:
               - 's3:PutObjectAcl'
               - 's3:DeleteObject'
             Resource:
-              - 'Fn::Sub': '${MapDataBucket.Arn}/routeMarkers/*'
-              - 'Fn::Sub': '${MapDataBucket.Arn}/trails/*'
+              - 'Fn::Sub': '${MapDataBucket.Arn}/tiles/*'
+              - 'Fn::Sub': '${MapDataBucket.Arn}/source/*'
+              - 'Fn::Sub': '${MapDataBucket.Arn}/geojson/*'
           - Effect: Allow
             Action: 's3:GetObject'
             Resource:
-              'Fn::Sub': '${MapDataBucket.Arn}/geojson/*'
+              - 'Fn::Sub': '${MapDataBucket.Arn}/geojson/*'
+              - 'Fn::Sub': '${MapDataBucket.Arn}/source/*'
   SQSRopewikiPageProcessingQueuePolicy:
     Type: 'AWS::IAM::ManagedPolicy'
     Properties:
@@ -96,25 +98,6 @@ Resources:
               'Fn::GetAtt': ImageDataBucket.Arn
           - Effect: Allow
             Action:
-              - 's3:PutObject'
-              - 's3:PutObjectAcl'
-            Resource:
-              'Fn::Sub': '${ImageDataBucket.Arn}/*'
-  S3ImageDataBucketMigrationPolicy:
-    Type: 'AWS::IAM::ManagedPolicy'
-    Properties:
-      ManagedPolicyName:
-        'Fn::Sub': '${AWS::StackName}-s3-imagedata-migration-readwrite'
-      PolicyDocument:
-        Version: '2012-10-17'
-        Statement:
-          - Effect: Allow
-            Action: 's3:ListBucket'
-            Resource:
-              'Fn::GetAtt': ImageDataBucket.Arn
-          - Effect: Allow
-            Action:
-              - 's3:GetObject'
               - 's3:PutObject'
               - 's3:PutObjectAcl'
             Resource:

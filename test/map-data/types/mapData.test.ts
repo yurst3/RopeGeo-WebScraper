@@ -7,7 +7,7 @@ type MapDataJSONSelectable = {
     gpx: string | null;
     kml: string | null;
     geoJson: string | null;
-    vectorTile: string | null;
+    tiles: string | null;
     deletedAt: string | null; // Always null in database, but present in schema
     createdAt: string;
     updatedAt: string;
@@ -20,15 +20,15 @@ describe('MapData', () => {
             const gpx = 'https://example.com/file.gpx';
             const kml = 'https://example.com/file.kml';
             const geoJson = 'https://example.com/file.geojson';
-            const vectorTile = 'https://example.com/file.mbtiles';
+            const tiles = 'https://example.com/file.mbtiles';
 
-            const mapData = new MapData(gpx, kml, geoJson, vectorTile, id);
+            const mapData = new MapData(gpx, kml, geoJson, tiles, id);
 
             expect(mapData.id).toBe(id);
             expect(mapData.gpx).toBe(gpx);
             expect(mapData.kml).toBe(kml);
             expect(mapData.geoJson).toBe(geoJson);
-            expect(mapData.vectorTile).toBe(vectorTile);
+            expect(mapData.tiles).toBe(tiles);
         });
 
         it('creates MapData with no parameters', () => {
@@ -38,7 +38,7 @@ describe('MapData', () => {
             expect(mapData.gpx).toBeUndefined();
             expect(mapData.kml).toBeUndefined();
             expect(mapData.geoJson).toBeUndefined();
-            expect(mapData.vectorTile).toBeUndefined();
+            expect(mapData.tiles).toBeUndefined();
         });
 
         it('creates MapData with only gpx', () => {
@@ -48,7 +48,7 @@ describe('MapData', () => {
             expect(mapData.gpx).toBe(gpx);
             expect(mapData.kml).toBeUndefined();
             expect(mapData.geoJson).toBeUndefined();
-            expect(mapData.vectorTile).toBeUndefined();
+            expect(mapData.tiles).toBeUndefined();
         });
 
         it('creates MapData with only kml', () => {
@@ -66,11 +66,11 @@ describe('MapData', () => {
             expect(mapData.geoJson).toBe(geoJson);
         });
 
-        it('creates MapData with only vectorTile', () => {
-            const vectorTile = 'https://example.com/file.mbtiles';
-            const mapData = new MapData(undefined, undefined, undefined, vectorTile);
+        it('creates MapData with only tiles', () => {
+            const tiles = 'https://example.com/file.mbtiles';
+            const mapData = new MapData(undefined, undefined, undefined, tiles);
 
-            expect(mapData.vectorTile).toBe(vectorTile);
+            expect(mapData.tiles).toBe(tiles);
         });
 
         it('creates MapData with id only', () => {
@@ -88,16 +88,16 @@ describe('MapData', () => {
             const gpx = 'https://example.com/file.gpx';
             const kml = 'https://example.com/file.kml';
             const geoJson = 'https://example.com/file.geojson';
-            const vectorTile = 'https://example.com/file.mbtiles';
+            const tiles = 'https://example.com/file.mbtiles';
 
-            const mapData = new MapData(gpx, kml, geoJson, vectorTile, id);
+            const mapData = new MapData(gpx, kml, geoJson, tiles, id);
             const dbRow = mapData.toDbRow();
 
             expect(dbRow.id).toBe(id);
             expect(dbRow.gpx).toBe(gpx);
             expect(dbRow.kml).toBe(kml);
             expect(dbRow.geoJson).toBe(geoJson);
-            expect(dbRow.vectorTile).toBe(vectorTile);
+            expect(dbRow.tiles).toBe(tiles);
             expect(dbRow.deletedAt).toBeNull();
             expect(dbRow.updatedAt).toBeInstanceOf(Date);
         });
@@ -119,7 +119,7 @@ describe('MapData', () => {
             expect(dbRow.gpx).toBeNull();
             expect(dbRow.kml).toBeNull();
             expect(dbRow.geoJson).toBeNull();
-            expect(dbRow.vectorTile).toBeNull();
+            expect(dbRow.tiles).toBeNull();
             expect(dbRow.deletedAt).toBeNull(); // Always null
             expect(dbRow.updatedAt).toBeInstanceOf(Date);
         });
@@ -133,7 +133,7 @@ describe('MapData', () => {
             expect(dbRow.gpx).toBe(gpx);
             expect(dbRow.kml).toBeNull();
             expect(dbRow.geoJson).toBe(geoJson);
-            expect(dbRow.vectorTile).toBeNull();
+            expect(dbRow.tiles).toBeNull();
         });
 
         it('includes id when provided', () => {
@@ -168,14 +168,14 @@ describe('MapData', () => {
             const gpx = 'https://example.com/file.gpx';
             const kml = 'https://example.com/file.kml';
             const geoJson = 'https://example.com/file.geojson';
-            const vectorTile = 'https://example.com/file.mbtiles';
+            const tiles = 'https://example.com/file.mbtiles';
 
             const dbRow: MapDataJSONSelectable = {
                 id,
                 gpx,
                 kml,
                 geoJson,
-                vectorTile,
+                tiles,
                 deletedAt: null, // Always null
                 createdAt: new Date().toISOString(),
                 updatedAt: new Date().toISOString(),
@@ -187,7 +187,7 @@ describe('MapData', () => {
             expect(mapData.gpx).toBe(gpx);
             expect(mapData.kml).toBe(kml);
             expect(mapData.geoJson).toBe(geoJson);
-            expect(mapData.vectorTile).toBe(vectorTile);
+            expect(mapData.tiles).toBe(tiles);
         });
 
         it('creates MapData from database row with null values', () => {
@@ -198,7 +198,7 @@ describe('MapData', () => {
                 gpx: null,
                 kml: null,
                 geoJson: null,
-                vectorTile: null,
+                tiles: null,
                 deletedAt: null,
                 createdAt: new Date().toISOString(),
                 updatedAt: new Date().toISOString(),
@@ -210,7 +210,7 @@ describe('MapData', () => {
             expect(mapData.gpx).toBeUndefined();
             expect(mapData.kml).toBeUndefined();
             expect(mapData.geoJson).toBeUndefined();
-            expect(mapData.vectorTile).toBeUndefined();
+            expect(mapData.tiles).toBeUndefined();
         });
 
         it('creates MapData from database row with partial fields', () => {
@@ -223,7 +223,7 @@ describe('MapData', () => {
                 gpx,
                 kml: null,
                 geoJson,
-                vectorTile: null,
+                tiles: null,
                 deletedAt: null,
                 createdAt: new Date().toISOString(),
                 updatedAt: new Date().toISOString(),
@@ -234,7 +234,7 @@ describe('MapData', () => {
             expect(mapData.gpx).toBe(gpx);
             expect(mapData.kml).toBeUndefined();
             expect(mapData.geoJson).toBe(geoJson);
-            expect(mapData.vectorTile).toBeUndefined();
+            expect(mapData.tiles).toBeUndefined();
         });
 
     });
@@ -245,9 +245,9 @@ describe('MapData', () => {
             const gpx = 'https://example.com/file.gpx';
             const kml = 'https://example.com/file.kml';
             const geoJson = 'https://example.com/file.geojson';
-            const vectorTile = 'https://example.com/file.mbtiles';
+            const tiles = 'https://example.com/file.mbtiles';
 
-            const original = new MapData(gpx, kml, geoJson, vectorTile, id);
+            const original = new MapData(gpx, kml, geoJson, tiles, id);
             const dbRow = original.toDbRow();
 
             // Create a JSONSelectable from Insertable (simulating what database returns)
@@ -256,7 +256,7 @@ describe('MapData', () => {
                 gpx: dbRow.gpx ?? null,
                 kml: dbRow.kml ?? null,
                 geoJson: dbRow.geoJson ?? null,
-                vectorTile: dbRow.vectorTile ?? null,
+                tiles: dbRow.tiles ?? null,
                 deletedAt: null, // Always null
                 createdAt: new Date().toISOString(),
                 updatedAt: (dbRow.updatedAt as Date).toISOString(),
@@ -268,7 +268,7 @@ describe('MapData', () => {
             expect(restored.gpx).toBe(original.gpx);
             expect(restored.kml).toBe(original.kml);
             expect(restored.geoJson).toBe(original.geoJson);
-            expect(restored.vectorTile).toBe(original.vectorTile);
+            expect(restored.tiles).toBe(original.tiles);
         });
 
         it('can convert toDbRow and fromDbRow back to original (without id)', () => {
@@ -285,7 +285,7 @@ describe('MapData', () => {
                 gpx: dbRow.gpx ?? null,
                 kml: dbRow.kml ?? null,
                 geoJson: dbRow.geoJson ?? null,
-                vectorTile: dbRow.vectorTile ?? null,
+                tiles: dbRow.tiles ?? null,
                 deletedAt: null, // Always null
                 createdAt: new Date().toISOString(),
                 updatedAt: (dbRow.updatedAt as Date).toISOString(),
@@ -296,7 +296,7 @@ describe('MapData', () => {
             expect(restored.gpx).toBe(original.gpx);
             expect(restored.kml).toBe(original.kml);
             expect(restored.geoJson).toBe(original.geoJson);
-            expect(restored.vectorTile).toBe(original.vectorTile);
+            expect(restored.tiles).toBe(original.tiles);
         });
     });
 });

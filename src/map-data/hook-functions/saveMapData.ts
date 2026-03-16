@@ -4,8 +4,10 @@ import MapData from '../types/mapData';
 import ProgressLogger from '../../helpers/progressLogger';
 import getDatabaseConnection from '../../helpers/getDatabaseConnection';
 import uploadMapDataToS3 from '../s3/uploadMapDataToS3';
+import { uploadMapDataTilesToS3 } from '../s3/uploadMapDataTilesToS3';
 import getMapData from '../database/getMapData';
 import moveFile from '../util/moveFile';
+import { moveDirectory } from '../util/moveDirectory';
 
 const SKIP_S3_REASON = 'skipping S3 upload because there is no S3 Bucket configured';
 
@@ -20,7 +22,7 @@ async function getLocalPool(): Promise<Pool> {
 export type SaveMapDataHookFn = (
     sourceFilePath: string | undefined,
     geoJsonFilePath: string | undefined,
-    vectorTileFilePath: string | undefined,
+    tilesDirPath: string | undefined,
     mapDataId: string,
     isKml: boolean,
     sourceFileUrl: string,
@@ -32,16 +34,16 @@ const SAVED_MAP_DATA_DIR = '.savedMapData';
 
 /**
  * Save-map-data hook for Lambda (or local invoke): persists source, GeoJSON, and vector tile files
- * and returns a MapData instance with their URLs.
+ * and returns a MapData instance with their URLs. Accepts a local tiles directory path and uploads
+ * it to S3 under tiles/{mapDataId}/ when not local; stores the tiles URL in MapData.tiles.
  * When DEV_ENVIRONMENT is "local", skips S3 and returns existing MapData from the database by
- * mapDataId (or a MapData with an error if not found). Otherwise uploads each file to the
- * MAP_DATA_BUCKET_NAME S3 bucket and returns a MapData with the resulting URLs. Collects per-file
- * upload errors into the returned MapData.errorMessage and logs progress or errors via the logger.
+ * mapDataId (or a MapData with an error if not found). Otherwise uploads source, GeoJSON, and
+ * tiles to the MAP_DATA_BUCKET_NAME S3 bucket and returns a MapData with the resulting URLs.
  */
 export const lambdaSaveMapData: SaveMapDataHookFn = async (
     sourceFilePath: string | undefined,
     geoJsonFilePath: string | undefined,
-    vectorTileFilePath: string | undefined,
+    tilesDirPath: string | undefined,
     mapDataId: string,
     isKml: boolean,
     sourceFileUrl: string,
@@ -80,14 +82,11 @@ export const lambdaSaveMapData: SaveMapDataHookFn = async (
     const fileExtension = isKml ? 'kml' : 'gpx';
     const sourceFileName = `${mapDataId}.${fileExtension}`;
     const geoJsonFileName = `${mapDataId}.geojson`;
-    const vectorTileFileName = `${mapDataId}.mbtiles`;
 
     let sourceFile: string | undefined;
     let geoJsonFile: string | undefined;
-    let vectorTileFile: string | undefined;
 
     const uploadErrors: string[] = [];
-
     const sourceContentType = isKml ? 'application/vnd.google-earth.kml+xml' : 'application/gpx+xml';
 
     if (sourceFilePath) {
@@ -116,16 +115,13 @@ export const lambdaSaveMapData: SaveMapDataHookFn = async (
         }
     }
 
-    if (vectorTileFilePath) {
+    let tilesUrl: string | undefined;
+    if (tilesDirPath) {
         try {
-            vectorTileFile = await uploadMapDataToS3(
-                vectorTileFilePath,
-                `vector-tiles/${vectorTileFileName}`,
-                'application/x-protobuf',
-            );
+            tilesUrl = await uploadMapDataTilesToS3(tilesDirPath, mapDataId, bucketName);
         } catch (error) {
             const errorMsg = error instanceof Error ? error.message : String(error);
-            uploadErrors.push(`Failed to upload vector tile file: ${errorMsg}`);
+            uploadErrors.push(`Failed to upload tiles: ${errorMsg}`);
         }
     }
 
@@ -137,7 +133,7 @@ export const lambdaSaveMapData: SaveMapDataHookFn = async (
         isKml ? undefined : sourceFile,
         isKml ? sourceFile : undefined,
         geoJsonFile,
-        vectorTileFile,
+        tilesUrl,
         mapDataId,
         sourceFileUrl,
         errorMessage,
@@ -155,13 +151,14 @@ export const lambdaSaveMapData: SaveMapDataHookFn = async (
 /**
  * Save-map-data hook for Node (e.g. scripts): moves source, GeoJSON, and vector tile files from
  * their temp paths into the project’s .savedMapData directory (source/, geojson/, vector-tiles/)
- * and returns a MapData instance with local file paths. Collects per-file move errors into the
- * returned MapData.errorMessage and logs progress or errors via the logger.
+ * into the project's .savedMapData directory (source/, geojson/). Tiles are produced as a directory
+ * by the processor; tilesUrl is passed through to MapData.tiles. Returns a MapData instance with
+ * local file paths for source/geoJson and the given tilesUrl.
  */
 export const nodeSaveMapData: SaveMapDataHookFn = async (
     sourceFilePath: string | undefined,
     geoJsonFilePath: string | undefined,
-    vectorTileFilePath: string | undefined,
+    tilesDirPath: string | undefined,
     mapDataId: string,
     isKml: boolean,
     sourceFileUrl: string,
@@ -173,11 +170,11 @@ export const nodeSaveMapData: SaveMapDataHookFn = async (
     const fileExtension = isKml ? 'kml' : 'gpx';
     const sourceDestPath = join(projectRoot, SAVED_MAP_DATA_DIR, 'source', `${mapDataId}.${fileExtension}`);
     const geoJsonDestPath = join(projectRoot, SAVED_MAP_DATA_DIR, 'geojson', `${mapDataId}.geojson`);
-    const vectorTileDestPath = join(projectRoot, SAVED_MAP_DATA_DIR, 'vector-tiles', `${mapDataId}.mbtiles`);
+    const tilesDestPath = join(projectRoot, SAVED_MAP_DATA_DIR, 'tiles', mapDataId);
 
     let sourceFile: string | undefined;
     let geoJsonFile: string | undefined;
-    let vectorTileFile: string | undefined;
+    let tilesFile: string | undefined;
 
     const moveErrors: string[] = [];
 
@@ -203,14 +200,14 @@ export const nodeSaveMapData: SaveMapDataHookFn = async (
         }
     }
 
-    // Move vector tile file if provided
-    if (vectorTileFilePath) {
+    // Move whole tiles directory if provided
+    if (tilesDirPath) {
         try {
-            await moveFile(vectorTileFilePath, vectorTileDestPath);
-            vectorTileFile = vectorTileDestPath;
+            await moveDirectory(tilesDirPath, tilesDestPath);
+            tilesFile = tilesDestPath;
         } catch (error) {
             const errorMsg = error instanceof Error ? error.message : String(error);
-            moveErrors.push(`Failed to move vector tile file: ${errorMsg}`);
+            moveErrors.push(`Failed to move tiles directory: ${errorMsg}`);
         }
     }
 
@@ -222,7 +219,7 @@ export const nodeSaveMapData: SaveMapDataHookFn = async (
         isKml ? undefined : sourceFile,
         isKml ? sourceFile : undefined,
         geoJsonFile,
-        vectorTileFile,
+        tilesFile,
         mapDataId,
         sourceFileUrl,
         errorMessage,

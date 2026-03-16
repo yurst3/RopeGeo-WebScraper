@@ -1,16 +1,22 @@
 import { describe, it, expect, beforeEach, afterEach, jest } from '@jest/globals';
 import { lambdaSaveMapData, nodeSaveMapData } from '../../../src/map-data/hook-functions/saveMapData';
 import MapData from '../../../src/map-data/types/mapData';
-import { mkdir, rename, copyFile, unlink } from 'fs/promises';
+import { mkdir, rename, copyFile, unlink, rm } from 'fs/promises';
 import ProgressLogger from '../../../src/helpers/progressLogger';
 
 const mockUploadMapDataToS3 = jest.fn<(...args: unknown[]) => Promise<string>>();
+const mockUploadMapDataTilesToS3 = jest.fn<(...args: unknown[]) => Promise<string>>();
 const mockGetMapData = jest.fn<(...args: unknown[]) => Promise<MapData | null>>();
 const mockRelease = jest.fn<() => void>();
 
 jest.mock('../../../src/map-data/s3/uploadMapDataToS3', () => ({
     __esModule: true,
     default: (...args: unknown[]) => mockUploadMapDataToS3(...args),
+}));
+
+jest.mock('../../../src/map-data/s3/uploadMapDataTilesToS3', () => ({
+    __esModule: true,
+    uploadMapDataTilesToS3: (...args: unknown[]) => mockUploadMapDataTilesToS3(...args),
 }));
 
 jest.mock('../../../src/map-data/database/getMapData', () => ({
@@ -27,12 +33,13 @@ jest.mock('../../../src/helpers/getDatabaseConnection', () => ({
     ),
 }));
 
-// Mock fs/promises (used by nodeSaveMapData only)
+// Mock fs/promises (used by nodeSaveMapData and moveDirectory)
 jest.mock('fs/promises', () => ({
     mkdir: jest.fn(),
     rename: jest.fn(),
     copyFile: jest.fn(),
     unlink: jest.fn(),
+    rm: jest.fn(),
 }));
 
 // Mock path
@@ -72,7 +79,8 @@ describe('saveMapData hook functions', () => {
         const mapDataId = '11111111-1111-1111-1111-111111111111';
         const sourceFilePath = '/tmp/source.kml';
         const geoJsonFilePath = '/tmp/data.geojson';
-        const vectorTileFilePath = '/tmp/tiles.mbtiles';
+        const tilesDirPath = '/tmp/map-data-xyz/tiles';
+        const expectedTilesUrl = 'https://api.example.com/mapdata/tiles/11111111-1111-1111-1111-111111111111/';
         const bucketName = 'test-bucket';
 
         beforeEach(() => {
@@ -81,6 +89,7 @@ describe('saveMapData hook functions', () => {
             mockUploadMapDataToS3.mockImplementation((_filePath: string, fileKey: string) =>
                 Promise.resolve(`https://${bucketName}.s3.amazonaws.com/${fileKey}`),
             );
+            mockUploadMapDataTilesToS3.mockResolvedValue(expectedTilesUrl);
         });
 
         it('when DEV_ENVIRONMENT is local and getMapData returns existing MapData, returns it and logs progress with skip message', async () => {
@@ -99,7 +108,7 @@ describe('saveMapData hook functions', () => {
             const result = await lambdaSaveMapData(
                 sourceFilePath,
                 geoJsonFilePath,
-                vectorTileFilePath,
+                tilesDirPath,
                 mapDataId,
                 true,
                 sourceFileUrl,
@@ -109,6 +118,7 @@ describe('saveMapData hook functions', () => {
 
             expect(result).toBe(existingMapData);
             expect(mockUploadMapDataToS3).not.toHaveBeenCalled();
+            expect(mockUploadMapDataTilesToS3).not.toHaveBeenCalled();
             expect(mockLogger.logProgress).toHaveBeenCalledWith(
                 `Map data ${mapDataId} processed successfully - skipping S3 upload because there is no S3 Bucket configured`,
             );
@@ -124,7 +134,7 @@ describe('saveMapData hook functions', () => {
             const result = await lambdaSaveMapData(
                 sourceFilePath,
                 geoJsonFilePath,
-                vectorTileFilePath,
+                tilesDirPath,
                 mapDataId,
                 true,
                 sourceFileUrl,
@@ -150,7 +160,7 @@ describe('saveMapData hook functions', () => {
             const result = await lambdaSaveMapData(
                 sourceFilePath,
                 geoJsonFilePath,
-                vectorTileFilePath,
+                tilesDirPath,
                 mapDataId,
                 true, // isKml
                 sourceFileUrl,
@@ -162,9 +172,10 @@ describe('saveMapData hook functions', () => {
             expect(result.kml).toBe(`https://${bucketName}.s3.amazonaws.com/source/${mapDataId}.kml`);
             expect(result.gpx).toBeUndefined();
             expect(result.geoJson).toBe(`https://${bucketName}.s3.amazonaws.com/geojson/${mapDataId}.geojson`);
-            expect(result.vectorTile).toBe(`https://${bucketName}.s3.amazonaws.com/vector-tiles/${mapDataId}.mbtiles`);
+            expect(result.tiles).toBe(expectedTilesUrl);
             expect(result.sourceFileUrl).toBe(sourceFileUrl);
             expect(result.errorMessage).toBeUndefined();
+            expect(mockUploadMapDataTilesToS3).toHaveBeenCalledWith(tilesDirPath, mapDataId, bucketName);
         });
 
         it('uploads GPX file to S3 and returns correct URLs', async () => {
@@ -172,7 +183,7 @@ describe('saveMapData hook functions', () => {
             const result = await lambdaSaveMapData(
                 sourceFilePath,
                 geoJsonFilePath,
-                vectorTileFilePath,
+                tilesDirPath,
                 mapDataId,
                 false, // isKml
                 sourceFileUrl,
@@ -184,16 +195,16 @@ describe('saveMapData hook functions', () => {
             expect(result.gpx).toBe(`https://${bucketName}.s3.amazonaws.com/source/${mapDataId}.gpx`);
             expect(result.kml).toBeUndefined();
             expect(result.geoJson).toBe(`https://${bucketName}.s3.amazonaws.com/geojson/${mapDataId}.geojson`);
-            expect(result.vectorTile).toBe(`https://${bucketName}.s3.amazonaws.com/vector-tiles/${mapDataId}.mbtiles`);
+            expect(result.tiles).toBe(expectedTilesUrl);
             expect(result.sourceFileUrl).toBe(sourceFileUrl);
             expect(result.errorMessage).toBeUndefined();
         });
 
-        it('calls uploadMapDataToS3 three times with correct filePath, fileKey, and contentType', async () => {
+        it('calls uploadMapDataToS3 twice and uploadMapDataTilesToS3 once with correct args', async () => {
             await lambdaSaveMapData(
                 sourceFilePath,
                 geoJsonFilePath,
-                vectorTileFilePath,
+                tilesDirPath,
                 mapDataId,
                 true,
                 'https://example.com/file.kml',
@@ -201,7 +212,7 @@ describe('saveMapData hook functions', () => {
                 mockLogger,
             );
 
-            expect(mockUploadMapDataToS3).toHaveBeenCalledTimes(3);
+            expect(mockUploadMapDataToS3).toHaveBeenCalledTimes(2);
             expect(mockUploadMapDataToS3).toHaveBeenCalledWith(
                 sourceFilePath,
                 `source/${mapDataId}.kml`,
@@ -212,18 +223,15 @@ describe('saveMapData hook functions', () => {
                 `geojson/${mapDataId}.geojson`,
                 'application/geo+json',
             );
-            expect(mockUploadMapDataToS3).toHaveBeenCalledWith(
-                vectorTileFilePath,
-                `vector-tiles/${mapDataId}.mbtiles`,
-                'application/x-protobuf',
-            );
+            expect(mockUploadMapDataTilesToS3).toHaveBeenCalledTimes(1);
+            expect(mockUploadMapDataTilesToS3).toHaveBeenCalledWith(tilesDirPath, mapDataId, bucketName);
         });
 
         it('uploads source file with correct KML content type', async () => {
             await lambdaSaveMapData(
                 sourceFilePath,
                 geoJsonFilePath,
-                vectorTileFilePath,
+                tilesDirPath,
                 mapDataId,
                 true, // isKml
                 'https://example.com/file.kml',
@@ -242,7 +250,7 @@ describe('saveMapData hook functions', () => {
             await lambdaSaveMapData(
                 sourceFilePath,
                 geoJsonFilePath,
-                vectorTileFilePath,
+                tilesDirPath,
                 mapDataId,
                 false, // isKml
                 'https://example.com/file.gpx',
@@ -261,7 +269,7 @@ describe('saveMapData hook functions', () => {
             await lambdaSaveMapData(
                 sourceFilePath,
                 geoJsonFilePath,
-                vectorTileFilePath,
+                tilesDirPath,
                 mapDataId,
                 true,
                 'https://example.com/file.kml',
@@ -276,11 +284,11 @@ describe('saveMapData hook functions', () => {
             );
         });
 
-        it('uploads vector tile file with correct content type', async () => {
+        it('does not call uploadMapDataTilesToS3 when tilesDirPath is undefined', async () => {
             await lambdaSaveMapData(
                 sourceFilePath,
                 geoJsonFilePath,
-                vectorTileFilePath,
+                undefined, // no tiles dir
                 mapDataId,
                 true,
                 'https://example.com/file.kml',
@@ -288,26 +296,8 @@ describe('saveMapData hook functions', () => {
                 mockLogger,
             );
 
-            expect(mockUploadMapDataToS3).toHaveBeenCalledWith(
-                vectorTileFilePath,
-                `vector-tiles/${mapDataId}.mbtiles`,
-                'application/x-protobuf',
-            );
-        });
-
-        it('calls uploadMapDataToS3 three times', async () => {
-            await lambdaSaveMapData(
-                sourceFilePath,
-                geoJsonFilePath,
-                vectorTileFilePath,
-                mapDataId,
-                true,
-                'https://example.com/file.kml',
-                undefined,
-                mockLogger,
-            );
-
-            expect(mockUploadMapDataToS3).toHaveBeenCalledTimes(3);
+            expect(mockUploadMapDataToS3).toHaveBeenCalledTimes(2);
+            expect(mockUploadMapDataTilesToS3).not.toHaveBeenCalled();
         });
 
         it('throws error when MAP_DATA_BUCKET_NAME is not set', async () => {
@@ -317,7 +307,7 @@ describe('saveMapData hook functions', () => {
                 lambdaSaveMapData(
                     sourceFilePath,
                     geoJsonFilePath,
-                    vectorTileFilePath,
+                    tilesDirPath,
                     mapDataId,
                     true,
                     'https://example.com/file.kml',
@@ -334,7 +324,7 @@ describe('saveMapData hook functions', () => {
                 lambdaSaveMapData(
                     sourceFilePath,
                     geoJsonFilePath,
-                    vectorTileFilePath,
+                    tilesDirPath,
                     mapDataId,
                     true,
                     'https://example.com/file.kml',
@@ -348,17 +338,15 @@ describe('saveMapData hook functions', () => {
             const sourceFileUrl = 'https://example.com/file.kml';
             const uploadError1 = new Error('Failed to read source file');
             const uploadError2 = new Error('S3 upload failed for GeoJSON');
-            const uploadError3 = new Error('S3 upload failed for vector tiles');
 
             mockUploadMapDataToS3
                 .mockRejectedValueOnce(uploadError1)
-                .mockRejectedValueOnce(uploadError2)
-                .mockRejectedValueOnce(uploadError3);
+                .mockRejectedValueOnce(uploadError2);
 
             const result = await lambdaSaveMapData(
                 sourceFilePath,
                 geoJsonFilePath,
-                vectorTileFilePath,
+                tilesDirPath,
                 mapDataId,
                 true,
                 sourceFileUrl,
@@ -369,12 +357,11 @@ describe('saveMapData hook functions', () => {
             expect(result).toBeInstanceOf(MapData);
             expect(result.errorMessage).toBe(
                 'Failed to upload source file: Failed to read source file\n' +
-                'Failed to upload GeoJSON file: S3 upload failed for GeoJSON\n' +
-                'Failed to upload vector tile file: S3 upload failed for vector tiles'
+                'Failed to upload GeoJSON file: S3 upload failed for GeoJSON'
             );
             expect(result.kml).toBeUndefined();
             expect(result.geoJson).toBeUndefined();
-            expect(result.vectorTile).toBeUndefined();
+            expect(result.tiles).toBe(expectedTilesUrl);
         });
 
         it('collects single upload error into errorMessage', async () => {
@@ -382,14 +369,12 @@ describe('saveMapData hook functions', () => {
             const uploadError = new Error('S3 upload failed');
             mockUploadMapDataToS3
                 .mockRejectedValueOnce(uploadError)
-                .mockImplementation((_f: string, key: string) =>
-                    Promise.resolve(`https://${bucketName}.s3.amazonaws.com/${key}`),
-                );
+                .mockResolvedValueOnce(`https://${bucketName}.s3.amazonaws.com/geojson/${mapDataId}.geojson`);
 
             const result = await lambdaSaveMapData(
                 sourceFilePath,
                 geoJsonFilePath,
-                vectorTileFilePath,
+                tilesDirPath,
                 mapDataId,
                 true,
                 sourceFileUrl,
@@ -400,7 +385,7 @@ describe('saveMapData hook functions', () => {
             expect(result.errorMessage).toBe('Failed to upload source file: S3 upload failed');
             expect(result.kml).toBeUndefined();
             expect(result.geoJson).toBeDefined();
-            expect(result.vectorTile).toBeDefined();
+            expect(result.tiles).toBe(expectedTilesUrl);
         });
 
         it('replaces existing errorMessage with upload errors', async () => {
@@ -416,7 +401,7 @@ describe('saveMapData hook functions', () => {
             const result = await lambdaSaveMapData(
                 sourceFilePath,
                 geoJsonFilePath,
-                vectorTileFilePath,
+                tilesDirPath,
                 mapDataId,
                 true,
                 sourceFileUrl,
@@ -435,7 +420,7 @@ describe('saveMapData hook functions', () => {
             const result = await lambdaSaveMapData(
                 sourceFilePath,
                 geoJsonFilePath,
-                vectorTileFilePath,
+                tilesDirPath,
                 mapDataId,
                 true,
                 sourceFileUrl,
@@ -446,7 +431,7 @@ describe('saveMapData hook functions', () => {
             expect(result.errorMessage).toBe(existingError);
             expect(result.kml).toBeDefined();
             expect(result.geoJson).toBeDefined();
-            expect(result.vectorTile).toBeDefined();
+            expect(result.tiles).toBeDefined();
         });
 
         it('handles uploadMapDataToS3 errors and collects them', async () => {
@@ -457,7 +442,7 @@ describe('saveMapData hook functions', () => {
             const result = await lambdaSaveMapData(
                 sourceFilePath,
                 geoJsonFilePath,
-                vectorTileFilePath,
+                tilesDirPath,
                 mapDataId,
                 true,
                 sourceFileUrl,
@@ -474,21 +459,23 @@ describe('saveMapData hook functions', () => {
         const mapDataId = '22222222-2222-2222-2222-222222222222';
         const sourceFilePath = '/tmp/source.kml';
         const geoJsonFilePath = '/tmp/data.geojson';
-        const vectorTileFilePath = '/tmp/tiles.mbtiles';
+        const tilesDirPath = '/tmp/map-data-abc/tiles';
         const projectRoot = '/project/root';
+        const expectedTilesPath = `${projectRoot}/.savedMapData/tiles/${mapDataId}`;
 
         beforeEach(() => {
             process.cwd = jest.fn(() => projectRoot);
             (mkdir as jest.MockedFunction<typeof mkdir>).mockResolvedValue(undefined);
             (rename as jest.MockedFunction<typeof rename>).mockResolvedValue(undefined);
+            (rm as jest.MockedFunction<typeof rm>).mockResolvedValue(undefined);
         });
 
-        it('moves KML file to .savedMapData directory and returns correct paths', async () => {
+        it('moves KML file and tiles directory to .savedMapData and returns correct paths', async () => {
             const sourceFileUrl = 'https://example.com/file.kml';
             const result = await nodeSaveMapData(
                 sourceFilePath,
                 geoJsonFilePath,
-                vectorTileFilePath,
+                tilesDirPath,
                 mapDataId,
                 true, // isKml
                 sourceFileUrl,
@@ -498,13 +485,11 @@ describe('saveMapData hook functions', () => {
 
             const expectedSourcePath = `${projectRoot}/.savedMapData/source/${mapDataId}.kml`;
             const expectedGeoJsonPath = `${projectRoot}/.savedMapData/geojson/${mapDataId}.geojson`;
-            const expectedVectorTilePath = `${projectRoot}/.savedMapData/vector-tiles/${mapDataId}.mbtiles`;
-
             expect(result).toBeInstanceOf(MapData);
             expect(result.kml).toBe(expectedSourcePath);
             expect(result.gpx).toBeUndefined();
             expect(result.geoJson).toBe(expectedGeoJsonPath);
-            expect(result.vectorTile).toBe(expectedVectorTilePath);
+            expect(result.tiles).toBe(expectedTilesPath);
             expect(result.sourceFileUrl).toBe(sourceFileUrl);
             expect(result.errorMessage).toBeUndefined();
         });
@@ -514,7 +499,7 @@ describe('saveMapData hook functions', () => {
             const result = await nodeSaveMapData(
                 sourceFilePath,
                 geoJsonFilePath,
-                vectorTileFilePath,
+                tilesDirPath,
                 mapDataId,
                 false, // isKml
                 sourceFileUrl,
@@ -526,14 +511,15 @@ describe('saveMapData hook functions', () => {
             expect(result).toBeInstanceOf(MapData);
             expect(result.gpx).toBe(expectedSourcePath);
             expect(result.kml).toBeUndefined();
+            expect(result.tiles).toBe(expectedTilesPath);
             expect(result.sourceFileUrl).toBe(sourceFileUrl);
         });
 
-        it('creates destination directories before moving files', async () => {
+        it('creates destination directories before moving files and tiles', async () => {
             await nodeSaveMapData(
                 sourceFilePath,
                 geoJsonFilePath,
-                vectorTileFilePath,
+                tilesDirPath,
                 mapDataId,
                 true,
                 'https://example.com/file.kml',
@@ -551,16 +537,16 @@ describe('saveMapData hook functions', () => {
                 { recursive: true },
             );
             expect(mkdir).toHaveBeenCalledWith(
-                `${projectRoot}/.savedMapData/vector-tiles`,
+                `${projectRoot}/.savedMapData/tiles`,
                 { recursive: true },
             );
         });
 
-        it('renames all three files to destination paths', async () => {
+        it('renames source, GeoJSON, and tiles directory to destination paths', async () => {
             await nodeSaveMapData(
                 sourceFilePath,
                 geoJsonFilePath,
-                vectorTileFilePath,
+                tilesDirPath,
                 mapDataId,
                 true,
                 'https://example.com/file.kml',
@@ -578,8 +564,8 @@ describe('saveMapData hook functions', () => {
                 `${projectRoot}/.savedMapData/geojson/${mapDataId}.geojson`,
             );
             expect(rename).toHaveBeenCalledWith(
-                vectorTileFilePath,
-                `${projectRoot}/.savedMapData/vector-tiles/${mapDataId}.mbtiles`,
+                tilesDirPath,
+                expectedTilesPath,
             );
         });
 
@@ -588,7 +574,6 @@ describe('saveMapData hook functions', () => {
             (exdevError as any).code = 'EXDEV';
             (rename as jest.MockedFunction<typeof rename>)
                 .mockRejectedValueOnce(exdevError)
-                .mockResolvedValueOnce(undefined)
                 .mockResolvedValueOnce(undefined);
             (copyFile as jest.MockedFunction<typeof copyFile>).mockResolvedValue(undefined);
             (unlink as jest.MockedFunction<typeof unlink>).mockResolvedValue(undefined);
@@ -596,7 +581,7 @@ describe('saveMapData hook functions', () => {
             await nodeSaveMapData(
                 sourceFilePath,
                 geoJsonFilePath,
-                vectorTileFilePath,
+                tilesDirPath,
                 mapDataId,
                 true,
                 'https://example.com/file.kml',
@@ -615,17 +600,15 @@ describe('saveMapData hook functions', () => {
             const sourceFileUrl = 'https://example.com/file.kml';
             const renameError1 = new Error('Permission denied for source');
             const renameError2 = new Error('Permission denied for GeoJSON');
-            const renameError3 = new Error('Permission denied for vector tiles');
 
             (rename as jest.MockedFunction<typeof rename>)
                 .mockRejectedValueOnce(renameError1)
-                .mockRejectedValueOnce(renameError2)
-                .mockRejectedValueOnce(renameError3);
+                .mockRejectedValueOnce(renameError2);
 
             const result = await nodeSaveMapData(
                 sourceFilePath,
                 geoJsonFilePath,
-                vectorTileFilePath,
+                tilesDirPath,
                 mapDataId,
                 true,
                 sourceFileUrl,
@@ -636,12 +619,11 @@ describe('saveMapData hook functions', () => {
             expect(result).toBeInstanceOf(MapData);
             expect(result.errorMessage).toBe(
                 'Failed to move source file: Permission denied for source\n' +
-                'Failed to move GeoJSON file: Permission denied for GeoJSON\n' +
-                'Failed to move vector tile file: Permission denied for vector tiles'
+                'Failed to move GeoJSON file: Permission denied for GeoJSON'
             );
             expect(result.kml).toBeUndefined();
             expect(result.geoJson).toBeUndefined();
-            expect(result.vectorTile).toBeUndefined();
+            expect(result.tiles).toBe(expectedTilesPath);
         });
 
         it('collects single move error into errorMessage', async () => {
@@ -649,13 +631,12 @@ describe('saveMapData hook functions', () => {
             const renameError = new Error('Permission denied');
             (rename as jest.MockedFunction<typeof rename>)
                 .mockRejectedValueOnce(renameError)
-                .mockResolvedValueOnce(undefined)
                 .mockResolvedValueOnce(undefined);
 
             const result = await nodeSaveMapData(
                 sourceFilePath,
                 geoJsonFilePath,
-                vectorTileFilePath,
+                tilesDirPath,
                 mapDataId,
                 true,
                 sourceFileUrl,
@@ -666,7 +647,7 @@ describe('saveMapData hook functions', () => {
             expect(result.errorMessage).toBe('Failed to move source file: Permission denied');
             expect(result.kml).toBeUndefined();
             expect(result.geoJson).toBeDefined();
-            expect(result.vectorTile).toBeDefined();
+            expect(result.tiles).toBeDefined();
         });
 
         it('replaces existing errorMessage with move errors', async () => {
@@ -681,7 +662,7 @@ describe('saveMapData hook functions', () => {
             const result = await nodeSaveMapData(
                 sourceFilePath,
                 geoJsonFilePath,
-                vectorTileFilePath,
+                tilesDirPath,
                 mapDataId,
                 true,
                 sourceFileUrl,
@@ -700,7 +681,7 @@ describe('saveMapData hook functions', () => {
             const result = await nodeSaveMapData(
                 sourceFilePath,
                 geoJsonFilePath,
-                vectorTileFilePath,
+                tilesDirPath,
                 mapDataId,
                 true,
                 sourceFileUrl,
@@ -711,7 +692,7 @@ describe('saveMapData hook functions', () => {
             expect(result.errorMessage).toBe(existingError);
             expect(result.kml).toBeDefined();
             expect(result.geoJson).toBeDefined();
-            expect(result.vectorTile).toBeDefined();
+            expect(result.tiles).toBeDefined();
         });
 
         it('handles mkdir errors and collects them', async () => {
@@ -722,7 +703,7 @@ describe('saveMapData hook functions', () => {
             const result = await nodeSaveMapData(
                 sourceFilePath,
                 geoJsonFilePath,
-                vectorTileFilePath,
+                tilesDirPath,
                 mapDataId,
                 true,
                 sourceFileUrl,
@@ -741,7 +722,7 @@ describe('saveMapData hook functions', () => {
             await nodeSaveMapData(
                 sourceFilePath,
                 geoJsonFilePath,
-                vectorTileFilePath,
+                tilesDirPath,
                 mapDataId,
                 true,
                 'https://example.com/file.kml',
@@ -753,6 +734,10 @@ describe('saveMapData hook functions', () => {
             expect(rename).toHaveBeenCalledWith(
                 sourceFilePath,
                 `${customRoot}/.savedMapData/source/${mapDataId}.kml`,
+            );
+            expect(rename).toHaveBeenCalledWith(
+                tilesDirPath,
+                `${customRoot}/.savedMapData/tiles/${mapDataId}`,
             );
         });
     });

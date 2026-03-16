@@ -6,19 +6,21 @@ import MapData from '../types/mapData';
 import type { SaveMapDataHookFn } from '../hook-functions/saveMapData';
 import { downloadSourceFile } from '../http/downloadSourceFile';
 import { convertToGeoJson } from '../util/convertToGeoJson';
-import { convertToVectorTiles } from '../util/convertToVectorTiles';
+import { convertToTileDirectory } from '../util/convertToTileDirectory';
 import ProgressLogger from '../../helpers/progressLogger';
 
 /**
- * Processes map data by downloading the source file, converting to GeoJSON and vector tiles,
- * then saving all files (e.g., upload to S3 in Lambda, or move locally in Node).
- * 
+ * Processes map data by downloading the source file, converting to GeoJSON and a tile directory,
+ * then calling the save hook to persist files (e.g., upload to S3 in Lambda, or move to .savedMapData
+ * in Node). The hook receives the local tiles directory path and is responsible for uploading or
+ * moving it and setting MapData.tiles.
+ *
  * @param sourceFileUrl - URL of the source file (KML or GPX)
- * @param saveMapDataHookFn - Hook function to persist produced files and return URLs.
+ * @param saveMapDataHookFn - Hook function to persist produced files and return MapData.
  * @param mapDataId - Optional UUID for the map data. If not provided, a new UUID will be generated.
  * @param logger - Progress logger for tracking processing progress
  * @param abortSignal - Optional AbortSignal; when aborted, the download is cancelled
- * @returns Promise that resolves to a MapData object with S3 URLs
+ * @returns Promise that resolves to a MapData object with URLs/paths (including tiles)
  */
 export const processMapData = async (
     sourceFileUrl: string,
@@ -27,20 +29,17 @@ export const processMapData = async (
     logger: ProgressLogger,
     abortSignal?: AbortSignal,
 ): Promise<MapData> => {
-    // Create temporary directory for processing
     const tempDir = await mkdtemp(join(tmpdir(), 'map-data-'));
     const finalMapDataId = mapDataId ?? randomUUID();
 
     try {
-        // Determine file type from URL
         const urlLower = sourceFileUrl.toLowerCase();
         const isKml = urlLower.endsWith('.kml');
         const isGpx = urlLower.endsWith('.gpx');
-        
+
         if (!isKml && !isGpx) {
             const errorMessage = `Unsupported file type. Expected .kml or .gpx, got: ${sourceFileUrl}`;
             console.error(errorMessage);
-            // Return MapData with all fields undefined and error message
             return new MapData(
                 undefined,
                 undefined,
@@ -54,21 +53,37 @@ export const processMapData = async (
 
         let errorMessage: string | undefined;
 
-        // Step 1: Download source file
-        const { filePath: sourceFilePath, content: sourceFileContent } = await downloadSourceFile(sourceFileUrl, tempDir, finalMapDataId, isKml, abortSignal);
+        const { filePath: sourceFilePath, content: sourceFileContent } = await downloadSourceFile(
+            sourceFileUrl,
+            tempDir,
+            finalMapDataId,
+            isKml,
+            abortSignal
+        );
 
-        // Step 2: Convert to GeoJSON
         let geoJsonFilePath: string | undefined;
-        const { filePath: geoJsonPath, error: geoJsonError } = await convertToGeoJson(sourceFileContent, tempDir, finalMapDataId, isKml);
+        const { filePath: geoJsonPath, error: geoJsonError } = await convertToGeoJson(
+            sourceFileContent,
+            tempDir,
+            finalMapDataId,
+            isKml
+        );
         geoJsonFilePath = geoJsonPath;
         errorMessage = geoJsonError;
 
-        // Step 3: Convert GeoJSON to vector tiles
-        let vectorTileFilePath: string | undefined;
+        let tilesDirPath: string | undefined;
         if (geoJsonFilePath && !errorMessage) {
-            const { filePath, error } = await convertToVectorTiles(geoJsonFilePath, tempDir, finalMapDataId);
-            vectorTileFilePath = filePath;
-            errorMessage = error;
+            const tilesOutputDir = join(tempDir, 'tiles');
+            const result = await convertToTileDirectory(
+                geoJsonFilePath,
+                tilesOutputDir,
+                finalMapDataId,
+            );
+            if ('error' in result) {
+                errorMessage = result.error;
+            } else {
+                tilesDirPath = result.tilesDir;
+            }
         }
 
         if (abortSignal?.aborted) {
@@ -79,12 +94,10 @@ export const processMapData = async (
             throw reason;
         }
 
-        // Save files via hook (Lambda uploads to S3; Node moves locally)
-        // Hook function returns MapData object
         return await saveMapDataHookFn(
             sourceFilePath,
             geoJsonFilePath,
-            vectorTileFilePath,
+            tilesDirPath,
             finalMapDataId,
             isKml,
             sourceFileUrl,
@@ -92,7 +105,6 @@ export const processMapData = async (
             logger,
         );
     } finally {
-        // Clean up temporary directory
         await rm(tempDir, { recursive: true, force: true });
     }
 };

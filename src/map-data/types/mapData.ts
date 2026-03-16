@@ -5,7 +5,7 @@ export class MapData {
     gpx: string | undefined;
     kml: string | undefined;
     geoJson: string | undefined;
-    vectorTile: string | undefined;
+    tiles: string | undefined;
     sourceFileUrl: string;
     errorMessage: string | undefined;
 
@@ -13,7 +13,7 @@ export class MapData {
         gpx?: string,
         kml?: string,
         geoJson?: string,
-        vectorTile?: string,
+        tiles?: string,
         id?: string,
         sourceFileUrl?: string,
         errorMessage?: string,
@@ -21,7 +21,7 @@ export class MapData {
         this.gpx = gpx;
         this.kml = kml;
         this.geoJson = geoJson;
-        this.vectorTile = vectorTile;
+        this.tiles = tiles;
         this.id = id;
         this.sourceFileUrl = sourceFileUrl ?? '';
         this.errorMessage = errorMessage;
@@ -33,7 +33,7 @@ export class MapData {
             gpx: this.gpx ?? null,
             kml: this.kml ?? null,
             geoJson: this.geoJson ?? null,
-            vectorTile: this.vectorTile ?? null,
+            tiles: this.tiles ?? null,
             sourceFileUrl: this.sourceFileUrl,
             errorMessage: this.errorMessage ?? null,
             updatedAt: now,
@@ -53,7 +53,7 @@ export class MapData {
             row.gpx ?? undefined,
             row.kml ?? undefined,
             row.geoJson ?? undefined,
-            row.vectorTile ?? undefined,
+            row.tiles ?? undefined,
             row.id,
             row.sourceFileUrl,
             row.errorMessage ?? undefined,

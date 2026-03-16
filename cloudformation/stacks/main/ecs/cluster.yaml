@@ -11,10 +11,6 @@ Resources:
         - Name: containerInsights
           Value: disabled
 Outputs:
-  GenerateRouteMarkerTilesEcsClusterName:
-    Description: ECS cluster name for the generate route marker tiles scheduled task
-    Value:
-      Ref: EcsCluster
   GenerateTrailTilesEcsClusterName:
     Description: ECS cluster name for the generate trail tiles scheduled task
     Value:

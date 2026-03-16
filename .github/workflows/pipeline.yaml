@@ -286,7 +286,7 @@ jobs:
             --s3-bucket ${PROD_ARTIFACTS_BUCKET} \
             --no-fail-on-empty-changeset \
             --role-arn ${PROD_CLOUDFORMATION_EXECUTION_ROLE} \
-            --parameter-overrides "devEnvironment=production DatabaseUsername=$PROD_DATABASE_USERNAME DatabasePassword=$PROD_DATABASE_PASSWORD FckNatAMIId=$FCK_NAT_AMI ProxyUrl=$PROXY_URL DocsBucketPipelineRoleArn=$PROD_PIPELINE_EXECUTION_ROLE PipelineExecutionRoleName=${PROD_PIPELINE_EXECUTION_ROLE##*/} RdsDbiResourceId=$PROD_RDS_DBI_RESOURCE_ID ImagePublicBaseUrl=https://api.webscraper.ropegeo.com"
+            --parameter-overrides "devEnvironment=production DatabaseUsername=$PROD_DATABASE_USERNAME DatabasePassword=$PROD_DATABASE_PASSWORD FckNatAMIId=$FCK_NAT_AMI ProxyUrl=$PROXY_URL DocsBucketPipelineRoleArn=$PROD_PIPELINE_EXECUTION_ROLE PipelineExecutionRoleName=${PROD_PIPELINE_EXECUTION_ROLE##*/} RdsDbiResourceId=$PROD_RDS_DBI_RESOURCE_ID ImagePublicBaseUrl=https://api.webscraper.ropegeo.com MapDataPublicBaseUrl=https://api.webscraper.ropegeo.com"
 
   build-push-fargate-tasks:
     if: always() && github.ref == 'refs/heads/master' && (needs.deploy-prod-main.result == 'success' || needs.deploy-testing-main.result == 'success')

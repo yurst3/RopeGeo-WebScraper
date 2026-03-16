@@ -10,7 +10,7 @@ Use this rule when adding a new ECS Fargate scheduled task. It covers file struc
 
 ## 1. Code layout under `src/fargate-tasks/<taskName>/`
 
-Use a single folder per task with a **camelCase** name (e.g. `generateRouteMarkerTiles`). Structure:
+Use a single folder per task with a **camelCase** name (e.g. `generateTrailTiles`). Structure:
 
 ```
 src/fargate-tasks/<taskName>/
@@ -34,7 +34,7 @@ src/fargate-tasks/<taskName>/
 
 ## 2. CloudFormation resources (main stack)
 
-Add resources under the main stack by **AWS service**: ECS task definition in `ecs/`, ECR repo in `ecr/`, IAM roles in `iam/fargateTaskRoles.yaml` and `iam/fargateTasksEcrPushPolicy.yaml`, log group in `logs/fargateTaskLogGroups.yaml`, EventBridge rule in `event-bridge/`. Use a consistent prefix per task (e.g. `GenerateRouteMarkerTiles*`). **Reuse the existing `EcsCluster`** (in `ecs/cluster.yaml`); do not create a second cluster.
+Add resources under the main stack by **AWS service**: ECS task definition in `ecs/`, ECR repo in `ecr/`, IAM roles in `iam/fargateTaskRoles.yaml` and `iam/fargateTasksEcrPushPolicy.yaml`, log group in `logs/fargateTaskLogGroups.yaml`, EventBridge rule in `event-bridge/`. Use a consistent prefix per task (e.g. `GenerateTrailTiles*`). **Reuse the existing `EcsCluster`** (in `ecs/cluster.yaml`); do not create a second cluster.
 
 | Resource | Type | Purpose |
 |----------|------|---------|
@@ -58,7 +58,7 @@ Add resources under the main stack by **AWS service**: ECS task definition in `e
 
 - **Location**: Mirror `src/fargate-tasks/<taskName>/` under `test/fargate-tasks/<taskName>/`.
 - **main.test.ts**: Mock all dependencies (`getDatabaseConnection`, database module(s), util modules, `fs`, `putS3Object`, cloudfront modules, etc.) with `jest.mock('...', () => ({ ... jest.fn() }))`. Import the mocked modules and `main` from the task. In `beforeEach`, set env (e.g. `MAP_DATA_BUCKET_NAME`, `CLOUDFRONT_DISTRIBUTION_ARN` to `''` when invalidation is optional so `getCloudfrontDistributionArn()` returns a falsy value and does not throw). Set up mock implementations (pool with `connect`/`end`, release). Test: (1) validation (throws when required env missing, before DB is used), (2) happy path (correct sequence of calls and arguments), (3) optional behavior (e.g. CloudFront invalidation only when env set and non-empty), (4) cleanup (release + pool.end when a step throws), (5) propagation of rejections from async steps, (6) **error logging**: when a step throws or rejects, assert that `console.error` was called with that error (e.g. `jest.spyOn(console, 'error').mockImplementation(() => {})`, then `expect(consoleErrorSpy).toHaveBeenCalledWith(err)`, and `consoleErrorSpy.mockRestore()` in the test).
-- **util/*.test.ts**: Mock external deps (e.g. `child_process.spawn`, `fs`, `@aws-sdk/client-*`). For `spawn`, return a fake child with `stderr.on('data', cb)`, `on('close', cb)`, `on('error', cb)` and invoke callbacks in tests to simulate success/failure. See `test/map-data/util/convertToVectorTiles.test.ts` and `test/fargate-tasks/generateRouteMarkerTiles/util/makeTiles.test.ts`. For AWS SDK, mock the client’s `send` and (if needed) the Command constructor to capture input; assert on the captured input and that `send` was called. Use `jest.mocked()` and avoid referencing variables inside `jest.mock()` factories (hoisting); use `jest.fn()` inside the factory and configure in `beforeEach` via the imported module.
+- **util/*.test.ts**: Mock external deps (e.g. `child_process.spawn`, `fs`, `@aws-sdk/client-*`). For `spawn`, return a fake child with `stderr.on('data', cb)`, `on('close', cb)`, `on('error', cb)` and invoke callbacks in tests to simulate success/failure. See `test/map-data/util/convertToTileDirectory.test.ts` and `test/fargate-tasks/generateTrailTiles/util/makeTiles.test.ts`. For AWS SDK, mock the client’s `send` and (if needed) the Command constructor to capture input; assert on the captured input and that `send` was called. Use `jest.mocked()` and avoid referencing variables inside `jest.mock()` factories (hoisting); use `jest.fn()` inside the factory and configure in `beforeEach` via the imported module.
 - **database/*.test.ts**: Database/integration tests against the temporary test DB (see tests rule for `test:database` or manual DB + `TEST_*` env). Use `TEST_USER`, `TEST_PASS`, `TEST_HOST`, `TEST_PORT`, `TEST_DB`. Create a `Pool`, run `beforeAll`/`afterEach` cleanup (e.g. `db.sql\`DELETE FROM "Table"\`.run(conn)`), `afterAll` `pool.end()`. Test: returns expected rows, filters (e.g. deletedAt), empty result. These tests are excluded from `test:unit` and included in `test:database` (see tests rule for script patterns).
 
 ## 4. package.json test scripts
@@ -75,8 +75,8 @@ See the **tests** rule (`.cursor/rules/tests.mdc`) for how unit vs database/inte
 One workflow job **build-push-fargate-tasks** in `.github/workflows/pipeline.yaml` builds and pushes **all** Fargate task images after the main stack is deployed. You do **not** add a new workflow job per Fargate task.
 
 - **Trigger**: `needs: [deploy-prod-main, deploy-testing-main]`; `if: always() && github.ref == 'refs/heads/master' && (deploy-prod-main or deploy-testing-main succeeded)`.
-- **Discovery**: The job queries both stacks (testing and prod) for **all** outputs whose `OutputKey` ends with `RepositoryUri`. For each such output, it derives the task folder: prefix = key with `RepositoryUri` removed, folder = prefix in **camelCase** (first letter lower). Example: `GenerateRouteMarkerTilesRepositoryUri` → folder `generateRouteMarkerTiles`. It only builds when `src/fargate-tasks/<folder>/Dockerfile` exists.
-- **Convention**: CloudFormation output key must be **`<Prefix>RepositoryUri`** (PascalCase prefix + literal `RepositoryUri`). The folder under `src/fargate-tasks/` must be the **camelCase** version of that prefix (e.g. `GenerateRouteMarkerTiles` → `generateRouteMarkerTiles`). Then the pipeline will pick it up automatically.
+- **Discovery**: The job queries both stacks (testing and prod) for **all** outputs whose `OutputKey` ends with `RepositoryUri`. For each such output, it derives the task folder: prefix = key with `RepositoryUri` removed, folder = prefix in **camelCase** (first letter lower). Example: `GenerateTrailTilesRepositoryUri` → folder `generateTrailTiles`. It only builds when `src/fargate-tasks/<folder>/Dockerfile` exists.
+- **Convention**: CloudFormation output key must be **`<Prefix>RepositoryUri`** (PascalCase prefix + literal `RepositoryUri`). The folder under `src/fargate-tasks/` must be the **camelCase** version of that prefix (e.g. `GenerateTrailTiles` → `generateTrailTiles`). Then the pipeline will pick it up automatically.
 - **Steps** (conceptually): Get all `*RepositoryUri` outputs from both stacks; emit lines `folder uri`; group by folder; for each folder, **build with a lowercase tag** (e.g. `IMAGE_TAG="${folder,,}:latest"`) because Docker requires lowercase repository names in tags; tag that image with each ECR URI and push.
 - **Pipeline role**: Must have `ecr:GetAuthorizationToken` and ECR push permissions; the stack attaches `FargateTasksECRPushPolicy` to the role when `PipelineExecutionRoleName` is set (see CloudFormation section above).
 

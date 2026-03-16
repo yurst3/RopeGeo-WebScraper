@@ -21,7 +21,8 @@
         "DB_NAME": "local",
         "DB_USER": "localUser",
         "DB_PASSWORD": "localPass",
-        "DEV_ENVIRONMENT": "local"
+        "DEV_ENVIRONMENT": "local",
+        "MAP_DATA_PUBLIC_BASE_URL": ""
     },
     "RopewikiRouteReprocessor": {
         "DB_HOST": "local-db",
