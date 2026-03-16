@@ -1,9 +1,15 @@
 openapi: 3.0.1
 info:
   title: WebScraper API
-  description: REST API for the webscraper database.
+  description: |
+    This is a **private API** intended for use by the RopeGeo mobile app. You may test the API freely, but it can be updated at will and without warning (including breaking changes). Do not write code that depends on this API.
+
+    For questions, contact [Ethan Hurst](https://github.com/yurst3) or email 4lrce4@gmail.com.
   version: 1.0.0
-  contact: {}
+  contact:
+    name: Ethan Hurst
+    email: 4lrce4@gmail.com
+    url: https://github.com/yurst3
 
 servers:
   - url: https://api.webscraper.ropegeo.com
