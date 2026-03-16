@@ -4,7 +4,7 @@ get:
   summary: Serve API documentation
   description: |
     Returns the built API documentation files. In production, served by CloudFront from the docs origin.
-    - index.html - Redoc HTML documentation
+    - index.html - Scalar API reference (HTML)
     - openapi.yaml - Bundled OpenAPI spec (YAML)
     - openapi.json - Bundled OpenAPI spec (JSON)
   operationId: getApiDocs

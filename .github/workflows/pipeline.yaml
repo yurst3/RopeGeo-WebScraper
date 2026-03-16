@@ -375,11 +375,8 @@ jobs:
       - name: Check out repository code
         uses: actions/checkout@v4
 
-      - name: Build OpenAPI docs with Redocly
-        run: |
-          npx @redocly/cli build-docs openapi-docs/index.yaml --output docs-build/index.html
-          npx @redocly/cli bundle openapi-docs/index.yaml --output docs-build/openapi.yaml
-          npx @redocly/cli bundle openapi-docs/index.yaml --output docs-build/openapi.json
+      - name: Build OpenAPI docs with Scalar
+        run: npm run build:openapi
 
       - name: Assume the prod pipeline user role
         uses: aws-actions/configure-aws-credentials@v4
