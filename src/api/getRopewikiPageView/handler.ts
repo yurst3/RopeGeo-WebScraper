@@ -1,4 +1,5 @@
 import type { PoolClient } from 'pg';
+import { RopewikiPageViewResult } from 'ropegeo-common';
 import getDatabaseConnection from '../../helpers/getDatabaseConnection';
 import getRopewikiPageView from './database/getRopewikiPageView';
 
@@ -45,10 +46,11 @@ export const handler = async (
             };
         }
 
+        const result = new RopewikiPageViewResult(view);
         return {
             statusCode: 200,
             headers: CORS_HEADERS,
-            body: JSON.stringify(view),
+            body: JSON.stringify(result),
         };
     } catch (error) {
         console.error('Error in getRopewikiPageView handler:', error);

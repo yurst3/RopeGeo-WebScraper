@@ -1,5 +1,18 @@
 GetRopewikiRegionViewResponse:
-  $ref: "#/RopewikiRegionView"
+  type: object
+  description: Result wrapper for getRopewikiRegionView (ropegeo-common Result; resultType + result)
+  required:
+    - resultType
+    - result
+  properties:
+    resultType:
+      type: string
+      enum:
+        - ropewikiRegionView
+      description: Discriminator for single-result API responses (ropegeo-common ResultType)
+    result:
+      $ref: "#/RopewikiRegionView"
+      description: The RopewikiRegionView payload
 
 RopewikiRegionView:
   type: object

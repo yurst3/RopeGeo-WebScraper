@@ -54,7 +54,9 @@ describe('getRoutes handler', () => {
             'Content-Type': 'application/json',
             'Access-Control-Allow-Origin': '*',
         });
-        expect(JSON.parse(result.body)).toEqual({
+        const body = JSON.parse(result.body);
+        expect(body.resultType).toBe('routesGeojson');
+        expect(body.result).toEqual({
             type: 'FeatureCollection',
             features: [
                 {
@@ -72,7 +74,9 @@ describe('getRoutes handler', () => {
         const result = await handler({}, {});
 
         expect(result.statusCode).toBe(200);
-        expect(JSON.parse(result.body)).toEqual({ type: 'FeatureCollection', features: [] });
+        const body = JSON.parse(result.body);
+        expect(body.resultType).toBe('routesGeojson');
+        expect(body.result).toEqual({ type: 'FeatureCollection', features: [] });
     });
 
     it('returns 400 when source is present but region is absent', async () => {
@@ -144,7 +148,9 @@ describe('getRoutes handler', () => {
         expect(routesParams.region!.source).toBe(PageDataSource.Ropewiki);
         expect(routesParams.region!.id).toBe(regionId);
         expect(result.statusCode).toBe(200);
-        expect(JSON.parse(result.body)).toEqual({
+        const body = JSON.parse(result.body);
+        expect(body.resultType).toBe('routesGeojson');
+        expect(body.result).toEqual({
             type: 'FeatureCollection',
             features: [
                 {

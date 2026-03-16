@@ -118,7 +118,9 @@ describe('getRoutePreview handler', () => {
             'Content-Type': 'application/json',
             'Access-Control-Allow-Origin': '*',
         });
-        expect(JSON.parse(result.body)).toEqual(mockPreviews);
+        const body = JSON.parse(result.body);
+        expect(body.resultType).toBe('routePreview');
+        expect(body.result).toEqual(mockPreviews);
     });
 
     it('returns 200 and empty array when no page routes exist for route', async () => {
@@ -129,7 +131,9 @@ describe('getRoutePreview handler', () => {
 
         expect(mockGetRopewikiPagePreview).not.toHaveBeenCalled();
         expect(result.statusCode).toBe(200);
-        expect(JSON.parse(result.body)).toEqual([]);
+        const body = JSON.parse(result.body);
+        expect(body.resultType).toBe('routePreview');
+        expect(body.result).toEqual([]);
     });
 
     it('returns 404 when no route exists with the given routeId', async () => {

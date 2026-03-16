@@ -99,15 +99,17 @@ describe('getRopewikiRegionView handler', () => {
             'Access-Control-Allow-Origin': '*',
         });
         const body = JSON.parse(result.body);
-        expect(body.name).toBe('North America');
-        expect(body.externalLink).toBe('https://ropewiki.com/North_America');
-        expect(body.regions).toEqual([{ id: 'b2c3d4e5-f6a7-8901-bcde-f23456789012', name: 'World' }]);
-        expect(body.regionCount).toBe(12);
-        expect(body.topLevelPageCount).toBe(45);
-        expect(body.pageCount).toBe(120);
-        expect(body.totalPageCount).toBe(380);
-        expect(body.syncDate).toBe('2025-01-10T08:00:00.000Z');
-        expect(body.overview).toEqual({
+        expect(body.resultType).toBe('ropewikiRegionView');
+        expect(body.result).toBeDefined();
+        expect(body.result.name).toBe('North America');
+        expect(body.result.externalLink).toBe('https://ropewiki.com/North_America');
+        expect(body.result.regions).toEqual([{ id: 'b2c3d4e5-f6a7-8901-bcde-f23456789012', name: 'World' }]);
+        expect(body.result.regionCount).toBe(12);
+        expect(body.result.topLevelPageCount).toBe(45);
+        expect(body.result.pageCount).toBe(120);
+        expect(body.result.totalPageCount).toBe(380);
+        expect(body.result.syncDate).toBe('2025-01-10T08:00:00.000Z');
+        expect(body.result.overview).toEqual({
             order: 1,
             title: 'Overview',
             text: 'Canyoneering regions.',
@@ -138,7 +140,8 @@ describe('getRopewikiRegionView handler', () => {
 
         expect(result.statusCode).toBe(200);
         const body = JSON.parse(result.body);
-        expect(body.overview).toBeNull();
+        expect(body.resultType).toBe('ropewikiRegionView');
+        expect(body.result.overview).toBeNull();
     });
 
     it('returns 404 when no region exists with the given id', async () => {

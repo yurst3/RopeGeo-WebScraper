@@ -1,62 +1,64 @@
 # Example Object for getRopewikiPageView 200 response
-summary: Sample RopewikiPageView (with optional fields populated)
+summary: Sample RopewikiPageViewResult (resultType + result)
 value:
-  pageId: Bear_Creek_Canyon
-  name: Bear Creek Canyon
-  aka:
-    - Bear Creek
-  url: https://ropewiki.com/Bear_Creek_Canyon
-  quality: 4.5
-  userVotes: 12
-  difficulty:
-    technical: "3"
-    water: A
-    time: II
-    risk: PG13
-  permit: No
-  rappelCount: 5
-  jumps: null
-  vehicle: Passenger
-  rappelLongest: 195
-  shuttleTime: 0
-  overallTime:
-    min: 3.75
-    max: 4.9
-  overallLength: 5.1
-  approachLength: 1.2
-  approachElevGain: 800
-  descentLength: 2.8
-  descentElevGain: -600
-  exitLength: 0.5
-  exitElevGain: 200
-  hikeLength: 5.1
-  approachTime:
-    min: 1.5
-    max: 2
-  descentTime:
-    min: 2
-    max: 2.5
-  exitTime:
-    min: 0.25
-    max: 0.5
-  months:
-    - Jun
-    - Jul
-    - Aug
-    - Sep
-    - Oct
-  regions:
-    - id: dddddddd-dddd-dddd-dddd-dddddddddddd
-      name: Bear Creek
-    - id: cccccccc-cccc-cccc-cccc-cccccccccccc
-      name: Utah
-    - id: bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb
-      name: United States
-  latestRevisionDate: "2025-01-01T00:00:00.000Z"
-  bannerImage:
-    order: 0
-    url: https://ropewiki.com/images/thumb/1/2/BearCreek.jpg/400px-BearCreek.jpg
-    linkUrl: https://ropewiki.com/File:BearCreek.jpg
-    caption: ""
+  resultType: ropewikiPageView
+  result:
+    pageId: Bear_Creek_Canyon
+    name: Bear Creek Canyon
+    aka:
+      - Bear Creek
+    url: https://ropewiki.com/Bear_Creek_Canyon
+    quality: 4.5
+    userVotes: 12
+    difficulty:
+      technical: "3"
+      water: A
+      time: II
+      risk: PG13
+    permit: No
+    rappelCount: 5
+    jumps: null
+    vehicle: Passenger
+    rappelLongest: 195
+    shuttleTime: 0
+    overallTime:
+      min: 3.75
+      max: 4.9
+    overallLength: 5.1
+    approachLength: 1.2
+    approachElevGain: 800
+    descentLength: 2.8
+    descentElevGain: -600
+    exitLength: 0.5
+    exitElevGain: 200
+    hikeLength: 5.1
+    approachTime:
+      min: 1.5
+      max: 2
+    descentTime:
+      min: 2
+      max: 2.5
+    exitTime:
+      min: 0.25
+      max: 0.5
+    months:
+      - Jun
+      - Jul
+      - Aug
+      - Sep
+      - Oct
+    regions:
+      - id: dddddddd-dddd-dddd-dddd-dddddddddddd
+        name: Bear Creek
+      - id: cccccccc-cccc-cccc-cccc-cccccccccccc
+        name: Utah
+      - id: bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb
+        name: United States
     latestRevisionDate: "2025-01-01T00:00:00.000Z"
-  betaSections: []
+    bannerImage:
+      order: 0
+      url: https://ropewiki.com/images/thumb/1/2/BearCreek.jpg/400px-BearCreek.jpg
+      linkUrl: https://ropewiki.com/File:BearCreek.jpg
+      caption: ""
+      latestRevisionDate: "2025-01-01T00:00:00.000Z"
+    betaSections: []

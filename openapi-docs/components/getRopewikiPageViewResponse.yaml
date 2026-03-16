@@ -1,5 +1,18 @@
 GetRopewikiPageViewResponse:
-  $ref: "#/RopewikiPageView"
+  type: object
+  description: Result wrapper for getRopewikiPageView (ropegeo-common Result; resultType + result)
+  required:
+    - resultType
+    - result
+  properties:
+    resultType:
+      type: string
+      enum:
+        - ropewikiPageView
+      description: Discriminator for single-result API responses (ropegeo-common ResultType)
+    result:
+      $ref: "#/RopewikiPageView"
+      description: The RopewikiPageView payload
 
 RopewikiPageView:
   type: object

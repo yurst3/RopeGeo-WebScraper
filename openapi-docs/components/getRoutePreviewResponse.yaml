@@ -1,8 +1,20 @@
 GetRoutePreviewResponse:
-  type: array
-  description: List of page previews for the route (e.g. Ropewiki pages linked to the route)
-  items:
-    $ref: "#/PagePreview"
+  type: object
+  description: Result wrapper for getRoutePreview (ropegeo-common Result; resultType + result)
+  required:
+    - resultType
+    - result
+  properties:
+    resultType:
+      type: string
+      enum:
+        - routePreview
+      description: Discriminator for single-result API responses (ropegeo-common ResultType)
+    result:
+      type: array
+      description: List of page previews for the route (array of PagePreview)
+      items:
+        $ref: "#/PagePreview"
 
 PagePreview:
   type: object

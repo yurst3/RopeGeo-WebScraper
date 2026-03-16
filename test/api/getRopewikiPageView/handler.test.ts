@@ -112,9 +112,11 @@ describe('getRopewikiPageView handler', () => {
             'Access-Control-Allow-Origin': '*',
         });
         const body = JSON.parse(result.body);
-        expect(body.pageId).toBe('Bear_Creek_Canyon');
-        expect(body.name).toBe('Bear Creek Canyon');
-        expect(body.permit).toBe('No');
+        expect(body.resultType).toBe('ropewikiPageView');
+        expect(body.result).toBeDefined();
+        expect(body.result.pageId).toBe('Bear_Creek_Canyon');
+        expect(body.result.name).toBe('Bear Creek Canyon');
+        expect(body.result.permit).toBe('No');
     });
 
     it('returns 404 when no page exists with the given id', async () => {

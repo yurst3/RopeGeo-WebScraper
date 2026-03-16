@@ -1,5 +1,21 @@
 GetRoutesResponse:
   type: object
+  description: Result wrapper for getRoutes (ropegeo-common Result; resultType + result)
+  required:
+    - resultType
+    - result
+  properties:
+    resultType:
+      type: string
+      enum:
+        - routesGeojson
+      description: Discriminator for single-result API responses (ropegeo-common ResultType)
+    result:
+      $ref: "#/RoutesGeojsonResult"
+      description: The GeoJSON Feature Collection of routes (RoutesGeojson)
+
+RoutesGeojsonResult:
+  type: object
   description: GeoJSON Feature Collection of routes; each feature has id, name, and type properties and a Point geometry.
   required:
     - type

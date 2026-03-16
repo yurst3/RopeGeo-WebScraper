@@ -1,4 +1,5 @@
 import type { PoolClient } from 'pg';
+import { RoutePreviewResult } from 'ropegeo-common';
 import getDatabaseConnection from '../../helpers/getDatabaseConnection';
 import getPageRoutes from './database/getPageRoutes';
 import routeExists from './database/routeExists';
@@ -49,11 +50,11 @@ export const handler = async (
 
         const pageRoutes = await getPageRoutes(client, routeId);
         const previews = await getPagePreviews(client, pageRoutes);
-
+        const result = new RoutePreviewResult(previews);
         return {
             statusCode: 200,
             headers: CORS_HEADERS,
-            body: JSON.stringify(previews),
+            body: JSON.stringify(result),
         };
     } catch (error) {
         console.error('Error in getRoutePreview handler:', error);

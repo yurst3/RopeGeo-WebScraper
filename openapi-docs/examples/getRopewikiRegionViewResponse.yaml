@@ -1,26 +1,28 @@
 # Example Object for getRopewikiRegionView 200 response
-summary: Sample RopewikiRegionView
+summary: Sample RopewikiRegionViewResult (resultType + result)
 value:
-  name: North America
-  regions:
-    - id: a1b2c3d4-e5f6-7890-abcd-ef1234567890
-      name: World
-  regionCount: 12
-  topLevelPageCount: 45
-  pageCount: 120
-  totalPageCount: 380
-  overview:
-    order: 1
-    title: Overview
-    text: Canyoneering regions across North America.
-    images: []
+  resultType: ropewikiRegionView
+  result:
+    name: North America
+    regions:
+      - id: a1b2c3d4-e5f6-7890-abcd-ef1234567890
+        name: World
+    regionCount: 12
+    topLevelPageCount: 45
+    pageCount: 120
+    totalPageCount: 380
+    overview:
+      order: 1
+      title: Overview
+      text: Canyoneering regions across North America.
+      images: []
+      latestRevisionDate: "2025-01-15T00:00:00.000Z"
+    bestMonths:
+      - April
+      - May
+      - September
+      - October
+    isMajorRegion: true
     latestRevisionDate: "2025-01-15T00:00:00.000Z"
-  bestMonths:
-    - April
-    - May
-    - September
-    - October
-  isMajorRegion: true
-  latestRevisionDate: "2025-01-15T00:00:00.000Z"
-  syncDate: "2025-01-10T08:00:00.000Z"
-  externalLink: https://ropewiki.com/North_America
+    syncDate: "2025-01-10T08:00:00.000Z"
+    externalLink: https://ropewiki.com/North_America

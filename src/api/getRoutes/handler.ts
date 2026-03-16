@@ -1,5 +1,5 @@
 import type { PoolClient } from 'pg';
-import { RoutesGeojson, RoutesParams } from 'ropegeo-common';
+import { RoutesGeojson, RoutesGeojsonResult, RoutesParams } from 'ropegeo-common';
 import getDatabaseConnection from '../../helpers/getDatabaseConnection';
 import getRoutes from './util/getRoutes';
 
@@ -41,10 +41,11 @@ export const handler = async (
         client = await pool.connect();
         const routes = await getRoutes(client, params);
         const geojson = RoutesGeojson.fromRoutes(routes);
+        const result = new RoutesGeojsonResult(geojson);
         return {
             statusCode: 200,
             headers: CORS_HEADERS,
-            body: JSON.stringify(geojson),
+            body: JSON.stringify(result),
         };
     } catch (error) {
         console.error('Error in getRoutes handler:', error);
