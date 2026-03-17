@@ -8,6 +8,7 @@ import { uploadMapDataTilesToS3 } from '../s3/uploadMapDataTilesToS3';
 import getMapData from '../database/getMapData';
 import moveFile from '../util/moveFile';
 import { moveDirectory } from '../util/moveDirectory';
+import { buildMapDataTilesTemplate } from '../util/buildMapDataPublicUrl';
 
 const SKIP_S3_REASON = 'skipping S3 upload because there is no S3 Bucket configured';
 
@@ -35,7 +36,7 @@ const SAVED_MAP_DATA_DIR = '.savedMapData';
 /**
  * Save-map-data hook for Lambda (or local invoke): persists source, GeoJSON, and vector tile files
  * and returns a MapData instance with their URLs. Accepts a local tiles directory path and uploads
- * it to S3 under tiles/{mapDataId}/ when not local; stores the tiles URL in MapData.tiles.
+ * it to S3 under tiles/{mapDataId}/ when not local; stores the tiles URL template in MapData.tilesTemplate.
  * When DEV_ENVIRONMENT is "local", skips S3 and returns existing MapData from the database by
  * mapDataId (or a MapData with an error if not found). Otherwise uploads source, GeoJSON, and
  * tiles to the MAP_DATA_BUCKET_NAME S3 bucket and returns a MapData with the resulting URLs.
@@ -115,10 +116,11 @@ export const lambdaSaveMapData: SaveMapDataHookFn = async (
         }
     }
 
-    let tilesUrl: string | undefined;
+    let tilesTemplate: string | undefined;
     if (tilesDirPath) {
         try {
-            tilesUrl = await uploadMapDataTilesToS3(tilesDirPath, mapDataId, bucketName);
+            const tilesUrl = await uploadMapDataTilesToS3(tilesDirPath, mapDataId, bucketName);
+            tilesTemplate = buildMapDataTilesTemplate(tilesUrl);
         } catch (error) {
             const errorMsg = error instanceof Error ? error.message : String(error);
             uploadErrors.push(`Failed to upload tiles: ${errorMsg}`);
@@ -133,7 +135,7 @@ export const lambdaSaveMapData: SaveMapDataHookFn = async (
         isKml ? undefined : sourceFile,
         isKml ? sourceFile : undefined,
         geoJsonFile,
-        tilesUrl,
+        tilesTemplate,
         mapDataId,
         sourceFileUrl,
         errorMessage,
@@ -152,8 +154,7 @@ export const lambdaSaveMapData: SaveMapDataHookFn = async (
  * Save-map-data hook for Node (e.g. scripts): moves source, GeoJSON, and vector tile files from
  * their temp paths into the project’s .savedMapData directory (source/, geojson/, vector-tiles/)
  * into the project's .savedMapData directory (source/, geojson/). Tiles are produced as a directory
- * by the processor; tilesUrl is passed through to MapData.tiles. Returns a MapData instance with
- * local file paths for source/geoJson and the given tilesUrl.
+ * by the processor; tiles template (base path + /{z}/{x}/{y}.pbf) is stored in MapData.tilesTemplate.
  */
 export const nodeSaveMapData: SaveMapDataHookFn = async (
     sourceFilePath: string | undefined,
@@ -174,7 +175,7 @@ export const nodeSaveMapData: SaveMapDataHookFn = async (
 
     let sourceFile: string | undefined;
     let geoJsonFile: string | undefined;
-    let tilesFile: string | undefined;
+    let tilesTemplate: string | undefined;
 
     const moveErrors: string[] = [];
 
@@ -204,7 +205,7 @@ export const nodeSaveMapData: SaveMapDataHookFn = async (
     if (tilesDirPath) {
         try {
             await moveDirectory(tilesDirPath, tilesDestPath);
-            tilesFile = tilesDestPath;
+            tilesTemplate = buildMapDataTilesTemplate(tilesDestPath);
         } catch (error) {
             const errorMsg = error instanceof Error ? error.message : String(error);
             moveErrors.push(`Failed to move tiles directory: ${errorMsg}`);
@@ -219,7 +220,7 @@ export const nodeSaveMapData: SaveMapDataHookFn = async (
         isKml ? undefined : sourceFile,
         isKml ? sourceFile : undefined,
         geoJsonFile,
-        tilesFile,
+        tilesTemplate,
         mapDataId,
         sourceFileUrl,
         errorMessage,

@@ -1,4 +1,4 @@
-\restrict fDtkfSeReLQaQx8LaGfh0Os11LMl7hlPvvQKD67o7n5M093GiT0gUDOfiWgqx2J
+\restrict 5RENCybFDDOzb3hEI5hjpIspKkPf6seVM61qS0gwaCIbEeaNgNh1tcYHVEG1ypv
 
 -- Dumped from database version 18.1 (Debian 18.1-1.pgdg13+2)
 -- Dumped by pg_dump version 18.1 (Homebrew)
@@ -62,7 +62,7 @@ CREATE TABLE public."MapData" (
     gpx text,
     kml text,
     "geoJson" text,
-    tiles text,
+    "tilesTemplate" text,
     "createdAt" timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
     "updatedAt" timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
     "deletedAt" timestamp without time zone,
@@ -558,7 +558,7 @@ ALTER TABLE ONLY public."RopewikiRoute"
 -- PostgreSQL database dump complete
 --
 
-\unrestrict fDtkfSeReLQaQx8LaGfh0Os11LMl7hlPvvQKD67o7n5M093GiT0gUDOfiWgqx2J
+\unrestrict 5RENCybFDDOzb3hEI5hjpIspKkPf6seVM61qS0gwaCIbEeaNgNh1tcYHVEG1ypv
 
 
 --
@@ -598,4 +598,5 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20260310120002'),
     ('20260311120000'),
     ('20260311140000'),
-    ('20260316213404');
+    ('20260316213404'),
+    ('20260317145108');

@@ -467,11 +467,11 @@ declare module 'zapatos/schema' {
       */
       sourceFileUrl: string;
       /**
-      * **MapData.tiles**
+      * **MapData.tilesTemplate**
       * - `text` in database
       * - Nullable, no default
       */
-      tiles: string | null;
+      tilesTemplate: string | null;
       /**
       * **MapData.updatedAt**
       * - `timestamp` in database
@@ -535,11 +535,11 @@ declare module 'zapatos/schema' {
       */
       sourceFileUrl: string;
       /**
-      * **MapData.tiles**
+      * **MapData.tilesTemplate**
       * - `text` in database
       * - Nullable, no default
       */
-      tiles: string | null;
+      tilesTemplate: string | null;
       /**
       * **MapData.updatedAt**
       * - `timestamp` in database
@@ -603,11 +603,11 @@ declare module 'zapatos/schema' {
       */
       sourceFileUrl?: string | db.Parameter<string> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, string | db.Parameter<string> | db.SQLFragment | db.ParentColumn>;
       /**
-      * **MapData.tiles**
+      * **MapData.tilesTemplate**
       * - `text` in database
       * - Nullable, no default
       */
-      tiles?: string | db.Parameter<string> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, string | db.Parameter<string> | db.SQLFragment | db.ParentColumn>;
+      tilesTemplate?: string | db.Parameter<string> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, string | db.Parameter<string> | db.SQLFragment | db.ParentColumn>;
       /**
       * **MapData.updatedAt**
       * - `timestamp` in database
@@ -671,11 +671,11 @@ declare module 'zapatos/schema' {
       */
       sourceFileUrl?: string | db.Parameter<string> | db.DefaultType | db.SQLFragment;
       /**
-      * **MapData.tiles**
+      * **MapData.tilesTemplate**
       * - `text` in database
       * - Nullable, no default
       */
-      tiles?: string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment;
+      tilesTemplate?: string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment;
       /**
       * **MapData.updatedAt**
       * - `timestamp` in database
@@ -739,11 +739,11 @@ declare module 'zapatos/schema' {
       */
       sourceFileUrl?: string | db.Parameter<string> | db.DefaultType | db.SQLFragment | db.SQLFragment<any, string | db.Parameter<string> | db.DefaultType | db.SQLFragment>;
       /**
-      * **MapData.tiles**
+      * **MapData.tilesTemplate**
       * - `text` in database
       * - Nullable, no default
       */
-      tiles?: string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment | db.SQLFragment<any, string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment>;
+      tilesTemplate?: string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment | db.SQLFragment<any, string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment>;
       /**
       * **MapData.updatedAt**
       * - `timestamp` in database

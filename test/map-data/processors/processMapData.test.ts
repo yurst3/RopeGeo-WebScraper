@@ -185,7 +185,7 @@ describe('processMapData', () => {
             expect(result.kml).toBe(`https://s3.amazonaws.com/bucket/source/${mockMapDataId}.kml`);
             expect(result.gpx).toBeUndefined();
             expect(result.geoJson).toBe(`https://s3.amazonaws.com/bucket/geojson/${mockMapDataId}.geojson`);
-            expect(result.tiles).toBe(mockTilesUrl);
+            expect(result.tilesTemplate).toBe(mockTilesUrl);
             expect(result.sourceFileUrl).toBe(sourceFileUrl);
             expect(result.errorMessage).toBeUndefined();
         });
@@ -292,7 +292,7 @@ describe('processMapData', () => {
             expect(result.gpx).toBe(`https://s3.amazonaws.com/bucket/source/${mockMapDataId}.gpx`);
             expect(result.kml).toBeUndefined();
             expect(result.geoJson).toBe(`https://s3.amazonaws.com/bucket/geojson/${mockMapDataId}.geojson`);
-            expect(result.tiles).toBe(mockTilesUrl);
+            expect(result.tilesTemplate).toBe(mockTilesUrl);
         });
 
         it('calls saveMapDataHookFn with correct parameters for GPX', async () => {

@@ -10,3 +10,14 @@ export function buildMapDataPublicUrl(bucket: string, key: string): string {
     }
     return `https://${bucket}.s3.amazonaws.com/${key}`;
 }
+
+const TILES_TEMPLATE_SUFFIX = '/{z}/{x}/{y}.pbf';
+
+/**
+ * Builds the tile URL template from a base URL or path (e.g. tiles directory URL or local path).
+ * Ensures exactly one slash between the base and the template suffix.
+ */
+export function buildMapDataTilesTemplate(baseUrlOrPath: string): string {
+    const normalized = baseUrlOrPath.replace(/\/$/, '');
+    return `${normalized}${TILES_TEMPLATE_SUFFIX}`;
+}

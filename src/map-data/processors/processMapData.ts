@@ -13,7 +13,7 @@ import ProgressLogger from '../../helpers/progressLogger';
  * Processes map data by downloading the source file, converting to GeoJSON and a tile directory,
  * then calling the save hook to persist files (e.g., upload to S3 in Lambda, or move to .savedMapData
  * in Node). The hook receives the local tiles directory path and is responsible for uploading or
- * moving it and setting MapData.tiles.
+ * moving it and setting MapData.tilesTemplate.
  *
  * @param sourceFileUrl - URL of the source file (KML or GPX)
  * @param saveMapDataHookFn - Hook function to persist produced files and return MapData.

@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach } from '@jest/globals';
-import { buildMapDataPublicUrl } from '../../../src/map-data/util/buildMapDataPublicUrl';
+import { buildMapDataPublicUrl, buildMapDataTilesTemplate } from '../../../src/map-data/util/buildMapDataPublicUrl';
 
 describe('buildMapDataPublicUrl', () => {
     const originalEnv = process.env;
@@ -47,5 +47,24 @@ describe('buildMapDataPublicUrl', () => {
         const url = buildMapDataPublicUrl('any-bucket', 'source/file.kml');
         expect(url).toBe('https://cdn.example.com/mapdata/source/file.kml');
         expect(url).not.toContain('any-bucket');
+    });
+});
+
+describe('buildMapDataTilesTemplate', () => {
+    it('appends /{z}/{x}/{y}.pbf to URL with trailing slash', () => {
+        const base = 'https://api.webscraper.ropegeo.com/mapdata/tiles/3e2f61a1-5d4f-4a84-9f22-c3b4c71e1a2a/';
+        expect(buildMapDataTilesTemplate(base)).toBe(
+            'https://api.webscraper.ropegeo.com/mapdata/tiles/3e2f61a1-5d4f-4a84-9f22-c3b4c71e1a2a/{z}/{x}/{y}.pbf',
+        );
+    });
+
+    it('appends /{z}/{x}/{y}.pbf to URL without trailing slash', () => {
+        const base = 'https://api.example.com/mapdata/tiles/id';
+        expect(buildMapDataTilesTemplate(base)).toBe('https://api.example.com/mapdata/tiles/id/{z}/{x}/{y}.pbf');
+    });
+
+    it('appends /{z}/{x}/{y}.pbf to local path', () => {
+        const base = '/project/.savedMapData/tiles/550e8400-e29b-41d4-a716-446655440000';
+        expect(buildMapDataTilesTemplate(base)).toBe('/project/.savedMapData/tiles/550e8400-e29b-41d4-a716-446655440000/{z}/{x}/{y}.pbf');
     });
 });

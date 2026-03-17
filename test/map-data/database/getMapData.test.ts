@@ -48,7 +48,7 @@ describe('getMapData (integration)', () => {
         expect(result!.gpx).toBe('https://example.com/file.gpx');
         expect(result!.kml).toBe('https://example.com/file.kml');
         expect(result!.geoJson).toBe('https://example.com/file.geojson');
-        expect(result!.tiles).toBe('https://example.com/file.mbtiles');
+        expect(result!.tilesTemplate).toBe('https://example.com/file.mbtiles');
         expect(result!.sourceFileUrl).toBe('https://example.com/source.kml');
         expect(result!.errorMessage).toBeUndefined();
     });

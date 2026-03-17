@@ -184,7 +184,7 @@ describe('upsertRopewikiRoutes (integration)', () => {
                     gpx: null,
                     kml: null,
                     geoJson: null,
-                    tiles: null,
+                    tilesTemplate: null,
                 },
             ])
             .run(conn);
@@ -240,7 +240,7 @@ describe('upsertRopewikiRoutes (integration)', () => {
                     gpx: null,
                     kml: null,
                     geoJson: null,
-                    tiles: null,
+                    tilesTemplate: null,
                 },
             ])
             .run(conn);
@@ -315,7 +315,7 @@ describe('upsertRopewikiRoutes (integration)', () => {
                     gpx: null,
                     kml: null,
                     geoJson: null,
-                    tiles: null,
+                    tilesTemplate: null,
                 },
             ])
             .run(conn);

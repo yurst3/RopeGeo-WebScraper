@@ -44,7 +44,7 @@ describe('upsertMapData (integration)', () => {
         expect(result.gpx).toBe('https://example.com/file.gpx');
         expect(result.kml).toBe('https://example.com/file.kml');
         expect(result.geoJson).toBe('https://example.com/file.geojson');
-        expect(result.tiles).toBe('https://example.com/file.mbtiles');
+        expect(result.tilesTemplate).toBe('https://example.com/file.mbtiles');
 
         // Verify it was actually inserted in the database
         const resultId = result.id;
@@ -56,7 +56,7 @@ describe('upsertMapData (integration)', () => {
         expect(dbRow!.gpx).toBe('https://example.com/file.gpx');
         expect(dbRow!.kml).toBe('https://example.com/file.kml');
         expect(dbRow!.geoJson).toBe('https://example.com/file.geojson');
-        expect(dbRow!.tiles).toBe('https://example.com/file.mbtiles');
+        expect(dbRow!.tilesTemplate).toBe('https://example.com/file.mbtiles');
     });
 
     it('inserts a new MapData record when id is provided', async () => {
@@ -76,7 +76,7 @@ describe('upsertMapData (integration)', () => {
         expect(result.gpx).toBe('https://example.com/file.gpx');
         expect(result.kml).toBe('https://example.com/file.kml');
         expect(result.geoJson).toBe('https://example.com/file.geojson');
-        expect(result.tiles).toBe('https://example.com/file.mbtiles');
+        expect(result.tilesTemplate).toBe('https://example.com/file.mbtiles');
     });
 
     it('updates an existing MapData record when id is provided', async () => {
@@ -110,14 +110,14 @@ describe('upsertMapData (integration)', () => {
         expect(result.gpx).toBe('https://example.com/new.gpx');
         expect(result.kml).toBe('https://example.com/new.kml');
         expect(result.geoJson).toBe('https://example.com/new.geojson');
-        expect(result.tiles).toBe('https://example.com/new.mbtiles');
+        expect(result.tilesTemplate).toBe('https://example.com/new.mbtiles');
 
         // Verify the old values are gone
         const dbRow = await db.selectOne('MapData', { id: mapDataId }).run(conn);
         expect(dbRow!.gpx).toBe('https://example.com/new.gpx');
         expect(dbRow!.kml).toBe('https://example.com/new.kml');
         expect(dbRow!.geoJson).toBe('https://example.com/new.geojson');
-        expect(dbRow!.tiles).toBe('https://example.com/new.mbtiles');
+        expect(dbRow!.tilesTemplate).toBe('https://example.com/new.mbtiles');
     });
 
     it('handles null/undefined values correctly', async () => {
@@ -135,7 +135,7 @@ describe('upsertMapData (integration)', () => {
         expect(result.gpx).toBeUndefined();
         expect(result.kml).toBeUndefined();
         expect(result.geoJson).toBeUndefined();
-        expect(result.tiles).toBeUndefined();
+        expect(result.tilesTemplate).toBeUndefined();
 
         // Verify null values in database
         const resultId = result.id;
@@ -146,7 +146,7 @@ describe('upsertMapData (integration)', () => {
         expect(dbRow!.gpx).toBeNull();
         expect(dbRow!.kml).toBeNull();
         expect(dbRow!.geoJson).toBeNull();
-        expect(dbRow!.tiles).toBeNull();
+        expect(dbRow!.tilesTemplate).toBeNull();
     });
 
 
@@ -213,7 +213,7 @@ describe('upsertMapData (integration)', () => {
         expect(result.geoJson).toBe('https://example.com/new.geojson');
         // kml and tiles should be null/undefined after update
         expect(result.kml).toBeUndefined();
-        expect(result.tiles).toBeUndefined();
+        expect(result.tilesTemplate).toBeUndefined();
     });
 
     it('returns existing row and logs warning when allowUpdates is false (does not update)', async () => {
@@ -290,7 +290,7 @@ describe('upsertMapData (integration)', () => {
         expect(result.gpx).toBe('https://example.com/file.gpx');
         expect(result.kml).toBe('https://example.com/file.kml');
         expect(result.geoJson).toBe('https://example.com/file.geojson');
-        expect(result.tiles).toBe('https://example.com/file.mbtiles');
+        expect(result.tilesTemplate).toBe('https://example.com/file.mbtiles');
         expect(result.errorMessage).toBeUndefined();
 
         // Verify the database still has the original successful data
@@ -337,7 +337,7 @@ describe('upsertMapData (integration)', () => {
         expect(result.gpx).toBe('https://example.com/file.gpx');
         expect(result.kml).toBe('https://example.com/file.kml');
         expect(result.geoJson).toBe('https://example.com/file.geojson');
-        expect(result.tiles).toBe('https://example.com/file.mbtiles');
+        expect(result.tilesTemplate).toBe('https://example.com/file.mbtiles');
         expect(result.errorMessage).toBeUndefined();
 
         // Verify the database has the updated successful data

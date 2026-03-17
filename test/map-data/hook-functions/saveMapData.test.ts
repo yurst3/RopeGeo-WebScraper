@@ -81,6 +81,7 @@ describe('saveMapData hook functions', () => {
         const geoJsonFilePath = '/tmp/data.geojson';
         const tilesDirPath = '/tmp/map-data-xyz/tiles';
         const expectedTilesUrl = 'https://api.example.com/mapdata/tiles/11111111-1111-1111-1111-111111111111/';
+        const expectedTilesTemplate = 'https://api.example.com/mapdata/tiles/11111111-1111-1111-1111-111111111111/{z}/{x}/{y}.pbf';
         const bucketName = 'test-bucket';
 
         beforeEach(() => {
@@ -172,7 +173,7 @@ describe('saveMapData hook functions', () => {
             expect(result.kml).toBe(`https://${bucketName}.s3.amazonaws.com/source/${mapDataId}.kml`);
             expect(result.gpx).toBeUndefined();
             expect(result.geoJson).toBe(`https://${bucketName}.s3.amazonaws.com/geojson/${mapDataId}.geojson`);
-            expect(result.tiles).toBe(expectedTilesUrl);
+            expect(result.tilesTemplate).toBe(expectedTilesTemplate);
             expect(result.sourceFileUrl).toBe(sourceFileUrl);
             expect(result.errorMessage).toBeUndefined();
             expect(mockUploadMapDataTilesToS3).toHaveBeenCalledWith(tilesDirPath, mapDataId, bucketName);
@@ -195,7 +196,7 @@ describe('saveMapData hook functions', () => {
             expect(result.gpx).toBe(`https://${bucketName}.s3.amazonaws.com/source/${mapDataId}.gpx`);
             expect(result.kml).toBeUndefined();
             expect(result.geoJson).toBe(`https://${bucketName}.s3.amazonaws.com/geojson/${mapDataId}.geojson`);
-            expect(result.tiles).toBe(expectedTilesUrl);
+            expect(result.tilesTemplate).toBe(expectedTilesTemplate);
             expect(result.sourceFileUrl).toBe(sourceFileUrl);
             expect(result.errorMessage).toBeUndefined();
         });
@@ -361,7 +362,7 @@ describe('saveMapData hook functions', () => {
             );
             expect(result.kml).toBeUndefined();
             expect(result.geoJson).toBeUndefined();
-            expect(result.tiles).toBe(expectedTilesUrl);
+            expect(result.tilesTemplate).toBe(expectedTilesTemplate);
         });
 
         it('collects single upload error into errorMessage', async () => {
@@ -385,7 +386,7 @@ describe('saveMapData hook functions', () => {
             expect(result.errorMessage).toBe('Failed to upload source file: S3 upload failed');
             expect(result.kml).toBeUndefined();
             expect(result.geoJson).toBeDefined();
-            expect(result.tiles).toBe(expectedTilesUrl);
+            expect(result.tilesTemplate).toBe(expectedTilesTemplate);
         });
 
         it('replaces existing errorMessage with upload errors', async () => {
@@ -431,7 +432,7 @@ describe('saveMapData hook functions', () => {
             expect(result.errorMessage).toBe(existingError);
             expect(result.kml).toBeDefined();
             expect(result.geoJson).toBeDefined();
-            expect(result.tiles).toBeDefined();
+            expect(result.tilesTemplate).toBeDefined();
         });
 
         it('handles uploadMapDataToS3 errors and collects them', async () => {
@@ -462,6 +463,7 @@ describe('saveMapData hook functions', () => {
         const tilesDirPath = '/tmp/map-data-abc/tiles';
         const projectRoot = '/project/root';
         const expectedTilesPath = `${projectRoot}/.savedMapData/tiles/${mapDataId}`;
+        const expectedTilesTemplate = `${expectedTilesPath}/{z}/{x}/{y}.pbf`;
 
         beforeEach(() => {
             process.cwd = jest.fn(() => projectRoot);
@@ -489,7 +491,7 @@ describe('saveMapData hook functions', () => {
             expect(result.kml).toBe(expectedSourcePath);
             expect(result.gpx).toBeUndefined();
             expect(result.geoJson).toBe(expectedGeoJsonPath);
-            expect(result.tiles).toBe(expectedTilesPath);
+            expect(result.tilesTemplate).toBe(expectedTilesTemplate);
             expect(result.sourceFileUrl).toBe(sourceFileUrl);
             expect(result.errorMessage).toBeUndefined();
         });
@@ -511,7 +513,7 @@ describe('saveMapData hook functions', () => {
             expect(result).toBeInstanceOf(MapData);
             expect(result.gpx).toBe(expectedSourcePath);
             expect(result.kml).toBeUndefined();
-            expect(result.tiles).toBe(expectedTilesPath);
+            expect(result.tilesTemplate).toBe(expectedTilesTemplate);
             expect(result.sourceFileUrl).toBe(sourceFileUrl);
         });
 
@@ -623,7 +625,7 @@ describe('saveMapData hook functions', () => {
             );
             expect(result.kml).toBeUndefined();
             expect(result.geoJson).toBeUndefined();
-            expect(result.tiles).toBe(expectedTilesPath);
+            expect(result.tilesTemplate).toBe(expectedTilesTemplate);
         });
 
         it('collects single move error into errorMessage', async () => {
@@ -647,7 +649,7 @@ describe('saveMapData hook functions', () => {
             expect(result.errorMessage).toBe('Failed to move source file: Permission denied');
             expect(result.kml).toBeUndefined();
             expect(result.geoJson).toBeDefined();
-            expect(result.tiles).toBeDefined();
+            expect(result.tilesTemplate).toBeDefined();
         });
 
         it('replaces existing errorMessage with move errors', async () => {
@@ -692,7 +694,7 @@ describe('saveMapData hook functions', () => {
             expect(result.errorMessage).toBe(existingError);
             expect(result.kml).toBeDefined();
             expect(result.geoJson).toBeDefined();
-            expect(result.tiles).toBeDefined();
+            expect(result.tilesTemplate).toBeDefined();
         });
 
         it('handles mkdir errors and collects them', async () => {
