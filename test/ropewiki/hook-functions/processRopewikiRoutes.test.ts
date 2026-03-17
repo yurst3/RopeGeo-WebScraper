@@ -335,7 +335,7 @@ describe('processRopewikiRoutes hook functions', () => {
             expect(MockProgressLogger).toHaveBeenCalledWith('Queueing RopewikiRoutes to map data queue', 1);
             expect(mockSetChunk).toHaveBeenCalledWith(0, 1);
             expect(mockSendMapDataSQSMessage).toHaveBeenCalledTimes(1);
-            expect(mockSendMapDataSQSMessage).toHaveBeenCalledWith(ropewikiRoute);
+            expect(mockSendMapDataSQSMessage).toHaveBeenCalledWith(ropewikiRoute, true);
             expect(mockLogProgress).toHaveBeenCalledTimes(1);
             expect(mockLogProgress).toHaveBeenCalledWith('Sent route route-1 / page page-1 to queue');
         });
@@ -351,8 +351,8 @@ describe('processRopewikiRoutes hook functions', () => {
             expect(MockProgressLogger).toHaveBeenCalledWith('Queueing RopewikiRoutes to map data queue', 2);
             expect(mockSetChunk).toHaveBeenCalledWith(0, 2);
             expect(mockSendMapDataSQSMessage).toHaveBeenCalledTimes(2);
-            expect(mockSendMapDataSQSMessage).toHaveBeenNthCalledWith(1, ropewikiRoute1);
-            expect(mockSendMapDataSQSMessage).toHaveBeenNthCalledWith(2, ropewikiRoute2);
+            expect(mockSendMapDataSQSMessage).toHaveBeenNthCalledWith(1, ropewikiRoute1, true);
+            expect(mockSendMapDataSQSMessage).toHaveBeenNthCalledWith(2, ropewikiRoute2, true);
             expect(mockLogProgress).toHaveBeenCalledTimes(2);
             expect(mockLogProgress).toHaveBeenNthCalledWith(1, 'Sent route route-1 / page page-1 to queue');
             expect(mockLogProgress).toHaveBeenNthCalledWith(2, 'Sent route route-2 / page page-2 to queue');
@@ -411,7 +411,7 @@ describe('processRopewikiRoutes hook functions', () => {
             expect(MockProgressLogger).toHaveBeenCalledWith('Queueing RopewikiRoutes to map data queue', 2);
             expect(mockSetChunk).toHaveBeenCalledWith(0, 2);
             expect(mockSendMapDataSQSMessage).toHaveBeenCalledTimes(1);
-            expect(mockSendMapDataSQSMessage).toHaveBeenCalledWith(ropewikiRoute1);
+            expect(mockSendMapDataSQSMessage).toHaveBeenCalledWith(ropewikiRoute1, true);
             expect(mockLogProgress).not.toHaveBeenCalled();
         });
 

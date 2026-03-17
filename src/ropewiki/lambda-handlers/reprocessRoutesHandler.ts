@@ -2,7 +2,7 @@ import type { Pool, PoolClient } from 'pg';
 import getDatabaseConnection from '../../helpers/getDatabaseConnection';
 import getAllPages from '../database/getAllPages';
 import processRoutes from '../processors/processRoutes';
-import { lambdaProcessRopewikiRoutes } from '../hook-functions/processRopewikiRoutes';
+import { lambdaProcessRopewikiRoutesForReprocessor } from '../hook-functions/processRopewikiRoutes';
 
 export const reprocessRoutesHandler = async () => {
     let pool: Pool | undefined; 
@@ -16,7 +16,7 @@ export const reprocessRoutesHandler = async () => {
 
         console.log(`Reprocessing routes for all ${pages.length} pages...`)
 
-        await processRoutes(client, pages, lambdaProcessRopewikiRoutes);
+        await processRoutes(client, pages, lambdaProcessRopewikiRoutesForReprocessor);
 
         return {
             statusCode: 200,

@@ -8,6 +8,7 @@ type MapDataJSONSelectable = {
     kml: string | null;
     geoJson: string | null;
     tilesTemplate: string | null;
+    bounds: object | null;
     deletedAt: string | null; // Always null in database, but present in schema
     createdAt: string;
     updatedAt: string;
@@ -120,6 +121,7 @@ describe('MapData', () => {
             expect(dbRow.kml).toBeNull();
             expect(dbRow.geoJson).toBeNull();
             expect(dbRow.tilesTemplate).toBeNull();
+            expect(dbRow.bounds).toBeNull();
             expect(dbRow.deletedAt).toBeNull(); // Always null
             expect(dbRow.updatedAt).toBeInstanceOf(Date);
         });
@@ -149,6 +151,15 @@ describe('MapData', () => {
             const dbRow = mapData.toDbRow();
 
             expect(dbRow.id).toBeUndefined();
+        });
+
+        it('includes bounds in database row when set via setBounds', () => {
+            const mapData = new MapData();
+            const bounds = { north: 45, south: 40, east: -70, west: -75 };
+            mapData.setBounds(bounds);
+            const dbRow = mapData.toDbRow();
+
+            expect(dbRow.bounds).toEqual(bounds);
         });
 
         it('sets updatedAt to current time', () => {
@@ -257,6 +268,7 @@ describe('MapData', () => {
                 kml: dbRow.kml ?? null,
                 geoJson: dbRow.geoJson ?? null,
                 tilesTemplate: dbRow.tilesTemplate ?? null,
+                bounds: dbRow.bounds ?? null,
                 deletedAt: null, // Always null
                 createdAt: new Date().toISOString(),
                 updatedAt: (dbRow.updatedAt as Date).toISOString(),
@@ -286,6 +298,7 @@ describe('MapData', () => {
                 kml: dbRow.kml ?? null,
                 geoJson: dbRow.geoJson ?? null,
                 tilesTemplate: dbRow.tilesTemplate ?? null,
+                bounds: dbRow.bounds ?? null,
                 deletedAt: null, // Always null
                 createdAt: new Date().toISOString(),
                 updatedAt: (dbRow.updatedAt as Date).toISOString(),
@@ -297,6 +310,27 @@ describe('MapData', () => {
             expect(restored.kml).toBe(original.kml);
             expect(restored.geoJson).toBe(original.geoJson);
             expect(restored.tilesTemplate).toBe(original.tilesTemplate);
+        });
+
+        it('round-trips bounds via setBounds, toDbRow, and fromDbRow', () => {
+            const id = '88888888-8888-8888-8888-888888888888';
+            const original = new MapData(undefined, undefined, undefined, undefined, id);
+            const bounds = { north: 50, south: 49, east: -122, west: -123 };
+            original.setBounds(bounds);
+            const dbRow = original.toDbRow();
+            const jsonRow: MapDataJSONSelectable = {
+                id: dbRow.id ?? id,
+                gpx: dbRow.gpx ?? null,
+                kml: dbRow.kml ?? null,
+                geoJson: dbRow.geoJson ?? null,
+                tilesTemplate: dbRow.tilesTemplate ?? null,
+                bounds: dbRow.bounds ?? null,
+                deletedAt: null,
+                createdAt: new Date().toISOString(),
+                updatedAt: (dbRow.updatedAt as Date).toISOString(),
+            };
+            const restored = MapData.fromDbRow(jsonRow);
+            expect(restored.bounds).toEqual(bounds);
         });
     });
 });

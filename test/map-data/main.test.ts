@@ -97,7 +97,9 @@ describe('main', () => {
 
         await main(mapDataEvent, mockSaveMapDataHookFn, mockLogger, mockClient);
 
-        // When sourceFileUrl doesn't exist, upsertPageRoute should not be called
+        expect(mockLogger.logError).toHaveBeenCalledWith(
+            `No source file URL for route ${routeId} / page ${pageId}`,
+        );
         expect(mockUpsertPageRoute).not.toHaveBeenCalled();
     });
 
@@ -161,6 +163,7 @@ describe('main', () => {
             mapDataId,
             mockLogger,
             undefined,
+            true,
         );
         expect(mockUpsertMapData).toHaveBeenCalledWith(mockClient, processedMapData);
         expect(mockUpsertPageRoute).toHaveBeenCalledWith(
@@ -181,9 +184,11 @@ describe('main', () => {
         await main(mapDataEvent, mockSaveMapDataHookFn, mockLogger, mockClient);
 
         expect(mockGetSourceFileUrl).toHaveBeenCalledWith(mockClient, pageDataSource, pageId);
+        expect(mockLogger.logError).toHaveBeenCalledWith(
+            `No source file URL for route ${routeId} / page ${pageId}`,
+        );
         expect(mockProcessMapData).not.toHaveBeenCalled();
         expect(mockUpsertMapData).not.toHaveBeenCalled();
-        // When sourceFileUrl doesn't exist, upsertPageRoute should not be called
         expect(mockUpsertPageRoute).not.toHaveBeenCalled();
     });
 
@@ -202,6 +207,7 @@ describe('main', () => {
             mapDataId,
             mockLogger,
             undefined,
+            true,
         );
     });
 
@@ -219,6 +225,7 @@ describe('main', () => {
             undefined,
             mockLogger,
             undefined,
+            true,
         );
     });
 
@@ -255,7 +262,9 @@ describe('main', () => {
 
         await main(mapDataEvent, mockSaveMapDataHookFn, mockLogger, mockClient);
 
-        // When sourceFileUrl doesn't exist, upsertPageRoute should not be called
+        expect(mockLogger.logError).toHaveBeenCalledWith(
+            `No source file URL for route ${routeId} / page ${pageId}`,
+        );
         expect(mockUpsertPageRoute).not.toHaveBeenCalled();
     });
 
@@ -331,6 +340,7 @@ describe('main', () => {
             undefined,
             mockLogger,
             controller.signal,
+            true,
         );
         expect(mockUpsertMapData).toHaveBeenCalled();
         expect(mockUpsertPageRoute).toHaveBeenCalled();
@@ -387,6 +397,7 @@ describe('main', () => {
             undefined,
             mockLogger,
             undefined,
+            true,
         );
         expect(mockUpsertPageRoute).toHaveBeenCalledWith(
             mockClient,

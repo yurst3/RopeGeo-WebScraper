@@ -75,7 +75,33 @@ export const lambdaProcessRopewikiRoutes: ProcessRopewikiRoutesHookFn = async (
     logger.setChunk(0, ropewikiRoutes.length);
 
     for (const ropewikiRoute of ropewikiRoutes) {
-        await sendMapDataSQSMessage(ropewikiRoute);
+        await sendMapDataSQSMessage(ropewikiRoute, true);
+        logger.logProgress(`Sent route ${ropewikiRoute.route} / page ${ropewikiRoute.page} to queue`);
+    }
+};
+
+/**
+ * Same as lambdaProcessRopewikiRoutes but sends MapDataEvent with downloadSource: false
+ * so the MapData processor uses the existing stored source file instead of downloading.
+ * Used by the RopewikiRouteReprocessor.
+ */
+export const lambdaProcessRopewikiRoutesForReprocessor: ProcessRopewikiRoutesHookFn = async (
+    ropewikiRoutes: RopewikiRoute[],
+): Promise<void> => {
+    if (ropewikiRoutes.length === 0) {
+        return;
+    }
+
+    if (process.env.DEV_ENVIRONMENT === 'local') {
+        console.log(`Skipping SQS message sending for ${ropewikiRoutes.length} route(s) - no queue configured locally`);
+        return;
+    }
+
+    const logger = new ProgressLogger('Queueing RopewikiRoutes to map data queue (reprocess)', ropewikiRoutes.length);
+    logger.setChunk(0, ropewikiRoutes.length);
+
+    for (const ropewikiRoute of ropewikiRoutes) {
+        await sendMapDataSQSMessage(ropewikiRoute, false);
         logger.logProgress(`Sent route ${ropewikiRoute.route} / page ${ropewikiRoute.page} to queue`);
     }
 };

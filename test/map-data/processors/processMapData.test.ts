@@ -12,6 +12,8 @@ import { randomUUID } from 'crypto';
 jest.mock('fs/promises', () => ({
     mkdtemp: jest.fn(),
     rm: jest.fn(),
+    readFile: jest.fn(),
+    writeFile: jest.fn().mockResolvedValue(undefined),
 }));
 
 // Mock crypto.randomUUID
@@ -23,6 +25,11 @@ jest.mock('crypto', () => ({
 // Mock utility functions
 jest.mock('../../../src/map-data/http/downloadSourceFile', () => ({
     downloadSourceFile: jest.fn(),
+}));
+
+jest.mock('../../../src/map-data/s3/getSourceFile', () => ({
+    __esModule: true,
+    default: jest.fn(),
 }));
 
 jest.mock('../../../src/map-data/util/convertToGeoJson', () => ({
@@ -57,6 +64,7 @@ describe('processMapData', () => {
     let originalEnv: NodeJS.ProcessEnv;
 
     let mockDownloadSourceFile: jest.MockedFunction<any>;
+    let mockGetSourceFile: jest.MockedFunction<any>;
     let mockConvertToGeoJson: jest.MockedFunction<any>;
     let mockConvertToTileDirectory: jest.MockedFunction<any>;
 
@@ -75,14 +83,17 @@ describe('processMapData', () => {
         process.env.MAP_DATA_PUBLIC_BASE_URL = 'https://api.example.com';
 
         const downloadSourceFileModule = require('../../../src/map-data/http/downloadSourceFile');
+        const getSourceFileModule = require('../../../src/map-data/s3/getSourceFile');
         const convertToGeoJsonModule = require('../../../src/map-data/util/convertToGeoJson');
         const convertToTileDirectoryModule = require('../../../src/map-data/util/convertToTileDirectory');
 
         mockDownloadSourceFile = downloadSourceFileModule.downloadSourceFile;
+        mockGetSourceFile = getSourceFileModule.default;
         mockConvertToGeoJson = convertToGeoJsonModule.convertToGeoJson;
         mockConvertToTileDirectory = convertToTileDirectoryModule.convertToTileDirectory;
 
         mockDownloadSourceFile.mockReset();
+        mockGetSourceFile.mockReset();
         mockConvertToGeoJson.mockReset();
         mockConvertToTileDirectory.mockReset();
         
@@ -614,6 +625,49 @@ describe('processMapData', () => {
                 false, // isKml
                 sourceFileUrl,
                 undefined,
+                mockLogger,
+            );
+        });
+
+        it('when downloadSource is false and getSourceFile returns null, returns MapData with errorMessage and does not download', async () => {
+            const sourceFileUrl = 'https://example.com/file.kml';
+            const errorMapData = new MapData(
+                undefined,
+                undefined,
+                undefined,
+                undefined,
+                mockMapDataId,
+                sourceFileUrl,
+                'No existing source file',
+            );
+            mockSaveMapDataHookFn.mockResolvedValue(errorMapData);
+            mockGetSourceFile.mockResolvedValue(null);
+
+            const result = await processMapData(
+                sourceFileUrl,
+                mockSaveMapDataHookFn,
+                mockMapDataId,
+                mockLogger,
+                undefined,
+                false,
+            );
+
+            expect(mockDownloadSourceFile).not.toHaveBeenCalled();
+            expect(mockGetSourceFile).toHaveBeenCalledWith(mockMapDataId, 'kml');
+            expect(result).toBe(errorMapData);
+            expect(result.errorMessage).toBe('No existing source file');
+            expect(result.gpx).toBeUndefined();
+            expect(result.kml).toBeUndefined();
+            expect(result.geoJson).toBeUndefined();
+            expect(result.tilesTemplate).toBeUndefined();
+            expect(mockSaveMapDataHookFn).toHaveBeenCalledWith(
+                undefined,
+                undefined,
+                undefined,
+                mockMapDataId,
+                true, // isKml from URL
+                sourceFileUrl,
+                'No existing source file',
                 mockLogger,
             );
         });

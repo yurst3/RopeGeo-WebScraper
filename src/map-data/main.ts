@@ -9,10 +9,10 @@ import { MapDataEvent } from './types/lambdaEvent';
 import ProgressLogger from '../helpers/progressLogger';
 
 /**
- * Processes map data by reading source file URL from the database, downloading it,
+ * Processes map data by reading source file URL from the database, downloading it (or fetching from S3 when downloadSource is false),
  * converting to GeoJSON, then to MBTiles, and saving via the provided hook function.
  *
- * @param mapDataEvent - The map data event containing source, routeId, pageId, and optional mapDataId
+ * @param mapDataEvent - The map data event containing source, routeId, pageId, optional mapDataId, and downloadSource
  * @param saveMapDataHookFn - Hook function to persist produced files and return URLs
  * @param logger - Progress logger for tracking processing progress
  * @param client - Database client to use (must be provided)
@@ -29,19 +29,25 @@ export const main = async (
     // Create pageRoute from the event
     const pageRoute: PageRoute = PageRoute.fromMapDataEvent(mapDataEvent);
 
-    // Get the source file URL
+    // Get the source file URL (page's URL; used for record-keeping and when downloadSource is true)
     const sourceFileUrl = await getSourceFileUrl(client, mapDataEvent.source, mapDataEvent.pageId);
 
-    // If source file exists, process it and update the page route it belongs to
-    if (sourceFileUrl) {
-        // Process the source file (download, convert, save via hook)
-        const mapData = await processMapData(sourceFileUrl, saveMapDataHookFn, pageRoute.mapData, logger, abortSignal);
-
-        // Upsert the MapData object to the database
-        const upsertedMapData = await upsertMapData(client, mapData);
-
-        // Upsert the page-route with the new map data id
-        pageRoute.mapData = upsertedMapData.id;
-        await upsertPageRoute(client, mapDataEvent.source, pageRoute);
+    if (!sourceFileUrl) {
+        logger.logError(`No source file URL for route ${mapDataEvent.routeId} / page ${mapDataEvent.pageId}`);
+        return;
     }
+
+    const mapData = await processMapData(
+        sourceFileUrl,
+        saveMapDataHookFn,
+        pageRoute.mapData,
+        logger,
+        abortSignal,
+        mapDataEvent.downloadSource,
+    );
+
+    const upsertedMapData = await upsertMapData(client, mapData);
+
+    pageRoute.mapData = upsertedMapData.id;
+    await upsertPageRoute(client, mapDataEvent.source, pageRoute);
 };

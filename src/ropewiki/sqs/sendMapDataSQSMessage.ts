@@ -8,11 +8,15 @@ import type { RopewikiRoute } from '../../types/pageRoute';
  * then sends the message with body (JSON map data event).
  *
  * @param ropewikiRoute - The RopewikiRoute to send (must have page and route)
+ * @param downloadSource - If true (default), processor will download source from URL; if false, use existing stored source
  * @throws Error if not local and ropewikiRoute.page is missing
  * @throws Error if not local and ropewikiRoute.route is missing
  * @throws Error if not local and MAP_DATA_PROCESSING_QUEUE_URL is not set
  */
-const sendMapDataSQSMessage = async (ropewikiRoute: RopewikiRoute): Promise<void> => {
+const sendMapDataSQSMessage = async (
+    ropewikiRoute: RopewikiRoute,
+    downloadSource: boolean = true,
+): Promise<void> => {
     const devEnvironment = process.env.DEV_ENVIRONMENT;
 
     if (devEnvironment === 'local') {
@@ -35,7 +39,7 @@ const sendMapDataSQSMessage = async (ropewikiRoute: RopewikiRoute): Promise<void
         throw new Error('MAP_DATA_PROCESSING_QUEUE_URL environment variable is not set');
     }
 
-    const mapDataEvent = ropewikiRoute.toMapDataEvent();
+    const mapDataEvent = ropewikiRoute.toMapDataEvent(downloadSource);
     await sendSQSMessage(JSON.stringify(mapDataEvent), queueUrl);
 };
 

@@ -67,12 +67,13 @@ export class RopewikiRoute extends PageRoute {
         return new RopewikiRoute(route.id, page.id);
     }
 
-    toMapDataEvent(): MapDataEvent {
+    toMapDataEvent(downloadSource: boolean = true): MapDataEvent {
         return new MapDataEvent(
             PageDataSource.Ropewiki,
             this.route,
             this.page,
             this.mapData,
+            downloadSource,
         );
     }
 }

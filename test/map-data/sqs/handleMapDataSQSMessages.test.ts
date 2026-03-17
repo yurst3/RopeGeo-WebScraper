@@ -39,12 +39,18 @@ describe('handleMapDataSQSMessages', () => {
         };
     };
 
-    const createMapDataEventBody = (routeId: string, pageId: string, source: string = 'ropewiki') => {
+    const createMapDataEventBody = (
+        routeId: string,
+        pageId: string,
+        source: string = 'ropewiki',
+        downloadSource: boolean = true,
+    ) => {
         return JSON.stringify({
             source,
             routeId,
             pageId,
             mapDataId: undefined,
+            downloadSource,
         });
     };
 
@@ -79,6 +85,7 @@ describe('handleMapDataSQSMessages', () => {
                 routeId: eventData.routeId,
                 pageId: eventData.pageId,
                 mapDataId: eventData.mapDataId,
+                downloadSource: eventData.downloadSource,
             };
         });
 

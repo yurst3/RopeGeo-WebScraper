@@ -1,11 +1,19 @@
 import type * as s from 'zapatos/schema';
 
+export interface Bounds {
+    north: number;
+    south: number;
+    east: number;
+    west: number;
+}
+
 export class MapData {
     id: string | undefined;
     gpx: string | undefined;
     kml: string | undefined;
     geoJson: string | undefined;
     tilesTemplate: string | undefined;
+    bounds: Bounds | null | undefined;
     sourceFileUrl: string;
     errorMessage: string | undefined;
 
@@ -23,8 +31,13 @@ export class MapData {
         this.geoJson = geoJson;
         this.tilesTemplate = tilesTemplate;
         this.id = id;
+        this.bounds = undefined;
         this.sourceFileUrl = sourceFileUrl ?? '';
         this.errorMessage = errorMessage;
+    }
+
+    setBounds(bounds: Bounds | null | undefined): void {
+        this.bounds = bounds;
     }
 
     toDbRow(): s.MapData.Insertable {
@@ -34,6 +47,7 @@ export class MapData {
             kml: this.kml ?? null,
             geoJson: this.geoJson ?? null,
             tilesTemplate: this.tilesTemplate ?? null,
+            bounds: this.bounds ?? null,
             sourceFileUrl: this.sourceFileUrl,
             errorMessage: this.errorMessage ?? null,
             updatedAt: now,
@@ -49,7 +63,7 @@ export class MapData {
     }
 
     static fromDbRow(row: s.MapData.JSONSelectable): MapData {
-        return new MapData(
+        const mapData = new MapData(
             row.gpx ?? undefined,
             row.kml ?? undefined,
             row.geoJson ?? undefined,
@@ -58,6 +72,8 @@ export class MapData {
             row.sourceFileUrl,
             row.errorMessage ?? undefined,
         );
+        mapData.bounds = (row.bounds as Bounds | null) ?? undefined;
+        return mapData;
     }
 }
 

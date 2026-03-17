@@ -473,6 +473,12 @@ declare module 'zapatos/schema' {
       */
       tilesTemplate: string | null;
       /**
+      * **MapData.bounds**
+      * - `jsonb` in database
+      * - Nullable, no default
+      */
+      bounds: object | null;
+      /**
       * **MapData.updatedAt**
       * - `timestamp` in database
       * - `NOT NULL`, default: `CURRENT_TIMESTAMP`
@@ -540,6 +546,12 @@ declare module 'zapatos/schema' {
       * - Nullable, no default
       */
       tilesTemplate: string | null;
+      /**
+      * **MapData.bounds**
+      * - `jsonb` in database
+      * - Nullable, no default
+      */
+      bounds: object | null;
       /**
       * **MapData.updatedAt**
       * - `timestamp` in database
@@ -609,6 +621,12 @@ declare module 'zapatos/schema' {
       */
       tilesTemplate?: string | db.Parameter<string> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, string | db.Parameter<string> | db.SQLFragment | db.ParentColumn>;
       /**
+      * **MapData.bounds**
+      * - `jsonb` in database
+      * - Nullable, no default
+      */
+      bounds?: object | db.Parameter<object> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, object | db.Parameter<object> | db.SQLFragment | db.ParentColumn>;
+      /**
       * **MapData.updatedAt**
       * - `timestamp` in database
       * - `NOT NULL`, default: `CURRENT_TIMESTAMP`
@@ -677,6 +695,12 @@ declare module 'zapatos/schema' {
       */
       tilesTemplate?: string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment;
       /**
+      * **MapData.bounds**
+      * - `jsonb` in database
+      * - Nullable, no default
+      */
+      bounds?: object | db.Parameter<object> | null | db.DefaultType | db.SQLFragment;
+      /**
       * **MapData.updatedAt**
       * - `timestamp` in database
       * - `NOT NULL`, default: `CURRENT_TIMESTAMP`
@@ -744,6 +768,12 @@ declare module 'zapatos/schema' {
       * - Nullable, no default
       */
       tilesTemplate?: string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment | db.SQLFragment<any, string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment>;
+      /**
+      * **MapData.bounds**
+      * - `jsonb` in database
+      * - Nullable, no default
+      */
+      bounds?: object | db.Parameter<object> | null | db.DefaultType | db.SQLFragment | db.SQLFragment<any, object | db.Parameter<object> | null | db.DefaultType | db.SQLFragment>;
       /**
       * **MapData.updatedAt**
       * - `timestamp` in database
