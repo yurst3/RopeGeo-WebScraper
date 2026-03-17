@@ -114,6 +114,7 @@ describe('getRopewikiPageView (integration)', () => {
         expect(result!.bannerImage).toBeNull();
         expect(result!.betaSections).toEqual([]);
         expect(result!.tilesTemplate).toBeNull();
+        expect(result!.bounds).toBeNull();
     });
 
     it('returns null when page does not exist', async () => {
@@ -271,12 +272,13 @@ describe('getRopewikiPageView (integration)', () => {
         expect(result!.exitElevGain).toBe(-600);
     });
 
-    it('returns tilesTemplate from MapData when page has a route with map data', async () => {
+    it('returns tilesTemplate and bounds from MapData when page has a route with map data', async () => {
         const pageId = 'c2c3c3d4-e5f6-7890-abcd-ef1234567890';
         const mapDataId = '38f5c3fa-7248-41ed-815e-8b9e6aae5d61';
         const routeId = 'd2d3d3d4-e5f6-7890-abcd-ef1234567890';
         const tilesTemplate =
             'https://api.webscraper.ropegeo.com/mapdata/tiles/38f5c3fa-7248-41ed-815e-8b9e6aae5d61/{z}/{x}/{y}.pbf';
+        const bounds = { north: 39.5, south: 38.1, east: -108.2, west: -110.0 };
 
         await db
             .insert('RopewikiPage', {
@@ -300,6 +302,7 @@ describe('getRopewikiPageView (integration)', () => {
             .insert('MapData', {
                 id: mapDataId,
                 tilesTemplate,
+                bounds,
                 sourceFileUrl: '',
             })
             .run(conn);
@@ -315,12 +318,18 @@ describe('getRopewikiPageView (integration)', () => {
 
         expect(result).not.toBeNull();
         expect(result!.tilesTemplate).toBe(tilesTemplate);
+        expect(result!.bounds).not.toBeNull();
+        expect(result!.bounds!.north).toBe(bounds.north);
+        expect(result!.bounds!.south).toBe(bounds.south);
+        expect(result!.bounds!.east).toBe(bounds.east);
+        expect(result!.bounds!.west).toBe(bounds.west);
     });
 
     it('returns tilesTemplate null when page has route but MapData has null tilesTemplate', async () => {
         const pageId = 'e2e3e3d4-e5f6-7890-abcd-ef1234567890';
         const mapDataId = '47f6d4fb-8359-52fe-926f-9c0f7bbf6e72';
         const routeId = 'f2f3f3d4-e5f6-7890-abcd-ef1234567890';
+        const bounds = { north: 39.5, south: 38.1, east: -108.2, west: -110.0 };
 
         await db
             .insert('RopewikiPage', {
@@ -344,6 +353,7 @@ describe('getRopewikiPageView (integration)', () => {
             .insert('MapData', {
                 id: mapDataId,
                 tilesTemplate: null,
+                bounds,
                 sourceFileUrl: '',
             })
             .run(conn);
@@ -359,5 +369,80 @@ describe('getRopewikiPageView (integration)', () => {
 
         expect(result).not.toBeNull();
         expect(result!.tilesTemplate).toBeNull();
+        expect(result!.bounds).toBeNull();
+    });
+
+    it('returns bounds null when page has no route with map data', async () => {
+        const pageId = 'f2f3c3d4-e5f6-7890-abcd-ef1234567890';
+        await db
+            .insert('RopewikiPage', {
+                id: pageId,
+                pageId: '728',
+                name: 'Bear Creek Canyon',
+                region: testRegionId,
+                url: 'https://ropewiki.com/Bear_Creek_Canyon',
+                latestRevisionDate: '2025-01-01T00:00:00' as db.TimestampString,
+                quality: 4.5,
+                userVotes: 12,
+                technicalRating: '3',
+                waterRating: 'A',
+                timeRating: 'II',
+                riskRating: 'PG13',
+                permits: 'No',
+            })
+            .run(conn);
+
+        const result = await getRopewikiPageView(conn, pageId);
+
+        expect(result).not.toBeNull();
+        expect(result!.bounds).toBeNull();
+    });
+
+    it('returns bounds null when MapData has null bounds', async () => {
+        const pageId = 'a3b3c3d4-e5f6-7890-abcd-ef1234567890';
+        const mapDataId = '57f6d4fb-8359-52fe-926f-9c0f7bbf6e73';
+        const routeId = 'b3f3f3d4-e5f6-7890-abcd-ef1234567890';
+        const tilesTemplate =
+            'https://api.webscraper.ropegeo.com/mapdata/tiles/57f6d4fb-8359-52fe-926f-9c0f7bbf6e73/{z}/{x}/{y}.pbf';
+
+        await db
+            .insert('RopewikiPage', {
+                id: pageId,
+                pageId: 'page-no-bounds',
+                name: 'Page No Bounds',
+                region: testRegionId,
+                url: 'https://ropewiki.com/Page_No_Bounds',
+                latestRevisionDate: '2025-01-01T00:00:00' as db.TimestampString,
+            })
+            .run(conn);
+        await db
+            .insert('Route', {
+                id: routeId,
+                name: 'Route With Tiles No Bounds',
+                type: 'Canyon',
+                coordinates: { lat: 40.2, lon: -111.6 },
+            })
+            .run(conn);
+        await db
+            .insert('MapData', {
+                id: mapDataId,
+                tilesTemplate,
+                bounds: null,
+                sourceFileUrl: '',
+            })
+            .run(conn);
+        await db
+            .insert('RopewikiRoute', {
+                route: routeId,
+                ropewikiPage: pageId,
+                mapData: mapDataId,
+            })
+            .run(conn);
+
+        const result = await getRopewikiPageView(conn, pageId);
+
+        expect(result).not.toBeNull();
+        expect(result!.tilesTemplate).toBeNull();
+        expect(result!.bounds).toBeNull();
     });
 });

@@ -1,4 +1,5 @@
 import { describe, it, expect } from '@jest/globals';
+import { Bounds } from 'ropegeo-common';
 import MapData from '../../../src/map-data/types/mapData';
 
 // Type definitions matching zapatos schema for testing
@@ -155,11 +156,11 @@ describe('MapData', () => {
 
         it('includes bounds in database row when set via setBounds', () => {
             const mapData = new MapData();
-            const bounds = { north: 45, south: 40, east: -70, west: -75 };
+            const bounds = new Bounds(45, 40, -70, -75);
             mapData.setBounds(bounds);
             const dbRow = mapData.toDbRow();
 
-            expect(dbRow.bounds).toEqual(bounds);
+            expect(dbRow.bounds).toEqual({ north: 45, south: 40, east: -70, west: -75 });
         });
 
         it('sets updatedAt to current time', () => {
@@ -315,7 +316,7 @@ describe('MapData', () => {
         it('round-trips bounds via setBounds, toDbRow, and fromDbRow', () => {
             const id = '88888888-8888-8888-8888-888888888888';
             const original = new MapData(undefined, undefined, undefined, undefined, id);
-            const bounds = { north: 50, south: 49, east: -122, west: -123 };
+            const bounds = new Bounds(50, 49, -122, -123);
             original.setBounds(bounds);
             const dbRow = original.toDbRow();
             const jsonRow: MapDataJSONSelectable = {
@@ -330,7 +331,11 @@ describe('MapData', () => {
                 updatedAt: (dbRow.updatedAt as Date).toISOString(),
             };
             const restored = MapData.fromDbRow(jsonRow);
-            expect(restored.bounds).toEqual(bounds);
+            expect(restored.bounds).not.toBeNull();
+            expect(restored.bounds!.north).toBe(50);
+            expect(restored.bounds!.south).toBe(49);
+            expect(restored.bounds!.east).toBe(-122);
+            expect(restored.bounds!.west).toBe(-123);
         });
     });
 });

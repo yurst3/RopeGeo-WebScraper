@@ -1,50 +1,35 @@
-import type { Bounds } from '../types/mapData';
-
-/** Mutable bounds: we update these in place so we don't need to store every coordinate. */
-interface MutableBounds {
-    north: number;
-    south: number;
-    east: number;
-    west: number;
-}
-
-function updateBounds(b: MutableBounds, lon: number, lat: number): void {
-    if (lat > b.north) b.north = lat;
-    if (lat < b.south) b.south = lat;
-    if (lon > b.east) b.east = lon;
-    if (lon < b.west) b.west = lon;
-}
+import { Bounds } from 'ropegeo-common';
 
 /**
- * Updates the mutable bounds with all [lon, lat] positions from a single geometry.
+ * Updates the bounds with all [lon, lat] positions from a single geometry.
  * Recursively handles GeometryCollection.
  */
-function collectCoordinates(geometry: GeoJSON.Geometry, bounds: MutableBounds): void {
+function collectCoordinates(geometry: GeoJSON.Geometry, bounds: Bounds): void {
     switch (geometry.type) {
         case 'Point':
-            updateBounds(bounds, geometry.coordinates[0]!, geometry.coordinates[1]!);
+            bounds.update(geometry.coordinates[0]!, geometry.coordinates[1]!);
             return;
         case 'LineString':
             for (const c of geometry.coordinates) {
-                updateBounds(bounds, c[0]!, c[1]!);
+                bounds.update(c[0]!, c[1]!);
             }
             return;
         case 'Polygon':
             for (const ring of geometry.coordinates) {
                 for (const c of ring) {
-                    updateBounds(bounds, c[0]!, c[1]!);
+                    bounds.update(c[0]!, c[1]!);
                 }
             }
             return;
         case 'MultiPoint':
             for (const c of geometry.coordinates) {
-                updateBounds(bounds, c[0]!, c[1]!);
+                bounds.update(c[0]!, c[1]!);
             }
             return;
         case 'MultiLineString':
             for (const line of geometry.coordinates) {
                 for (const c of line) {
-                    updateBounds(bounds, c[0]!, c[1]!);
+                    bounds.update(c[0]!, c[1]!);
                 }
             }
             return;
@@ -52,7 +37,7 @@ function collectCoordinates(geometry: GeoJSON.Geometry, bounds: MutableBounds): 
             for (const polygon of geometry.coordinates) {
                 for (const ring of polygon) {
                     for (const c of ring) {
-                        updateBounds(bounds, c[0]!, c[1]!);
+                        bounds.update(c[0]!, c[1]!);
                     }
                 }
             }
@@ -77,12 +62,7 @@ export function getBoundsFromGeoJson(geoJson: GeoJSON.FeatureCollection): Bounds
         return null;
     }
 
-    const bounds: MutableBounds = {
-        north: -Infinity,
-        south: Infinity,
-        east: -Infinity,
-        west: Infinity,
-    };
+    const bounds = new Bounds(-Infinity, Infinity, -Infinity, Infinity);
 
     for (const feature of geoJson.features) {
         const geom = feature.geometry;
@@ -95,5 +75,5 @@ export function getBoundsFromGeoJson(geoJson: GeoJSON.FeatureCollection): Bounds
         return null;
     }
 
-    return { north: bounds.north, south: bounds.south, east: bounds.east, west: bounds.west };
+    return bounds;
 }

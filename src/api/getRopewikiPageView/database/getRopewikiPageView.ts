@@ -54,9 +54,12 @@ const getRopewikiPageView = async (
         bannerUrl: string | null;
     };
 
-    type TilesTemplateRow = { tilesTemplate: string | null };
+    type MapDataRow = {
+        tilesTemplate: string | null;
+        bounds: { north: number; south: number; east: number; west: number } | null;
+    };
 
-    const [imageRows, betaSections, akaRows, tilesTemplateRows] = await Promise.all([
+    const [imageRows, betaSections, akaRows, mapDataRows] = await Promise.all([
         db.sql<db.SQL, ImageRow[]>`
             SELECT
                 i."order",
@@ -88,19 +91,38 @@ const getRopewikiPageView = async (
             )
             .run(conn)
             .then((rows) => rows.map((r) => r.name)),
-        db.sql<db.SQL, TilesTemplateRow[]>`
-            SELECT m."tilesTemplate"
+        db.sql<db.SQL, MapDataRow[]>`
+            SELECT m."tilesTemplate",
+                   m."bounds"
             FROM "RopewikiRoute" rr
             INNER JOIN "MapData" m ON m.id = rr."mapData"
             WHERE rr."ropewikiPage" = ${db.param(pageId)}::uuid
               AND rr."deletedAt" IS NULL
-              AND m."tilesTemplate" IS NOT NULL
             LIMIT 1
         `.run(conn),
     ]);
 
-    const firstTilesRow = tilesTemplateRows[0];
-    const tilesTemplate = firstTilesRow?.tilesTemplate ?? null;
+    const firstMapDataRow = mapDataRows[0];
+    let tilesTemplate = firstMapDataRow?.tilesTemplate ?? null;
+    const rawBounds = firstMapDataRow?.bounds ?? null;
+    let bounds =
+        rawBounds != null &&
+        typeof rawBounds === 'object' &&
+        typeof (rawBounds as Record<string, unknown>).north === 'number' &&
+        typeof (rawBounds as Record<string, unknown>).south === 'number' &&
+        typeof (rawBounds as Record<string, unknown>).east === 'number' &&
+        typeof (rawBounds as Record<string, unknown>).west === 'number'
+            ? (rawBounds as { north: number; south: number; east: number; west: number })
+            : null;
+
+    // Keep tilesTemplate and bounds mutually consistent:
+    // - If there is no tilesTemplate, there should also be no bounds.
+    // - If bounds are missing, clear tilesTemplate.
+    if (tilesTemplate == null) {
+        bounds = null;
+    } else if (bounds == null) {
+        tilesTemplate = null;
+    }
 
     const bannerImageRow = imageRows.find((i) => i.betaSection == null);
     const bannerImage = bannerImageRow
@@ -179,6 +201,7 @@ const getRopewikiPageView = async (
         bannerImage,
         betaSections: betaSectionsView,
         tilesTemplate,
+        bounds,
     };
 
     return view as RopewikiPageView;

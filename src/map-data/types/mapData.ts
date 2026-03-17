@@ -1,11 +1,5 @@
 import type * as s from 'zapatos/schema';
-
-export interface Bounds {
-    north: number;
-    south: number;
-    east: number;
-    west: number;
-}
+import { Bounds } from 'ropegeo-common';
 
 export class MapData {
     id: string | undefined;
@@ -13,7 +7,7 @@ export class MapData {
     kml: string | undefined;
     geoJson: string | undefined;
     tilesTemplate: string | undefined;
-    bounds: Bounds | null | undefined;
+    bounds: Bounds | undefined;
     sourceFileUrl: string;
     errorMessage: string | undefined;
 
@@ -36,8 +30,8 @@ export class MapData {
         this.errorMessage = errorMessage;
     }
 
-    setBounds(bounds: Bounds | null | undefined): void {
-        this.bounds = bounds;
+    setBounds(bounds: Bounds | null ): void {
+        this.bounds = bounds ?? undefined;
     }
 
     toDbRow(): s.MapData.Insertable {
@@ -72,7 +66,8 @@ export class MapData {
             row.sourceFileUrl,
             row.errorMessage ?? undefined,
         );
-        mapData.bounds = (row.bounds as Bounds | null) ?? undefined;
+        mapData.bounds =
+            row.bounds != null ? Bounds.fromResult(row.bounds) : undefined;
         return mapData;
     }
 }
