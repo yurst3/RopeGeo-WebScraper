@@ -85,7 +85,6 @@ describe('getRopewikiPageView handler', () => {
             rappelLongest: 195,
             shuttleTime: 0,
             overallTime: { min: 3.75, max: 4.9 },
-            hikeLength: 3.2,
             overallLength: null,
             approachTime: null,
             descentTime: null,
@@ -97,6 +96,7 @@ describe('getRopewikiPageView handler', () => {
             regions: [{ id: 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee', name: 'Utah' }],
             bannerImage: null,
             betaSections: [],
+            tilesTemplate: null,
         };
         mockGetRopewikiPageView.mockResolvedValue(mockView);
 
@@ -117,6 +117,48 @@ describe('getRopewikiPageView handler', () => {
         expect(body.result.pageId).toBe('Bear_Creek_Canyon');
         expect(body.result.name).toBe('Bear Creek Canyon');
         expect(body.result.permit).toBe('No');
+        expect(body.result.tilesTemplate).toBeNull();
+    });
+
+    it('returns 200 with tilesTemplate when view has map tiles', async () => {
+        const id = 'a1b2c3d4-e5f6-7890-abcd-ef1234567890';
+        const template =
+            'https://api.webscraper.ropegeo.com/mapdata/tiles/38f5c3fa-7248-41ed-815e-8b9e6aae5d61/{z}/{x}/{y}.pbf';
+        const mockView: RopewikiPageView = {
+            pageId: 'Bear_Creek_Canyon',
+            name: 'Bear Creek Canyon',
+            aka: [],
+            url: 'https://ropewiki.com/Bear_Creek_Canyon',
+            quality: 4.5,
+            userVotes: 12,
+            difficulty: { technical: '3', water: 'A', time: 'II', risk: null },
+            permit: PermitStatus.No,
+            rappelCount: { min: 5, max: 5 },
+            jumps: null,
+            vehicle: '',
+            rappelLongest: 195,
+            shuttleTime: 0,
+            overallTime: { min: 3.75, max: 4.9 },
+            overallLength: null,
+            approachTime: null,
+            descentTime: null,
+            exitTime: null,
+            approachElevGain: null,
+            exitElevGain: null,
+            months: ['Jun', 'Jul'],
+            latestRevisionDate: new Date('2025-01-01T00:00:00.000Z'),
+            regions: [{ id: 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee', name: 'Utah' }],
+            bannerImage: null,
+            betaSections: [],
+            tilesTemplate: template,
+        };
+        mockGetRopewikiPageView.mockResolvedValue(mockView);
+
+        const result = await handler({ pathParameters: { id } }, {});
+
+        expect(result.statusCode).toBe(200);
+        const body = JSON.parse(result.body);
+        expect(body.result.tilesTemplate).toBe(template);
     });
 
     it('returns 404 when no page exists with the given id', async () => {

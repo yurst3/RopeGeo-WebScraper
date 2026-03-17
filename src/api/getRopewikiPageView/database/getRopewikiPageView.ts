@@ -54,7 +54,9 @@ const getRopewikiPageView = async (
         bannerUrl: string | null;
     };
 
-    const [imageRows, betaSections, akaRows] = await Promise.all([
+    type TilesTemplateRow = { tilesTemplate: string | null };
+
+    const [imageRows, betaSections, akaRows, tilesTemplateRows] = await Promise.all([
         db.sql<db.SQL, ImageRow[]>`
             SELECT
                 i."order",
@@ -86,7 +88,19 @@ const getRopewikiPageView = async (
             )
             .run(conn)
             .then((rows) => rows.map((r) => r.name)),
+        db.sql<db.SQL, TilesTemplateRow[]>`
+            SELECT m."tilesTemplate"
+            FROM "RopewikiRoute" rr
+            INNER JOIN "MapData" m ON m.id = rr."mapData"
+            WHERE rr."ropewikiPage" = ${db.param(pageId)}::uuid
+              AND rr."deletedAt" IS NULL
+              AND m."tilesTemplate" IS NOT NULL
+            LIMIT 1
+        `.run(conn),
     ]);
+
+    const firstTilesRow = tilesTemplateRows[0];
+    const tilesTemplate = firstTilesRow?.tilesTemplate ?? null;
 
     const bannerImageRow = imageRows.find((i) => i.betaSection == null);
     const bannerImage = bannerImageRow
@@ -156,7 +170,6 @@ const getRopewikiPageView = async (
         descentElevGain: page.descentElevGain != null ? Number(page.descentElevGain) : null,
         exitLength: page.exitLength != null ? Number(page.exitLength) : null,
         exitElevGain: page.exitElevGain != null ? Number(page.exitElevGain) : null,
-        hikeLength: page.overallLength != null ? Number(page.overallLength) : null, // backward compat, same as overallLength
         approachTime: minMaxOrNumber(page.minApproachTime, page.maxApproachTime),
         descentTime: minMaxOrNumber(page.minDescentTime, page.maxDescentTime),
         exitTime: minMaxOrNumber(page.minExitTime, page.maxExitTime),
@@ -165,6 +178,7 @@ const getRopewikiPageView = async (
         regions,
         bannerImage,
         betaSections: betaSectionsView,
+        tilesTemplate,
     };
 
     return view as RopewikiPageView;

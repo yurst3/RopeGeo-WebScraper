@@ -130,10 +130,6 @@ RopewikiPageView:
       type: number
       nullable: true
       description: Exit elevation gain (numeric value)
-    hikeLength:
-      type: number
-      nullable: true
-      description: Deprecated; use overallLength. Total hike length (numeric value).
     approachTime:
       description: Approach time; either a single number, or min/max object
       oneOf:
@@ -201,6 +197,10 @@ RopewikiPageView:
       items:
         $ref: "#/BetaSection"
       description: Beta sections with text and images
+    tilesTemplate:
+      type: string
+      nullable: true
+      description: Map tile URL template with {z}, {x}, {y} placeholders from the page's MapData, or null when the page has no associated map tiles
 
 BetaSectionImage:
   type: object

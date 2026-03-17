@@ -25,7 +25,9 @@ describe('getRopewikiPageView (integration)', () => {
     beforeAll(async () => {
         await db.sql`DELETE FROM "RopewikiImage"`.run(conn);
         await db.sql`DELETE FROM "RopewikiBetaSection"`.run(conn);
+        await db.sql`DELETE FROM "RopewikiRoute"`.run(conn);
         await db.sql`DELETE FROM "RopewikiPage"`.run(conn);
+        await db.sql`DELETE FROM "MapData"`.run(conn);
         await db.sql`DELETE FROM "RopewikiRegion"`.run(conn);
 
         await db
@@ -45,13 +47,17 @@ describe('getRopewikiPageView (integration)', () => {
     afterEach(async () => {
         await db.sql`DELETE FROM "RopewikiImage"`.run(conn);
         await db.sql`DELETE FROM "RopewikiBetaSection"`.run(conn);
+        await db.sql`DELETE FROM "RopewikiRoute"`.run(conn);
         await db.sql`DELETE FROM "RopewikiPage"`.run(conn);
+        await db.sql`DELETE FROM "MapData"`.run(conn);
     });
 
     afterAll(async () => {
         await db.sql`DELETE FROM "RopewikiImage"`.run(conn);
         await db.sql`DELETE FROM "RopewikiBetaSection"`.run(conn);
+        await db.sql`DELETE FROM "RopewikiRoute"`.run(conn);
         await db.sql`DELETE FROM "RopewikiPage"`.run(conn);
+        await db.sql`DELETE FROM "MapData"`.run(conn);
         await db.sql`DELETE FROM "RopewikiRegion"`.run(conn);
         await pool.end();
     });
@@ -99,7 +105,6 @@ describe('getRopewikiPageView (integration)', () => {
         expect(result!.descentElevGain).toBeNull();
         expect(result!.exitLength).toBeNull();
         expect(result!.exitElevGain).toBeNull();
-        expect(result!.hikeLength).toBeNull();
         expect(result!.approachTime).toBeNull();
         expect(result!.descentTime).toBeNull();
         expect(result!.exitTime).toBeNull();
@@ -108,6 +113,7 @@ describe('getRopewikiPageView (integration)', () => {
         expect(result!.regions).toEqual([{ id: testRegionId, name: 'Utah' }]);
         expect(result!.bannerImage).toBeNull();
         expect(result!.betaSections).toEqual([]);
+        expect(result!.tilesTemplate).toBeNull();
     });
 
     it('returns null when page does not exist', async () => {
@@ -263,6 +269,95 @@ describe('getRopewikiPageView (integration)', () => {
         expect(result!.descentElevGain).toBe(-1800);
         expect(result!.exitLength).toBe(0.9);
         expect(result!.exitElevGain).toBe(-600);
-        expect(result!.hikeLength).toBe(6.8);
+    });
+
+    it('returns tilesTemplate from MapData when page has a route with map data', async () => {
+        const pageId = 'c2c3c3d4-e5f6-7890-abcd-ef1234567890';
+        const mapDataId = '38f5c3fa-7248-41ed-815e-8b9e6aae5d61';
+        const routeId = 'd2d3d3d4-e5f6-7890-abcd-ef1234567890';
+        const tilesTemplate =
+            'https://api.webscraper.ropegeo.com/mapdata/tiles/38f5c3fa-7248-41ed-815e-8b9e6aae5d61/{z}/{x}/{y}.pbf';
+
+        await db
+            .insert('RopewikiPage', {
+                id: pageId,
+                pageId: 'tiles-page',
+                name: 'Page With Tiles',
+                region: testRegionId,
+                url: 'https://ropewiki.com/Page_With_Tiles',
+                latestRevisionDate: '2025-01-01T00:00:00' as db.TimestampString,
+            })
+            .run(conn);
+        await db
+            .insert('Route', {
+                id: routeId,
+                name: 'Trail Route',
+                type: 'Canyon',
+                coordinates: { lat: 40.1, lon: -111.5 },
+            })
+            .run(conn);
+        await db
+            .insert('MapData', {
+                id: mapDataId,
+                tilesTemplate,
+                sourceFileUrl: '',
+            })
+            .run(conn);
+        await db
+            .insert('RopewikiRoute', {
+                route: routeId,
+                ropewikiPage: pageId,
+                mapData: mapDataId,
+            })
+            .run(conn);
+
+        const result = await getRopewikiPageView(conn, pageId);
+
+        expect(result).not.toBeNull();
+        expect(result!.tilesTemplate).toBe(tilesTemplate);
+    });
+
+    it('returns tilesTemplate null when page has route but MapData has null tilesTemplate', async () => {
+        const pageId = 'e2e3e3d4-e5f6-7890-abcd-ef1234567890';
+        const mapDataId = '47f6d4fb-8359-52fe-926f-9c0f7bbf6e72';
+        const routeId = 'f2f3f3d4-e5f6-7890-abcd-ef1234567890';
+
+        await db
+            .insert('RopewikiPage', {
+                id: pageId,
+                pageId: 'no-tiles-page',
+                name: 'Page No Tiles',
+                region: testRegionId,
+                url: 'https://ropewiki.com/Page_No_Tiles',
+                latestRevisionDate: '2025-01-01T00:00:00' as db.TimestampString,
+            })
+            .run(conn);
+        await db
+            .insert('Route', {
+                id: routeId,
+                name: 'Route No Tiles',
+                type: 'Canyon',
+                coordinates: { lat: 40.2, lon: -111.6 },
+            })
+            .run(conn);
+        await db
+            .insert('MapData', {
+                id: mapDataId,
+                tilesTemplate: null,
+                sourceFileUrl: '',
+            })
+            .run(conn);
+        await db
+            .insert('RopewikiRoute', {
+                route: routeId,
+                ropewikiPage: pageId,
+                mapData: mapDataId,
+            })
+            .run(conn);
+
+        const result = await getRopewikiPageView(conn, pageId);
+
+        expect(result).not.toBeNull();
+        expect(result!.tilesTemplate).toBeNull();
     });
 });
