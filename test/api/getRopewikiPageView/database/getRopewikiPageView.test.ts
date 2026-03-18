@@ -24,6 +24,7 @@ describe('getRopewikiPageView (integration)', () => {
 
     beforeAll(async () => {
         await db.sql`DELETE FROM "RopewikiImage"`.run(conn);
+        await db.sql`DELETE FROM "ImageData"`.run(conn);
         await db.sql`DELETE FROM "RopewikiBetaSection"`.run(conn);
         await db.sql`DELETE FROM "RopewikiRoute"`.run(conn);
         await db.sql`DELETE FROM "RopewikiPage"`.run(conn);
@@ -46,6 +47,7 @@ describe('getRopewikiPageView (integration)', () => {
 
     afterEach(async () => {
         await db.sql`DELETE FROM "RopewikiImage"`.run(conn);
+        await db.sql`DELETE FROM "ImageData"`.run(conn);
         await db.sql`DELETE FROM "RopewikiBetaSection"`.run(conn);
         await db.sql`DELETE FROM "RopewikiRoute"`.run(conn);
         await db.sql`DELETE FROM "RopewikiPage"`.run(conn);
@@ -54,6 +56,7 @@ describe('getRopewikiPageView (integration)', () => {
 
     afterAll(async () => {
         await db.sql`DELETE FROM "RopewikiImage"`.run(conn);
+        await db.sql`DELETE FROM "ImageData"`.run(conn);
         await db.sql`DELETE FROM "RopewikiBetaSection"`.run(conn);
         await db.sql`DELETE FROM "RopewikiRoute"`.run(conn);
         await db.sql`DELETE FROM "RopewikiPage"`.run(conn);
@@ -174,6 +177,167 @@ describe('getRopewikiPageView (integration)', () => {
         expect(result!.bannerImage!.url).toBe(null); // no ImageData in test DB
         expect(result!.bannerImage!.linkUrl).toBe('https://ropewiki.com/File:banner.jpg');
         expect(result!.bannerImage!.order).toBe(0);
+    });
+
+    it('omits beta section images without a processed banner URL', async () => {
+        const pageId = 'f0f0c3d4-e5f6-7890-abcd-ef1234567801';
+        const sectionId = 'f0f0c3d4-e5f6-7890-abcd-ef1234567802';
+        const imageDataId = 'f0f0c3d4-e5f6-7890-abcd-ef1234567803';
+        await db
+            .insert('RopewikiPage', {
+                id: pageId,
+                pageId: 'beta-img-filter',
+                name: 'Page Beta Images',
+                region: testRegionId,
+                url: 'https://ropewiki.com/Page_Beta_Images',
+                latestRevisionDate: '2025-01-01T00:00:00' as db.TimestampString,
+            })
+            .run(conn);
+        await db
+            .insert('RopewikiBetaSection', {
+                id: sectionId,
+                ropewikiPage: pageId,
+                order: 1,
+                title: 'Approach',
+                text: 'Hike in',
+                latestRevisionDate: '2025-01-01T00:00:00' as db.TimestampString,
+            })
+            .run(conn);
+        await db
+            .insert('ImageData', {
+                id: imageDataId,
+                bannerUrl: 'https://api.webscraper.ropegeo.com/images/processed/banner.avif',
+                sourceUrl: 'https://ropewiki.com/File:ok.jpg',
+                errorMessage: null,
+            })
+            .run(conn);
+        await db
+            .insert('RopewikiImage', {
+                ropewikiPage: pageId,
+                betaSection: sectionId,
+                linkUrl: 'https://ropewiki.com/File:unprocessed.jpg',
+                fileUrl: 'https://ropewiki.com/thumb/unprocessed.jpg',
+                order: 1,
+                latestRevisionDate: '2025-01-01T00:00:00' as db.TimestampString,
+                processedImage: null,
+            })
+            .run(conn);
+        await db
+            .insert('RopewikiImage', {
+                ropewikiPage: pageId,
+                betaSection: sectionId,
+                linkUrl: 'https://ropewiki.com/File:processed.jpg',
+                fileUrl: 'https://ropewiki.com/thumb/processed.jpg',
+                order: 2,
+                latestRevisionDate: '2025-01-02T00:00:00' as db.TimestampString,
+                processedImage: imageDataId,
+            })
+            .run(conn);
+
+        const result = await getRopewikiPageView(conn, pageId);
+
+        expect(result).not.toBeNull();
+        expect(result!.betaSections).toHaveLength(1);
+        expect(result!.betaSections[0]!.images).toHaveLength(1);
+        expect(result!.betaSections[0]!.images[0]!.url).toBe(
+            'https://api.webscraper.ropegeo.com/images/processed/banner.avif',
+        );
+        expect(result!.betaSections[0]!.images[0]!.linkUrl).toBe(
+            'https://ropewiki.com/File:processed.jpg',
+        );
+        expect(result!.betaSections[0]!.images[0]!.order).toBe(2);
+    });
+
+    it('returns empty images array when beta section only has unprocessed images', async () => {
+        const pageId = 'e0e0c3d4-e5f6-7890-abcd-ef1234567801';
+        const sectionId = 'e0e0c3d4-e5f6-7890-abcd-ef1234567802';
+        await db
+            .insert('RopewikiPage', {
+                id: pageId,
+                pageId: 'beta-only-null',
+                name: 'Page No Processed Beta Imgs',
+                region: testRegionId,
+                url: 'https://ropewiki.com/Page_No_Processed_Beta',
+                latestRevisionDate: '2025-01-01T00:00:00' as db.TimestampString,
+            })
+            .run(conn);
+        await db
+            .insert('RopewikiBetaSection', {
+                id: sectionId,
+                ropewikiPage: pageId,
+                order: 1,
+                title: 'Pools',
+                text: 'Deep water',
+                latestRevisionDate: '2025-01-01T00:00:00' as db.TimestampString,
+            })
+            .run(conn);
+        await db
+            .insert('RopewikiImage', {
+                ropewikiPage: pageId,
+                betaSection: sectionId,
+                linkUrl: 'https://ropewiki.com/File:150_Mile.jpg',
+                fileUrl: 'https://ropewiki.com/thumb/150.jpg',
+                order: 6,
+                caption: 'One of the deeper pools',
+                latestRevisionDate: '2025-01-01T00:00:00' as db.TimestampString,
+                processedImage: null,
+            })
+            .run(conn);
+
+        const result = await getRopewikiPageView(conn, pageId);
+
+        expect(result).not.toBeNull();
+        expect(result!.betaSections[0]!.images).toEqual([]);
+    });
+
+    it('omits beta section image when ImageData has errorMessage', async () => {
+        const pageId = 'd0d0c3d4-e5f6-7890-abcd-ef1234567801';
+        const sectionId = 'd0d0c3d4-e5f6-7890-abcd-ef1234567802';
+        const imageDataId = 'd0d0c3d4-e5f6-7890-abcd-ef1234567803';
+        await db
+            .insert('RopewikiPage', {
+                id: pageId,
+                pageId: 'beta-img-err',
+                name: 'Page Beta Image Error',
+                region: testRegionId,
+                url: 'https://ropewiki.com/Page_Beta_Err',
+                latestRevisionDate: '2025-01-01T00:00:00' as db.TimestampString,
+            })
+            .run(conn);
+        await db
+            .insert('RopewikiBetaSection', {
+                id: sectionId,
+                ropewikiPage: pageId,
+                order: 1,
+                title: 'Section',
+                text: 'Text',
+                latestRevisionDate: '2025-01-01T00:00:00' as db.TimestampString,
+            })
+            .run(conn);
+        await db
+            .insert('ImageData', {
+                id: imageDataId,
+                bannerUrl: 'https://api.example.com/banner.avif',
+                sourceUrl: 'https://ropewiki.com/File:bad.jpg',
+                errorMessage: 'processing failed',
+            })
+            .run(conn);
+        await db
+            .insert('RopewikiImage', {
+                ropewikiPage: pageId,
+                betaSection: sectionId,
+                linkUrl: 'https://ropewiki.com/File:bad.jpg',
+                fileUrl: 'https://ropewiki.com/thumb/bad.jpg',
+                order: 0,
+                latestRevisionDate: '2025-01-01T00:00:00' as db.TimestampString,
+                processedImage: imageDataId,
+            })
+            .run(conn);
+
+        const result = await getRopewikiPageView(conn, pageId);
+
+        expect(result).not.toBeNull();
+        expect(result!.betaSections[0]!.images).toEqual([]);
     });
 
     it('parses rappelInfo for rappelCount min/max and jumps', async () => {

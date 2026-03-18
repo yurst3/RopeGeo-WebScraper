@@ -159,13 +159,20 @@ const getRopewikiPageView = async (
     }
 
     const betaSectionsView = betaSections.map((sec) => {
-        const secImages = (imagesBySection.get(sec.id) ?? []).map((i) => ({
-            order: i.order ?? 0,
-            url: i.bannerUrl,
-            linkUrl: i.linkUrl,
-            caption: i.caption ?? '',
-            latestRevisionDate: new Date(i.latestRevisionDate),
-        }));
+        const secImages = (imagesBySection.get(sec.id) ?? [])
+            .filter(
+                (i) =>
+                    i.bannerUrl != null &&
+                    typeof i.bannerUrl === 'string' &&
+                    i.bannerUrl.trim() !== '',
+            )
+            .map((i) => ({
+                order: i.order ?? 0,
+                url: i.bannerUrl as string,
+                linkUrl: i.linkUrl,
+                caption: i.caption ?? '',
+                latestRevisionDate: new Date(i.latestRevisionDate),
+            }));
         return {
             order: sec.order ?? 0,
             title: sec.title,
