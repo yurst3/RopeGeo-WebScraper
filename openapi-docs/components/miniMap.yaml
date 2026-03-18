@@ -1,0 +1,85 @@
+# Shared minimap types (ropegeo-common PageMiniMap, RegionMiniMap, RoutesParams, Bounds)
+
+Bounds:
+  type: object
+  description: Geographic bounding box for map tile content
+  required:
+    - north
+    - south
+    - east
+    - west
+  properties:
+    north:
+      type: number
+      description: Northern latitude
+    south:
+      type: number
+      description: Southern latitude
+    east:
+      type: number
+      description: Eastern longitude
+    west:
+      type: number
+      description: Western longitude
+
+RoutesParamsRegion:
+  type: object
+  description: Scoped region filter (ropegeo-common RoutesParams.region)
+  required:
+    - source
+    - id
+  properties:
+    source:
+      type: string
+      enum:
+        - ropewiki
+      description: Page data source
+    id:
+      type: string
+      format: uuid
+      description: RopewikiRegion id (includes descendant routes)
+
+RoutesParams:
+  type: object
+  description: ropegeo-common RoutesParams JSON shape (RegionMiniMap.routesParams)
+  required:
+    - region
+  properties:
+    region:
+      $ref: '#/RoutesParamsRegion'
+
+PageMiniMap:
+  type: object
+  description: Page minimap — vector tile template + bounds (ropegeo-common PageMiniMap)
+  required:
+    - miniMapType
+    - layerId
+    - tilesTemplate
+    - bounds
+  properties:
+    miniMapType:
+      type: string
+      enum:
+        - tilesTemplate
+    layerId:
+      type: string
+      description: Layer / map data identifier for the tile set
+    tilesTemplate:
+      type: string
+      description: Tile URL template with {z}, {x}, and {y} placeholders
+    bounds:
+      $ref: '#/Bounds'
+
+RegionMiniMap:
+  type: object
+  description: Region minimap — load route GeoJSON via GET /routes with routesParams (ropegeo-common RegionMiniMap)
+  required:
+    - miniMapType
+    - routesParams
+  properties:
+    miniMapType:
+      type: string
+      enum:
+        - geojson
+    routesParams:
+      $ref: '#/RoutesParams'

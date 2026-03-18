@@ -1,7 +1,7 @@
 import * as db from 'zapatos/db';
 import type * as s from 'zapatos/schema';
 import type { RopewikiPageView } from 'ropegeo-common';
-import { Difficulty } from 'ropegeo-common';
+import { Bounds, Difficulty, PageMiniMap } from 'ropegeo-common';
 import getRopewikiRegionLineage from '../../../ropewiki/database/getRopewikiRegionLineage';
 import numericValue from '../util/numericValue';
 import parsePermit from '../util/parsePermit';
@@ -55,6 +55,7 @@ const getRopewikiPageView = async (
     };
 
     type MapDataRow = {
+        id: string;
         tilesTemplate: string | null;
         bounds: { north: number; south: number; east: number; west: number } | null;
     };
@@ -92,7 +93,8 @@ const getRopewikiPageView = async (
             .run(conn)
             .then((rows) => rows.map((r) => r.name)),
         db.sql<db.SQL, MapDataRow[]>`
-            SELECT m."tilesTemplate",
+            SELECT m.id,
+                   m."tilesTemplate",
                    m."bounds"
             FROM "RopewikiRoute" rr
             INNER JOIN "MapData" m ON m.id = rr."mapData"
@@ -123,6 +125,20 @@ const getRopewikiPageView = async (
     } else if (bounds == null) {
         tilesTemplate = null;
     }
+
+    const mapDataId = firstMapDataRow?.id;
+    const layerId =
+        mapDataId != null && typeof mapDataId === 'string' && mapDataId.length > 0
+            ? mapDataId
+            : null;
+    const miniMap =
+        layerId != null && tilesTemplate != null && bounds != null
+            ? new PageMiniMap(
+                  layerId,
+                  tilesTemplate,
+                  new Bounds(bounds.north, bounds.south, bounds.east, bounds.west),
+              )
+            : null;
 
     const bannerImageRow = imageRows.find((i) => i.betaSection == null);
     const bannerImage = bannerImageRow
@@ -200,8 +216,7 @@ const getRopewikiPageView = async (
         regions,
         bannerImage,
         betaSections: betaSectionsView,
-        tilesTemplate,
-        bounds,
+        miniMap,
     };
 
     return view as RopewikiPageView;

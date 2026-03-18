@@ -197,36 +197,10 @@ RopewikiPageView:
       items:
         $ref: "#/BetaSection"
       description: Beta sections with text and images
-    tilesTemplate:
-      type: string
+    miniMap:
+      description: Page minimap (tiles + bounds) when MapData has a non-empty layer id, tile template, and valid bounds; otherwise null
       nullable: true
-      description: Map tile URL template with {z}, {x}, {y} placeholders from the page's MapData, or null when the page has no associated map tiles
-    bounds:
-      $ref: "#/Bounds"
-      nullable: true
-      description: Bounding box (north, south, east, west) of the page's map tile content, or null when the page has no associated map data or bounds
-
-Bounds:
-  type: object
-  description: Geographic bounding box for map tile content
-  required:
-    - north
-    - south
-    - east
-    - west
-  properties:
-    north:
-      type: number
-      description: Northern latitude
-    south:
-      type: number
-      description: Southern latitude
-    east:
-      type: number
-      description: Eastern longitude
-    west:
-      type: number
-      description: Western longitude
+      $ref: './miniMap.yaml#/PageMiniMap'
 
 BetaSectionImage:
   type: object

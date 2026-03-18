@@ -113,8 +113,7 @@ describe('getRopewikiPageView (integration)', () => {
         expect(result!.regions).toEqual([{ id: testRegionId, name: 'Utah' }]);
         expect(result!.bannerImage).toBeNull();
         expect(result!.betaSections).toEqual([]);
-        expect(result!.tilesTemplate).toBeNull();
-        expect(result!.bounds).toBeNull();
+        expect(result!.miniMap).toBeNull();
     });
 
     it('returns null when page does not exist', async () => {
@@ -272,7 +271,7 @@ describe('getRopewikiPageView (integration)', () => {
         expect(result!.exitElevGain).toBe(-600);
     });
 
-    it('returns tilesTemplate and bounds from MapData when page has a route with map data', async () => {
+    it('returns PageMiniMap from MapData when page has a route with map data', async () => {
         const pageId = 'c2c3c3d4-e5f6-7890-abcd-ef1234567890';
         const mapDataId = '38f5c3fa-7248-41ed-815e-8b9e6aae5d61';
         const routeId = 'd2d3d3d4-e5f6-7890-abcd-ef1234567890';
@@ -317,15 +316,16 @@ describe('getRopewikiPageView (integration)', () => {
         const result = await getRopewikiPageView(conn, pageId);
 
         expect(result).not.toBeNull();
-        expect(result!.tilesTemplate).toBe(tilesTemplate);
-        expect(result!.bounds).not.toBeNull();
-        expect(result!.bounds!.north).toBe(bounds.north);
-        expect(result!.bounds!.south).toBe(bounds.south);
-        expect(result!.bounds!.east).toBe(bounds.east);
-        expect(result!.bounds!.west).toBe(bounds.west);
+        expect(result!.miniMap).not.toBeNull();
+        expect(result!.miniMap!.layerId).toBe(mapDataId);
+        expect(result!.miniMap!.tilesTemplate).toBe(tilesTemplate);
+        expect(result!.miniMap!.bounds.north).toBe(bounds.north);
+        expect(result!.miniMap!.bounds.south).toBe(bounds.south);
+        expect(result!.miniMap!.bounds.east).toBe(bounds.east);
+        expect(result!.miniMap!.bounds.west).toBe(bounds.west);
     });
 
-    it('returns tilesTemplate null when page has route but MapData has null tilesTemplate', async () => {
+    it('returns miniMap null when page has route but MapData has null tilesTemplate', async () => {
         const pageId = 'e2e3e3d4-e5f6-7890-abcd-ef1234567890';
         const mapDataId = '47f6d4fb-8359-52fe-926f-9c0f7bbf6e72';
         const routeId = 'f2f3f3d4-e5f6-7890-abcd-ef1234567890';
@@ -368,11 +368,10 @@ describe('getRopewikiPageView (integration)', () => {
         const result = await getRopewikiPageView(conn, pageId);
 
         expect(result).not.toBeNull();
-        expect(result!.tilesTemplate).toBeNull();
-        expect(result!.bounds).toBeNull();
+        expect(result!.miniMap).toBeNull();
     });
 
-    it('returns bounds null when page has no route with map data', async () => {
+    it('returns miniMap null when page has no route with map data', async () => {
         const pageId = 'f2f3c3d4-e5f6-7890-abcd-ef1234567890';
         await db
             .insert('RopewikiPage', {
@@ -395,10 +394,10 @@ describe('getRopewikiPageView (integration)', () => {
         const result = await getRopewikiPageView(conn, pageId);
 
         expect(result).not.toBeNull();
-        expect(result!.bounds).toBeNull();
+        expect(result!.miniMap).toBeNull();
     });
 
-    it('returns bounds null when MapData has null bounds', async () => {
+    it('returns miniMap null when MapData has null bounds', async () => {
         const pageId = 'a3b3c3d4-e5f6-7890-abcd-ef1234567890';
         const mapDataId = '57f6d4fb-8359-52fe-926f-9c0f7bbf6e73';
         const routeId = 'b3f3f3d4-e5f6-7890-abcd-ef1234567890';
@@ -442,7 +441,6 @@ describe('getRopewikiPageView (integration)', () => {
         const result = await getRopewikiPageView(conn, pageId);
 
         expect(result).not.toBeNull();
-        expect(result!.tilesTemplate).toBeNull();
-        expect(result!.bounds).toBeNull();
+        expect(result!.miniMap).toBeNull();
     });
 });

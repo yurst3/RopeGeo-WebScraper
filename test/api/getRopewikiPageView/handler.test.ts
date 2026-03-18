@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, jest } from '@jest/globals';
 import type { PoolClient } from 'pg';
 import { handler } from '../../../src/api/getRopewikiPageView/handler';
 import type { RopewikiPageView } from 'ropegeo-common';
-import { Bounds, PermitStatus } from 'ropegeo-common';
+import { Bounds, PageMiniMap, PermitStatus } from 'ropegeo-common';
 
 let mockGetDatabaseConnection: jest.MockedFunction<typeof import('../../../src/helpers/getDatabaseConnection').default>;
 let mockGetRopewikiPageView: jest.MockedFunction<typeof import('../../../src/api/getRopewikiPageView/database/getRopewikiPageView').default>;
@@ -96,9 +96,8 @@ describe('getRopewikiPageView handler', () => {
             regions: [{ id: 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee', name: 'Utah' }],
             bannerImage: null,
             betaSections: [],
-            tilesTemplate: null,
-            bounds: null,
-        };
+            miniMap: null,
+        } as RopewikiPageView;
         mockGetRopewikiPageView.mockResolvedValue(mockView);
 
         const result = await handler({ pathParameters: { id } }, {});
@@ -118,15 +117,19 @@ describe('getRopewikiPageView handler', () => {
         expect(body.result.pageId).toBe('Bear_Creek_Canyon');
         expect(body.result.name).toBe('Bear Creek Canyon');
         expect(body.result.permit).toBe('No');
-        expect(body.result.tilesTemplate).toBeNull();
-        expect(body.result.bounds).toBeNull();
+        expect(body.result.miniMap).toBeNull();
     });
 
-    it('returns 200 with tilesTemplate when view has map tiles', async () => {
+    it('returns 200 with PageMiniMap when view has tiles and bounds', async () => {
         const id = 'a1b2c3d4-e5f6-7890-abcd-ef1234567890';
         const template =
             'https://api.webscraper.ropegeo.com/mapdata/tiles/38f5c3fa-7248-41ed-815e-8b9e6aae5d61/{z}/{x}/{y}.pbf';
-        const mockView: RopewikiPageView = {
+        const miniMap = new PageMiniMap(
+            '38f5c3fa-7248-41ed-815e-8b9e6aae5d61',
+            template,
+            new Bounds(39.5, 38.1, -108.2, -110.0),
+        );
+        const mockView = {
             pageId: 'Bear_Creek_Canyon',
             name: 'Bear Creek Canyon',
             aka: [],
@@ -152,63 +155,19 @@ describe('getRopewikiPageView handler', () => {
             regions: [{ id: 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee', name: 'Utah' }],
             bannerImage: null,
             betaSections: [],
+            miniMap,
+        } as RopewikiPageView;
+        mockGetRopewikiPageView.mockResolvedValue(mockView);
+
+        const result = await handler({ pathParameters: { id } }, {});
+
+        expect(result.statusCode).toBe(200);
+        const body = JSON.parse(result.body);
+        expect(body.result.miniMap).toEqual({
+            miniMapType: 'tilesTemplate',
+            layerId: '38f5c3fa-7248-41ed-815e-8b9e6aae5d61',
             tilesTemplate: template,
-            bounds: null,
-        };
-        mockGetRopewikiPageView.mockResolvedValue(mockView);
-
-        const result = await handler({ pathParameters: { id } }, {});
-
-        expect(result.statusCode).toBe(200);
-        const body = JSON.parse(result.body);
-        expect(body.result.tilesTemplate).toBe(template);
-    });
-
-    it('returns 200 with bounds when view has bounds', async () => {
-        const id = 'a1b2c3d4-e5f6-7890-abcd-ef1234567890';
-        const bounds = { north: 39.5, south: 38.1, east: -108.2, west: -110.0 };
-        const tilesTemplate =
-            'https://api.webscraper.ropegeo.com/mapdata/tiles/38f5c3fa-7248-41ed-815e-8b9e6aae5d61/{z}/{x}/{y}.pbf';
-        const mockView: RopewikiPageView = {
-            pageId: 'Bear_Creek_Canyon',
-            name: 'Bear Creek Canyon',
-            aka: [],
-            url: 'https://ropewiki.com/Bear_Creek_Canyon',
-            quality: 4.5,
-            userVotes: 12,
-            difficulty: { technical: '3', water: 'A', time: 'II', risk: null },
-            permit: PermitStatus.No,
-            rappelCount: { min: 5, max: 5 },
-            jumps: null,
-            vehicle: '',
-            rappelLongest: 195,
-            shuttleTime: 0,
-            overallTime: { min: 3.75, max: 4.9 },
-            overallLength: null,
-            approachTime: null,
-            descentTime: null,
-            exitTime: null,
-            approachElevGain: null,
-            exitElevGain: null,
-            months: ['Jun', 'Jul'],
-            latestRevisionDate: new Date('2025-01-01T00:00:00.000Z'),
-            regions: [{ id: 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee', name: 'Utah' }],
-            bannerImage: null,
-            betaSections: [],
-            tilesTemplate,
-            bounds: new Bounds(39.5, 38.1, -108.2, -110.0),
-        };
-        mockGetRopewikiPageView.mockResolvedValue(mockView);
-
-        const result = await handler({ pathParameters: { id } }, {});
-
-        expect(result.statusCode).toBe(200);
-        const body = JSON.parse(result.body);
-        expect(body.result.bounds).toEqual({
-            north: 39.5,
-            south: 38.1,
-            east: -108.2,
-            west: -110.0,
+            bounds: { north: 39.5, south: 38.1, east: -108.2, west: -110.0 },
         });
     });
 

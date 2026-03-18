@@ -1,6 +1,11 @@
 import { describe, it, expect, beforeEach, jest } from '@jest/globals';
 import type { PoolClient } from 'pg';
-import { RopewikiRegionView } from 'ropegeo-common';
+import {
+    PageDataSource,
+    RegionMiniMap,
+    RopewikiRegionView,
+    RoutesParams,
+} from 'ropegeo-common';
 import { handler } from '../../../src/api/getRopewikiRegionView/handler';
 
 let mockGetDatabaseConnection: jest.MockedFunction<typeof import('../../../src/helpers/getDatabaseConnection').default>;
@@ -73,11 +78,13 @@ describe('getRopewikiRegionView handler', () => {
 
     it('returns 200 and RopewikiRegionView with CORS headers', async () => {
         const id = 'a1b2c3d4-e5f6-7890-abcd-ef1234567890';
+        const miniMap = new RegionMiniMap(new RoutesParams(PageDataSource.Ropewiki, id));
         const mockView = new RopewikiRegionView(
             'North America',
             new Date('2025-01-15T00:00:00.000Z'),
             'https://ropewiki.com/North_America',
             new Date('2025-01-10T08:00:00.000Z'),
+            miniMap,
             [{ id: 'b2c3d4e5-f6a7-8901-bcde-f23456789012', name: 'World' }],
             120,
             45,
@@ -109,6 +116,12 @@ describe('getRopewikiRegionView handler', () => {
         expect(body.result.pageCount).toBe(120);
         expect(body.result.totalPageCount).toBe(380);
         expect(body.result.syncDate).toBe('2025-01-10T08:00:00.000Z');
+        expect(body.result.miniMap).toEqual({
+            miniMapType: 'geojson',
+            routesParams: {
+                region: { source: 'ropewiki', id },
+            },
+        });
         expect(body.result.overview).toEqual({
             order: 1,
             title: 'Overview',
@@ -120,11 +133,13 @@ describe('getRopewikiRegionView handler', () => {
 
     it('returns 200 with null overview when region has no overview', async () => {
         const id = 'a1b2c3d4-e5f6-7890-abcd-ef1234567890';
+        const miniMap = new RegionMiniMap(new RoutesParams(PageDataSource.Ropewiki, id));
         const mockView = new RopewikiRegionView(
             'North America',
             new Date('2025-01-15T00:00:00.000Z'),
             'https://ropewiki.com/North_America',
             new Date('2025-01-10T08:00:00.000Z'),
+            miniMap,
             [{ id: 'b2c3d4e5-f6a7-8901-bcde-f23456789012', name: 'World' }],
             120,
             45,

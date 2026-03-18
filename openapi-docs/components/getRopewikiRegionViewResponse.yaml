@@ -30,6 +30,7 @@ RopewikiRegionView:
     - latestRevisionDate
     - syncDate
     - externalLink
+    - miniMap
   properties:
     name:
       type: string
@@ -87,3 +88,6 @@ RopewikiRegionView:
       type: string
       format: uri
       description: External URL for the region
+    miniMap:
+      $ref: './miniMap.yaml#/RegionMiniMap'
+      description: Region minimap — clients call GET /routes with routesParams (bounds included on the GeoJSON when filtering by region)

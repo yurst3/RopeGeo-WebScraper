@@ -40,7 +40,8 @@ export const handler = async (
         const pool = await getDatabaseConnection();
         client = await pool.connect();
         const routes = await getRoutes(client, params);
-        const geojson = RoutesGeojson.fromRoutes(routes);
+        const withBounds = params.region !== null;
+        const geojson = RoutesGeojson.fromRoutes(routes, withBounds);
         const result = new RoutesGeojsonResult(geojson);
         return {
             statusCode: 200,

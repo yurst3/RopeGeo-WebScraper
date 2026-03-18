@@ -58,6 +58,7 @@ describe('getRoutes handler', () => {
         expect(body.resultType).toBe('routesGeojson');
         expect(body.result).toEqual({
             type: 'FeatureCollection',
+            bounds: null,
             features: [
                 {
                     type: 'Feature',
@@ -76,7 +77,7 @@ describe('getRoutes handler', () => {
         expect(result.statusCode).toBe(200);
         const body = JSON.parse(result.body);
         expect(body.resultType).toBe('routesGeojson');
-        expect(body.result).toEqual({ type: 'FeatureCollection', features: [] });
+        expect(body.result).toEqual({ type: 'FeatureCollection', bounds: null, features: [] });
     });
 
     it('returns 400 when source is present but region is absent', async () => {
@@ -152,6 +153,12 @@ describe('getRoutes handler', () => {
         expect(body.resultType).toBe('routesGeojson');
         expect(body.result).toEqual({
             type: 'FeatureCollection',
+            bounds: {
+                north: 40.2,
+                south: 40.2,
+                east: -111.6,
+                west: -111.6,
+            },
             features: [
                 {
                     type: 'Feature',

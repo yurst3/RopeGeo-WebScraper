@@ -1,4 +1,4 @@
-import { RopewikiRegionView } from 'ropegeo-common';
+import { PageDataSource, RegionMiniMap, RopewikiRegionView, RoutesParams } from 'ropegeo-common';
 import * as db from 'zapatos/db';
 
 interface GetRopewikiRegionViewRow {
@@ -72,11 +72,16 @@ const getRopewikiRegionView = async (
     const regions =
         Array.isArray(regionsParsed) && regionsParsed.length > 0 ? regionsParsed : undefined;
 
+    const miniMap = new RegionMiniMap(
+        new RoutesParams(PageDataSource.Ropewiki, regionId),
+    );
+
     return new RopewikiRegionView(
         row.name,
         row.latestRevisionDate,
         row.url,
         row.updatedAt,
+        miniMap,
         regions,
         row.rawPageCount ?? null,
         row.truePageCount ?? null,

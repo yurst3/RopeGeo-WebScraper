@@ -4,6 +4,7 @@ value:
   resultType: routesGeojson
   result:
     type: FeatureCollection
+    bounds: null
     features:
       - type: Feature
         geometry:

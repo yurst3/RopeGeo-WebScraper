@@ -3,7 +3,7 @@ get:
   summary: List all routes
   description: |
     Returns routes in the database as a GeoJSON Feature Collection. Each feature has id, name, and type properties and a Point geometry with the route coordinate.
-    Optional query parameters source and region restrict results to routes from the given source (e.g. ropewiki) in the given region and its descendants; both must be present or both absent.
+    Optional query parameters source and region restrict results to routes from the given source (e.g. ropewiki) in the given region and its descendants; both must be present or both absent. When both are present, the response includes a bounds object (north, south, east, west) covering all returned route coordinates, or null if there are no routes.
     Query parameter validation follows ropegeo-common RoutesParams.fromQueryStringParams (source one of PageDataSource values, e.g. ropewiki; region a non-empty string when provided; source and region must both be present or both be absent).
   operationId: getRoutes
   tags:

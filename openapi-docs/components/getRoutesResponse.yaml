@@ -16,7 +16,7 @@ GetRoutesResponse:
 
 RoutesGeojsonResult:
   type: object
-  description: GeoJSON Feature Collection of routes; each feature has id, name, and type properties and a Point geometry.
+  description: GeoJSON Feature Collection of routes; each feature has id, name, and type properties and a Point geometry. When the request includes source and region query params, bounds is set from route coordinates (or null if there are no routes).
   required:
     - type
     - features
@@ -31,6 +31,10 @@ RoutesGeojsonResult:
       description: List of GeoJSON Feature objects, one per route
       items:
         $ref: "#/GeoJsonFeature"
+    bounds:
+      description: Bounding box of all route points when source+region query params are used; null when unscoped or when there are no routes
+      nullable: true
+      $ref: './miniMap.yaml#/Bounds'
 
 GeoJsonFeature:
   type: object
