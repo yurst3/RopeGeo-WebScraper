@@ -140,11 +140,13 @@ const getRopewikiPageView = async (
               )
             : null;
 
-    const bannerImageRow = imageRows.find((i) => i.betaSection == null);
+    const bannerImageRow = imageRows.find(
+        (i) => i.betaSection == null && i.bannerUrl != null && i.bannerUrl.trim() !== '',
+    );
     const bannerImage = bannerImageRow
         ? {
               order: bannerImageRow.order ?? 0,
-              url: bannerImageRow.bannerUrl,
+              url: bannerImageRow.bannerUrl as string,
               linkUrl: bannerImageRow.linkUrl,
               caption: bannerImageRow.caption ?? '',
               latestRevisionDate: new Date(bannerImageRow.latestRevisionDate),
