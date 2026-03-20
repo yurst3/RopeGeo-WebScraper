@@ -174,12 +174,13 @@ describe('getRopewikiPageView (integration)', () => {
 
         expect(result).not.toBeNull();
         expect(result!.bannerImage).not.toBeNull();
-        expect(result!.bannerImage!.url).toBe(null); // no ImageData in test DB
+        expect(result!.bannerImage!.bannerUrl).toBeNull(); // no ImageData in test DB
+        expect(result!.bannerImage!.fullUrl).toBeNull();
         expect(result!.bannerImage!.linkUrl).toBe('https://ropewiki.com/File:banner.jpg');
         expect(result!.bannerImage!.order).toBe(0);
     });
 
-    it('omits beta section images without a processed banner URL', async () => {
+    it('returns beta section images even when processed image is missing', async () => {
         const pageId = 'f0f0c3d4-e5f6-7890-abcd-ef1234567801';
         const sectionId = 'f0f0c3d4-e5f6-7890-abcd-ef1234567802';
         const imageDataId = 'f0f0c3d4-e5f6-7890-abcd-ef1234567803';
@@ -238,17 +239,20 @@ describe('getRopewikiPageView (integration)', () => {
 
         expect(result).not.toBeNull();
         expect(result!.betaSections).toHaveLength(1);
-        expect(result!.betaSections[0]!.images).toHaveLength(1);
-        expect(result!.betaSections[0]!.images[0]!.url).toBe(
+        expect(result!.betaSections[0]!.images).toHaveLength(2);
+        expect(result!.betaSections[0]!.images[0]!.bannerUrl).toBeNull();
+        expect(result!.betaSections[0]!.images[0]!.fullUrl).toBeNull();
+        expect(result!.betaSections[0]!.images[1]!.bannerUrl).toBe(
             'https://api.webscraper.ropegeo.com/images/processed/banner.avif',
         );
-        expect(result!.betaSections[0]!.images[0]!.linkUrl).toBe(
+        expect(result!.betaSections[0]!.images[1]!.fullUrl).toBeNull();
+        expect(result!.betaSections[0]!.images[1]!.linkUrl).toBe(
             'https://ropewiki.com/File:processed.jpg',
         );
-        expect(result!.betaSections[0]!.images[0]!.order).toBe(2);
+        expect(result!.betaSections[0]!.images[1]!.order).toBe(2);
     });
 
-    it('returns empty images array when beta section only has unprocessed images', async () => {
+    it('returns beta image with null urls when section only has unprocessed images', async () => {
         const pageId = 'e0e0c3d4-e5f6-7890-abcd-ef1234567801';
         const sectionId = 'e0e0c3d4-e5f6-7890-abcd-ef1234567802';
         await db
@@ -287,10 +291,15 @@ describe('getRopewikiPageView (integration)', () => {
         const result = await getRopewikiPageView(conn, pageId);
 
         expect(result).not.toBeNull();
-        expect(result!.betaSections[0]!.images).toEqual([]);
+        expect(result!.betaSections[0]!.images).toHaveLength(1);
+        expect(result!.betaSections[0]!.images[0]!.bannerUrl).toBeNull();
+        expect(result!.betaSections[0]!.images[0]!.fullUrl).toBeNull();
+        expect(result!.betaSections[0]!.images[0]!.caption).toBe(
+            'One of the deeper pools',
+        );
     });
 
-    it('omits beta section image when ImageData has errorMessage', async () => {
+    it('returns beta section image when ImageData has errorMessage', async () => {
         const pageId = 'd0d0c3d4-e5f6-7890-abcd-ef1234567801';
         const sectionId = 'd0d0c3d4-e5f6-7890-abcd-ef1234567802';
         const imageDataId = 'd0d0c3d4-e5f6-7890-abcd-ef1234567803';
@@ -337,7 +346,11 @@ describe('getRopewikiPageView (integration)', () => {
         const result = await getRopewikiPageView(conn, pageId);
 
         expect(result).not.toBeNull();
-        expect(result!.betaSections[0]!.images).toEqual([]);
+        expect(result!.betaSections[0]!.images).toHaveLength(1);
+        expect(result!.betaSections[0]!.images[0]!.bannerUrl).toBe(
+            'https://api.example.com/banner.avif',
+        );
+        expect(result!.betaSections[0]!.images[0]!.fullUrl).toBeNull();
     });
 
     it('parses rappelInfo for rappelCount min/max and jumps', async () => {

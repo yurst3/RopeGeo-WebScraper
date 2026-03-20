@@ -65,8 +65,9 @@ value:
         west: -110.0
     bannerImage:
       order: 0
-      url: https://ropewiki.com/images/thumb/1/2/BearCreek.jpg/400px-BearCreek.jpg
+      bannerUrl: https://ropewiki.com/images/thumb/1/2/BearCreek.jpg/400px-BearCreek.jpg
+      fullUrl: https://ropewiki.com/images/1/2/BearCreek.jpg
       linkUrl: https://ropewiki.com/File:BearCreek.jpg
-      caption: ""
+      caption: null
       latestRevisionDate: "2025-01-01T00:00:00.000Z"
     betaSections: []

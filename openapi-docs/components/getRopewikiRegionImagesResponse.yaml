@@ -23,12 +23,13 @@ GetRopewikiRegionImagesResponse:
 
 RopewikiRegionImageView:
   type: object
-  description: Banner image view for getRopewikiRegionImages (id, pageId, pageName, url, externalLink, caption)
+  description: Banner image view for getRopewikiRegionImages (id, pageId, pageName, bannerUrl, fullUrl, externalLink, caption)
   required:
     - id
     - pageId
     - pageName
-    - url
+    - bannerUrl
+    - fullUrl
     - externalLink
   properties:
     id:
@@ -42,14 +43,19 @@ RopewikiRegionImageView:
     pageName:
       type: string
       description: Display name of the page
-    url:
+    bannerUrl:
       type: string
       format: uri
-      description: Image URL. When processed, may be API URL (e.g. .../images/{id}/banner.avif); otherwise source file URL.
+      description: Banner image URL from processed image data.
+    fullUrl:
+      type: string
+      format: uri
+      description: Full-size image URL from processed image data.
     externalLink:
       type: string
       format: uri
       description: Link URL (e.g. to Ropewiki file page)
     caption:
       type: string
+      nullable: true
       description: Optional image caption

@@ -65,9 +65,12 @@ export async function getRegionImagesPage(
           SELECT d."bannerUrl"
           FROM "ImageData" d
           WHERE d.id = i."processedImage"
-            AND d."errorMessage" IS NULL
-            AND d."bannerUrl" IS NOT NULL
-        ) AS "fileUrl",
+        ) AS "bannerUrl",
+        (
+          SELECT d."fullUrl"
+          FROM "ImageData" d
+          WHERE d.id = i."processedImage"
+        ) AS "fullUrl",
         i."linkUrl",
         i.caption,
         (COALESCE(p.quality, 0) * COALESCE(p."userVotes", 1))::float AS sort_key
@@ -78,12 +81,13 @@ export async function getRegionImagesPage(
         AND i."deletedAt" IS NULL
     ),
     filtered AS (
-      SELECT id, "ropewikiPage", "pageName", "fileUrl", "linkUrl", caption, sort_key
+      SELECT id, "ropewikiPage", "pageName", "bannerUrl", "fullUrl", "linkUrl", caption, sort_key
       FROM images_with_score
-      WHERE "fileUrl" IS NOT NULL
+      WHERE "bannerUrl" IS NOT NULL
+        AND "fullUrl" IS NOT NULL
       ${cursorCondition}
     )
-    SELECT id, "ropewikiPage", "pageName", "fileUrl", "linkUrl", caption, sort_key
+    SELECT id, "ropewikiPage", "pageName", "bannerUrl", "fullUrl", "linkUrl", caption, sort_key
     FROM filtered
     ORDER BY sort_key DESC, "ropewikiPage" ASC, id ASC
     LIMIT ${db.param(limitPlusOne)}

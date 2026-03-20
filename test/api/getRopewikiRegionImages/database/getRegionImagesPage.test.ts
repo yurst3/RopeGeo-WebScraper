@@ -85,12 +85,14 @@ describe('getRegionImagesPage (integration)', () => {
             .insert('ImageData', {
                 id: imageData1Id,
                 bannerUrl: 'https://api.example.com/images/img1-banner.avif',
+                fullUrl: 'https://api.example.com/images/img1-full.avif',
             })
             .run(conn);
         await db
             .insert('ImageData', {
                 id: imageData2Id,
                 bannerUrl: 'https://api.example.com/images/img2-banner.avif',
+                fullUrl: 'https://api.example.com/images/img2-full.avif',
             })
             .run(conn);
         await db
@@ -122,7 +124,8 @@ describe('getRegionImagesPage (integration)', () => {
 
         expect(items.length).toBe(2);
         expect(items.every((r) => r.id && r.ropewikiPage && r.pageName && r.linkUrl)).toBe(true);
-        expect(items.every((r) => r.fileUrl != null)).toBe(true);
+        expect(items.every((r) => r.bannerUrl != null)).toBe(true);
+        expect(items.every((r) => r.fullUrl != null)).toBe(true);
         expect(Number(items[0]!.sort_key)).toBeGreaterThanOrEqual(Number(items[1]!.sort_key));
         expect(items[0]!.pageName).toBe('RegionImagesPage1');
         expect(items[1]!.pageName).toBe('RegionImagesPage2');
@@ -162,6 +165,7 @@ describe('getRegionImagesPage (integration)', () => {
                 .insert('ImageData', {
                     id: imageDataId,
                     bannerUrl: `https://api.example.com/images/limit-${i}-banner.avif`,
+                    fullUrl: `https://api.example.com/images/limit-${i}-full.avif`,
                 })
                 .run(conn);
             await db
@@ -180,11 +184,12 @@ describe('getRegionImagesPage (integration)', () => {
         const { items, hasMore } = await getRegionImagesPage(conn, [regionId], params);
 
         expect(items.length).toBe(2);
-        expect(items.every((r) => r.fileUrl != null)).toBe(true);
+        expect(items.every((r) => r.bannerUrl != null)).toBe(true);
+        expect(items.every((r) => r.fullUrl != null)).toBe(true);
         expect(hasMore).toBe(true);
     });
 
-    it('returns only items with non-null fileUrl (omits images without processed banner)', async () => {
+    it('returns only items with non-null bannerUrl and fullUrl', async () => {
         const regionId = 'd1000004-0004-4000-8000-000000000004';
         const pageId = 'd2000004-0004-4000-8000-000000000004';
         const imageWithBannerId = 'd3000004-0004-4000-8000-000000000004';
@@ -219,6 +224,7 @@ describe('getRegionImagesPage (integration)', () => {
             .insert('ImageData', {
                 id: imageDataId,
                 bannerUrl: 'https://api.example.com/images/with-banner.avif',
+                fullUrl: 'https://api.example.com/images/with-full.avif',
             })
             .run(conn);
         await db
@@ -248,9 +254,11 @@ describe('getRegionImagesPage (integration)', () => {
         const { items, hasMore } = await getRegionImagesPage(conn, [regionId], params);
 
         expect(items.length).toBe(1);
-        expect(items.every((r) => r.fileUrl != null)).toBe(true);
+        expect(items.every((r) => r.bannerUrl != null)).toBe(true);
+        expect(items.every((r) => r.fullUrl != null)).toBe(true);
         expect(items[0]!.id).toBe(imageWithBannerId);
-        expect(items[0]!.fileUrl).toBe('https://api.example.com/images/with-banner.avif');
+        expect(items[0]!.bannerUrl).toBe('https://api.example.com/images/with-banner.avif');
+        expect(items[0]!.fullUrl).toBe('https://api.example.com/images/with-full.avif');
         expect(hasMore).toBe(false);
     });
 

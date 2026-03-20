@@ -52,6 +52,7 @@ const getRopewikiPageView = async (
         betaSection: string | null;
         latestRevisionDate: db.TimestampString;
         bannerUrl: string | null;
+        fullUrl: string | null;
     };
 
     type MapDataRow = {
@@ -72,9 +73,13 @@ const getRopewikiPageView = async (
                     SELECT d."bannerUrl"
                     FROM "ImageData" d
                     WHERE d.id = i."processedImage"
-                      AND d."errorMessage" IS NULL
-                      AND d."bannerUrl" IS NOT NULL
                 ) AS "bannerUrl"
+                ,
+                (
+                    SELECT d."fullUrl"
+                    FROM "ImageData" d
+                    WHERE d.id = i."processedImage"
+                ) AS "fullUrl"
             FROM "RopewikiImage" i
             WHERE i."ropewikiPage" = ${db.param(pageId)}::uuid
               AND i."deletedAt" IS NULL
@@ -140,15 +145,14 @@ const getRopewikiPageView = async (
               )
             : null;
 
-    const bannerImageRow = imageRows.find(
-        (i) => i.betaSection == null && i.bannerUrl != null && i.bannerUrl.trim() !== '',
-    );
+    const bannerImageRow = imageRows.find((i) => i.betaSection == null);
     const bannerImage = bannerImageRow
         ? {
               order: bannerImageRow.order ?? 0,
-              url: bannerImageRow.bannerUrl as string,
+              bannerUrl: bannerImageRow.bannerUrl,
+              fullUrl: bannerImageRow.fullUrl,
               linkUrl: bannerImageRow.linkUrl,
-              caption: bannerImageRow.caption ?? '',
+              caption: bannerImageRow.caption,
               latestRevisionDate: new Date(bannerImageRow.latestRevisionDate),
           }
         : null;
@@ -161,18 +165,12 @@ const getRopewikiPageView = async (
     }
 
     const betaSectionsView = betaSections.map((sec) => {
-        const secImages = (imagesBySection.get(sec.id) ?? [])
-            .filter(
-                (i) =>
-                    i.bannerUrl != null &&
-                    typeof i.bannerUrl === 'string' &&
-                    i.bannerUrl.trim() !== '',
-            )
-            .map((i) => ({
+        const secImages = (imagesBySection.get(sec.id) ?? []).map((i) => ({
                 order: i.order ?? 0,
-                url: i.bannerUrl as string,
+                bannerUrl: i.bannerUrl,
+                fullUrl: i.fullUrl,
                 linkUrl: i.linkUrl,
-                caption: i.caption ?? '',
+                caption: i.caption,
                 latestRevisionDate: new Date(i.latestRevisionDate),
             }));
         return {

@@ -102,12 +102,14 @@ describe('getRopewikiRegionImages (integration)', () => {
             .insert('ImageData', {
                 id: imageDataParentId,
                 bannerUrl: 'https://api.example.com/images/parent-banner.avif',
+                fullUrl: 'https://api.example.com/images/parent-full.avif',
             })
             .run(conn);
         await db
             .insert('ImageData', {
                 id: imageDataChildId,
                 bannerUrl: 'https://api.example.com/images/child-banner.avif',
+                fullUrl: 'https://api.example.com/images/child-full.avif',
             })
             .run(conn);
         await db
@@ -182,8 +184,10 @@ describe('getRopewikiRegionImages (integration)', () => {
         const second = result.results[1]!;
         expect(first.pageName).toBe('ChildPage');
         expect(second.pageName).toBe('ParentPage');
-        expect(first.url).toBe('https://api.example.com/images/child-banner.avif');
-        expect(second.url).toBe('https://api.example.com/images/parent-banner.avif');
+        expect(first.bannerUrl).toBe('https://api.example.com/images/child-banner.avif');
+        expect(first.fullUrl).toBe('https://api.example.com/images/child-full.avif');
+        expect(second.bannerUrl).toBe('https://api.example.com/images/parent-banner.avif');
+        expect(second.fullUrl).toBe('https://api.example.com/images/parent-full.avif');
     });
 
     it('includes images from pages in nested (descendant) regions when querying by parent region', async () => {
@@ -208,7 +212,8 @@ describe('getRopewikiRegionImages (integration)', () => {
         expect(result.results.length).toBe(1);
         expect(result.results[0]!.pageId).toBe(pageInChildId);
         expect(result.results[0]!.pageName).toBe('ChildPage');
-        expect(result.results[0]!.url).toBe('https://api.example.com/images/child-banner.avif');
+        expect(result.results[0]!.bannerUrl).toBe('https://api.example.com/images/child-banner.avif');
+        expect(result.results[0]!.fullUrl).toBe('https://api.example.com/images/child-full.avif');
     });
 
     it('cursor pagination returns all items with no duplicates or skips at page boundaries', async () => {
@@ -261,6 +266,7 @@ describe('getRopewikiRegionImages (integration)', () => {
                     .insert('ImageData', {
                         id: imageDataId,
                         bannerUrl: `https://api.example.com/images/pag-${i}-banner.avif`,
+                        fullUrl: `https://api.example.com/images/pag-${i}-full.avif`,
                     })
                     .run(conn);
                 await db

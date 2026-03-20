@@ -66,7 +66,8 @@ describe('getRopewikiRegionImages', () => {
                 id: imageId,
                 ropewikiPage: pageId,
                 pageName: 'Test Page',
-                fileUrl: 'https://example.com/img.jpg',
+                bannerUrl: 'https://example.com/img-banner.jpg',
+                fullUrl: 'https://example.com/img-full.jpg',
                 linkUrl: 'https://example.com/File:img.jpg',
                 caption: null as string | null,
                 sort_key: 42,
@@ -83,7 +84,8 @@ describe('getRopewikiRegionImages', () => {
         expect(view.id).toBe(imageId);
         expect(view.pageId).toBe(pageId);
         expect(view.pageName).toBe('Test Page');
-        expect(view.url).toBe('https://example.com/img.jpg'); // fileUrl comes from getRegionImagesPage (resolved banner URL)
+        expect(view.bannerUrl).toBe('https://example.com/img-banner.jpg');
+        expect(view.fullUrl).toBe('https://example.com/img-full.jpg');
         expect(view.externalLink).toBe('https://example.com/File:img.jpg');
         expect(result.nextCursor).toBeNull();
     });
@@ -94,7 +96,8 @@ describe('getRopewikiRegionImages', () => {
                 id: 'b2c3d4e5-f6a7-8901-bcde-f23456789012',
                 ropewikiPage: 'c3d4e5f6-a7b8-9012-cdef-123456789012',
                 pageName: 'Page',
-                fileUrl: 'https://example.com/img.jpg',
+                bannerUrl: 'https://example.com/img-banner.jpg',
+                fullUrl: 'https://example.com/img-full.jpg',
                 linkUrl: 'https://example.com/File:img.jpg',
                 caption: 'A caption',
                 sort_key: 10,
@@ -120,7 +123,8 @@ describe('getRopewikiRegionImages', () => {
                 id: 'b2c3d4e5-f6a7-8901-bcde-f23456789012',
                 ropewikiPage: 'c3d4e5f6-a7b8-9012-cdef-123456789012',
                 pageName: 'First Page',
-                fileUrl: 'https://example.com/first.jpg',
+                bannerUrl: 'https://example.com/first-banner.jpg',
+                fullUrl: 'https://example.com/first-full.jpg',
                 linkUrl: 'https://example.com/File:first.jpg',
                 caption: null as string | null,
                 sort_key: 10,
@@ -129,7 +133,8 @@ describe('getRopewikiRegionImages', () => {
                 id: 'd4e5f6a7-b8c9-0123-def0-234567890123',
                 ropewikiPage: 'e5f6a7b8-c9d0-1234-ef01-345678901234',
                 pageName: 'Last Page',
-                fileUrl: 'https://example.com/last.jpg',
+                bannerUrl: 'https://example.com/last-banner.jpg',
+                fullUrl: 'https://example.com/last-full.jpg',
                 linkUrl: 'https://example.com/File:last.jpg',
                 caption: null as string | null,
                 sort_key: 1,

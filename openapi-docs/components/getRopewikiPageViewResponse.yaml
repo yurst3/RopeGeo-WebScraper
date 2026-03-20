@@ -207,23 +207,31 @@ BetaSectionImage:
   description: Image view (banner or beta-section image)
   required:
     - order
-    - url
+    - bannerUrl
+    - fullUrl
     - linkUrl
     - caption
     - latestRevisionDate
   properties:
     order:
       type: integer
-    url:
+    bannerUrl:
       type: string
       format: uri
-      description: Image URL. When processed, may be API URL (e.g. .../images/{id}/preview.avif or .../banner.avif); otherwise source file URL.
+      nullable: true
+      description: Banner image URL when available from processed image data; otherwise null.
+    fullUrl:
+      type: string
+      format: uri
+      nullable: true
+      description: Full-size image URL when available from processed image data; otherwise null.
     linkUrl:
       type: string
       format: uri
       description: Link URL
     caption:
       type: string
+      nullable: true
     latestRevisionDate:
       type: string
       format: date-time
