@@ -7,12 +7,12 @@ import { ImageDataEvent } from './types/lambdaEvent';
 import ProgressLogger from '../helpers/progressLogger';
 
 /**
- * Processes image data: download from event.source, convert to AVIF (preview/banner/full),
+ * Processes image data: obtain source from event, convert to AVIF (preview/banner/full),
  * save via hook, upsert ImageData, and update the source row's processedImage.
  * On conversion failure, processImageData returns ImageData with errorMessage; we still
  * upsert and set processedImage so we don't retry indefinitely.
  *
- * @param imageDataEvent - The event (pageDataSource, id, source URL)
+ * @param imageDataEvent - The event (pageDataSource, pageImageId, sourceUrl, …)
  * @param saveImageDataHookFn - Hook to persist AVIF buffers and return ImageData
  * @param logger - Progress logger
  * @param client - Database client
@@ -26,9 +26,8 @@ export const main = async (
     abortSignal?: AbortSignal,
 ): Promise<void> => {
     const imageData = await processImageData(
-        imageDataEvent.source,
+        imageDataEvent,
         saveImageDataHookFn,
-        undefined,
         logger,
         abortSignal,
     );
@@ -50,7 +49,7 @@ export const main = async (
     await updateProcessedImageForSource(
         client,
         imageDataEvent.pageDataSource,
-        imageDataEvent.id,
+        imageDataEvent.pageImageId,
         imageDataId,
     );
 };

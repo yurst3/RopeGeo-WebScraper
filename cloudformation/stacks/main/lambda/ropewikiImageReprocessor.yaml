@@ -2,7 +2,7 @@ AWSTemplateFormatVersion: '2010-09-09'
 Description: Lambda that enqueues all RopewikiImages needing AVIF processing to the image processor queue
 
 Resources:
-  ReprocessRopewikiImages:
+  RopewikiImageReprocessor:
     Type: 'AWS::Serverless::Function'
     Properties:
       Description: Enqueues RopewikiImages that need processing (no processedImage or source URL changed) to the image processor queue
@@ -19,7 +19,7 @@ Resources:
         SubnetIds:
           - Ref: PrivateSubnet1
       Role:
-        'Fn::GetAtt': ReprocessRopewikiImagesRole.Arn
+        'Fn::GetAtt': RopewikiImageReprocessorRole.Arn
       Environment:
         Variables:
           DEV_ENVIRONMENT:

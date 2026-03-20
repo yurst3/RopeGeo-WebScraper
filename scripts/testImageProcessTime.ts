@@ -1,5 +1,8 @@
+import { randomUUID } from 'crypto';
+import { PageDataSource } from 'ropegeo-common';
 import { processImageData } from '../src/image-data/processors/processImageData';
 import { nodeSaveImageData } from '../src/image-data/hook-functions/saveImageData';
+import { ImageDataEvent } from '../src/image-data/types/lambdaEvent';
 import ProgressLogger from '../src/helpers/progressLogger';
 
 function formatElapsed(ms: number): string {
@@ -30,7 +33,8 @@ async function testImageProcessTime() {
 
     let imageData;
     try {
-        imageData = await processImageData(url, nodeSaveImageData, undefined, logger);
+        const event = new ImageDataEvent(PageDataSource.Ropewiki, randomUUID(), url, true);
+        imageData = await processImageData(event, nodeSaveImageData, logger);
     } catch (error) {
         console.error('Error processing image:', error);
         process.exit(1);

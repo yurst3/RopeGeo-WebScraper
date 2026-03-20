@@ -13,7 +13,7 @@ const sendImageProcessorSQSMessage = async (event: ImageDataEvent): Promise<void
 
     if (devEnvironment === 'local') {
         console.log(
-            `Skipping SQS message sending for image ${event.id} (${event.pageDataSource}) - no queue configured locally`,
+            `Skipping SQS message sending for image ${event.pageImageId} (${event.pageDataSource}) - no queue configured locally`,
         );
         return;
     }
@@ -25,8 +25,10 @@ const sendImageProcessorSQSMessage = async (event: ImageDataEvent): Promise<void
 
     const body = JSON.stringify({
         pageDataSource: event.pageDataSource,
-        id: event.id,
-        source: event.source,
+        pageImageId: event.pageImageId,
+        sourceUrl: event.sourceUrl,
+        downloadSource: event.downloadSource,
+        existingProcessedImageId: event.existingProcessedImageId,
     });
     await sendSQSMessage(body, queueUrl);
 };

@@ -4,7 +4,7 @@ import { tmpdir } from 'os';
 import { randomUUID } from 'crypto';
 import ImageData from '../types/imageData';
 import type { SaveImageDataHookFn } from '../hook-functions/saveImageData';
-import { downloadSourceImage } from '../http/downloadSourceImage';
+import type { ImageDataEvent } from '../types/lambdaEvent';
 import { convertToAvif } from '../util/convertToAvif';
 import {
     isPdf,
@@ -13,36 +13,37 @@ import {
     renderPdfFirstPageToBuffer,
 } from '../util/pdfSource';
 import ProgressLogger from '../../helpers/progressLogger';
+import getSource from '../util/getSource';
 
 /**
- * Processes image data: downloads from source URL, converts to AVIF (preview, banner, full),
+ * Processes image data: obtains source file (download or S3 lossless), converts to AVIF (preview, banner, full),
  * then saves via the provided hook (e.g. upload to S3 in Lambda).
  * On conversion failure, returns an ImageData with errorMessage set (preview/banner/full null).
  *
- * @param sourceImageUrl - URL of the source image
+ * @param imageDataEvent - Image processing event
  * @param saveImageDataHookFn - Hook to persist AVIF buffers and return ImageData with URLs
- * @param imageDataId - Optional UUID for ImageData. If not provided, a new UUID is generated.
  * @param logger - Progress logger
  * @param abortSignal - Optional AbortSignal; when aborted, the download is cancelled
  * @returns Promise that resolves to ImageData (with URLs or errorMessage)
  */
 export const processImageData = async (
-    sourceImageUrl: string,
+    imageDataEvent: ImageDataEvent,
     saveImageDataHookFn: SaveImageDataHookFn,
-    imageDataId: string | null | undefined,
     logger: ProgressLogger,
     abortSignal?: AbortSignal,
 ): Promise<ImageData> => {
     const tempDir = await mkdtemp(join(tmpdir(), 'image-data-'));
-    const finalImageDataId = imageDataId ?? randomUUID();
+    const imageDataId = imageDataEvent.existingProcessedImageId ?? randomUUID();
+    const sourceUrl = imageDataEvent.sourceUrl;
 
     try {
-        const sourceFilePath = await downloadSourceImage(
-            sourceImageUrl,
-            tempDir,
-            finalImageDataId,
-            abortSignal,
-        );
+        const source = await getSource(imageDataEvent, tempDir, imageDataId, abortSignal);
+        if (source.errorMessage !== undefined) {
+            return ImageData.fromError(source.errorMessage, imageDataId, sourceUrl);
+        }
+
+        const sourceFilePath = source.sourceFilePath;
+        let conversionSource: string | Buffer = sourceFilePath;
 
         const sourceBuffer = await readFile(sourceFilePath);
 
@@ -51,75 +52,44 @@ export const processImageData = async (
             const pageCount = await getPdfPageCount(sourceBuffer);
             if (pageCount > 1) {
                 logger.logError(
-                    `Image ${finalImageDataId}: ${MULTI_PAGE_PDF_ERROR_MESSAGE} (${pageCount} pages)`,
+                    `Image ${imageDataId}: ${MULTI_PAGE_PDF_ERROR_MESSAGE} (${pageCount} pages)`,
                 );
-                return new ImageData(
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    sourceImageUrl,
+                return ImageData.fromError(
                     MULTI_PAGE_PDF_ERROR_MESSAGE,
-                    finalImageDataId,
+                    imageDataId,
+                    sourceUrl,
                 );
             }
             try {
-                const firstPageBuffer = await renderPdfFirstPageToBuffer(sourceFilePath);
-                const outputs = await convertToAvif(firstPageBuffer, abortSignal);
-                return await saveImageDataHookFn(
-                    finalImageDataId,
-                    sourceImageUrl,
-                    outputs.preview,
-                    outputs.banner,
-                    outputs.full,
-                    outputs.lossless,
-                    outputs.metadata,
-                    logger,
-                );
+                conversionSource = await renderPdfFirstPageToBuffer(sourceFilePath);
             } catch (pdfConversionError) {
                 const errorMessage =
                     pdfConversionError instanceof Error
                         ? pdfConversionError.message
                         : String(pdfConversionError);
                 logger.logError(
-                    `Single-page PDF conversion failed for ${finalImageDataId}: ${errorMessage}`,
+                    `Single-page PDF conversion failed for ${imageDataId}: ${errorMessage}`,
                 );
-                return new ImageData(
-                    undefined,
-                    undefined,
-                    undefined,
-                    undefined,
-                    sourceImageUrl,
-                    errorMessage,
-                    finalImageDataId,
-                );
+                return ImageData.fromError(errorMessage, imageDataId, sourceUrl);
             }
         }
 
         let outputs: Awaited<ReturnType<typeof convertToAvif>>;
 
         try {
-            outputs = await convertToAvif(sourceFilePath, abortSignal);
+            outputs = await convertToAvif(conversionSource, abortSignal);
         } catch (conversionError) {
             const errorMessage =
                 conversionError instanceof Error
                     ? conversionError.message
                     : String(conversionError);
-            logger.logError(`Image conversion failed for ${finalImageDataId}: ${errorMessage}`);
-            return new ImageData(
-                undefined,
-                undefined,
-                undefined,
-                undefined,
-                sourceImageUrl,
-                errorMessage,
-                finalImageDataId,
-            );
+            logger.logError(`Image conversion failed for ${imageDataId}: ${errorMessage}`);
+            return ImageData.fromError(errorMessage, imageDataId, sourceUrl);
         }
 
         return await saveImageDataHookFn(
-            finalImageDataId,
-            sourceImageUrl,
+            imageDataId,
+            sourceUrl,
             outputs.preview,
             outputs.banner,
             outputs.full,

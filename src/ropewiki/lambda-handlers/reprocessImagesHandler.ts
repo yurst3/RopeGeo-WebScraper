@@ -1,30 +1,46 @@
 import type { Pool, PoolClient } from 'pg';
-import { PageDataSource } from 'ropegeo-common';
 import getDatabaseConnection from '../../helpers/getDatabaseConnection';
 import getRopewikiImagesToProcess from '../database/getRopewikiImagesToProcess';
 import sendImageProcessorSQSMessage from '../../image-data/sqs/sendImageProcessorSQSMessage';
-import { ImageDataEvent } from '../../image-data/types/lambdaEvent';
+import { ReprocessImagesEvent } from '../types/reprocessImagesEvent';
 
 /**
- * Lambda handler that enqueues all RopewikiImages that need AVIF processing
- * (no processedImage, or ImageData.sourceUrl !== image fileUrl) by sending
- * an ImageDataEvent to the image processor queue for each.
+ * Lambda handler that enqueues RopewikiImages that need AVIF processing by sending an ImageDataEvent
+ * to the image processor queue for each. Options come from the Lambda event body (JSON) when present.
  */
-export const reprocessImagesHandler = async (): Promise<{ statusCode: number; body: string }> => {
+export const reprocessImagesHandler = async (
+    event?: unknown,
+): Promise<{ statusCode: number; body: string }> => {
     let pool: Pool | undefined;
     let client: PoolClient | undefined;
+
+    let reprocessImagesEvent: ReprocessImagesEvent;
+    try {
+        reprocessImagesEvent = ReprocessImagesEvent.fromLambdaEvent(event);
+    } catch (err) {
+        return {
+            statusCode: 400,
+            body: JSON.stringify({
+                message: 'Invalid ReprocessImagesEvent',
+                error: err instanceof Error ? err.message : String(err),
+            }),
+        };
+    }
 
     try {
         pool = await getDatabaseConnection();
         client = await pool.connect();
 
-        const images = await getRopewikiImagesToProcess(client);
+        const images = await getRopewikiImagesToProcess(
+            client,
+            reprocessImagesEvent.onlyUnprocessed,
+            reprocessImagesEvent.downloadSource,
+        );
 
         console.log(`Enqueueing ${images.length} RopewikiImages for image processing...`);
 
-        for (const row of images) {
-            const event = new ImageDataEvent(PageDataSource.Ropewiki, row.id, row.fileUrl);
-            await sendImageProcessorSQSMessage(event);
+        for (const img of images) {
+            await sendImageProcessorSQSMessage(img.toImageDataEvent(reprocessImagesEvent.downloadSource));
         }
 
         return {
@@ -35,7 +51,7 @@ export const reprocessImagesHandler = async (): Promise<{ statusCode: number; bo
             }),
         };
     } catch (error) {
-        console.error('Error in ReprocessRopewikiImages:', error);
+        console.error('Error in RopewikiImageReprocessor:', error);
         return {
             statusCode: 500,
             body: JSON.stringify({

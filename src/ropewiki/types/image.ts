@@ -61,11 +61,17 @@ export class RopewikiImage {
      * Returns an ImageDataEvent for this image (e.g. to enqueue for AVIF processing).
      * @throws Error if this image has no id (e.g. not loaded from DB)
      */
-    toImageDataEvent(): ImageDataEvent {
+    toImageDataEvent(downloadSource: boolean = true): ImageDataEvent {
         if (this.id === undefined || this.id === null || this.id === '') {
             throw new Error('RopewikiImage must have an id to create ImageDataEvent');
         }
-        return new ImageDataEvent(PageDataSource.Ropewiki, this.id, this.fileUrl);
+        return new ImageDataEvent(
+            PageDataSource.Ropewiki,
+            this.id,
+            this.fileUrl,
+            downloadSource,
+            this.processedImage ?? undefined,
+        );
     }
 
     /** Column keys for batch INSERT in order (excludes id, createdAt). Use with toDbRow() to build column arrays for unnest(). */

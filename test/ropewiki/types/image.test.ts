@@ -87,8 +87,39 @@ describe('RopewikiImage', () => {
 
             expect(event).toBeInstanceOf(ImageDataEvent);
             expect(event.pageDataSource).toBe(PageDataSource.Ropewiki);
-            expect(event.id).toBe(img.id);
-            expect(event.source).toBe(img.fileUrl);
+            expect(event.pageImageId).toBe(img.id);
+            expect(event.sourceUrl).toBe(img.fileUrl);
+            expect(event.downloadSource).toBe(true);
+        });
+
+        it('passes downloadSource to ImageDataEvent', () => {
+            const img = RopewikiImage.fromDbRow({
+                id: '11111111-1111-1111-1111-111111111111',
+                processedImage: 'eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee',
+                linkUrl: 'https://ropewiki.com/Image1',
+                fileUrl: 'https://ropewiki.com/files/Image1.jpg',
+                caption: null,
+                order: 1,
+            } as s.RopewikiImage.JSONSelectable);
+
+            const ev = img.toImageDataEvent(false);
+            expect(ev.downloadSource).toBe(false);
+            expect(ev.existingProcessedImageId).toBe('eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee');
+        });
+
+        it('passes existing processed image id to event when present', () => {
+            const img = RopewikiImage.fromDbRow({
+                id: '11111111-1111-1111-1111-111111111111',
+                processedImage: 'dddddddd-dddd-dddd-dddd-dddddddddddd',
+                linkUrl: 'https://ropewiki.com/Image1',
+                fileUrl: 'https://ropewiki.com/files/Image1.jpg',
+                caption: null,
+                order: 1,
+            } as s.RopewikiImage.JSONSelectable);
+
+            expect(img.toImageDataEvent().existingProcessedImageId).toBe(
+                'dddddddd-dddd-dddd-dddd-dddddddddddd',
+            );
         });
 
         it('throws when id is undefined', () => {

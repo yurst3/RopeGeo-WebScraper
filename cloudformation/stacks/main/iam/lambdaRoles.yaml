@@ -216,7 +216,7 @@ Resources:
             - Ref: RdsIamAuthPolicy
             - Ref: 'AWS::NoValue'
         - Ref: SQSMapDataProcessingQueuePolicy
-  ReprocessRopewikiImagesRole:
+  RopewikiImageReprocessorRole:
     Type: 'AWS::IAM::Role'
     Properties:
       AssumeRolePolicyDocument:

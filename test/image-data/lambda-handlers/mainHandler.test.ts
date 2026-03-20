@@ -41,9 +41,10 @@ jest.mock('../../../src/helpers/progressLogger', () => {
 const mockContext = { getRemainingTimeInMillis: () => 900_000 };
 
 describe('ImageProcessor mainHandler', () => {
-    const id = '11111111-1111-1111-1111-111111111111';
+    const pageImageId = '11111111-1111-1111-1111-111111111111';
     const source = 'https://ropewiki.com/images/thumb/1/2/Example.jpg/400px-Example.jpg';
     const pageDataSource = PageDataSource.Ropewiki;
+    const imageRecordBody = { pageDataSource, pageImageId, sourceUrl: source, downloadSource: true };
 
     beforeEach(() => {
         jest.clearAllMocks();
@@ -65,7 +66,7 @@ describe('ImageProcessor mainHandler', () => {
         const sqsEvent: SqsEvent = {
             Records: [
                 {
-                    body: JSON.stringify({ pageDataSource, id, source }),
+                    body: JSON.stringify(imageRecordBody),
                     receiptHandle: 'test-receipt-handle',
                 } as SqsRecord,
             ],
@@ -116,7 +117,7 @@ describe('ImageProcessor mainHandler', () => {
         delete process.env.IMAGE_PROCESSOR_TIMEOUT_SECONDS;
         const sqsEvent: SqsEvent = {
             Records: [
-                { body: JSON.stringify({ pageDataSource, id, source }), receiptHandle: 'h' } as SqsRecord,
+                { body: JSON.stringify(imageRecordBody), receiptHandle: 'h' } as SqsRecord,
             ],
         };
 
@@ -131,7 +132,7 @@ describe('ImageProcessor mainHandler', () => {
     it('returns 500 when getRemainingTimeInMillis is missing', async () => {
         const sqsEvent: SqsEvent = {
             Records: [
-                { body: JSON.stringify({ pageDataSource, id, source }), receiptHandle: 'h' } as SqsRecord,
+                { body: JSON.stringify(imageRecordBody), receiptHandle: 'h' } as SqsRecord,
             ],
         };
 
@@ -145,7 +146,7 @@ describe('ImageProcessor mainHandler', () => {
     it('returns 500 when handleImageProcessorSQSMessages throws', async () => {
         const sqsEvent: SqsEvent = {
             Records: [
-                { body: JSON.stringify({ pageDataSource, id, source }), receiptHandle: 'h' } as SqsRecord,
+                { body: JSON.stringify(imageRecordBody), receiptHandle: 'h' } as SqsRecord,
             ],
         };
         mockHandleImageProcessorSQSMessages.mockRejectedValue(new Error('Download failed'));
@@ -161,8 +162,16 @@ describe('ImageProcessor mainHandler', () => {
     it('calls setImageProcessorSQSMessageVisibilityTimeout for each record before processing', async () => {
         const sqsEvent: SqsEvent = {
             Records: [
-                { body: JSON.stringify({ pageDataSource, id, source }), receiptHandle: 'handle-1' } as SqsRecord,
-                { body: JSON.stringify({ pageDataSource, id: '22222222-2222-2222-2222-222222222222', source }), receiptHandle: 'handle-2' } as SqsRecord,
+                { body: JSON.stringify(imageRecordBody), receiptHandle: 'handle-1' } as SqsRecord,
+                {
+                    body: JSON.stringify({
+                        pageDataSource,
+                        pageImageId: '22222222-2222-2222-2222-222222222222',
+                        sourceUrl: source,
+                        downloadSource: true,
+                    }),
+                    receiptHandle: 'handle-2',
+                } as SqsRecord,
             ],
         };
 

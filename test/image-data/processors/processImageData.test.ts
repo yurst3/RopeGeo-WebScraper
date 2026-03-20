@@ -1,16 +1,19 @@
 import { describe, it, expect, beforeEach, jest } from '@jest/globals';
+import { PageDataSource } from 'ropegeo-common';
 import { processImageData } from '../../../src/image-data/processors/processImageData';
 import ImageData from '../../../src/image-data/types/imageData';
+import { ImageDataEvent } from '../../../src/image-data/types/lambdaEvent';
 import { Metadata } from '../../../src/image-data/types/metadata';
 import ProgressLogger from '../../../src/helpers/progressLogger';
 
-let mockDownloadSourceImage: jest.MockedFunction<typeof import('../../../src/image-data/http/downloadSourceImage').downloadSourceImage>;
+let mockGetSource: jest.MockedFunction<typeof import('../../../src/image-data/util/getSource').default>;
 let mockReadFile: jest.MockedFunction<typeof import('fs/promises').readFile>;
 let mockConvertToAvif: jest.MockedFunction<typeof import('../../../src/image-data/util/convertToAvif').convertToAvif>;
 let mockSaveHook: jest.MockedFunction<typeof import('../../../src/image-data/hook-functions/saveImageData').lambdaSaveImageData>;
 
-jest.mock('../../../src/image-data/http/downloadSourceImage', () => ({
-    downloadSourceImage: jest.fn(),
+jest.mock('../../../src/image-data/util/getSource', () => ({
+    __esModule: true,
+    default: jest.fn(),
 }));
 
 jest.mock('fs/promises', () => ({
@@ -23,8 +26,17 @@ jest.mock('../../../src/image-data/util/convertToAvif', () => ({
     convertToAvif: jest.fn(),
 }));
 
+jest.mock('crypto', () => ({
+    randomUUID: jest.fn(() => 'generated-id'),
+}));
+
 describe('processImageData', () => {
-    const sourceUrl = 'https://example.com/image.jpg';
+    const event = new ImageDataEvent(
+        PageDataSource.Ropewiki,
+        '11111111-1111-1111-1111-111111111111',
+        'https://example.com/image.jpg',
+        true,
+    );
     const previewBuffer = Buffer.from([1]);
     const bannerBuffer = Buffer.from([2]);
     const fullBuffer = Buffer.from([3]);
@@ -34,15 +46,17 @@ describe('processImageData', () => {
 
     beforeEach(() => {
         jest.clearAllMocks();
-        const downloadModule = require('../../../src/image-data/http/downloadSourceImage');
-        mockDownloadSourceImage = downloadModule.downloadSourceImage;
+        mockGetSource = require('../../../src/image-data/util/getSource').default;
         const fsModule = require('fs/promises');
         mockReadFile = fsModule.readFile;
         const convertModule = require('../../../src/image-data/util/convertToAvif');
         mockConvertToAvif = convertModule.convertToAvif;
         mockSaveHook = jest.fn();
 
-        mockDownloadSourceImage.mockResolvedValue('/tmp/image-data-xyz/abc-source.jpg');
+        mockGetSource.mockResolvedValue({
+            sourceFilePath: '/tmp/image-data-xyz/abc-source.jpg',
+            errorMessage: undefined,
+        });
         mockReadFile.mockResolvedValue(Buffer.from([0xff, 0xd8, 0xff]));
         mockConvertToAvif.mockResolvedValue({
             preview: previewBuffer,
@@ -57,7 +71,7 @@ describe('processImageData', () => {
                 'https://example.com/b.avif',
                 'https://example.com/f.avif',
                 'https://example.com/l.avif',
-                sourceUrl,
+                event.sourceUrl,
                 undefined,
                 'generated-id',
                 metadata,
@@ -70,23 +84,23 @@ describe('processImageData', () => {
         } as unknown as ProgressLogger;
     });
 
-    it('downloads, converts, and calls save hook with four buffers and metadata', async () => {
-        const result = await processImageData(sourceUrl, mockSaveHook, undefined, logger);
+    it('resolves source, converts, and calls save hook with four buffers and metadata', async () => {
+        const result = await processImageData(event, mockSaveHook, logger);
 
-        expect(mockDownloadSourceImage).toHaveBeenCalledWith(
-            sourceUrl,
+        expect(mockGetSource).toHaveBeenCalledWith(
+            event,
             expect.any(String),
             expect.any(String),
             undefined,
         );
         expect(mockConvertToAvif).toHaveBeenCalledWith(
-            expect.stringContaining('image-data-xyz'),
+            '/tmp/image-data-xyz/abc-source.jpg',
             undefined,
         );
         expect(mockSaveHook).toHaveBeenCalledTimes(1);
         expect(mockSaveHook).toHaveBeenCalledWith(
-            expect.any(String),
-            sourceUrl,
+            'generated-id',
+            event.sourceUrl,
             previewBuffer,
             bannerBuffer,
             fullBuffer,
@@ -102,13 +116,56 @@ describe('processImageData', () => {
     it('when convertToAvif throws, returns ImageData with errorMessage', async () => {
         mockConvertToAvif.mockRejectedValue(new Error('Sharp failed'));
 
-        const result = await processImageData(sourceUrl, mockSaveHook, 'fixed-id', logger);
+        const result = await processImageData(event, mockSaveHook, logger);
 
         expect(mockSaveHook).not.toHaveBeenCalled();
         expect(result).toBeInstanceOf(ImageData);
-        expect(result.id).toBe('fixed-id');
-        expect(result.sourceUrl).toBe(sourceUrl);
+        expect(result.id).toBe('generated-id');
+        expect(result.sourceUrl).toBe(event.sourceUrl);
         expect(result.errorMessage).toBe('Sharp failed');
         expect(result.previewUrl).toBeUndefined();
+    });
+
+    it('returns canonical error and undefined urls when getSource reports no source', async () => {
+        const noDownloadEvent = new ImageDataEvent(
+            PageDataSource.Ropewiki,
+            '11111111-1111-1111-1111-111111111111',
+            'https://example.com/image.jpg',
+            false,
+            'cccccccc-cccc-cccc-cccc-cccccccccccc',
+        );
+        mockGetSource.mockResolvedValue({
+            sourceFilePath: '',
+            errorMessage: 'No lossless image available when downloadSource is False',
+        });
+
+        const result = await processImageData(noDownloadEvent, mockSaveHook, logger);
+
+        expect(mockReadFile).not.toHaveBeenCalled();
+        expect(mockConvertToAvif).not.toHaveBeenCalled();
+        expect(mockSaveHook).not.toHaveBeenCalled();
+        expect(result.id).toBe('cccccccc-cccc-cccc-cccc-cccccccccccc');
+        expect(result.errorMessage).toBe('No lossless image available when downloadSource is False');
+        expect(result.previewUrl).toBeUndefined();
+        expect(result.sourceUrl).toBe(noDownloadEvent.sourceUrl);
+    });
+
+    it('uses existingProcessedImageId as imageDataId when provided on event', async () => {
+        const eventWithExistingId = new ImageDataEvent(
+            PageDataSource.Ropewiki,
+            '11111111-1111-1111-1111-111111111111',
+            'https://example.com/image.jpg',
+            false,
+            'cccccccc-cccc-cccc-cccc-cccccccccccc',
+        );
+
+        await processImageData(eventWithExistingId, mockSaveHook, logger);
+
+        expect(mockGetSource).toHaveBeenCalledWith(
+            eventWithExistingId,
+            expect.any(String),
+            'cccccccc-cccc-cccc-cccc-cccccccccccc',
+            undefined,
+        );
     });
 });

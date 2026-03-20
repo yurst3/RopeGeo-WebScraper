@@ -2,6 +2,7 @@ import { Pool } from 'pg';
 import * as db from 'zapatos/db';
 import { describe, it, expect, afterAll, beforeAll } from '@jest/globals';
 import getRopewikiImagesToProcess from '../../../src/ropewiki/database/getRopewikiImagesToProcess';
+import { RopewikiImage } from '../../../src/ropewiki/types/image';
 
 describe('getRopewikiImagesToProcess (integration)', () => {
     const pool = new Pool({
@@ -105,40 +106,63 @@ describe('getRopewikiImagesToProcess (integration)', () => {
         await pool.end();
     });
 
-    it('returns images with no processedImage', async () => {
+    it('when onlyUnprocessed is true (default), returns only images with no processedImage', async () => {
         const result = await getRopewikiImagesToProcess(conn);
+        expect(result.every((r) => r instanceof RopewikiImage)).toBe(true);
+        const ids = result.map((r) => r.id);
+        expect(ids).toContain(imageNoProcessedId);
+        expect(ids).not.toContain(imageSourceMismatchId);
+    });
+
+    it('when downloadSource is false and onlyUnprocessed is true, returns no rows', async () => {
+        const result = await getRopewikiImagesToProcess(conn, true, false);
+        expect(result).toEqual([]);
+    });
+
+    it('when downloadSource is false and onlyUnprocessed is false, returns only processed images with source mismatch', async () => {
+        const result = await getRopewikiImagesToProcess(conn, false, false);
+        const ids = result.map((r) => r.id);
+        expect(ids).toEqual([imageSourceMismatchId]);
+        expect(ids).not.toContain(imageNoProcessedId);
+        expect(ids).not.toContain(imageSourceMatchId);
+    });
+
+    it('when onlyUnprocessed is false, returns images with no processedImage', async () => {
+        const result = await getRopewikiImagesToProcess(conn, false);
         const ids = result.map((r) => r.id);
         expect(ids).toContain(imageNoProcessedId);
     });
 
-    it('returns images where ImageData.sourceUrl differs from fileUrl', async () => {
-        const result = await getRopewikiImagesToProcess(conn);
+    it('when onlyUnprocessed is false, returns images where ImageData.sourceUrl differs from fileUrl', async () => {
+        const result = await getRopewikiImagesToProcess(conn, false);
         const ids = result.map((r) => r.id);
         expect(ids).toContain(imageSourceMismatchId);
     });
 
-    it('does not return images where processedImage matches and sourceUrl equals fileUrl', async () => {
-        const result = await getRopewikiImagesToProcess(conn);
+    it('when onlyUnprocessed is false, does not return images where sourceUrl equals fileUrl', async () => {
+        const result = await getRopewikiImagesToProcess(conn, false);
         const ids = result.map((r) => r.id);
         expect(ids).not.toContain(imageSourceMatchId);
     });
 
     it('does not return soft-deleted images', async () => {
-        const result = await getRopewikiImagesToProcess(conn);
+        const result = await getRopewikiImagesToProcess(conn, false);
         const ids = result.map((r) => r.id);
         expect(ids).not.toContain(imageDeletedId);
     });
 
-    it('returns id and fileUrl for each row', async () => {
-        const result = await getRopewikiImagesToProcess(conn);
+    it('returns RopewikiImage instances with id, fileUrl, and processedImage for each row', async () => {
+        const result = await getRopewikiImagesToProcess(conn, false);
         const byId = new Map(result.map((r) => [r.id, r]));
-        expect(byId.get(imageNoProcessedId)).toEqual({
-            id: imageNoProcessedId,
-            fileUrl: 'https://ropewiki.com/images/no-processed.jpg',
-        });
-        expect(byId.get(imageSourceMismatchId)).toEqual({
-            id: imageSourceMismatchId,
-            fileUrl: 'https://ropewiki.com/images/current.jpg',
-        });
+        const noProcessed = byId.get(imageNoProcessedId);
+        const mismatch = byId.get(imageSourceMismatchId);
+        expect(noProcessed).toBeInstanceOf(RopewikiImage);
+        expect(noProcessed!.id).toBe(imageNoProcessedId);
+        expect(noProcessed!.fileUrl).toBe('https://ropewiki.com/images/no-processed.jpg');
+        expect(noProcessed!.processedImage).toBeNull();
+        expect(mismatch).toBeInstanceOf(RopewikiImage);
+        expect(mismatch!.id).toBe(imageSourceMismatchId);
+        expect(mismatch!.fileUrl).toBe('https://ropewiki.com/images/current.jpg');
+        expect(mismatch!.processedImage).toBe(imageDataId);
     });
 });

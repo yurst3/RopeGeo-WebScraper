@@ -3,7 +3,7 @@ import { RopewikiImage } from '../types/image';
 
 /**
  * Returns a filtered array of RopewikiImages that need AVIF processing: either
- * processedImage is null, or the processedImage's ImageData.source differs from
+ * processedImage is null, or the processedImage's ImageData.sourceUrl differs from
  * the image's fileUrl (e.g. source URL changed). Only queries the database for
  * rows that have a processedImage set.
  *

@@ -55,7 +55,41 @@ describe('sendImageProcessorSQSMessage', () => {
         expect(queueUrl).toBe('https://sqs.us-east-1.amazonaws.com/123/queue');
         const parsed = JSON.parse(body);
         expect(parsed.pageDataSource).toBe(PageDataSource.Ropewiki);
-        expect(parsed.id).toBe('img-123');
-        expect(parsed.source).toBe('https://example.com/file.jpg');
+        expect(parsed.pageImageId).toBe('img-123');
+        expect(parsed.sourceUrl).toBe('https://example.com/file.jpg');
+        expect(parsed.downloadSource).toBe(true);
+        expect(parsed.existingProcessedImageId).toBeUndefined();
+    });
+
+    it('includes downloadSource false in serialized body', async () => {
+        delete process.env.DEV_ENVIRONMENT;
+        process.env.IMAGE_PROCESSOR_QUEUE_URL = 'https://sqs.us-east-1.amazonaws.com/123/queue';
+        const event = new ImageDataEvent(
+            PageDataSource.Ropewiki,
+            'img-123',
+            'https://example.com/file.jpg',
+            false,
+            'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
+        );
+        await sendImageProcessorSQSMessage(event);
+        const [body] = mockSendSQSMessage.mock.calls[0];
+        expect(JSON.parse(body).downloadSource).toBe(false);
+    });
+
+    it('includes existingProcessedImageId when provided', async () => {
+        delete process.env.DEV_ENVIRONMENT;
+        process.env.IMAGE_PROCESSOR_QUEUE_URL = 'https://sqs.us-east-1.amazonaws.com/123/queue';
+        const event = new ImageDataEvent(
+            PageDataSource.Ropewiki,
+            'img-123',
+            'https://example.com/file.jpg',
+            false,
+            'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
+        );
+        await sendImageProcessorSQSMessage(event);
+        const [body] = mockSendSQSMessage.mock.calls[0];
+        expect(JSON.parse(body).existingProcessedImageId).toBe(
+            'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
+        );
     });
 });

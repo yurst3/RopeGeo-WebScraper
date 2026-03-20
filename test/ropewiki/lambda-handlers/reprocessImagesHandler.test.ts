@@ -2,6 +2,14 @@ import { describe, it, expect, beforeEach, jest } from '@jest/globals';
 import { PageDataSource } from 'ropegeo-common';
 import { reprocessImagesHandler } from '../../../src/ropewiki/lambda-handlers/reprocessImagesHandler';
 import { ImageDataEvent } from '../../../src/image-data/types/lambdaEvent';
+import { RopewikiImage } from '../../../src/ropewiki/types/image';
+
+function makeRopewikiImage(partial: { id: string; fileUrl: string; processedImage: string | null }) {
+    const img = new RopewikiImage(undefined, 'https://ropewiki.com/link', partial.fileUrl, undefined, 1);
+    img.id = partial.id;
+    img.processedImage = partial.processedImage;
+    return img;
+}
 
 let mockGetDatabaseConnection: jest.MockedFunction<typeof import('../../../src/helpers/getDatabaseConnection').default>;
 let mockGetRopewikiImagesToProcess: jest.MockedFunction<typeof import('../../../src/ropewiki/database/getRopewikiImagesToProcess').default>;
@@ -51,26 +59,25 @@ describe('reprocessImagesHandler', () => {
     });
 
     it('gets connection, fetches images to process, sends SQS message for each, and returns 200', async () => {
-        const images = [
-            { id: 'img-1', fileUrl: 'https://ropewiki.com/images/1.jpg' },
-            { id: 'img-2', fileUrl: 'https://ropewiki.com/images/2.jpg' },
-        ];
-        mockGetRopewikiImagesToProcess.mockResolvedValue(images);
+        mockGetRopewikiImagesToProcess.mockResolvedValue([
+            makeRopewikiImage({ id: 'img-1', fileUrl: 'https://ropewiki.com/images/1.jpg', processedImage: null }),
+            makeRopewikiImage({ id: 'img-2', fileUrl: 'https://ropewiki.com/images/2.jpg', processedImage: null }),
+        ]);
 
         const result = await reprocessImagesHandler();
 
         expect(mockGetDatabaseConnection).toHaveBeenCalledTimes(1);
         expect(mockPool.connect).toHaveBeenCalledTimes(1);
-        expect(mockGetRopewikiImagesToProcess).toHaveBeenCalledWith(mockClient);
+        expect(mockGetRopewikiImagesToProcess).toHaveBeenCalledWith(mockClient, true, true);
         expect(consoleLogSpy).toHaveBeenCalledWith('Enqueueing 2 RopewikiImages for image processing...');
         expect(mockSendImageProcessorSQSMessage).toHaveBeenCalledTimes(2);
         expect(mockSendImageProcessorSQSMessage).toHaveBeenNthCalledWith(
             1,
-            new ImageDataEvent(PageDataSource.Ropewiki, 'img-1', 'https://ropewiki.com/images/1.jpg'),
+            new ImageDataEvent(PageDataSource.Ropewiki, 'img-1', 'https://ropewiki.com/images/1.jpg', true),
         );
         expect(mockSendImageProcessorSQSMessage).toHaveBeenNthCalledWith(
             2,
-            new ImageDataEvent(PageDataSource.Ropewiki, 'img-2', 'https://ropewiki.com/images/2.jpg'),
+            new ImageDataEvent(PageDataSource.Ropewiki, 'img-2', 'https://ropewiki.com/images/2.jpg', true),
         );
         expect(result).toEqual({
             statusCode: 200,
@@ -86,6 +93,7 @@ describe('reprocessImagesHandler', () => {
 
         const result = await reprocessImagesHandler();
 
+        expect(mockGetRopewikiImagesToProcess).toHaveBeenCalledWith(mockClient, true, true);
         expect(consoleLogSpy).toHaveBeenCalledWith('Enqueueing 0 RopewikiImages for image processing...');
         expect(mockSendImageProcessorSQSMessage).not.toHaveBeenCalled();
         expect(result.statusCode).toBe(200);
@@ -105,7 +113,7 @@ describe('reprocessImagesHandler', () => {
 
         const result = await reprocessImagesHandler();
 
-        expect(consoleErrorSpy).toHaveBeenCalledWith('Error in ReprocessRopewikiImages:', error);
+        expect(consoleErrorSpy).toHaveBeenCalledWith('Error in RopewikiImageReprocessor:', error);
         expect(mockGetRopewikiImagesToProcess).not.toHaveBeenCalled();
         expect(mockSendImageProcessorSQSMessage).not.toHaveBeenCalled();
         expect(result).toEqual({
@@ -123,7 +131,7 @@ describe('reprocessImagesHandler', () => {
 
         const result = await reprocessImagesHandler();
 
-        expect(consoleErrorSpy).toHaveBeenCalledWith('Error in ReprocessRopewikiImages:', error);
+        expect(consoleErrorSpy).toHaveBeenCalledWith('Error in RopewikiImageReprocessor:', error);
         expect(mockSendImageProcessorSQSMessage).not.toHaveBeenCalled();
         expect(result).toEqual({
             statusCode: 500,
@@ -134,15 +142,60 @@ describe('reprocessImagesHandler', () => {
         });
     });
 
+    it('passes onlyUnprocessed from event body', async () => {
+        await reprocessImagesHandler({
+            body: JSON.stringify({ onlyUnprocessed: false }),
+        });
+        expect(mockGetRopewikiImagesToProcess).toHaveBeenCalledWith(mockClient, false, true);
+    });
+
+    it('passes downloadSource into ImageDataEvent', async () => {
+        mockGetRopewikiImagesToProcess.mockResolvedValue([
+            makeRopewikiImage({
+                id: 'img-1',
+                fileUrl: 'https://ropewiki.com/images/1.jpg',
+                processedImage: 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
+            }),
+        ]);
+        await reprocessImagesHandler({
+            body: JSON.stringify({ downloadSource: false, onlyUnprocessed: false }),
+        });
+        expect(mockGetRopewikiImagesToProcess).toHaveBeenCalledWith(mockClient, false, false);
+        expect(mockSendImageProcessorSQSMessage).toHaveBeenCalledWith(
+            new ImageDataEvent(
+                PageDataSource.Ropewiki,
+                'img-1',
+                'https://ropewiki.com/images/1.jpg',
+                false,
+                'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
+            ),
+        );
+    });
+
+    it('returns 400 when downloadSource is false and onlyUnprocessed is true', async () => {
+        const result = await reprocessImagesHandler({
+            body: JSON.stringify({ downloadSource: false, onlyUnprocessed: true }),
+        });
+        expect(result.statusCode).toBe(400);
+        expect(JSON.parse(result.body).message).toBe('Invalid ReprocessImagesEvent');
+        expect(mockGetDatabaseConnection).not.toHaveBeenCalled();
+    });
+
+    it('returns 400 when event body is invalid JSON', async () => {
+        const result = await reprocessImagesHandler({ body: '{' });
+        expect(result.statusCode).toBe(400);
+        expect(JSON.parse(result.body).message).toBe('Invalid ReprocessImagesEvent');
+    });
+
     it('handles sendImageProcessorSQSMessage failure and returns 500', async () => {
         mockGetRopewikiImagesToProcess.mockResolvedValue([
-            { id: 'img-1', fileUrl: 'https://ropewiki.com/images/1.jpg' },
+            makeRopewikiImage({ id: 'img-1', fileUrl: 'https://ropewiki.com/images/1.jpg', processedImage: null }),
         ]);
         mockSendImageProcessorSQSMessage.mockRejectedValue(new Error('SQS send failed'));
 
         const result = await reprocessImagesHandler();
 
-        expect(consoleErrorSpy).toHaveBeenCalledWith('Error in ReprocessRopewikiImages:', expect.any(Error));
+        expect(consoleErrorSpy).toHaveBeenCalledWith('Error in RopewikiImageReprocessor:', expect.any(Error));
         expect(result.statusCode).toBe(500);
         expect(JSON.parse(result.body).error).toBe('SQS send failed');
     });

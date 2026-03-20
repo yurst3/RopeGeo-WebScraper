@@ -54,7 +54,7 @@ const handleImageProcessorSQSMessages = async (
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : String(error);
             logger.logError(
-                `Error processing image for ${event!.pageDataSource} id ${event!.id}: ${errorMessage}`,
+                `Error processing image for ${event!.pageDataSource} pageImageId ${event!.pageImageId}: ${errorMessage}`,
             );
             // Do not delete message; it will become visible again for retry or go to DLQ
         }

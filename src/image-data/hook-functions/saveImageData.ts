@@ -10,7 +10,7 @@ const SAVED_IMAGE_DATA_DIR = '.savedImageData';
 
 export type SaveImageDataHookFn = (
     imageDataId: string,
-    sourceUrl: string,
+    sourceUrl: string | undefined,
     previewBuffer: Buffer,
     bannerBuffer: Buffer,
     fullBuffer: Buffer,
@@ -25,7 +25,7 @@ export type SaveImageDataHookFn = (
  */
 export const lambdaSaveImageData: SaveImageDataHookFn = async (
     imageDataId: string,
-    sourceUrl: string,
+    sourceUrl: string | undefined,
     previewBuffer: Buffer,
     bannerBuffer: Buffer,
     fullBuffer: Buffer,
@@ -98,7 +98,7 @@ export const lambdaSaveImageData: SaveImageDataHookFn = async (
  */
 export const nodeSaveImageData: SaveImageDataHookFn = async (
     imageDataId: string,
-    sourceUrl: string,
+    sourceUrl: string | undefined,
     previewBuffer: Buffer,
     bannerBuffer: Buffer,
     fullBuffer: Buffer,

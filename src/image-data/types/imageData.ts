@@ -64,6 +64,18 @@ export class ImageData {
             row.metadata != null ? Metadata.fromJSON(row.metadata) : undefined,
         );
     }
+
+    static fromError(errorMessage: string, id: string, sourceUrl?: string): ImageData {
+        return new ImageData(
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            sourceUrl,
+            errorMessage,
+            id,
+        );
+    }
 }
 
 export default ImageData;
