@@ -173,10 +173,99 @@ describe('getRopewikiPageView (integration)', () => {
 
         expect(result).not.toBeNull();
         expect(result!.bannerImage).not.toBeNull();
+        expect(result!.bannerImage!.id).toMatch(
+            /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i,
+        );
         expect(result!.bannerImage!.bannerUrl).toBeNull(); // no ImageData in test DB
         expect(result!.bannerImage!.fullUrl).toBeNull();
         expect(result!.bannerImage!.linkUrl).toBe('https://ropewiki.com/File:banner.jpg');
         expect(result!.bannerImage!.order).toBe(0);
+        expect(result!.bannerImage!.downloadBytes).toBeNull();
+    });
+
+    it('returns downloadBytes from ImageData metadata for banner and beta images', async () => {
+        const pageId = 'e1e2c3d4-e5f6-7890-abcd-ef1234567801';
+        const sectionId = 'e1e2c3d4-e5f6-7890-abcd-ef1234567802';
+        const bannerDataId = 'e1e2c3d4-e5f6-7890-abcd-ef1234567803';
+        const betaDataId = 'e1e2c3d4-e5f6-7890-abcd-ef1234567804';
+        const meta = {
+            preview: { sizeKB: 1, dimensions: { width: 10, height: 10 }, orientation: 1 },
+            banner: { sizeKB: 2, dimensions: { width: 10, height: 10 }, orientation: 1 },
+            full: { sizeKB: 4, dimensions: { width: 10, height: 10 }, orientation: 1 },
+            lossless: null,
+            source: null,
+        };
+        await db
+            .insert('RopewikiPage', {
+                id: pageId,
+                pageId: 'bytes-meta',
+                name: 'Page Bytes Meta',
+                region: testRegionId,
+                url: 'https://ropewiki.com/Page_Bytes_Meta',
+                latestRevisionDate: '2025-01-01T00:00:00' as db.TimestampString,
+            })
+            .run(conn);
+        await db
+            .insert('RopewikiBetaSection', {
+                id: sectionId,
+                ropewikiPage: pageId,
+                order: 1,
+                title: 'Section',
+                text: 'Text',
+                latestRevisionDate: '2025-01-01T00:00:00' as db.TimestampString,
+            })
+            .run(conn);
+        await db
+            .insert('ImageData', {
+                id: bannerDataId,
+                previewUrl: 'https://api.example.com/p.avif',
+                bannerUrl: 'https://api.example.com/b.avif',
+                fullUrl: 'https://api.example.com/f.avif',
+                sourceUrl: 'https://ropewiki.com/File:banner_src.jpg',
+                metadata: meta as unknown as db.JSONValue,
+            })
+            .run(conn);
+        await db
+            .insert('ImageData', {
+                id: betaDataId,
+                bannerUrl: 'https://api.example.com/b2.avif',
+                fullUrl: 'https://api.example.com/f2.avif',
+                sourceUrl: 'https://ropewiki.com/File:beta_src.jpg',
+                metadata: meta as unknown as db.JSONValue,
+            })
+            .run(conn);
+        await db
+            .insert('RopewikiImage', {
+                ropewikiPage: pageId,
+                betaSection: null,
+                linkUrl: 'https://ropewiki.com/File:banner_row.jpg',
+                fileUrl: 'https://ropewiki.com/thumb/banner_row.jpg',
+                order: 0,
+                latestRevisionDate: '2025-01-01T00:00:00' as db.TimestampString,
+                processedImage: bannerDataId,
+            })
+            .run(conn);
+        await db
+            .insert('RopewikiImage', {
+                ropewikiPage: pageId,
+                betaSection: sectionId,
+                linkUrl: 'https://ropewiki.com/File:beta_row.jpg',
+                fileUrl: 'https://ropewiki.com/thumb/beta_row.jpg',
+                order: 0,
+                latestRevisionDate: '2025-01-01T00:00:00' as db.TimestampString,
+                processedImage: betaDataId,
+            })
+            .run(conn);
+
+        const result = await getRopewikiPageView(conn, pageId);
+
+        expect(result).not.toBeNull();
+        expect(result!.bannerImage!.downloadBytes!.preview).toBe(1024);
+        expect(result!.bannerImage!.downloadBytes!.banner).toBe(2048);
+        expect(result!.bannerImage!.downloadBytes!.full).toBe(4096);
+        expect(result!.betaSections[0]!.images[0]!.downloadBytes!.preview).toBe(0);
+        expect(result!.betaSections[0]!.images[0]!.downloadBytes!.banner).toBe(2048);
+        expect(result!.betaSections[0]!.images[0]!.downloadBytes!.full).toBe(4096);
     });
 
     it('returns beta section images even when processed image is missing', async () => {
@@ -249,6 +338,14 @@ describe('getRopewikiPageView (integration)', () => {
             'https://ropewiki.com/File:processed.jpg',
         );
         expect(result!.betaSections[0]!.images[1]!.order).toBe(2);
+        expect(result!.betaSections[0]!.images[0]!.id).toMatch(
+            /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i,
+        );
+        expect(result!.betaSections[0]!.images[1]!.id).toMatch(
+            /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i,
+        );
+        expect(result!.betaSections[0]!.images[0]!.downloadBytes).toBeNull();
+        expect(result!.betaSections[0]!.images[1]!.downloadBytes).toBeNull();
     });
 
     it('returns beta image with null urls when section only has unprocessed images', async () => {

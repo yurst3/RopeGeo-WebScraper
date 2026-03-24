@@ -203,14 +203,20 @@ BetaSectionImage:
   description: Image view (banner or beta-section image)
   required:
     - order
+    - id
     - bannerUrl
     - fullUrl
     - linkUrl
     - caption
     - latestRevisionDate
+    - downloadBytes
   properties:
     order:
       type: integer
+    id:
+      type: string
+      format: uuid
+      description: RopewikiImage row id (stable key for offline image maps)
     bannerUrl:
       type: string
       format: uri
@@ -231,6 +237,31 @@ BetaSectionImage:
     latestRevisionDate:
       type: string
       format: date-time
+    downloadBytes:
+      description: Approximate byte sizes per rendition from processed image metadata (null when no ImageData is linked); banner row includes preview/banner/full; beta-section images use preview 0 and banner/full only
+      $ref: '#/DownloadBytes'
+      nullable: true
+
+DownloadBytes:
+  type: object
+  description: Byte sizes for preview, banner, and full renditions (approximate, from stored sizeKB in metadata)
+  required:
+    - preview
+    - banner
+    - full
+  properties:
+    preview:
+      type: number
+      minimum: 0
+      description: Approximate byte size for the preview rendition
+    banner:
+      type: number
+      minimum: 0
+      description: Approximate byte size for the banner rendition
+    full:
+      type: number
+      minimum: 0
+      description: Approximate byte size for the full rendition
 
 BetaSection:
   type: object

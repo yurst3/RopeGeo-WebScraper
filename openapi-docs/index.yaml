@@ -34,6 +34,8 @@ paths:
     $ref: './paths/search.yaml'
   /docs/{file}:
     $ref: './paths/getApiDocs.yaml'
+  /mapdata/{mapDataId}/tiles:
+    $ref: './paths/getMapdataTiles.yaml'
   /mapdata/{path}:
     $ref: './paths/getMapData.yaml'
 

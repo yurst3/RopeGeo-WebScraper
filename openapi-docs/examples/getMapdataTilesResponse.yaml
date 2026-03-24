@@ -1,0 +1,9 @@
+summary: First page of tile download URLs for a map data id
+value:
+  resultType: mapDataTileKeys
+  results:
+    - https://api.webscraper.ropegeo.com/mapdata/tiles/550e8400-e29b-41d4-a716-446655440000/10/301/769.pbf
+    - https://api.webscraper.ropegeo.com/mapdata/tiles/550e8400-e29b-41d4-a716-446655440000/10/301/770.pbf
+  total: 42
+  page: 1
+  totalBytes: 1048576

@@ -432,6 +432,11 @@ jobs:
             --region ${PROD_REGION} \
             --query "Stacks[0].Outputs[?OutputKey=='SearchLambdaArn'].OutputValue" \
             --output text)
+          GET_MAPDATA_TILES_ARN=$(aws cloudformation describe-stacks \
+            --stack-name ${PROD_STACK_NAME} \
+            --region ${PROD_REGION} \
+            --query "Stacks[0].Outputs[?OutputKey=='GetMapdataTilesLambdaArn'].OutputValue" \
+            --output text)
           INVOKE_LAMBDA_ROLE=$(aws cloudformation describe-stacks \
             --stack-name ${PROD_STACK_NAME} \
             --region ${PROD_REGION} \
@@ -445,6 +450,7 @@ jobs:
           echo "get_ropewiki_region_previews_arn=${GET_ROPEWIKI_REGION_PREVIEWS_ARN}" >> $GITHUB_OUTPUT
           echo "get_ropewiki_region_images_arn=${GET_ROPEWIKI_REGION_IMAGES_ARN}" >> $GITHUB_OUTPUT
           echo "search_arn=${SEARCH_ARN}" >> $GITHUB_OUTPUT
+          echo "get_mapdata_tiles_arn=${GET_MAPDATA_TILES_ARN}" >> $GITHUB_OUTPUT
           echo "invoke_lambda_role=${INVOKE_LAMBDA_ROLE}" >> $GITHUB_OUTPUT
 
       - name: Resolve OpenAPI $env- placeholders to openapiResolved.yaml
@@ -457,6 +463,7 @@ jobs:
           GET_ROPEWIKI_REGION_PREVIEWS_LAMBDA_ARN=${{ steps.stack-outputs.outputs.get_ropewiki_region_previews_arn }} \
           GET_ROPEWIKI_REGION_IMAGES_LAMBDA_ARN=${{ steps.stack-outputs.outputs.get_ropewiki_region_images_arn }} \
           SEARCH_LAMBDA_ARN=${{ steps.stack-outputs.outputs.search_arn }} \
+          GET_MAPDATA_TILES_LAMBDA_ARN=${{ steps.stack-outputs.outputs.get_mapdata_tiles_arn }} \
           APIGATEWAY_INVOKE_LAMBDA_ROLE_ARN=${{ steps.stack-outputs.outputs.invoke_lambda_role }} \
           DOCS_BUCKET_NAME=${{ steps.stack-outputs.outputs.bucket }} \
           npx ts-node --files scripts/resolveYamlEnvs.ts docs-build/openapi.yaml docs-build/openapiResolved.yaml

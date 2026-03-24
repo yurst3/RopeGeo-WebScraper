@@ -3,6 +3,10 @@ import type * as s from 'zapatos/schema';
 import type { RopewikiPageView } from 'ropegeo-common';
 import { Bounds, Difficulty, PageMiniMap } from 'ropegeo-common';
 import getRopewikiRegionLineage from '../../../ropewiki/database/getRopewikiRegionLineage';
+import {
+    downloadBytesForBannerImage,
+    downloadBytesForBetaSectionImage,
+} from '../util/downloadBytesFromImageMetadata';
 import numericValue from '../util/numericValue';
 import parsePermit from '../util/parsePermit';
 import parseRappelInfo from '../util/parseRappelInfo';
@@ -46,13 +50,16 @@ const getRopewikiPageView = async (
     if (!page || page.deletedAt != null) return null;
 
     type ImageRow = {
+        id: string;
         order: number | null;
         linkUrl: string;
         caption: string | null;
         betaSection: string | null;
         latestRevisionDate: db.TimestampString;
+        previewUrl: string | null;
         bannerUrl: string | null;
         fullUrl: string | null;
+        metadata: db.JSONValue | null;
     };
 
     type MapDataRow = {
@@ -64,23 +71,18 @@ const getRopewikiPageView = async (
     const [imageRows, betaSections, akaRows, mapDataRows] = await Promise.all([
         db.sql<db.SQL, ImageRow[]>`
             SELECT
+                i.id,
                 i."order",
                 i."linkUrl",
                 i.caption,
                 i."betaSection",
                 i."latestRevisionDate",
-                (
-                    SELECT d."bannerUrl"
-                    FROM "ImageData" d
-                    WHERE d.id = i."processedImage"
-                ) AS "bannerUrl"
-                ,
-                (
-                    SELECT d."fullUrl"
-                    FROM "ImageData" d
-                    WHERE d.id = i."processedImage"
-                ) AS "fullUrl"
+                d."previewUrl",
+                d."bannerUrl",
+                d."fullUrl",
+                d."metadata"
             FROM "RopewikiImage" i
+            LEFT JOIN "ImageData" d ON d.id = i."processedImage"
             WHERE i."ropewikiPage" = ${db.param(pageId)}::uuid
               AND i."deletedAt" IS NULL
             ORDER BY (i."betaSection" IS NULL) DESC, i."betaSection" ASC NULLS LAST, i."order" ASC NULLS LAST
@@ -149,11 +151,13 @@ const getRopewikiPageView = async (
     const bannerImage = bannerImageRow
         ? {
               order: bannerImageRow.order ?? 0,
+              id: bannerImageRow.id,
               bannerUrl: bannerImageRow.bannerUrl,
               fullUrl: bannerImageRow.fullUrl,
               linkUrl: bannerImageRow.linkUrl,
               caption: bannerImageRow.caption,
               latestRevisionDate: new Date(bannerImageRow.latestRevisionDate),
+              downloadBytes: downloadBytesForBannerImage(bannerImageRow.metadata),
           }
         : null;
 
@@ -167,11 +171,13 @@ const getRopewikiPageView = async (
     const betaSectionsView = betaSections.map((sec) => {
         const secImages = (imagesBySection.get(sec.id) ?? []).map((i) => ({
                 order: i.order ?? 0,
+                id: i.id,
                 bannerUrl: i.bannerUrl,
                 fullUrl: i.fullUrl,
                 linkUrl: i.linkUrl,
                 caption: i.caption,
                 latestRevisionDate: new Date(i.latestRevisionDate),
+                downloadBytes: downloadBytesForBetaSectionImage(i.metadata),
             }));
         return {
             order: sec.order ?? 0,

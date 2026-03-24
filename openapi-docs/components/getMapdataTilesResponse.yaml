@@ -1,0 +1,33 @@
+GetMapdataTilesResponse:
+  type: object
+  description: Paginated list of full HTTPS URLs for vector tile objects (ropegeo-common MapDataTileKeysResults; totalBytes is the sum of all matching .pbf object sizes for this id, not only the current page).
+  required:
+    - resultType
+    - results
+    - total
+    - page
+    - totalBytes
+  properties:
+    resultType:
+      type: string
+      description: Discriminator for page-based paginated API responses (ropegeo-common PaginationResultType)
+      enum:
+        - mapDataTileKeys
+    results:
+      type: array
+      description: Full public HTTPS URLs for each .pbf tile (same ordering as S3 keys under tiles/{mapDataId}/), sorted lexicographically by key before URL mapping
+      items:
+        type: string
+        format: uri
+    total:
+      type: integer
+      minimum: 0
+      description: Total number of .pbf tile objects for this map data id across all pages
+    page:
+      type: integer
+      minimum: 1
+      description: Current page number (1-based)
+    totalBytes:
+      type: integer
+      minimum: 0
+      description: Sum of ContentLength for all .pbf objects under this map data id (entire tile set)

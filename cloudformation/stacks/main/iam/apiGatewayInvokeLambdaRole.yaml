@@ -27,6 +27,7 @@ Resources:
                   - 'Fn::GetAtt': GetRopewikiRegionPreviews.Arn
                   - 'Fn::GetAtt': GetRopewikiRegionImages.Arn
                   - 'Fn::GetAtt': Search.Arn
+                  - 'Fn::GetAtt': GetMapdataTiles.Arn
       Tags:
         - Key: Name
           Value:
@@ -78,6 +79,13 @@ Resources:
     Properties:
       FunctionName:
         Ref: Search
+      Action: 'lambda:InvokeFunction'
+      Principal: apigateway.amazonaws.com
+  GetMapdataTilesApiGatewayPermission:
+    Type: 'AWS::Lambda::Permission'
+    Properties:
+      FunctionName:
+        Ref: GetMapdataTiles
       Action: 'lambda:InvokeFunction'
       Principal: apigateway.amazonaws.com
 Outputs:
