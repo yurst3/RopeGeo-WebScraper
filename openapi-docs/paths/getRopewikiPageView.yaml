@@ -1,7 +1,7 @@
 # /ropewiki/page/{id}
 get:
   summary: Get Ropewiki page view
-  description: Returns the full RopewikiPageView for the given RopewikiPage id (uuid), including banner image and beta sections.
+  description: Returns the full RopewikiPageView for the given RopewikiPage id (uuid), including banner image and beta sections. The page uuid is only in the path; the response body does not include a separate page id field (see ropegeo-common RopewikiPageView).
   operationId: getRopewikiPageView
   tags:
     - ropewiki

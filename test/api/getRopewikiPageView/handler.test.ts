@@ -71,7 +71,6 @@ describe('getRopewikiPageView handler', () => {
     it('returns 200 and RopewikiPageView with CORS headers', async () => {
         const id = 'a1b2c3d4-e5f6-7890-abcd-ef1234567890';
         const mockView: RopewikiPageView = {
-            pageId: 'Bear_Creek_Canyon',
             name: 'Bear Creek Canyon',
             aka: [],
             url: 'https://ropewiki.com/Bear_Creek_Canyon',
@@ -114,7 +113,6 @@ describe('getRopewikiPageView handler', () => {
         const body = JSON.parse(result.body);
         expect(body.resultType).toBe('ropewikiPageView');
         expect(body.result).toBeDefined();
-        expect(body.result.pageId).toBe('Bear_Creek_Canyon');
         expect(body.result.name).toBe('Bear Creek Canyon');
         expect(body.result.permit).toBe('No');
         expect(body.result.miniMap).toBeNull();
@@ -130,7 +128,6 @@ describe('getRopewikiPageView handler', () => {
             new Bounds(39.5, 38.1, -108.2, -110.0),
         );
         const mockView = {
-            pageId: 'Bear_Creek_Canyon',
             name: 'Bear Creek Canyon',
             aka: [],
             url: 'https://ropewiki.com/Bear_Creek_Canyon',

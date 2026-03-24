@@ -23,7 +23,7 @@ function minMaxOrNumber(
 }
 
 const ROPEWIKI_PAGE_VIEW_COLUMNS: (keyof s.RopewikiPage.Selectable)[] = [
-    'id', 'pageId', 'name', 'url', 'quality', 'userVotes', 'technicalRating', 'waterRating', 'timeRating', 'riskRating', 'permits', 'rappelInfo', 'rappelCount', 'rappelLongest', 'vehicle',
+    'id', 'name', 'url', 'quality', 'userVotes', 'technicalRating', 'waterRating', 'timeRating', 'riskRating', 'permits', 'rappelInfo', 'rappelCount', 'rappelLongest', 'vehicle',
     'shuttleTime', 'minOverallTime', 'maxOverallTime', 'overallLength', 'approachLength', 'approachElevGain', 'descentLength', 'descentElevGain', 'exitLength', 'exitElevGain',
     'minApproachTime', 'maxApproachTime', 'minDescentTime', 'maxDescentTime', 'minExitTime', 'maxExitTime',
     'months', 'latestRevisionDate', 'deletedAt', 'region',
@@ -194,7 +194,6 @@ const getRopewikiPageView = async (
     const regions = await getRopewikiRegionLineage(conn, page.region);
 
     const view = {
-        pageId: page.pageId,
         name: page.name,
         aka: akaRows,
         url: page.url,

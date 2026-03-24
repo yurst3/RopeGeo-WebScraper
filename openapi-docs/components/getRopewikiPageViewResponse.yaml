@@ -16,9 +16,8 @@ GetRopewikiPageViewResponse:
 
 RopewikiPageView:
   type: object
-  description: Full view of a Ropewiki page (GET /ropewiki/page/{id})
+  description: Full view of a Ropewiki page (GET /ropewiki/page/{id}). The page is identified by the path parameter `id` (RopewikiPage uuid); the response does not repeat an external Ropewiki page id string.
   required:
-    - pageId
     - name
     - aka
     - url
@@ -30,9 +29,6 @@ RopewikiPageView:
     - latestRevisionDate
     - betaSections
   properties:
-    pageId:
-      type: string
-      description: Ropewiki page identifier (e.g. ropewiki page path/slug)
     name:
       type: string
       description: Page name

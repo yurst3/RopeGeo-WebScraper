@@ -3,7 +3,6 @@ summary: Sample RopewikiPageViewResult (resultType + result)
 value:
   resultType: ropewikiPageView
   result:
-    pageId: Bear_Creek_Canyon
     name: Bear Creek Canyon
     aka:
       - Bear Creek
