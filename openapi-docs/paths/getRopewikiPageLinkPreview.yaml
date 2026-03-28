@@ -1,0 +1,33 @@
+# /ropewiki/page/{id}/link-preview
+get:
+  summary: Get Ropewiki page link preview
+  description: Returns a compact LinkPreview (title, description, image metadata) for social and crawler unfurling, for the given RopewikiPage id (uuid).
+  operationId: getRopewikiPageLinkPreview
+  tags:
+    - ropewiki
+  parameters:
+    - name: id
+      in: path
+      required: true
+      description: RopewikiPage uuid
+      schema:
+        type: string
+        format: uuid
+  x-amazon-apigateway-integration:
+    $ref: '../integrations/getRopewikiPageLinkPreviewLambda.yaml#/GetRopewikiPageLinkPreviewLambdaIntegration'
+  responses:
+    '200':
+      description: Successful response; LinkPreview result wrapper
+      content:
+        application/json:
+          schema:
+            $ref: '../components/getRopewikiPageLinkPreviewResponse.yaml#/GetRopewikiPageLinkPreviewResponse'
+          examples:
+            getRopewikiPageLinkPreviewResponse:
+              $ref: '../examples/getRopewikiPageLinkPreviewResponse.yaml'
+    '400':
+      description: Bad Request; missing or invalid id
+    '404':
+      description: Not Found; no Ropewiki page exists with the given id
+    '500':
+      description: Internal server error

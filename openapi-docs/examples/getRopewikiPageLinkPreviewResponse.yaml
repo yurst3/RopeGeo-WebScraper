@@ -1,0 +1,14 @@
+summary: Sample link preview for a canyon page
+value:
+  resultType: ropewikiPageLinkPreview
+  result:
+    title: Cassidy Canyon AKA Cassidy Arch, Cassidy
+    description: 3A II PG13, 5 rappels (135ft max)
+    image:
+      url: https://cdn.example.com/banner.avif
+      height: '400'
+      width: '800'
+      type: image/avif
+      alt: Cassidy Canyon AKA Cassidy Arch, Cassidy
+    siteName: RopeGeo
+    type: website

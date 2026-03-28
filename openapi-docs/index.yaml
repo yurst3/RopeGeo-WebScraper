@@ -22,6 +22,8 @@ paths:
     $ref: './paths/getRoutes.yaml'
   /route/{routeId}/preview:
     $ref: './paths/getRoutePreview.yaml'
+  /ropewiki/page/{id}/link-preview:
+    $ref: './paths/getRopewikiPageLinkPreview.yaml'
   /ropewiki/page/{id}:
     $ref: './paths/getRopewikiPageView.yaml'
   /ropewiki/region/{id}:

@@ -1,0 +1,69 @@
+GetRopewikiPageLinkPreviewResponse:
+  type: object
+  description: Result wrapper for getRopewikiPageLinkPreview (ropegeo-common Result; resultType + result)
+  required:
+    - resultType
+    - result
+  properties:
+    resultType:
+      type: string
+      enum:
+        - ropewikiPageLinkPreview
+      description: Discriminator for single-result API responses (ropegeo-common ResultType)
+    result:
+      $ref: '#/LinkPreview'
+      description: Link preview payload for Open Graph and similar
+
+LinkPreview:
+  type: object
+  description: Social / crawler preview for a Ropewiki page
+  required:
+    - title
+    - description
+    - image
+    - siteName
+    - type
+  properties:
+    title:
+      type: string
+      description: Page name with optional AKA names
+    description:
+      type: string
+      description: Difficulty, rappel count, and longest rappel summary
+    image:
+      description: Banner image for og:image; null when no banner URL
+      nullable: true
+      $ref: '#/LinkPreviewImage'
+    siteName:
+      type: string
+      description: Always RopeGeo for this API
+    type:
+      type: string
+      description: Always website for this API
+
+LinkPreviewImage:
+  type: object
+  description: Open Graph image metadata
+  required:
+    - url
+    - height
+    - width
+    - type
+    - alt
+  properties:
+    url:
+      type: string
+      format: uri
+      description: Absolute URL of the processed banner image
+    height:
+      type: string
+      description: Banner height in pixels as a string (empty when unknown)
+    width:
+      type: string
+      description: Banner width in pixels as a string (empty when unknown)
+    type:
+      type: string
+      description: Image MIME type (typically image/avif)
+    alt:
+      type: string
+      description: Same as LinkPreview title
