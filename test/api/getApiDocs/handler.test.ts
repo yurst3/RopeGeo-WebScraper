@@ -1,10 +1,10 @@
 import { describe, it, expect, beforeEach, afterEach, jest } from '@jest/globals';
 import { handler } from '../../../src/api/getApiDocs/handler';
 
-let mockGetS3Object: jest.MockedFunction<typeof import('../../../src/helpers/s3/getS3Object').default>;
+let mockGetS3Object: jest.MockedFunction<typeof import('ropegeo-common/helpers/s3/getS3Object').default>;
 let consoleErrorSpy: ReturnType<typeof jest.spyOn>;
 
-jest.mock('../../../src/helpers/s3/getS3Object', () => ({
+jest.mock('ropegeo-common/helpers/s3/getS3Object', () => ({
     __esModule: true,
     default: jest.fn(),
 }));
@@ -17,7 +17,7 @@ describe('getApiDocs handler', () => {
         consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
         process.env = { ...originalEnv, DOCS_BUCKET_NAME: 'my-docs-bucket' };
 
-        mockGetS3Object = require('../../../src/helpers/s3/getS3Object').default;
+        mockGetS3Object = require('ropegeo-common/helpers/s3/getS3Object').default;
         mockGetS3Object.mockResolvedValue({ body: '<html>docs</html>', contentType: 'text/html' });
     });
 

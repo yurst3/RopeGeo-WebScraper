@@ -1,4 +1,4 @@
-import getS3Object from '../../../helpers/s3/getS3Object';
+import getS3Object from 'ropegeo-common/helpers/s3/getS3Object';
 import type { GeoJSONFeatureCollection } from '../types/geojson';
 
 /**

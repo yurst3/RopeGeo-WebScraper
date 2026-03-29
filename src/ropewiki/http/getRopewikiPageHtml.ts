@@ -1,4 +1,4 @@
-import httpRequest from '../../helpers/httpRequest';
+import httpRequest from 'ropegeo-common/helpers/httpRequest';
 
 const getRopewikiPageHtml = async (pageId: string): Promise<string> => {
     const url = `http://ropewiki.com/api.php?action=parse&pageid=${pageId}&format=json`;

@@ -3,7 +3,7 @@ import { PageDataSource } from 'ropegeo-common';
 import { processImageData } from '../src/image-data/processors/processImageData';
 import { nodeSaveImageData } from '../src/image-data/hook-functions/saveImageData';
 import { ImageDataEvent } from '../src/image-data/types/lambdaEvent';
-import ProgressLogger from '../src/helpers/progressLogger';
+import ProgressLogger from 'ropegeo-common/helpers/progressLogger';
 
 function formatElapsed(ms: number): string {
     const totalSeconds = Math.floor(ms / 1000);

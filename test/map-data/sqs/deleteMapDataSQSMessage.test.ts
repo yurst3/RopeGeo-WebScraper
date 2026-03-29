@@ -2,14 +2,14 @@ import { describe, it, expect, beforeEach, afterEach, jest } from '@jest/globals
 import deleteMapDataSQSMessage from '../../../src/map-data/sqs/deleteMapDataSQSMessage';
 
 // Mock the helper function
-jest.mock('../../../src/helpers/sqs/deleteSQSMessage', () => {
+jest.mock('ropegeo-common/helpers/sqs/deleteSQSMessage', () => {
     return {
         __esModule: true,
         default: jest.fn(),
     };
 });
 
-const deleteSQSMessage = require('../../../src/helpers/sqs/deleteSQSMessage').default as jest.MockedFunction<typeof import('../../../src/helpers/sqs/deleteSQSMessage').default>;
+const deleteSQSMessage = require('ropegeo-common/helpers/sqs/deleteSQSMessage').default as jest.MockedFunction<typeof import('ropegeo-common/helpers/sqs/deleteSQSMessage').default>;
 
 describe('deleteMapDataSQSMessage', () => {
     const originalEnv = process.env;

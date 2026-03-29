@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, afterEach, jest } from '@jest/globals
 import { lambdaSaveMapData, nodeSaveMapData } from '../../../src/map-data/hook-functions/saveMapData';
 import MapData from '../../../src/map-data/types/mapData';
 import { mkdir, rename, copyFile, unlink, rm } from 'fs/promises';
-import ProgressLogger from '../../../src/helpers/progressLogger';
+import ProgressLogger from 'ropegeo-common/helpers/progressLogger';
 
 const mockUploadMapDataToS3 = jest.fn<(...args: unknown[]) => Promise<string>>();
 const mockUploadMapDataTilesToS3 = jest.fn<(...args: unknown[]) => Promise<string>>();
@@ -49,7 +49,7 @@ jest.mock('path', () => ({
 }));
 
 // Mock ProgressLogger
-jest.mock('../../../src/helpers/progressLogger', () => {
+jest.mock('ropegeo-common/helpers/progressLogger', () => {
     return jest.fn().mockImplementation(() => ({
         setChunk: jest.fn(),
         logProgress: jest.fn(),

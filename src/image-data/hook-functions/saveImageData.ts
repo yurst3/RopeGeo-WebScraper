@@ -3,7 +3,7 @@ import { join } from 'path';
 import { pathToFileURL } from 'url';
 import ImageData from '../types/imageData';
 import type { Metadata } from '../types/metadata';
-import ProgressLogger from '../../helpers/progressLogger';
+import ProgressLogger from 'ropegeo-common/helpers/progressLogger';
 import uploadImageDataToS3, { buildImagePublicUrl } from '../s3/uploadImageDataToS3';
 
 const SAVED_IMAGE_DATA_DIR = '.savedImageData';

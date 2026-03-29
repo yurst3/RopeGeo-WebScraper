@@ -2,15 +2,15 @@ import { describe, it, expect, beforeEach, afterEach, jest } from '@jest/globals
 import setProcessPageSQSMessageVisibilityTimeout from '../../../src/ropewiki/sqs/setProcessPageSQSMessageVisibilityTimeout';
 
 // Mock the helper function
-jest.mock('../../../src/helpers/sqs/changeSQSMessageVisibilityTimeout', () => {
+jest.mock('ropegeo-common/helpers/sqs/changeSQSMessageVisibilityTimeout', () => {
     return {
         __esModule: true,
         default: jest.fn(),
     };
 });
 
-const changeSQSMessageVisibilityTimeout = require('../../../src/helpers/sqs/changeSQSMessageVisibilityTimeout')
-    .default as jest.MockedFunction<typeof import('../../../src/helpers/sqs/changeSQSMessageVisibilityTimeout').default>;
+const changeSQSMessageVisibilityTimeout = require('ropegeo-common/helpers/sqs/changeSQSMessageVisibilityTimeout')
+    .default as jest.MockedFunction<typeof import('ropegeo-common/helpers/sqs/changeSQSMessageVisibilityTimeout').default>;
 
 describe('setProcessPageSQSMessageVisibilityTimeout', () => {
     const originalEnv = process.env;

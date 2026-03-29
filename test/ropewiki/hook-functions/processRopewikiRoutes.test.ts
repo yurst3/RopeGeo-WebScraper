@@ -29,7 +29,7 @@ jest.mock('../../../src/helpers/getDatabaseConnection', () => ({
 }));
 
 // Mock ProgressLogger
-jest.mock('../../../src/helpers/progressLogger', () => {
+jest.mock('ropegeo-common/helpers/progressLogger', () => {
     const mockSetChunk = jest.fn();
     const mockLogProgress = jest.fn();
     const mockLogError = jest.fn();
@@ -70,7 +70,7 @@ describe('processRopewikiRoutes hook functions', () => {
         mockProcessPageRouteAndMapData = mapDataMain.main;
         mockProcessPageRouteAndMapData.mockResolvedValue(undefined);
         
-        const progressLogger = jest.requireMock('../../../src/helpers/progressLogger') as { default: any };
+        const progressLogger = jest.requireMock('ropegeo-common/helpers/progressLogger') as { default: any };
         MockProgressLogger = progressLogger.default;
         const loggerInstance = new MockProgressLogger('test', 1);
         mockSetChunk = loggerInstance.setChunk as jest.MockedFunction<(start: number, end: number) => void>;

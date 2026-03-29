@@ -2,13 +2,13 @@ import { describe, it, expect, beforeEach, afterEach, jest } from '@jest/globals
 import sendMapDataSQSMessage from '../../../src/ropewiki/sqs/sendMapDataSQSMessage';
 import RopewikiRoute from '../../../src/types/pageRoute';
 
-jest.mock('../../../src/helpers/sqs/sendSQSMessage', () => ({
+jest.mock('ropegeo-common/helpers/sqs/sendSQSMessage', () => ({
     __esModule: true,
     default: jest.fn(),
 }));
 
-const sendSQSMessage = require('../../../src/helpers/sqs/sendSQSMessage')
-    .default as jest.MockedFunction<typeof import('../../../src/helpers/sqs/sendSQSMessage').default>;
+const sendSQSMessage = require('ropegeo-common/helpers/sqs/sendSQSMessage')
+    .default as jest.MockedFunction<typeof import('ropegeo-common/helpers/sqs/sendSQSMessage').default>;
 
 function createTestRopewikiRoute(overrides: { route?: string; page?: string; mapData?: string } = {}): RopewikiRoute {
     return new RopewikiRoute(

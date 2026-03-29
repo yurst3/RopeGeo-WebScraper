@@ -1,4 +1,4 @@
-import deleteSQSMessage from '../../helpers/sqs/deleteSQSMessage';
+import deleteSQSMessage from 'ropegeo-common/helpers/sqs/deleteSQSMessage';
 
 /**
  * Deletes a message from the ImageProcessorQueue using its receipt handle.

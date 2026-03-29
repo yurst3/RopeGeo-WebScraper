@@ -12,7 +12,7 @@ import {
     MULTI_PAGE_PDF_ERROR_MESSAGE,
     renderPdfFirstPageToBuffer,
 } from '../util/pdfSource';
-import ProgressLogger from '../../helpers/progressLogger';
+import ProgressLogger from 'ropegeo-common/helpers/progressLogger';
 import getSource from '../util/getSource';
 
 /**

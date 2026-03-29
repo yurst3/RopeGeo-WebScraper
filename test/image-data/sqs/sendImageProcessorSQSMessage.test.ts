@@ -3,12 +3,12 @@ import sendImageProcessorSQSMessage from '../../../src/image-data/sqs/sendImageP
 import { PageDataSource } from 'ropegeo-common';
 import { ImageDataEvent } from '../../../src/image-data/types/lambdaEvent';
 
-jest.mock('../../../src/helpers/sqs/sendSQSMessage', () => ({
+jest.mock('ropegeo-common/helpers/sqs/sendSQSMessage', () => ({
     __esModule: true,
     default: jest.fn().mockResolvedValue(undefined),
 }));
 
-const mockSendSQSMessage = require('../../../src/helpers/sqs/sendSQSMessage').default as jest.Mock;
+const mockSendSQSMessage = require('ropegeo-common/helpers/sqs/sendSQSMessage').default as jest.Mock;
 
 describe('sendImageProcessorSQSMessage', () => {
     const originalEnv = process.env;

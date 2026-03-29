@@ -4,7 +4,7 @@ import { PageDataSource } from 'ropegeo-common';
 import { ImageDataEvent } from '../../src/image-data/types/lambdaEvent';
 import ImageData from '../../src/image-data/types/imageData';
 import type { SaveImageDataHookFn } from '../../src/image-data/hook-functions/saveImageData';
-import ProgressLogger from '../../src/helpers/progressLogger';
+import ProgressLogger from 'ropegeo-common/helpers/progressLogger';
 
 let mockProcessImageData: jest.MockedFunction<typeof import('../../src/image-data/processors/processImageData').processImageData>;
 let mockUpsertImageData: jest.MockedFunction<typeof import('../../src/image-data/database/upsertImageData').default>;

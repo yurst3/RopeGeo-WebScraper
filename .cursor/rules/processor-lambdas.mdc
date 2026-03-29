@@ -1,6 +1,6 @@
 ---
 description: How to implement processor Lambdas (ImageProcessor, MapDataProcessor, RopewikiPageProcessor) that read from SQS, download data, process, and save.
-globs: src/**/lambda-handlers/*.ts, src/**/sqs/handle*.ts, src/**/main.ts, src/**/processors/*.ts, src/helpers/timeoutAfter.ts, cloudformation/stacks/main/sqs/*.yaml, cloudformation/stacks/main/lambda/sqsDlqRedrive.yaml
+globs: src/**/lambda-handlers/*.ts, src/**/sqs/handle*.ts, src/**/main.ts, src/**/processors/*.ts, cloudformation/stacks/main/sqs/*.yaml, cloudformation/stacks/main/lambda/sqsDlqRedrive.yaml
 alwaysApply: false
 ---
 # Processor Lambdas
@@ -15,7 +15,7 @@ Use this rule when adding or changing **processor** Lambdas: those that read fro
 
 ## 2. Per-message timeout and Lambda remaining time
 
-- **Strict per-message timeout**: Allocate a fixed budget per message so the Lambda doesn’t time out (e.g. `processMessageTimeoutMs = Math.floor(lambdaTimeoutMs / totalRecords)`). Run each message’s work inside `timeoutAfter(processMessageTimeoutMs, (abortSignal) => ...)` from `src/helpers/timeoutAfter.ts`.
+- **Strict per-message timeout**: Allocate a fixed budget per message so the Lambda doesn’t time out (e.g. `processMessageTimeoutMs = Math.floor(lambdaTimeoutMs / totalRecords)`). Run each message’s work inside `timeoutAfter(processMessageTimeoutMs, (abortSignal) => ...)` from `ropegeo-common/helpers/timeoutAfter`.
 - **Don’t start if insufficient time**: Before starting the next message, check `getRemainingTimeInMillis()`. If `totalRecords > 1` and `remainingMs < processMessageTimeoutMs`, **stop** starting new work (log and break). Unprocessed messages will become visible again and retry. Exception: when the batch has only one message, still attempt it (so the single message gets a chance to use remaining time).
 - **Visibility timeout**: At the start of the invocation, set each received message’s **visibility timeout** to the Lambda’s timeout (e.g. via `*_PROCESSOR_TIMEOUT_SECONDS` env). Use the shared helper (e.g. `changeSQSMessageVisibilityTimeout`) so messages don’t become visible again before the Lambda finishes.
 
@@ -38,4 +38,4 @@ Use this rule when adding or changing **processor** Lambdas: those that read fro
 - **ImageProcessor**: `src/image-data/sqs/handleImageProcessorSQSMessages.ts`, `src/image-data/main.ts`, `src/image-data/util/convertToAvif.ts` (worker + abortSignal).
 - **MapDataProcessor**: `src/map-data/sqs/handleMapDataSQSMessages.ts`, `src/map-data/main.ts`, `src/map-data/processors/processMapData.ts`, `src/map-data/http/downloadSourceFile.ts` (abortSignal → `httpRequest`).
 - **RopewikiPageProcessor**: `src/ropewiki/sqs/handleProcessPageSQSMessages.ts`, `src/ropewiki/processors/processPage.ts`.
-- **Helper**: `src/helpers/timeoutAfter.ts`, `src/helpers/httpRequest.ts` (abortSignal support).
+- **Helper**: `ropegeo-common/helpers/timeoutAfter`, `ropegeo-common/helpers/httpRequest` (abortSignal support).

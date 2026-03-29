@@ -1,7 +1,7 @@
 import { join } from 'path';
 import type { Pool } from 'pg';
 import MapData from '../types/mapData';
-import ProgressLogger from '../../helpers/progressLogger';
+import ProgressLogger from 'ropegeo-common/helpers/progressLogger';
 import getDatabaseConnection from '../../helpers/getDatabaseConnection';
 import uploadMapDataToS3 from '../s3/uploadMapDataToS3';
 import { uploadMapDataTilesToS3 } from '../s3/uploadMapDataTilesToS3';

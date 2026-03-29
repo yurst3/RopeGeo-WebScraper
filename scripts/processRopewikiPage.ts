@@ -2,7 +2,7 @@ import type * as s from 'zapatos/schema';
 import getDatabaseConnection from '../src/helpers/getDatabaseConnection';
 import RopewikiPage from '../src/ropewiki/types/page';
 import { processPage } from '../src/ropewiki/processors/processPage';
-import ProgressLogger from '../src/helpers/progressLogger';
+import ProgressLogger from 'ropegeo-common/helpers/progressLogger';
 
 /**
  * Script to process a random RopewikiPage from the database.

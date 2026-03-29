@@ -2,10 +2,10 @@ import { describe, it, expect, afterEach, jest } from '@jest/globals';
 import fs from 'fs';
 import path from 'path';
 import getRegions from '../../../src/ropewiki/http/getRegions';
-import httpRequest from '../../../src/helpers/httpRequest';
+import httpRequest from 'ropegeo-common/helpers/httpRequest';
 import { RopewikiRegion } from '../../../src/ropewiki/types/region';
 
-jest.mock('../../../src/helpers/httpRequest', () => ({
+jest.mock('ropegeo-common/helpers/httpRequest', () => ({
     __esModule: true,
     default: jest.fn(),
 }));

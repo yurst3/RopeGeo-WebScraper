@@ -5,7 +5,7 @@ import {
 } from '../../../src/image-data/hook-functions/saveImageData';
 import ImageData from '../../../src/image-data/types/imageData';
 import { Metadata } from '../../../src/image-data/types/metadata';
-import ProgressLogger from '../../../src/helpers/progressLogger';
+import ProgressLogger from 'ropegeo-common/helpers/progressLogger';
 
 jest.mock('fs/promises', () => ({
     mkdir: jest.fn().mockResolvedValue(undefined),

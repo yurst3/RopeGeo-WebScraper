@@ -1,4 +1,4 @@
-import changeSQSMessageVisibilityTimeout from '../../helpers/sqs/changeSQSMessageVisibilityTimeout';
+import changeSQSMessageVisibilityTimeout from 'ropegeo-common/helpers/sqs/changeSQSMessageVisibilityTimeout';
 
 /**
  * Reads visibility timeout in seconds from ROPEWIKI_PAGE_PROCESSOR_TIMEOUT_SECONDS (e.g. Lambda timeout).

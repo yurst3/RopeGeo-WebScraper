@@ -1,12 +1,12 @@
 import { describe, it, expect, beforeEach, afterEach, jest } from '@jest/globals';
 import uploadImageDataToS3, { buildImagePublicUrl } from '../../../src/image-data/s3/uploadImageDataToS3';
 
-jest.mock('../../../src/helpers/s3/putS3Object', () => ({
+jest.mock('ropegeo-common/helpers/s3/putS3Object', () => ({
     __esModule: true,
     default: jest.fn(),
 }));
 
-const mockPutS3Object = require('../../../src/helpers/s3/putS3Object').default as jest.Mock;
+const mockPutS3Object = require('ropegeo-common/helpers/s3/putS3Object').default as jest.Mock;
 
 describe('uploadImageDataToS3', () => {
     const originalEnv = process.env;

@@ -5,11 +5,11 @@ import { PageRoute, RopewikiRoute } from '../../src/types/pageRoute';
 import MapData from '../../src/map-data/types/mapData';
 import type { SaveMapDataHookFn } from '../../src/map-data/hook-functions/saveMapData';
 import { MapDataEvent } from '../../src/map-data/types/lambdaEvent';
-import ProgressLogger from '../../src/helpers/progressLogger';
+import ProgressLogger from 'ropegeo-common/helpers/progressLogger';
 import * as db from 'zapatos/db';
 
 // Mock ProgressLogger
-jest.mock('../../src/helpers/progressLogger', () => {
+jest.mock('ropegeo-common/helpers/progressLogger', () => {
     return jest.fn().mockImplementation(() => ({
         setChunk: jest.fn(),
         logProgress: jest.fn(),

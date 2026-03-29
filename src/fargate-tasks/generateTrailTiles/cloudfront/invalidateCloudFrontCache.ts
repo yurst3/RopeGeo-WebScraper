@@ -1,4 +1,4 @@
-import { createCloudFrontInvalidation as createCloudFrontInvalidationForPaths } from '../../../helpers/cloudfront/createCloudFrontInvalidation';
+import { createCloudFrontInvalidation as createCloudFrontInvalidationForPaths } from 'ropegeo-common/helpers/cloudfront/createCloudFrontInvalidation';
 
 const CALLER_REFERENCE = 'generate-trail-tiles';
 

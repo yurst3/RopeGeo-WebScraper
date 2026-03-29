@@ -3,7 +3,7 @@ import { Pool, PoolClient } from 'pg';
 import * as db from 'zapatos/db';
 import type { ProcessPagesChunkHookFn } from '../../../src/ropewiki/hook-functions/processPagesChunk';
 import RopewikiPage from '../../../src/ropewiki/types/page';
-import ProgressLogger from '../../../src/helpers/progressLogger';
+import ProgressLogger from 'ropegeo-common/helpers/progressLogger';
 
 // Mock all dependencies
 jest.mock('../../../src/ropewiki/http/getPagesForRegion');
@@ -11,7 +11,7 @@ jest.mock('../../../src/ropewiki/database/getUpdatedDatesForPages');
 jest.mock('../../../src/ropewiki/database/upsertPages');
 jest.mock('../../../src/ropewiki/database/setPagesDeletedAtForRegion');
 jest.mock('../../../src/ropewiki/util/updateLengthsForPages', () => ({ __esModule: true, default: jest.fn().mockResolvedValue(undefined) }));
-jest.mock('../../../src/helpers/progressLogger');
+jest.mock('ropegeo-common/helpers/progressLogger');
 
 import getPagesForRegion from '../../../src/ropewiki/http/getPagesForRegion';
 import getUpdatedDatesForPages from '../../../src/ropewiki/database/getUpdatedDatesForPages';

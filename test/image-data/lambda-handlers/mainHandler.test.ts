@@ -29,7 +29,7 @@ jest.mock('../../../src/helpers/getDatabaseConnection', () => ({
     default: jest.fn(() => Promise.resolve(mockPool)),
 }));
 
-jest.mock('../../../src/helpers/progressLogger', () => {
+jest.mock('ropegeo-common/helpers/progressLogger', () => {
     return jest.fn().mockImplementation(() => ({
         setChunk: jest.fn(),
         logProgress: jest.fn(),

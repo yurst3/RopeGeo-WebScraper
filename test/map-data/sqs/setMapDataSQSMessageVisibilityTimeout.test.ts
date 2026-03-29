@@ -1,13 +1,13 @@
 import { describe, it, expect, beforeEach, afterEach, jest } from '@jest/globals';
 import setMapDataSQSMessageVisibilityTimeout from '../../../src/map-data/sqs/setMapDataSQSMessageVisibilityTimeout';
 
-jest.mock('../../../src/helpers/sqs/changeSQSMessageVisibilityTimeout', () => ({
+jest.mock('ropegeo-common/helpers/sqs/changeSQSMessageVisibilityTimeout', () => ({
     __esModule: true,
     default: jest.fn(),
 }));
 
-const changeSQSMessageVisibilityTimeout = require('../../../src/helpers/sqs/changeSQSMessageVisibilityTimeout')
-    .default as jest.MockedFunction<typeof import('../../../src/helpers/sqs/changeSQSMessageVisibilityTimeout').default>;
+const changeSQSMessageVisibilityTimeout = require('ropegeo-common/helpers/sqs/changeSQSMessageVisibilityTimeout')
+    .default as jest.MockedFunction<typeof import('ropegeo-common/helpers/sqs/changeSQSMessageVisibilityTimeout').default>;
 
 describe('setMapDataSQSMessageVisibilityTimeout', () => {
     const originalEnv = process.env;

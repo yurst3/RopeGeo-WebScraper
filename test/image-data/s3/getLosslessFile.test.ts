@@ -1,8 +1,8 @@
 import { describe, it, expect, beforeEach, afterEach, jest } from '@jest/globals';
 import getLosslessFile from '../../../src/image-data/s3/getLosslessFile';
-import { getS3Client } from '../../../src/helpers/s3/getS3Client';
+import { getS3Client } from 'ropegeo-common/helpers/s3/getS3Client';
 
-jest.mock('../../../src/helpers/s3/getS3Client', () => ({
+jest.mock('ropegeo-common/helpers/s3/getS3Client', () => ({
     getS3Client: jest.fn(),
 }));
 

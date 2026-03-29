@@ -4,7 +4,7 @@ import { handler } from '../../src/sqs-dlq-redrive/handler';
 const mockSend = jest.fn<() => Promise<unknown>>();
 const mockSQSClient = { send: mockSend };
 
-jest.mock('../../src/helpers/sqs/getSQSClient', () => ({
+jest.mock('ropegeo-common/helpers/sqs/getSQSClient', () => ({
     getSQSClient: jest.fn(() => mockSQSClient),
     resetSQSClientForTests: jest.fn(),
 }));

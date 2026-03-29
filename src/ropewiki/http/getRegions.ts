@@ -1,4 +1,4 @@
-import httpRequest from '../../helpers/httpRequest';
+import httpRequest from 'ropegeo-common/helpers/httpRequest';
 import { RopewikiRegion } from '../types/region';
 
 const encode = (input: string) => {

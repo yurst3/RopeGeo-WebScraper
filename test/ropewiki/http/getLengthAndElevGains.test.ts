@@ -2,9 +2,9 @@ import { describe, it, expect, afterEach, jest } from '@jest/globals';
 import fs from 'fs';
 import path from 'path';
 import getLengthAndElevGains from '../../../src/ropewiki/http/getLengthAndElevGains';
-import httpRequest from '../../../src/helpers/httpRequest';
+import httpRequest from 'ropegeo-common/helpers/httpRequest';
 
-jest.mock('../../../src/helpers/httpRequest', () => ({
+jest.mock('ropegeo-common/helpers/httpRequest', () => ({
     __esModule: true,
     default: jest.fn(),
 }));

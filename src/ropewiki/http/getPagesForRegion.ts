@@ -1,4 +1,4 @@
-import httpRequest from '../../helpers/httpRequest';
+import httpRequest from 'ropegeo-common/helpers/httpRequest';
 import RopewikiPage from '../types/page';
 
 const RETRIES = 3;

@@ -3,7 +3,7 @@ import { invalidateCloudFrontCache } from '../../../../src/fargate-tasks/generat
 
 const mockCreateCloudFrontInvalidationForPaths = jest.fn();
 
-jest.mock('../../../../src/helpers/cloudfront/createCloudFrontInvalidation', () => ({
+jest.mock('ropegeo-common/helpers/cloudfront/createCloudFrontInvalidation', () => ({
     createCloudFrontInvalidation: (arn: string, paths: string[], callerRef: string) =>
         mockCreateCloudFrontInvalidationForPaths(arn, paths, callerRef),
 }));

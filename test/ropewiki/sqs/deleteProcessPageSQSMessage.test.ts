@@ -4,14 +4,14 @@ import deleteProcessPageSQSMessage from '../../../src/ropewiki/sqs/deleteProcess
 // Mock the helper function
 const mockDeleteSQSMessage = jest.fn<() => Promise<void>>();
 
-jest.mock('../../../src/helpers/sqs/deleteSQSMessage', () => {
+jest.mock('ropegeo-common/helpers/sqs/deleteSQSMessage', () => {
     return {
         __esModule: true,
         default: jest.fn(),
     };
 });
 
-const deleteSQSMessage = require('../../../src/helpers/sqs/deleteSQSMessage').default as jest.MockedFunction<typeof import('../../../src/helpers/sqs/deleteSQSMessage').default>;
+const deleteSQSMessage = require('ropegeo-common/helpers/sqs/deleteSQSMessage').default as jest.MockedFunction<typeof import('ropegeo-common/helpers/sqs/deleteSQSMessage').default>;
 
 describe('deleteProcessPageSQSMessage', () => {
     const originalEnv = process.env;

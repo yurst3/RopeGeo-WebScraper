@@ -4,7 +4,7 @@ import { processImageData } from '../../../src/image-data/processors/processImag
 import ImageData from '../../../src/image-data/types/imageData';
 import { ImageDataEvent } from '../../../src/image-data/types/lambdaEvent';
 import { Metadata } from '../../../src/image-data/types/metadata';
-import ProgressLogger from '../../../src/helpers/progressLogger';
+import ProgressLogger from 'ropegeo-common/helpers/progressLogger';
 
 let mockGetSource: jest.MockedFunction<typeof import('../../../src/image-data/util/getSource').default>;
 let mockReadFile: jest.MockedFunction<typeof import('fs/promises').readFile>;

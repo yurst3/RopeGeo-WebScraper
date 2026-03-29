@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, afterEach, jest } from '@jest/globals
 import { processMapData } from '../../../src/map-data/processors/processMapData';
 import MapData from '../../../src/map-data/types/mapData';
 import type { SaveMapDataHookFn } from '../../../src/map-data/hook-functions/saveMapData';
-import ProgressLogger from '../../../src/helpers/progressLogger';
+import ProgressLogger from 'ropegeo-common/helpers/progressLogger';
 import { mkdtemp, rm } from 'fs/promises';
 import { join } from 'path';
 import { tmpdir } from 'os';
@@ -41,7 +41,7 @@ jest.mock('../../../src/map-data/util/convertToTileDirectory', () => ({
 }));
 
 // Mock ProgressLogger
-jest.mock('../../../src/helpers/progressLogger', () => {
+jest.mock('ropegeo-common/helpers/progressLogger', () => {
     return jest.fn().mockImplementation(() => ({
         setChunk: jest.fn(),
         logProgress: jest.fn(),

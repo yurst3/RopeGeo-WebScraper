@@ -1,8 +1,8 @@
 import { describe, it, expect, beforeEach, afterEach, jest } from '@jest/globals';
 import listAllPbfKeysAndTotalBytes from '../../../../src/api/getMapdataTiles/s3/listAllPbfKeysAndTotalBytes';
-import listS3Objects from '../../../../src/helpers/s3/listS3Objects';
+import listS3Objects from 'ropegeo-common/helpers/s3/listS3Objects';
 
-jest.mock('../../../../src/helpers/s3/listS3Objects', () => ({ __esModule: true, default: jest.fn() }));
+jest.mock('ropegeo-common/helpers/s3/listS3Objects', () => ({ __esModule: true, default: jest.fn() }));
 
 describe('listAllPbfKeysAndTotalBytes', () => {
     const mapDataId = '550e8400-e29b-41d4-a716-446655440000';

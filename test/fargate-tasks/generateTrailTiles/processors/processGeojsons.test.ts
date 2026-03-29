@@ -13,7 +13,7 @@ jest.mock('../../../../src/fargate-tasks/generateTrailTiles/util/writeGeojsonFil
 const mockLogError = jest.fn();
 const mockLogProgress = jest.fn();
 const mockGetResults = jest.fn().mockReturnValue({ successes: 0, errors: 0, remaining: 0 });
-jest.mock('../../../../src/helpers/progressLogger', () => ({
+jest.mock('ropegeo-common/helpers/progressLogger', () => ({
     __esModule: true,
     default: jest.fn().mockImplementation(() => ({
         logProgress: mockLogProgress,

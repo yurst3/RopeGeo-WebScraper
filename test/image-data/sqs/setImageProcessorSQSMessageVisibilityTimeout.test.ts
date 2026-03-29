@@ -1,12 +1,12 @@
 import { describe, it, expect, beforeEach, afterEach, jest } from '@jest/globals';
 import setImageProcessorSQSMessageVisibilityTimeout from '../../../src/image-data/sqs/setImageProcessorSQSMessageVisibilityTimeout';
 
-jest.mock('../../../src/helpers/sqs/changeSQSMessageVisibilityTimeout', () => ({
+jest.mock('ropegeo-common/helpers/sqs/changeSQSMessageVisibilityTimeout', () => ({
     __esModule: true,
     default: jest.fn().mockResolvedValue(undefined),
 }));
 
-const mockChangeVisibility = require('../../../src/helpers/sqs/changeSQSMessageVisibilityTimeout').default as jest.Mock;
+const mockChangeVisibility = require('ropegeo-common/helpers/sqs/changeSQSMessageVisibilityTimeout').default as jest.Mock;
 
 describe('setImageProcessorSQSMessageVisibilityTimeout', () => {
     const originalEnv = process.env;

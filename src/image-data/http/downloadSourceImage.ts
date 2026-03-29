@@ -1,6 +1,6 @@
 import { writeFile } from 'fs/promises';
 import { join } from 'path';
-import httpRequest from '../../helpers/httpRequest';
+import httpRequest from 'ropegeo-common/helpers/httpRequest';
 
 /**
  * Downloads an image from a URL and saves it to a temporary directory.

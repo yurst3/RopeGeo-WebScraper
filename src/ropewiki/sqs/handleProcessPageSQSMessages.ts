@@ -2,9 +2,9 @@ import { PoolClient } from 'pg';
 import type { SqsRecord } from '@aws-lambda-powertools/parser/types';
 import { processPage } from '../processors/processPage';
 import RopewikiPage from '../types/page';
-import ProgressLogger from '../../helpers/progressLogger';
+import ProgressLogger from 'ropegeo-common/helpers/progressLogger';
 import deleteProcessPageSQSMessage from './deleteProcessPageSQSMessage';
-import { timeoutAfter } from '../../helpers/timeoutAfter';
+import { timeoutAfter } from 'ropegeo-common/helpers/timeoutAfter';
 
 /**
  * Handles processing of Ropewiki pages from SQS records.

@@ -2,7 +2,7 @@ import { PoolClient } from 'pg';
 import { Queryable } from 'zapatos/db';
 import { processPage } from '../processors/processPage';
 import RopewikiPage from '../types/page';
-import ProgressLogger from '../../helpers/progressLogger';
+import ProgressLogger from 'ropegeo-common/helpers/progressLogger';
 import sendProcessPageSQSMessage from '../sqs/sendProcessPageSQSMessage';
 
 export type ProcessPagesChunkHookFn = (client: PoolClient, upsertedPages: RopewikiPage[], logger: ProgressLogger) => Promise<void>;

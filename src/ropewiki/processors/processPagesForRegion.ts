@@ -7,7 +7,7 @@ import getUpdatedDatesForPages from "../database/getUpdatedDatesForPages";
 import upsertPages from "../database/upsertPages";
 import setPagesDeletedAtForRegion from "../database/setPagesDeletedAtForRegion";
 import setAkaNamesDeletedAtForRegion from "../database/setAkaNamesDeletedAtForRegion";
-import ProgressLogger from "../../helpers/progressLogger";
+import ProgressLogger from 'ropegeo-common/helpers/progressLogger';
 import type { ProcessPagesChunkHookFn } from "../hook-functions/processPagesChunk";
 
 const CHUNK_SIZE = 2000; // DO NOT EXCEED 2000

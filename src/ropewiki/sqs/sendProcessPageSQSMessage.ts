@@ -1,4 +1,4 @@
-import sendSQSMessage from '../../helpers/sqs/sendSQSMessage';
+import sendSQSMessage from 'ropegeo-common/helpers/sqs/sendSQSMessage';
 import RopewikiPage from '../types/page';
 
 /**

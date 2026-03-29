@@ -4,12 +4,12 @@ import { mkdtemp, rm, readFile } from 'fs/promises';
 import { tmpdir } from 'os';
 import { join } from 'path';
 
-jest.mock('../../../src/helpers/httpRequest', () => ({
+jest.mock('ropegeo-common/helpers/httpRequest', () => ({
     __esModule: true,
     default: jest.fn(),
 }));
 
-const mockHttpRequest = require('../../../src/helpers/httpRequest').default as jest.Mock;
+const mockHttpRequest = require('ropegeo-common/helpers/httpRequest').default as jest.Mock;
 
 describe('downloadSourceImage', () => {
     let tempDir: string;

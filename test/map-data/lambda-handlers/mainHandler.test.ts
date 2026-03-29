@@ -32,7 +32,7 @@ jest.mock('../../../src/helpers/getDatabaseConnection', () => ({
 }));
 
 // Mock ProgressLogger
-jest.mock('../../../src/helpers/progressLogger', () => {
+jest.mock('ropegeo-common/helpers/progressLogger', () => {
     return jest.fn().mockImplementation(() => ({
         setChunk: jest.fn(),
         logProgress: jest.fn(),

@@ -1,8 +1,8 @@
 import { describe, it, expect, beforeEach, afterEach, jest } from '@jest/globals';
 import getSourceFile from '../../../src/map-data/s3/getSourceFile';
-import getS3Object from '../../../src/helpers/s3/getS3Object';
+import getS3Object from 'ropegeo-common/helpers/s3/getS3Object';
 
-jest.mock('../../../src/helpers/s3/getS3Object', () => ({ __esModule: true, default: jest.fn() }));
+jest.mock('ropegeo-common/helpers/s3/getS3Object', () => ({ __esModule: true, default: jest.fn() }));
 
 describe('getSourceFile', () => {
     const id = '11111111-1111-1111-1111-111111111111';

@@ -1,4 +1,4 @@
-import { replaceS3Folder } from '../../helpers/s3/replaceS3Folder';
+import { replaceS3Folder } from 'ropegeo-common/helpers/s3/replaceS3Folder';
 import { buildMapDataPublicUrl } from '../util/buildMapDataPublicUrl';
 
 const PBF_CONTENT_TYPE = 'application/x-protobuf';

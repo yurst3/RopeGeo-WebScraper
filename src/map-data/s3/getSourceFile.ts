@@ -1,4 +1,4 @@
-import getS3Object from '../../helpers/s3/getS3Object';
+import getS3Object from 'ropegeo-common/helpers/s3/getS3Object';
 
 function isNoSuchKeyError(err: unknown): boolean {
     return err instanceof Error && (err as Error & { name?: string }).name === 'NoSuchKey';
