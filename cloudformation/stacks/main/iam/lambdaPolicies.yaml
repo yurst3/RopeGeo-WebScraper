@@ -88,7 +88,7 @@ Resources:
     Type: 'AWS::IAM::ManagedPolicy'
     Properties:
       ManagedPolicyName:
-        'Fn::Sub': '${AWS::StackName}-s3-imagedata-put'
+        'Fn::Sub': '${AWS::StackName}-s3-imagedata-getput'
       PolicyDocument:
         Version: '2012-10-17'
         Statement:
@@ -98,6 +98,7 @@ Resources:
               'Fn::GetAtt': ImageDataBucket.Arn
           - Effect: Allow
             Action:
+              - 's3:GetObject'
               - 's3:PutObject'
               - 's3:PutObjectAcl'
             Resource:
