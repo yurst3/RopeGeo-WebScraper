@@ -8,8 +8,9 @@ export type ReprocessImagesEventOptions = {
 };
 
 /**
- * Options for {@link reprocessImagesHandler}: queue image jobs with optional download vs lossless,
- * optional version subset, and optionally restrict to rows with no processedImage yet.
+ * Options for {@link reprocessImagesHandler}: queue image jobs with optional version subset,
+ * `onlyUnprocessed` to limit to never-processed rows, and `downloadSource` to choose wiki download
+ * vs existing `ImageData` (see `getRopewikiImagesToProcess`).
  */
 export class ReprocessImagesEvent {
     downloadSource: boolean;

@@ -20,15 +20,39 @@ describe('getRopewikiImagesToProcess (integration)', () => {
     const imageSourceMismatchId = 'e3000002-0002-4000-8000-000000000002';
     const imageSourceMatchId = 'e3000003-0003-4000-8000-000000000003';
     const imageDeletedId = 'e3000004-0004-4000-8000-000000000004';
+    const imageProcessedNoLosslessId = 'e3000005-0005-4000-8000-000000000005';
     const imageDataId = 'e4000001-0001-4000-8000-000000000001';
+    const imageDataNoLosslessId = 'e4000002-0002-4000-8000-000000000002';
+
+    const testImageIds = [
+        imageNoProcessedId,
+        imageSourceMismatchId,
+        imageSourceMatchId,
+        imageDeletedId,
+        imageProcessedNoLosslessId,
+    ];
+    const testDataIds = [imageDataId, imageDataNoLosslessId];
 
     beforeAll(async () => {
-        await db.sql`DELETE FROM "RopewikiImage" WHERE id IN (${db.param(imageNoProcessedId)}, ${db.param(imageSourceMismatchId)}, ${db.param(imageSourceMatchId)}, ${db.param(imageDeletedId)})`.run(conn);
+        await db.sql`DELETE FROM "RopewikiImage" WHERE id IN (${db.vals(testImageIds)})`.run(conn);
         await db.sql`DELETE FROM "RopewikiPage" WHERE id = ${db.param(testPageId)}`.run(conn);
         await db.sql`DELETE FROM "RopewikiRegion" WHERE id = ${db.param(testRegionId)}`.run(conn);
-        await db.sql`DELETE FROM "ImageData" WHERE id = ${db.param(imageDataId)}`.run(conn);
+        await db.sql`DELETE FROM "ImageData" WHERE id IN (${db.vals(testDataIds)})`.run(conn);
 
-        await db.insert('ImageData', { id: imageDataId, sourceUrl: 'https://ropewiki.com/images/old.jpg' }).run(conn);
+        await db
+            .insert('ImageData', {
+                id: imageDataId,
+                sourceUrl: 'https://ropewiki.com/images/old.jpg',
+                losslessUrl: 'https://api.example.com/lossless.avif',
+            })
+            .run(conn);
+        await db
+            .insert('ImageData', {
+                id: imageDataNoLosslessId,
+                sourceUrl: 'https://ropewiki.com/images/nolossless-src.jpg',
+            })
+            .run(conn);
+
         await db
             .insert('RopewikiRegion', {
                 id: testRegionId,
@@ -53,6 +77,7 @@ describe('getRopewikiImagesToProcess (integration)', () => {
                 userVotes: 1,
             })
             .run(conn);
+
         await db
             .insert('RopewikiImage', {
                 id: imageNoProcessedId,
@@ -96,13 +121,24 @@ describe('getRopewikiImagesToProcess (integration)', () => {
                 deletedAt: new Date(),
             })
             .run(conn);
+        await db
+            .insert('RopewikiImage', {
+                id: imageProcessedNoLosslessId,
+                ropewikiPage: testPageId,
+                betaSection: null,
+                processedImage: imageDataNoLosslessId,
+                linkUrl: 'https://ropewiki.com/File:nolossless.jpg',
+                fileUrl: 'https://ropewiki.com/images/nolossless.jpg',
+                order: 5,
+            })
+            .run(conn);
     });
 
     afterAll(async () => {
-        await db.sql`DELETE FROM "RopewikiImage" WHERE id IN (${db.param(imageNoProcessedId)}, ${db.param(imageSourceMismatchId)}, ${db.param(imageSourceMatchId)}, ${db.param(imageDeletedId)})`.run(conn);
+        await db.sql`DELETE FROM "RopewikiImage" WHERE id IN (${db.vals(testImageIds)})`.run(conn);
         await db.sql`DELETE FROM "RopewikiPage" WHERE id = ${db.param(testPageId)}`.run(conn);
         await db.sql`DELETE FROM "RopewikiRegion" WHERE id = ${db.param(testRegionId)}`.run(conn);
-        await db.sql`DELETE FROM "ImageData" WHERE id = ${db.param(imageDataId)}`.run(conn);
+        await db.sql`DELETE FROM "ImageData" WHERE id IN (${db.vals(testDataIds)})`.run(conn);
         await pool.end();
     });
 
@@ -112,6 +148,7 @@ describe('getRopewikiImagesToProcess (integration)', () => {
         const ids = result.map((r) => r.id);
         expect(ids).toContain(imageNoProcessedId);
         expect(ids).not.toContain(imageSourceMismatchId);
+        expect(ids).not.toContain(imageSourceMatchId);
     });
 
     it('when downloadSource is false and onlyUnprocessed is true, returns no rows', async () => {
@@ -119,43 +156,39 @@ describe('getRopewikiImagesToProcess (integration)', () => {
         expect(result).toEqual([]);
     });
 
-    it('when downloadSource is false and onlyUnprocessed is false, returns only processed images with source mismatch', async () => {
+    it('when downloadSource is false and onlyUnprocessed is false, returns processed rows with non-null losslessUrl on ImageData', async () => {
         const result = await getRopewikiImagesToProcess(conn, false, false);
-        const ids = result.map((r) => r.id);
-        expect(ids).toEqual([imageSourceMismatchId]);
+        const ids = result.map((r) => r.id).sort();
+        expect(ids).toEqual([imageSourceMatchId, imageSourceMismatchId].sort());
         expect(ids).not.toContain(imageNoProcessedId);
-        expect(ids).not.toContain(imageSourceMatchId);
+        expect(ids).not.toContain(imageProcessedNoLosslessId);
     });
 
-    it('when onlyUnprocessed is false, returns images with no processedImage', async () => {
-        const result = await getRopewikiImagesToProcess(conn, false);
-        const ids = result.map((r) => r.id);
-        expect(ids).toContain(imageNoProcessedId);
-    });
-
-    it('when onlyUnprocessed is false, returns images where ImageData.sourceUrl differs from fileUrl', async () => {
-        const result = await getRopewikiImagesToProcess(conn, false);
-        const ids = result.map((r) => r.id);
-        expect(ids).toContain(imageSourceMismatchId);
-    });
-
-    it('when onlyUnprocessed is false, does not return images where sourceUrl equals fileUrl', async () => {
-        const result = await getRopewikiImagesToProcess(conn, false);
-        const ids = result.map((r) => r.id);
-        expect(ids).not.toContain(imageSourceMatchId);
+    it('when onlyUnprocessed is false and downloadSource is true, returns all non-deleted images', async () => {
+        const result = await getRopewikiImagesToProcess(conn, false, true);
+        const ids = result.map((r) => r.id).sort();
+        expect(ids).toEqual(
+            [
+                imageNoProcessedId,
+                imageSourceMismatchId,
+                imageSourceMatchId,
+                imageProcessedNoLosslessId,
+            ].sort(),
+        );
     });
 
     it('does not return soft-deleted images', async () => {
-        const result = await getRopewikiImagesToProcess(conn, false);
+        const result = await getRopewikiImagesToProcess(conn, false, true);
         const ids = result.map((r) => r.id);
         expect(ids).not.toContain(imageDeletedId);
     });
 
     it('returns RopewikiImage instances with id, fileUrl, and processedImage for each row', async () => {
-        const result = await getRopewikiImagesToProcess(conn, false);
+        const result = await getRopewikiImagesToProcess(conn, false, true);
         const byId = new Map(result.map((r) => [r.id, r]));
         const noProcessed = byId.get(imageNoProcessedId);
         const mismatch = byId.get(imageSourceMismatchId);
+        const match = byId.get(imageSourceMatchId);
         expect(noProcessed).toBeInstanceOf(RopewikiImage);
         expect(noProcessed!.id).toBe(imageNoProcessedId);
         expect(noProcessed!.fileUrl).toBe('https://ropewiki.com/images/no-processed.jpg');
@@ -164,5 +197,7 @@ describe('getRopewikiImagesToProcess (integration)', () => {
         expect(mismatch!.id).toBe(imageSourceMismatchId);
         expect(mismatch!.fileUrl).toBe('https://ropewiki.com/images/current.jpg');
         expect(mismatch!.processedImage).toBe(imageDataId);
+        expect(match).toBeInstanceOf(RopewikiImage);
+        expect(match!.processedImage).toBe(imageDataId);
     });
 });

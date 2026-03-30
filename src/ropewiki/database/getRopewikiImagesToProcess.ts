@@ -3,11 +3,16 @@ import type * as s from 'zapatos/schema';
 import { RopewikiImage } from '../types/image';
 
 /**
- * Returns RopewikiImages that need AVIF processing.
+ * Returns RopewikiImages for image processing / reprocessing.
  *
- * @param onlyUnprocessed - When true (default), only rows with processedImage IS NULL (download path only).
- * @param downloadSource - When true (default), include never-processed and/or source-mismatch rows per onlyUnprocessed.
- *   When false, only rows with processedImage IS NOT NULL. If onlyUnprocessed is also true, returns no rows.
+ * @param onlyUnprocessed - When true (default), only rows with `processedImage IS NULL`. When false, any
+ *   non-deleted row (subject to `downloadSource`).
+ * @param downloadSource - When true (default), no constraint on ImageData. When false, only rows with a
+ *   non-null `processedImage` whose joined `ImageData.losslessUrl` is non-null (so an existing lossless
+ *   output exists to re-encode from without downloading the wiki file URL).
+ *
+ * When `downloadSource` is false and `onlyUnprocessed` is true, returns `[]` without querying (invalid
+ * combination for callers; {@link ReprocessImagesEvent} rejects it at parse time).
  */
 const getRopewikiImagesToProcess = async (
     conn: db.Queryable,
@@ -17,33 +22,21 @@ const getRopewikiImagesToProcess = async (
     if (!downloadSource && onlyUnprocessed) {
         return [];
     }
-    if (downloadSource) {
-        if (onlyUnprocessed) {
-            const rows = await db.sql<db.SQL, s.RopewikiImage.JSONSelectable[]>`
-                SELECT i.*
-                FROM "RopewikiImage" i
-                WHERE i."deletedAt" IS NULL
-                  AND i."processedImage" IS NULL
-            `.run(conn);
-            return rows.map((row) => RopewikiImage.fromDbRow(row));
-        }
-        const rows = await db.sql<db.SQL, s.RopewikiImage.JSONSelectable[]>`
-            SELECT i.*
-            FROM "RopewikiImage" i
-            LEFT JOIN "ImageData" d ON d.id = i."processedImage"
-            WHERE i."deletedAt" IS NULL
-              AND (i."processedImage" IS NULL OR d."sourceUrl" IS DISTINCT FROM i."fileUrl")
-        `.run(conn);
-        return rows.map((row) => RopewikiImage.fromDbRow(row));
-    }
+
+    const includeAllProcessStates = !onlyUnprocessed;
+
     const rows = await db.sql<db.SQL, s.RopewikiImage.JSONSelectable[]>`
         SELECT i.*
         FROM "RopewikiImage" i
-        INNER JOIN "ImageData" d ON d.id = i."processedImage"
+        LEFT JOIN "ImageData" d ON d.id = i."processedImage"
         WHERE i."deletedAt" IS NULL
-          AND i."processedImage" IS NOT NULL
-          AND d."sourceUrl" IS DISTINCT FROM i."fileUrl"
+          AND (${db.param(includeAllProcessStates)} OR i."processedImage" IS NULL)
+          AND (
+            ${db.param(downloadSource)}
+            OR (i."processedImage" IS NOT NULL AND d."losslessUrl" IS NOT NULL)
+          )
     `.run(conn);
+
     return rows.map((row) => RopewikiImage.fromDbRow(row));
 };
 
