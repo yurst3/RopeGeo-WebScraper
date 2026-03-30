@@ -1,4 +1,5 @@
 import { describe, it, expect } from '@jest/globals';
+import { ImageVersion } from 'ropegeo-common';
 import { ReprocessImagesEvent } from '../../../src/ropewiki/types/reprocessImagesEvent';
 
 describe('ReprocessImagesEvent', () => {
@@ -33,6 +34,18 @@ describe('ReprocessImagesEvent', () => {
         expect(ReprocessImagesEvent.fromLambdaEvent(null)).toEqual(new ReprocessImagesEvent());
         expect(ReprocessImagesEvent.fromLambdaEvent({})).toEqual(new ReprocessImagesEvent());
         expect(ReprocessImagesEvent.fromLambdaEvent({ body: '' })).toEqual(new ReprocessImagesEvent());
+        expect(ReprocessImagesEvent.fromLambdaEvent({ body: null })).toEqual(new ReprocessImagesEvent());
+    });
+
+    it('fromLambdaEvent parses root object for direct Lambda invoke (no API Gateway body)', () => {
+        const e = ReprocessImagesEvent.fromLambdaEvent({
+            downloadSource: false,
+            onlyUnprocessed: false,
+            versions: [ImageVersion.linkPreview],
+        });
+        expect(e.downloadSource).toBe(false);
+        expect(e.onlyUnprocessed).toBe(false);
+        expect(e.versions).toEqual([ImageVersion.linkPreview]);
     });
 
     it('fromLambdaEvent parses JSON body', () => {

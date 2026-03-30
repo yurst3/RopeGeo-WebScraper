@@ -8,7 +8,8 @@ import { ReprocessImagesEvent } from '../types/reprocessImagesEvent';
 
 /**
  * Lambda handler that enqueues RopewikiImages that need AVIF processing by sending an ImageDataEvent
- * to the image processor queue for each. Options come from the Lambda event body (JSON) when present.
+ * to the image processor queue for each. Options come from {@link ReprocessImagesEvent.fromLambdaEvent}
+ * (API Gateway `body` or the same JSON on the root for console / direct invoke).
  */
 export const reprocessImagesHandler = async (
     event?: unknown,

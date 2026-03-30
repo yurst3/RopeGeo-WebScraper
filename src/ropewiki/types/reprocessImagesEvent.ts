@@ -81,27 +81,43 @@ export class ReprocessImagesEvent {
     }
 
     /**
-     * Parses from a Lambda invocation event (e.g. API Gateway with JSON body). Missing or empty body uses defaults.
+     * Parses from a Lambda invocation event.
+     * - **API Gateway / Function URL:** options live in `event.body` (string or object).
+     * - **Direct invoke (e.g. console test):** options are on the root object; there is no `body` key.
      */
     static fromLambdaEvent(event: unknown): ReprocessImagesEvent {
         if (event === null || event === undefined || typeof event !== 'object') {
             return new ReprocessImagesEvent();
         }
-        const e = event as { body?: unknown };
-        if (e.body === undefined || e.body === null) {
-            return new ReprocessImagesEvent();
+        const e = event as Record<string, unknown>;
+
+        if (e.body != null && e.body !== '') {
+            const bodyStr = typeof e.body === 'string' ? e.body : JSON.stringify(e.body);
+            if (bodyStr.trim() !== '') {
+                let parsed: unknown;
+                try {
+                    parsed = JSON.parse(bodyStr);
+                } catch {
+                    throw new Error('Failed to parse ReprocessImagesEvent body as JSON');
+                }
+                return ReprocessImagesEvent.fromParsedBody(parsed);
+            }
         }
-        const bodyStr = typeof e.body === 'string' ? e.body : JSON.stringify(e.body);
-        if (bodyStr.trim() === '') {
-            return new ReprocessImagesEvent();
+
+        if (ReprocessImagesEvent.isRootReprocessPayload(e)) {
+            return ReprocessImagesEvent.fromParsedBody(e);
         }
-        let parsed: unknown;
-        try {
-            parsed = JSON.parse(bodyStr);
-        } catch {
-            throw new Error('Failed to parse ReprocessImagesEvent body as JSON');
-        }
-        return ReprocessImagesEvent.fromParsedBody(parsed);
+
+        return new ReprocessImagesEvent();
+    }
+
+    /** True when the Lambda root looks like a direct ReprocessImagesEvent JSON (console / SDK invoke). */
+    private static isRootReprocessPayload(o: Record<string, unknown>): boolean {
+        return (
+            ('downloadSource' in o && o.downloadSource !== undefined) ||
+            ('onlyUnprocessed' in o && o.onlyUnprocessed !== undefined) ||
+            ('versions' in o && o.versions !== undefined)
+        );
     }
 }
 
