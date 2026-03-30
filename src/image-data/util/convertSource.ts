@@ -29,6 +29,20 @@ type WorkerData = {
 };
 
 /**
+ * worker_threads postMessage uses the structured clone algorithm; Buffers from the worker
+ * often arrive on the parent as Uint8Array, so Buffer.isBuffer is false.
+ */
+function bufferFromWorkerMessage(value: unknown): Buffer | null {
+    if (Buffer.isBuffer(value)) {
+        return value;
+    }
+    if (value instanceof Uint8Array) {
+        return Buffer.from(value.buffer, value.byteOffset, value.byteLength);
+    }
+    return null;
+}
+
+/**
  * Converts an image to the requested encoded variants using Sharp.
  * When abortSignal is provided, conversion runs in a worker thread.
  * {@link existingMetadata} is passed through to the pipeline (and worker) so output metadata extends it in one pass.
@@ -94,15 +108,23 @@ export async function convertSource(
             }
             const buffers: Partial<Record<ImageVersion, Buffer>> = {};
             for (const v of versions) {
-                const b = msg[v];
-                if (!Buffer.isBuffer(b)) {
-                    settle(() => reject(new Error('convertSourceWorker: invalid message')));
+                const raw = msg[v];
+                const b = bufferFromWorkerMessage(raw);
+                if (b == null) {
+                    const kind = raw === undefined ? 'undefined' : typeof raw;
+                    settle(() =>
+                        reject(
+                            new Error(
+                                `convertSourceWorker: invalid message (expected Buffer or Uint8Array for version ${String(v)}, got ${kind})`,
+                            ),
+                        ),
+                    );
                     return;
                 }
                 buffers[v] = b;
             }
             if (msg.metadata == null) {
-                settle(() => reject(new Error('convertSourceWorker: invalid message')));
+                settle(() => reject(new Error('convertSourceWorker: invalid message (missing metadata)')));
                 return;
             }
             settle(() =>
