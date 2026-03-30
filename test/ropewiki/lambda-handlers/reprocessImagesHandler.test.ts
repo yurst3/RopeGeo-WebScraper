@@ -28,10 +28,16 @@ jest.mock('../../../src/ropewiki/database/getRopewikiImagesToProcess', () => ({
     default: jest.fn(),
 }));
 
-jest.mock('../../../src/image-data/sqs/sendImageProcessorSQSMessage', () => ({
-    __esModule: true,
-    default: jest.fn(),
-}));
+jest.mock('../../../src/image-data/sqs/sendImageProcessorSQSMessage', () => {
+    const actual = jest.requireActual<
+        typeof import('../../../src/image-data/sqs/sendImageProcessorSQSMessage')
+    >('../../../src/image-data/sqs/sendImageProcessorSQSMessage');
+    return {
+        __esModule: true,
+        serializeImageDataEventForQueue: actual.serializeImageDataEventForQueue,
+        default: jest.fn(),
+    };
+});
 
 let consoleLogSpy: ReturnType<typeof jest.spyOn>;
 let consoleErrorSpy: ReturnType<typeof jest.spyOn>;

@@ -38,6 +38,10 @@ const handleImageProcessorSQSMessages = async (
         let event: ImageDataEvent | undefined;
 
         try {
+            console.log(
+                'ImageProcessor: incoming SQS message',
+                JSON.stringify({ messageId: record.messageId, body: record.body }),
+            );
             event = ImageDataEvent.fromSQSEventRecord(record);
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : String(error);

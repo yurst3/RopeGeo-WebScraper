@@ -1,7 +1,9 @@
 import type { Pool, PoolClient } from 'pg';
 import getDatabaseConnection from '../../helpers/getDatabaseConnection';
 import getRopewikiImagesToProcess from '../database/getRopewikiImagesToProcess';
-import sendImageProcessorSQSMessage from '../../image-data/sqs/sendImageProcessorSQSMessage';
+import sendImageProcessorSQSMessage, {
+    serializeImageDataEventForQueue,
+} from '../../image-data/sqs/sendImageProcessorSQSMessage';
 import { ReprocessImagesEvent } from '../types/reprocessImagesEvent';
 
 /**
@@ -16,6 +18,7 @@ export const reprocessImagesHandler = async (
 
     let reprocessImagesEvent: ReprocessImagesEvent;
     try {
+        console.log('Event', event);
         reprocessImagesEvent = ReprocessImagesEvent.fromLambdaEvent(event);
     } catch (err) {
         return {
@@ -40,9 +43,15 @@ export const reprocessImagesHandler = async (
         console.log(`Enqueueing ${images.length} RopewikiImages for image processing...`);
 
         for (const img of images) {
-            await sendImageProcessorSQSMessage(
-                img.toImageDataEvent(reprocessImagesEvent.downloadSource, reprocessImagesEvent.versions),
+            const imageDataEvent = img.toImageDataEvent(
+                reprocessImagesEvent.downloadSource,
+                reprocessImagesEvent.versions,
             );
+            console.log(
+                'RopewikiImageReprocessor: enqueue ImageDataEvent',
+                serializeImageDataEventForQueue(imageDataEvent),
+            );
+            await sendImageProcessorSQSMessage(imageDataEvent);
         }
 
         return {
