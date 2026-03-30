@@ -78,6 +78,12 @@ declare module 'zapatos/schema' {
       */
       losslessUrl: string | null;
       /**
+      * **ImageData.linkPreviewUrl**
+      * - `text` in database
+      * - Nullable, no default
+      */
+      linkPreviewUrl: string | null;
+      /**
       * **ImageData.metadata**
       * - `jsonb` in database
       * - Nullable, no default
@@ -151,6 +157,12 @@ declare module 'zapatos/schema' {
       * - Nullable, no default
       */
       losslessUrl: string | null;
+      /**
+      * **ImageData.linkPreviewUrl**
+      * - `text` in database
+      * - Nullable, no default
+      */
+      linkPreviewUrl: string | null;
       /**
       * **ImageData.metadata**
       * - `jsonb` in database
@@ -226,6 +238,12 @@ declare module 'zapatos/schema' {
       */
       losslessUrl?: string | db.Parameter<string> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, string | db.Parameter<string> | db.SQLFragment | db.ParentColumn>;
       /**
+      * **ImageData.linkPreviewUrl**
+      * - `text` in database
+      * - Nullable, no default
+      */
+      linkPreviewUrl?: string | db.Parameter<string> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, string | db.Parameter<string> | db.SQLFragment | db.ParentColumn>;
+      /**
       * **ImageData.metadata**
       * - `jsonb` in database
       * - Nullable, no default
@@ -300,6 +318,12 @@ declare module 'zapatos/schema' {
       */
       losslessUrl?: string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment;
       /**
+      * **ImageData.linkPreviewUrl**
+      * - `text` in database
+      * - Nullable, no default
+      */
+      linkPreviewUrl?: string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment;
+      /**
       * **ImageData.metadata**
       * - `jsonb` in database
       * - Nullable, no default
@@ -373,6 +397,12 @@ declare module 'zapatos/schema' {
       * - Nullable, no default
       */
       losslessUrl?: string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment | db.SQLFragment<any, string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment>;
+      /**
+      * **ImageData.linkPreviewUrl**
+      * - `text` in database
+      * - Nullable, no default
+      */
+      linkPreviewUrl?: string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment | db.SQLFragment<any, string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment>;
       /**
       * **ImageData.metadata**
       * - `jsonb` in database

@@ -1,5 +1,6 @@
 import type { SqsRecord } from '@aws-lambda-powertools/parser/types';
-import { PageDataSource } from 'ropegeo-common';
+import { ImageVersion, PageDataSource } from 'ropegeo-common';
+import { assertValidImageVersions, ALL_IMAGE_VERSIONS } from '../util/imageVersionFile';
 
 export class ImageDataEvent {
     pageDataSource: PageDataSource;
@@ -7,6 +8,8 @@ export class ImageDataEvent {
     sourceUrl: string;
     downloadSource: boolean;
     existingProcessedImageId?: string;
+    /** When set, only these variants are encoded and uploaded; when omitted, all versions run. */
+    versions?: ImageVersion[];
 
     constructor(
         pageDataSource: PageDataSource,
@@ -14,6 +17,7 @@ export class ImageDataEvent {
         sourceUrl: string,
         downloadSource: boolean = true,
         existingProcessedImageId?: string,
+        versions?: ImageVersion[],
     ) {
         ImageDataEvent.validateExistingProcessedImageForDownloadSource(
             downloadSource,
@@ -25,6 +29,22 @@ export class ImageDataEvent {
         this.downloadSource = downloadSource;
         if (existingProcessedImageId !== undefined) {
             this.existingProcessedImageId = existingProcessedImageId;
+        }
+        if (versions !== undefined) {
+            ImageDataEvent.validateVersions(versions);
+            this.versions = [...versions];
+        }
+    }
+
+    private static validateVersions(versions: ImageVersion[]): void {
+        if (versions.length === 0) {
+            throw new Error('Invalid ImageDataEvent: versions, when provided, must be non-empty');
+        }
+        const allowed = new Set(ALL_IMAGE_VERSIONS);
+        for (const v of versions) {
+            if (!allowed.has(v)) {
+                throw new Error(`Invalid ImageDataEvent: unknown version "${String(v)}"`);
+            }
         }
     }
 
@@ -75,6 +95,7 @@ export class ImageDataEvent {
                 source?: string;
                 downloadSource?: boolean;
                 existingProcessedImageId?: string;
+                versions?: unknown;
             };
 
             const sourceUrl = parsed.sourceUrl ?? parsed.source;
@@ -94,12 +115,23 @@ export class ImageDataEvent {
                 );
             }
 
+            let versions: ImageVersion[] | undefined;
+            if (parsed.versions !== undefined) {
+                if (!assertValidImageVersions(parsed.versions)) {
+                    throw new Error(
+                        'Invalid ImageDataEvent: versions must be an array of ImageVersion strings',
+                    );
+                }
+                versions = parsed.versions;
+            }
+
             return new ImageDataEvent(
                 parsed.pageDataSource,
                 parsed.pageImageId,
                 sourceUrl,
                 parsed.downloadSource,
                 parsed.existingProcessedImageId,
+                versions,
             );
         } catch (error) {
             if (error instanceof SyntaxError) {

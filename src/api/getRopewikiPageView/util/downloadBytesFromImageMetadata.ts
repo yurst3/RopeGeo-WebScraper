@@ -1,4 +1,4 @@
-import { DownloadBytes } from 'ropegeo-common';
+import { DownloadBytes, ImageVersion } from 'ropegeo-common';
 import type { ImageMetadata } from '../../../image-data/types/metadata';
 import { Metadata } from '../../../image-data/types/metadata';
 
@@ -20,9 +20,9 @@ export function downloadBytesForBannerImage(
     if (metadata == null) return null;
     const m = Metadata.fromJSON(metadata);
     return new DownloadBytes(
-        sizeBytesFromMeta(m.preview),
-        sizeBytesFromMeta(m.banner),
-        sizeBytesFromMeta(m.full),
+        sizeBytesFromMeta(m[ImageVersion.preview] ?? null),
+        sizeBytesFromMeta(m[ImageVersion.banner] ?? null),
+        sizeBytesFromMeta(m[ImageVersion.full] ?? null),
     );
 }
 
@@ -37,7 +37,7 @@ export function downloadBytesForBetaSectionImage(
     const m = Metadata.fromJSON(metadata);
     return new DownloadBytes(
         0,
-        sizeBytesFromMeta(m.banner),
-        sizeBytesFromMeta(m.full),
+        sizeBytesFromMeta(m[ImageVersion.banner] ?? null),
+        sizeBytesFromMeta(m[ImageVersion.full] ?? null),
     );
 }

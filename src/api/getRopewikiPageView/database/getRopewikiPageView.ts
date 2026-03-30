@@ -59,6 +59,7 @@ const getRopewikiPageView = async (
         previewUrl: string | null;
         bannerUrl: string | null;
         fullUrl: string | null;
+        linkPreviewUrl: string | null;
         metadata: db.JSONValue | null;
     };
 
@@ -80,6 +81,7 @@ const getRopewikiPageView = async (
                 d."previewUrl",
                 d."bannerUrl",
                 d."fullUrl",
+                d."linkPreviewUrl",
                 d."metadata"
             FROM "RopewikiImage" i
             LEFT JOIN "ImageData" d ON d.id = i."processedImage"
@@ -154,6 +156,7 @@ const getRopewikiPageView = async (
               id: bannerImageRow.id,
               bannerUrl: bannerImageRow.bannerUrl,
               fullUrl: bannerImageRow.fullUrl,
+              linkPreviewUrl: bannerImageRow.linkPreviewUrl,
               linkUrl: bannerImageRow.linkUrl,
               caption: bannerImageRow.caption,
               latestRevisionDate: new Date(bannerImageRow.latestRevisionDate),
@@ -174,6 +177,7 @@ const getRopewikiPageView = async (
                 id: i.id,
                 bannerUrl: i.bannerUrl,
                 fullUrl: i.fullUrl,
+                linkPreviewUrl: i.linkPreviewUrl,
                 linkUrl: i.linkUrl,
                 caption: i.caption,
                 latestRevisionDate: new Date(i.latestRevisionDate),
@@ -231,7 +235,7 @@ const getRopewikiPageView = async (
         miniMap,
     };
 
-    return view as RopewikiPageView;
+    return view as unknown as RopewikiPageView;
 };
 
 export default getRopewikiPageView;

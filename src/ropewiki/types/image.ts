@@ -1,5 +1,5 @@
 import type * as s from 'zapatos/schema';
-import { PageDataSource } from 'ropegeo-common';
+import { PageDataSource, type ImageVersion } from 'ropegeo-common';
 import { ImageDataEvent } from '../../image-data/types/lambdaEvent';
 
 /** Plain row shape returned by toDbRow (insert columns we supply). */
@@ -61,7 +61,7 @@ export class RopewikiImage {
      * Returns an ImageDataEvent for this image (e.g. to enqueue for AVIF processing).
      * @throws Error if this image has no id (e.g. not loaded from DB)
      */
-    toImageDataEvent(downloadSource: boolean = true): ImageDataEvent {
+    toImageDataEvent(downloadSource: boolean = true, versions?: ImageVersion[]): ImageDataEvent {
         if (this.id === undefined || this.id === null || this.id === '') {
             throw new Error('RopewikiImage must have an id to create ImageDataEvent');
         }
@@ -71,6 +71,7 @@ export class RopewikiImage {
             this.fileUrl,
             downloadSource,
             this.processedImage ?? undefined,
+            versions,
         );
     }
 

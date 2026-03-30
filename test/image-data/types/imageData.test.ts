@@ -1,5 +1,6 @@
 import { describe, it, expect } from '@jest/globals';
 import ImageData from '../../../src/image-data/types/imageData';
+import { ImageVersion } from 'ropegeo-common';
 import { Metadata, Orientation } from '../../../src/image-data/types/metadata';
 import type * as s from 'zapatos/schema';
 import type * as db from 'zapatos/db';
@@ -11,6 +12,7 @@ describe('ImageData', () => {
             'https://a/banner.avif',
             'https://a/full.avif',
             'https://a/lossless.avif',
+            undefined,
             'https://source.jpg',
             undefined,
             'id-123',
@@ -25,7 +27,7 @@ describe('ImageData', () => {
     });
 
     it('toDbRow returns Insertable with null for undefined and includes id when set', () => {
-        const d = new ImageData('p', 'b', 'f', 'l', 's', undefined, 'uuid-1');
+        const d = new ImageData('p', 'b', 'f', 'l', undefined, 's', undefined, 'uuid-1');
         const row = d.toDbRow();
         expect(row.previewUrl).toBe('p');
         expect(row.bannerUrl).toBe('b');
@@ -39,7 +41,7 @@ describe('ImageData', () => {
     });
 
     it('toDbRow omits id when not set', () => {
-        const d = new ImageData('p', 'b', 'f', 'l', 's');
+        const d = new ImageData('p', 'b', 'f', 'l', undefined, 's');
         const row = d.toDbRow();
         expect(row).toHaveProperty('previewUrl', 'p');
         expect(Object.prototype.hasOwnProperty.call(row, 'id') ? (row as { id?: string }).id : undefined).toBeUndefined();
@@ -52,6 +54,7 @@ describe('ImageData', () => {
             bannerUrl: 'https://b',
             fullUrl: 'https://f',
             losslessUrl: 'https://l',
+            linkPreviewUrl: null,
             sourceUrl: 'https://s',
             errorMessage: null,
             metadata: null,
@@ -77,6 +80,7 @@ describe('ImageData', () => {
             bannerUrl: null,
             fullUrl: null,
             losslessUrl: null,
+            linkPreviewUrl: null,
             sourceUrl: 'https://s',
             errorMessage: 'failed',
             metadata: null,
@@ -96,6 +100,7 @@ describe('ImageData', () => {
     it('fromDbRow parses metadata when present (sizeKB and quality)', () => {
         const metadataJSON = {
             preview: { sizeKB: 1.5, dimensions: { width: 256, height: 128 }, orientation: 1, quality: 50 },
+            linkPreview: null,
             banner: null,
             full: null,
             lossless: null,
@@ -107,6 +112,7 @@ describe('ImageData', () => {
             bannerUrl: null,
             fullUrl: null,
             losslessUrl: null,
+            linkPreviewUrl: null,
             sourceUrl: 'https://s',
             errorMessage: null,
             metadata: metadataJSON,
@@ -117,9 +123,9 @@ describe('ImageData', () => {
         };
         const d = ImageData.fromDbRow(row);
         expect(d.metadata).toBeInstanceOf(Metadata);
-        expect(d.metadata!.preview).not.toBeNull();
-        expect(d.metadata!.preview!.sizeKB).toBe(1.5);
-        expect(d.metadata!.preview!.quality).toBe(50);
+        expect(d.metadata![ImageVersion.preview]).not.toBeNull();
+        expect(d.metadata![ImageVersion.preview]!.sizeKB).toBe(1.5);
+        expect(d.metadata![ImageVersion.preview]!.quality).toBe(50);
         expect(d.metadata!.source!.sizeKB).toBe(100);
         expect(d.metadata!.source!.orientation).toBe(Orientation.Normal);
     });

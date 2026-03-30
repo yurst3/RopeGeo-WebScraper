@@ -1,14 +1,16 @@
 import { describe, it, expect, beforeEach, jest } from '@jest/globals';
-import { PageDataSource } from 'ropegeo-common';
+import type { PoolClient } from 'pg';
+import { ImageVersion, PageDataSource } from 'ropegeo-common';
 import { processImageData } from '../../../src/image-data/processors/processImageData';
 import ImageData from '../../../src/image-data/types/imageData';
 import { ImageDataEvent } from '../../../src/image-data/types/lambdaEvent';
 import { Metadata } from '../../../src/image-data/types/metadata';
 import ProgressLogger from 'ropegeo-common/helpers/progressLogger';
+import { ALL_IMAGE_VERSIONS } from '../../../src/image-data/util/imageVersionFile';
 
 let mockGetSource: jest.MockedFunction<typeof import('../../../src/image-data/util/getSource').default>;
 let mockReadFile: jest.MockedFunction<typeof import('fs/promises').readFile>;
-let mockConvertToAvif: jest.MockedFunction<typeof import('../../../src/image-data/util/convertToAvif').convertToAvif>;
+let mockConvertSource: jest.MockedFunction<typeof import('../../../src/image-data/util/convertSource').convertSource>;
 let mockSaveHook: jest.MockedFunction<typeof import('../../../src/image-data/hook-functions/saveImageData').lambdaSaveImageData>;
 
 jest.mock('../../../src/image-data/util/getSource', () => ({
@@ -22,13 +24,20 @@ jest.mock('fs/promises', () => ({
     readFile: jest.fn(),
 }));
 
-jest.mock('../../../src/image-data/util/convertToAvif', () => ({
-    convertToAvif: jest.fn(),
+jest.mock('../../../src/image-data/util/convertSource', () => ({
+    convertSource: jest.fn(),
+}));
+
+jest.mock('../../../src/image-data/database/getImageDataMetadataById', () => ({
+    __esModule: true,
+    default: jest.fn().mockResolvedValue(null),
 }));
 
 jest.mock('crypto', () => ({
     randomUUID: jest.fn(() => 'generated-id'),
 }));
+
+const mockClient = {} as PoolClient;
 
 describe('processImageData', () => {
     const event = new ImageDataEvent(
@@ -41,7 +50,15 @@ describe('processImageData', () => {
     const bannerBuffer = Buffer.from([2]);
     const fullBuffer = Buffer.from([3]);
     const losslessBuffer = Buffer.from([4]);
+    const linkPreviewBuffer = Buffer.from([5]);
     const metadata = new Metadata();
+    const buffers = {
+        [ImageVersion.preview]: previewBuffer,
+        [ImageVersion.linkPreview]: linkPreviewBuffer,
+        [ImageVersion.banner]: bannerBuffer,
+        [ImageVersion.full]: fullBuffer,
+        [ImageVersion.lossless]: losslessBuffer,
+    };
     let logger: ProgressLogger;
 
     beforeEach(() => {
@@ -49,8 +66,8 @@ describe('processImageData', () => {
         mockGetSource = require('../../../src/image-data/util/getSource').default;
         const fsModule = require('fs/promises');
         mockReadFile = fsModule.readFile;
-        const convertModule = require('../../../src/image-data/util/convertToAvif');
-        mockConvertToAvif = convertModule.convertToAvif;
+        const convertModule = require('../../../src/image-data/util/convertSource');
+        mockConvertSource = convertModule.convertSource;
         mockSaveHook = jest.fn();
 
         mockGetSource.mockResolvedValue({
@@ -58,11 +75,8 @@ describe('processImageData', () => {
             errorMessage: undefined,
         });
         mockReadFile.mockResolvedValue(Buffer.from([0xff, 0xd8, 0xff]));
-        mockConvertToAvif.mockResolvedValue({
-            preview: previewBuffer,
-            banner: bannerBuffer,
-            full: fullBuffer,
-            lossless: losslessBuffer,
+        mockConvertSource.mockResolvedValue({
+            buffers,
             metadata,
         });
         mockSaveHook.mockResolvedValue(
@@ -71,6 +85,7 @@ describe('processImageData', () => {
                 'https://example.com/b.avif',
                 'https://example.com/f.avif',
                 'https://example.com/l.avif',
+                'https://example.com/lp.jpg',
                 event.sourceUrl,
                 undefined,
                 'generated-id',
@@ -84,8 +99,8 @@ describe('processImageData', () => {
         } as unknown as ProgressLogger;
     });
 
-    it('resolves source, converts, and calls save hook with four buffers and metadata', async () => {
-        const result = await processImageData(event, mockSaveHook, logger);
+    it('resolves source, converts, and calls save hook with buffers map and metadata', async () => {
+        const result = await processImageData(event, mockSaveHook, logger, 'generated-id', mockClient);
 
         expect(mockGetSource).toHaveBeenCalledWith(
             event,
@@ -93,30 +108,30 @@ describe('processImageData', () => {
             expect.any(String),
             undefined,
         );
-        expect(mockConvertToAvif).toHaveBeenCalledWith(
+        expect(mockConvertSource).toHaveBeenCalledWith(
             '/tmp/image-data-xyz/abc-source.jpg',
+            ALL_IMAGE_VERSIONS,
+            undefined,
             undefined,
         );
         expect(mockSaveHook).toHaveBeenCalledTimes(1);
         expect(mockSaveHook).toHaveBeenCalledWith(
             'generated-id',
             event.sourceUrl,
-            previewBuffer,
-            bannerBuffer,
-            fullBuffer,
-            losslessBuffer,
+            buffers,
             metadata,
             logger,
         );
         expect(result).toBeInstanceOf(ImageData);
         expect(result.previewUrl).toBe('https://example.com/p.avif');
         expect(result.losslessUrl).toBe('https://example.com/l.avif');
+        expect(result.linkPreviewUrl).toBe('https://example.com/lp.jpg');
     });
 
-    it('when convertToAvif throws, returns ImageData with errorMessage', async () => {
-        mockConvertToAvif.mockRejectedValue(new Error('Sharp failed'));
+    it('when convertSource throws, returns ImageData with errorMessage', async () => {
+        mockConvertSource.mockRejectedValue(new Error('Sharp failed'));
 
-        const result = await processImageData(event, mockSaveHook, logger);
+        const result = await processImageData(event, mockSaveHook, logger, 'generated-id', mockClient);
 
         expect(mockSaveHook).not.toHaveBeenCalled();
         expect(result).toBeInstanceOf(ImageData);
@@ -139,10 +154,16 @@ describe('processImageData', () => {
             errorMessage: 'No lossless image available when downloadSource is False',
         });
 
-        const result = await processImageData(noDownloadEvent, mockSaveHook, logger);
+        const result = await processImageData(
+            noDownloadEvent,
+            mockSaveHook,
+            logger,
+            'cccccccc-cccc-cccc-cccc-cccccccccccc',
+            mockClient,
+        );
 
         expect(mockReadFile).not.toHaveBeenCalled();
-        expect(mockConvertToAvif).not.toHaveBeenCalled();
+        expect(mockConvertSource).not.toHaveBeenCalled();
         expect(mockSaveHook).not.toHaveBeenCalled();
         expect(result.id).toBe('cccccccc-cccc-cccc-cccc-cccccccccccc');
         expect(result.errorMessage).toBe('No lossless image available when downloadSource is False');
@@ -159,7 +180,13 @@ describe('processImageData', () => {
             'cccccccc-cccc-cccc-cccc-cccccccccccc',
         );
 
-        await processImageData(eventWithExistingId, mockSaveHook, logger);
+        await processImageData(
+            eventWithExistingId,
+            mockSaveHook,
+            logger,
+            'cccccccc-cccc-cccc-cccc-cccccccccccc',
+            mockClient,
+        );
 
         expect(mockGetSource).toHaveBeenCalledWith(
             eventWithExistingId,

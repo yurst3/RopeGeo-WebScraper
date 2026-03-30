@@ -82,6 +82,42 @@ describe('pageViewToLinkPreview', () => {
             expect(lp.image?.url).toBe('https://x/y.avif');
             expect(lp.image?.width).toBe('');
             expect(lp.image?.height).toBe('');
+            expect(lp.image?.type).toBe('image/avif');
+        });
+
+        it('prefers linkPreviewUrl and JPEG metadata when present', () => {
+            const v = baseView({
+                bannerImage: {
+                    order: 0,
+                    id: '550e8400-e29b-41d4-a716-446655440000',
+                    bannerUrl: 'https://x/banner.avif',
+                    fullUrl: null,
+                    linkUrl: 'https://ropewiki.com/l',
+                    caption: null,
+                    latestRevisionDate: new Date(),
+                    downloadBytes: null,
+                } as RopewikiPageView['bannerImage'],
+            });
+            const lp = buildLinkPreviewFromPageView(v, {
+                metadata: {
+                    linkPreview: {
+                        sizeKB: 2,
+                        dimensions: { width: 256, height: 200 },
+                        orientation: 1,
+                        mimeType: 'image/jpeg',
+                    },
+                    banner: {
+                        sizeKB: 10,
+                        dimensions: { width: 800, height: 400 },
+                        orientation: 1,
+                    },
+                },
+                linkPreviewUrl: 'https://x/link.jpg',
+            });
+            expect(lp.image?.url).toBe('https://x/link.jpg');
+            expect(lp.image?.type).toBe('image/jpeg');
+            expect(lp.image?.width).toBe('256');
+            expect(lp.image?.height).toBe('200');
         });
     });
 });

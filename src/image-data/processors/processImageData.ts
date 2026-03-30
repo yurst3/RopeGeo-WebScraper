@@ -1,11 +1,13 @@
+import type { PoolClient } from 'pg';
 import { mkdtemp, rm, readFile } from 'fs/promises';
 import { join } from 'path';
 import { tmpdir } from 'os';
-import { randomUUID } from 'crypto';
+import getImageDataMetadataById from '../database/getImageDataMetadataById';
 import ImageData from '../types/imageData';
 import type { SaveImageDataHookFn } from '../hook-functions/saveImageData';
 import type { ImageDataEvent } from '../types/lambdaEvent';
-import { convertToAvif } from '../util/convertToAvif';
+import { convertSource } from '../util/convertSource';
+import { ALL_IMAGE_VERSIONS } from '../util/imageVersionFile';
 import {
     isPdf,
     getPdfPageCount,
@@ -16,25 +18,20 @@ import ProgressLogger from 'ropegeo-common/helpers/progressLogger';
 import getSource from '../util/getSource';
 
 /**
- * Processes image data: obtains source file (download or S3 lossless), converts to AVIF (preview, banner, full),
- * then saves via the provided hook (e.g. upload to S3 in Lambda).
- * On conversion failure, returns an ImageData with errorMessage set (preview/banner/full null).
- *
- * @param imageDataEvent - Image processing event
- * @param saveImageDataHookFn - Hook to persist AVIF buffers and return ImageData with URLs
- * @param logger - Progress logger
- * @param abortSignal - Optional AbortSignal; when aborted, the download is cancelled
- * @returns Promise that resolves to ImageData (with URLs or errorMessage)
+ * Processes image data: obtains source, encodes requested versions, then saves via the hook.
+ * Loads existing ImageData metadata via {@link client} before conversion and passes it to {@link convertSource}.
  */
 export const processImageData = async (
     imageDataEvent: ImageDataEvent,
     saveImageDataHookFn: SaveImageDataHookFn,
     logger: ProgressLogger,
+    imageDataId: string,
+    client: PoolClient,
     abortSignal?: AbortSignal,
 ): Promise<ImageData> => {
     const tempDir = await mkdtemp(join(tmpdir(), 'image-data-'));
-    const imageDataId = imageDataEvent.existingProcessedImageId ?? randomUUID();
     const sourceUrl = imageDataEvent.sourceUrl;
+    const versions = imageDataEvent.versions ?? ALL_IMAGE_VERSIONS;
 
     try {
         const source = await getSource(imageDataEvent, tempDir, imageDataId, abortSignal);
@@ -47,7 +44,6 @@ export const processImageData = async (
 
         const sourceBuffer = await readFile(sourceFilePath);
 
-        // PDF: reject multi-page, convert single-page to image then to AVIF
         if (isPdf(sourceBuffer)) {
             const pageCount = await getPdfPageCount(sourceBuffer);
             if (pageCount > 1) {
@@ -74,10 +70,12 @@ export const processImageData = async (
             }
         }
 
-        let outputs: Awaited<ReturnType<typeof convertToAvif>>;
+        const existingMetadata = (await getImageDataMetadataById(client, imageDataId)) ?? undefined;
+
+        let result: Awaited<ReturnType<typeof convertSource>>;
 
         try {
-            outputs = await convertToAvif(conversionSource, abortSignal);
+            result = await convertSource(conversionSource, versions, abortSignal, existingMetadata);
         } catch (conversionError) {
             const errorMessage =
                 conversionError instanceof Error
@@ -90,11 +88,8 @@ export const processImageData = async (
         return await saveImageDataHookFn(
             imageDataId,
             sourceUrl,
-            outputs.preview,
-            outputs.banner,
-            outputs.full,
-            outputs.lossless,
-            outputs.metadata,
+            result.buffers,
+            result.metadata,
             logger,
         );
     } finally {

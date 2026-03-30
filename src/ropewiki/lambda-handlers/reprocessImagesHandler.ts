@@ -40,7 +40,9 @@ export const reprocessImagesHandler = async (
         console.log(`Enqueueing ${images.length} RopewikiImages for image processing...`);
 
         for (const img of images) {
-            await sendImageProcessorSQSMessage(img.toImageDataEvent(reprocessImagesEvent.downloadSource));
+            await sendImageProcessorSQSMessage(
+                img.toImageDataEvent(reprocessImagesEvent.downloadSource, reprocessImagesEvent.versions),
+            );
         }
 
         return {

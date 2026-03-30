@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, jest } from '@jest/globals';
-import { PageDataSource } from 'ropegeo-common';
+import { ImageVersion, PageDataSource } from 'ropegeo-common';
 import { reprocessImagesHandler } from '../../../src/ropewiki/lambda-handlers/reprocessImagesHandler';
 import { ImageDataEvent } from '../../../src/image-data/types/lambdaEvent';
 import { RopewikiImage } from '../../../src/ropewiki/types/image';
@@ -147,6 +147,25 @@ describe('reprocessImagesHandler', () => {
             body: JSON.stringify({ onlyUnprocessed: false }),
         });
         expect(mockGetRopewikiImagesToProcess).toHaveBeenCalledWith(mockClient, false, true);
+    });
+
+    it('passes versions from event body into ImageDataEvent', async () => {
+        mockGetRopewikiImagesToProcess.mockResolvedValue([
+            makeRopewikiImage({ id: 'img-1', fileUrl: 'https://ropewiki.com/images/1.jpg', processedImage: null }),
+        ]);
+        await reprocessImagesHandler({
+            body: JSON.stringify({ versions: [ImageVersion.linkPreview] }),
+        });
+        expect(mockSendImageProcessorSQSMessage).toHaveBeenCalledWith(
+            new ImageDataEvent(
+                PageDataSource.Ropewiki,
+                'img-1',
+                'https://ropewiki.com/images/1.jpg',
+                true,
+                undefined,
+                [ImageVersion.linkPreview],
+            ),
+        );
     });
 
     it('passes downloadSource into ImageDataEvent', async () => {

@@ -7,6 +7,7 @@ export class ImageData {
     bannerUrl: string | undefined;
     fullUrl: string | undefined;
     losslessUrl: string | undefined;
+    linkPreviewUrl: string | undefined;
     sourceUrl: string | undefined;
     errorMessage: string | undefined;
     metadata: Metadata | undefined;
@@ -16,6 +17,7 @@ export class ImageData {
         bannerUrl?: string,
         fullUrl?: string,
         losslessUrl?: string,
+        linkPreviewUrl?: string,
         sourceUrl?: string,
         errorMessage?: string,
         id?: string,
@@ -25,6 +27,7 @@ export class ImageData {
         this.bannerUrl = bannerUrl;
         this.fullUrl = fullUrl;
         this.losslessUrl = losslessUrl;
+        this.linkPreviewUrl = linkPreviewUrl;
         this.sourceUrl = sourceUrl;
         this.errorMessage = errorMessage;
         this.id = id;
@@ -33,14 +36,19 @@ export class ImageData {
 
     toDbRow(): s.ImageData.Insertable {
         const now = new Date();
+        const metaFrag = this.metadata?.toMergeFragment();
         const row = {
             previewUrl: this.previewUrl ?? null,
             bannerUrl: this.bannerUrl ?? null,
             fullUrl: this.fullUrl ?? null,
             losslessUrl: this.losslessUrl ?? null,
+            linkPreviewUrl: this.linkPreviewUrl ?? null,
             sourceUrl: this.sourceUrl ?? null,
             errorMessage: this.errorMessage ?? null,
-            metadata: this.metadata != null ? this.metadata.toJSON() : null,
+            metadata:
+                metaFrag != null && Object.keys(metaFrag).length > 0
+                    ? (metaFrag as s.ImageData.Insertable['metadata'])
+                    : null,
             updatedAt: now,
             deletedAt: null,
         };
@@ -58,6 +66,7 @@ export class ImageData {
             row.bannerUrl ?? undefined,
             row.fullUrl ?? undefined,
             row.losslessUrl ?? undefined,
+            row.linkPreviewUrl ?? undefined,
             row.sourceUrl ?? undefined,
             row.errorMessage ?? undefined,
             row.id,
@@ -67,6 +76,7 @@ export class ImageData {
 
     static fromError(errorMessage: string, id: string, sourceUrl?: string): ImageData {
         return new ImageData(
+            undefined,
             undefined,
             undefined,
             undefined,

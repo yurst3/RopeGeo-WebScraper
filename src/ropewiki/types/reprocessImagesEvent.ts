@@ -1,15 +1,20 @@
+import type { ImageVersion } from 'ropegeo-common';
+import { assertValidImageVersions } from '../../image-data/util/imageVersionFile';
+
 export type ReprocessImagesEventOptions = {
     downloadSource?: boolean;
     onlyUnprocessed?: boolean;
+    versions?: ImageVersion[];
 };
 
 /**
  * Options for {@link reprocessImagesHandler}: queue image jobs with optional download vs lossless,
- * and optionally restrict to rows with no processedImage yet.
+ * optional version subset, and optionally restrict to rows with no processedImage yet.
  */
 export class ReprocessImagesEvent {
     downloadSource: boolean;
     onlyUnprocessed: boolean;
+    versions?: ImageVersion[];
 
     constructor(options?: ReprocessImagesEventOptions) {
         this.downloadSource = options?.downloadSource ?? true;
@@ -18,6 +23,14 @@ export class ReprocessImagesEvent {
             throw new Error(
                 'Invalid ReprocessImagesEvent: onlyUnprocessed cannot be true when downloadSource is false',
             );
+        }
+        if (options?.versions !== undefined) {
+            if (!assertValidImageVersions(options.versions) || options.versions.length === 0) {
+                throw new Error(
+                    'Invalid ReprocessImagesEvent: versions must be a non-empty array of ImageVersion strings',
+                );
+            }
+            this.versions = [...options.versions];
         }
     }
 
@@ -28,6 +41,7 @@ export class ReprocessImagesEvent {
         const o = parsed as Record<string, unknown>;
         let downloadSource: boolean | undefined;
         let onlyUnprocessed: boolean | undefined;
+        let versions: ImageVersion[] | undefined;
         if ('downloadSource' in o) {
             if (typeof o.downloadSource !== 'boolean') {
                 throw new Error(
@@ -44,12 +58,23 @@ export class ReprocessImagesEvent {
             }
             onlyUnprocessed = o.onlyUnprocessed;
         }
+        if ('versions' in o && o.versions !== undefined) {
+            if (!assertValidImageVersions(o.versions) || o.versions.length === 0) {
+                throw new Error(
+                    'Invalid ReprocessImagesEvent: versions must be a non-empty array of ImageVersion strings',
+                );
+            }
+            versions = o.versions;
+        }
         const opts: ReprocessImagesEventOptions = {};
         if (downloadSource !== undefined) {
             opts.downloadSource = downloadSource;
         }
         if (onlyUnprocessed !== undefined) {
             opts.onlyUnprocessed = onlyUnprocessed;
+        }
+        if (versions !== undefined) {
+            opts.versions = versions;
         }
         return new ReprocessImagesEvent(opts);
     }

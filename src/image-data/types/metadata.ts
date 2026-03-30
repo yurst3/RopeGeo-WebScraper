@@ -1,3 +1,5 @@
+import { ImageVersion, VERSION_FORMAT } from 'ropegeo-common';
+
 /**
  * EXIF orientation values 1–8. Keys describe the display transformation.
  * @see https://exiftool.org/TagNames/EXIF.html (Orientation)
@@ -18,8 +20,10 @@ export interface ImageMetadata {
     sizeKB: number;
     dimensions: { width: number; height: number };
     orientation: Orientation;
-    /** AVIF quality (0–100); omitted for lossless and source */
+    /** AVIF/JPEG quality (0–100); omitted for lossless and sometimes source */
     quality?: number;
+    /** IANA media type for this rendition (e.g. image/avif, image/jpeg). */
+    mimeType?: string;
 }
 
 /** JSON-serializable shape for DB and IPC */
@@ -28,44 +32,81 @@ export interface ImageMetadataJSON {
     dimensions: { width: number; height: number };
     orientation: number;
     quality?: number;
+    mimeType?: string;
 }
 
-/** Container for per-variant metadata (preview, banner, full, lossless, source). */
-export class Metadata {
-    preview: ImageMetadata | null;
-    banner: ImageMetadata | null;
-    full: ImageMetadata | null;
-    lossless: ImageMetadata | null;
-    source: ImageMetadata | null;
+const IMAGE_VERSION_SET = new Set<string>(Object.values(ImageVersion));
 
-    constructor(
-        preview: ImageMetadata | null = null,
-        banner: ImageMetadata | null = null,
-        full: ImageMetadata | null = null,
-        lossless: ImageMetadata | null = null,
-        source: ImageMetadata | null = null,
-    ) {
-        this.preview = preview;
-        this.banner = banner;
-        this.full = full;
-        this.lossless = lossless;
-        this.source = source;
+/**
+ * Per-variant metadata for encoded outputs ({@link ImageVersion}) plus separate `source`.
+ * Use bracket access for variants, e.g. `m[ImageVersion.banner]` (same idea as {@link ImageVersions} in ropegeo-common).
+ * JSON shape: { preview?, linkPreview?, banner?, full?, lossless?, source? }.
+ */
+export class Metadata {
+    #source: ImageMetadata | null;
+
+    get source(): ImageMetadata | null {
+        return this.#source;
     }
 
-    toJSON(): {
-        preview: ImageMetadataJSON | null;
-        banner: ImageMetadataJSON | null;
-        full: ImageMetadataJSON | null;
-        lossless: ImageMetadataJSON | null;
-        source: ImageMetadataJSON | null;
-    } {
-        return {
-            preview: this.preview ? toMetaJSON(this.preview) : null,
-            banner: this.banner ? toMetaJSON(this.banner) : null,
-            full: this.full ? toMetaJSON(this.full) : null,
-            lossless: this.lossless ? toMetaJSON(this.lossless) : null,
-            source: this.source ? toMetaJSON(this.source) : null,
-        };
+    /**
+     * @param init - Variant slots; omit for source-only construction, e.g. `new Metadata(undefined, sourceMeta)`.
+     */
+    constructor(
+        init?: Partial<Record<ImageVersion, ImageMetadata | null>>,
+        source?: ImageMetadata | null,
+    ) {
+        const self = this as Partial<Record<ImageVersion, ImageMetadata | null>>;
+        const initObj = init ?? {};
+        for (const v of Object.values(ImageVersion)) {
+            if (Object.prototype.hasOwnProperty.call(initObj, v)) {
+                const val = initObj[v];
+                if (val !== undefined) {
+                    self[v] = val;
+                }
+            }
+        }
+        this.#source = source ?? null;
+    }
+
+    /** Overwrite or clear (null) metadata for one encoded variant. */
+    setVersion(version: ImageVersion, meta: ImageMetadata | null): void {
+        const self = this as Partial<Record<ImageVersion, ImageMetadata | null>>;
+        self[version] = meta;
+    }
+
+    setSource(meta: ImageMetadata | null): void {
+        this.#source = meta;
+    }
+
+    /** Full JSON for worker IPC / round-trip (all version keys + source). */
+    toJSON(): Record<string, ImageMetadataJSON | null> {
+        const self = this as Partial<Record<ImageVersion, ImageMetadata | null>>;
+        const out: Record<string, ImageMetadataJSON | null> = {};
+        for (const v of Object.values(ImageVersion)) {
+            const m = self[v];
+            out[v] = m != null ? toMetaJSON(m) : null;
+        }
+        out.source = this.source ? toMetaJSON(this.source) : null;
+        return out;
+    }
+
+    /**
+     * Fragment merged into existing DB jsonb (only keys present are written).
+     */
+    toMergeFragment(): Record<string, unknown> {
+        const self = this as Partial<Record<ImageVersion, ImageMetadata | null>>;
+        const out: Record<string, unknown> = {};
+        for (const v of Object.values(ImageVersion)) {
+            const m = self[v];
+            if (m != null) {
+                out[v] = toMetaJSON(m);
+            }
+        }
+        if (this.source != null) {
+            out.source = toMetaJSON(this.source);
+        }
+        return out;
     }
 
     static fromJSON(obj: unknown): Metadata {
@@ -73,62 +114,58 @@ export class Metadata {
             return new Metadata();
         }
         const o = obj as Record<string, unknown>;
-        return new Metadata(
-            fromMetaJSON(o.preview),
-            fromMetaJSON(o.banner),
-            fromMetaJSON(o.full),
-            fromMetaJSON(o.lossless),
-            fromMetaJSON(o.source),
-        );
+        const init: Partial<Record<ImageVersion, ImageMetadata | null>> = {};
+        for (const key of Object.keys(o)) {
+            if (key === 'source') {
+                continue;
+            }
+            if (!IMAGE_VERSION_SET.has(key)) {
+                throw new Error(`Metadata: unknown key "${key}"`);
+            }
+            init[key as ImageVersion] = fromMetaJSON(o[key]);
+        }
+        return new Metadata(init, fromMetaJSON(o.source));
     }
 
     /**
-     * Build metadata from pipeline results (buffer + dimensions for each variant) and source metadata.
-     * Output variants use orientation Normal (1); source keeps its original EXIF orientation.
-     * Pass optional quality for preview, banner, full; omit for lossless and source.
+     * Writes encoded-output fields onto {@link metadata} for each entry in {@link variants} (mutates in place).
      */
-    static fromResults(params: {
-        preview: { data: Buffer; info: { width: number; height: number }; quality?: number };
-        banner: { data: Buffer; info: { width: number; height: number }; quality?: number };
-        full: { data: Buffer; info: { width: number; height: number }; quality?: number };
-        lossless: { data: Buffer; info: { width: number; height: number } };
+    static applyEncodedVariants(
+        metadata: Metadata,
+        variants: Partial<
+            Record<ImageVersion, { data: Buffer; info: { width: number; height: number }; quality?: number }>
+        >,
+    ): void {
+        for (const v of Object.values(ImageVersion)) {
+            const p = variants[v];
+            if (p == null) {
+                continue;
+            }
+            metadata.setVersion(v, {
+                sizeKB: Math.round((p.data.length / 1024) * 100) / 100,
+                dimensions: { width: p.info.width, height: p.info.height },
+                orientation: Orientation.Normal,
+                mimeType: VERSION_FORMAT[v],
+                ...(p.quality !== undefined && { quality: p.quality }),
+            });
+        }
+    }
+
+    static fromPipelineResults(params: {
+        variants: Partial<
+            Record<ImageVersion, { data: Buffer; info: { width: number; height: number }; quality?: number }>
+        >;
         source: ImageMetadata;
     }): Metadata {
-        const metaFromBuffer = (
-            data: Buffer,
-            width: number,
-            height: number,
-            quality?: number,
-        ): ImageMetadata => ({
-            sizeKB: Math.round((data.length / 1024) * 100) / 100,
-            dimensions: { width, height },
-            orientation: Orientation.Normal,
-            ...(quality !== undefined && { quality }),
-        });
-        return new Metadata(
-            metaFromBuffer(
-                params.preview.data,
-                params.preview.info.width,
-                params.preview.info.height,
-                params.preview.quality,
-            ),
-            metaFromBuffer(
-                params.banner.data,
-                params.banner.info.width,
-                params.banner.info.height,
-                params.banner.quality,
-            ),
-            metaFromBuffer(
-                params.full.data,
-                params.full.info.width,
-                params.full.info.height,
-                params.full.quality,
-            ),
-            metaFromBuffer(params.lossless.data, params.lossless.info.width, params.lossless.info.height),
-            params.source,
-        );
+        const m = new Metadata();
+        Metadata.applyEncodedVariants(m, params.variants);
+        m.setSource(params.source);
+        return m;
     }
 }
+
+/** Bracket access for variant slots (instance fields are assigned in the constructor). */
+export interface Metadata extends Partial<Record<ImageVersion, ImageMetadata | null>> {}
 
 function toMetaJSON(m: ImageMetadata): ImageMetadataJSON {
     return {
@@ -136,6 +173,7 @@ function toMetaJSON(m: ImageMetadata): ImageMetadataJSON {
         dimensions: m.dimensions,
         orientation: m.orientation,
         ...(m.quality !== undefined && { quality: m.quality }),
+        ...(m.mimeType !== undefined && { mimeType: m.mimeType }),
     };
 }
 
@@ -143,16 +181,29 @@ function fromMetaJSON(v: unknown): ImageMetadata | null {
     if (v == null || typeof v !== 'object') return null;
     const o = v as Record<string, unknown>;
     const sizeKB =
-        typeof o.sizeKB === 'number' ? o.sizeKB : typeof (o as { size?: number }).size === 'number' ? (o as { size: number }).size : 0;
-    const dimensions = o.dimensions && typeof o.dimensions === 'object' && !Array.isArray(o.dimensions)
-        ? {
-            width: typeof (o.dimensions as Record<string, unknown>).width === 'number' ? (o.dimensions as { width: number }).width : 0,
-            height: typeof (o.dimensions as Record<string, unknown>).height === 'number' ? (o.dimensions as { height: number }).height : 0,
-        }
-        : { width: 0, height: 0 };
-    const orientation = typeof o.orientation === 'number' && o.orientation >= 1 && o.orientation <= 8
-        ? (o.orientation as Orientation)
-        : Orientation.Normal;
+        typeof o.sizeKB === 'number'
+            ? o.sizeKB
+            : typeof (o as { size?: number }).size === 'number'
+              ? (o as { size: number }).size
+              : 0;
+    const dimensions =
+        o.dimensions && typeof o.dimensions === 'object' && !Array.isArray(o.dimensions)
+            ? {
+                  width:
+                      typeof (o.dimensions as Record<string, unknown>).width === 'number'
+                          ? (o.dimensions as { width: number }).width
+                          : 0,
+                  height:
+                      typeof (o.dimensions as Record<string, unknown>).height === 'number'
+                          ? (o.dimensions as { height: number }).height
+                          : 0,
+              }
+            : { width: 0, height: 0 };
+    const orientation =
+        typeof o.orientation === 'number' && o.orientation >= 1 && o.orientation <= 8
+            ? (o.orientation as Orientation)
+            : Orientation.Normal;
     const quality = typeof o.quality === 'number' ? o.quality : undefined;
-    return { sizeKB, dimensions, orientation, ...(quality !== undefined && { quality }) };
+    const mimeType = typeof o.mimeType === 'string' ? o.mimeType : undefined;
+    return { sizeKB, dimensions, orientation, ...(quality !== undefined && { quality }), ...(mimeType !== undefined && { mimeType }) };
 }

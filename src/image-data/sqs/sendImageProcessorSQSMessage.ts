@@ -29,6 +29,7 @@ const sendImageProcessorSQSMessage = async (event: ImageDataEvent): Promise<void
         sourceUrl: event.sourceUrl,
         downloadSource: event.downloadSource,
         existingProcessedImageId: event.existingProcessedImageId,
+        ...(event.versions != null && { versions: event.versions }),
     });
     await sendSQSMessage(body, queueUrl);
 };

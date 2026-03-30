@@ -1,4 +1,5 @@
 import { randomUUID } from 'crypto';
+import type { PoolClient } from 'pg';
 import { PageDataSource } from 'ropegeo-common';
 import { processImageData } from '../src/image-data/processors/processImageData';
 import { nodeSaveImageData } from '../src/image-data/hook-functions/saveImageData';
@@ -12,6 +13,11 @@ function formatElapsed(ms: number): string {
     const milliseconds = Math.round(ms % 1000);
     return `${minutes} minute(s), ${seconds} second(s), ${milliseconds} millisecond(s)`;
 }
+
+/** Minimal client so metadata lookup returns no row (no DB required for local timing). */
+const localTimingDbClient = {
+    query: async () => ({ rows: [] }),
+} as unknown as PoolClient;
 
 /**
  * Script to time how long it takes to process an image from a URL.
@@ -33,8 +39,9 @@ async function testImageProcessTime() {
 
     let imageData;
     try {
+        const imageDataId = randomUUID();
         const event = new ImageDataEvent(PageDataSource.Ropewiki, randomUUID(), url, true);
-        imageData = await processImageData(event, nodeSaveImageData, logger);
+        imageData = await processImageData(event, nodeSaveImageData, logger, imageDataId, localTimingDbClient);
     } catch (error) {
         console.error('Error processing image:', error);
         process.exit(1);

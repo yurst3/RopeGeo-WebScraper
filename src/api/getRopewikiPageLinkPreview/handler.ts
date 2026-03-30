@@ -47,8 +47,8 @@ export const handler = async (
             };
         }
 
-        const bannerMetadata = await getBannerImageMetadataForPage(client, id);
-        const linkPreview = buildLinkPreviewFromPageView(view, bannerMetadata);
+        const bannerContext = await getBannerImageMetadataForPage(client, id);
+        const linkPreview = buildLinkPreviewFromPageView(view, bannerContext);
         const result = new RopewikiPageLinkPreviewResult(linkPreview);
 
         return {

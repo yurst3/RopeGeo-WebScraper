@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach, jest } from '@jest/globals';
 import sendImageProcessorSQSMessage from '../../../src/image-data/sqs/sendImageProcessorSQSMessage';
-import { PageDataSource } from 'ropegeo-common';
+import { ImageVersion, PageDataSource } from 'ropegeo-common';
 import { ImageDataEvent } from '../../../src/image-data/types/lambdaEvent';
 
 jest.mock('ropegeo-common/helpers/sqs/sendSQSMessage', () => ({
@@ -91,5 +91,21 @@ describe('sendImageProcessorSQSMessage', () => {
         expect(JSON.parse(body).existingProcessedImageId).toBe(
             'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
         );
+    });
+
+    it('includes versions in serialized body when set on event', async () => {
+        delete process.env.DEV_ENVIRONMENT;
+        process.env.IMAGE_PROCESSOR_QUEUE_URL = 'https://sqs.us-east-1.amazonaws.com/123/queue';
+        const event = new ImageDataEvent(
+            PageDataSource.Ropewiki,
+            'img-123',
+            'https://example.com/file.jpg',
+            true,
+            undefined,
+            [ImageVersion.linkPreview],
+        );
+        await sendImageProcessorSQSMessage(event);
+        const [body] = mockSendSQSMessage.mock.calls[0];
+        expect(JSON.parse(body).versions).toEqual([ImageVersion.linkPreview]);
     });
 });

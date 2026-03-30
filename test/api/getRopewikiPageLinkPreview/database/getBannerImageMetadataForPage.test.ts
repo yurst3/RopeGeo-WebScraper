@@ -82,7 +82,7 @@ describe('getBannerImageMetadataForPage (integration)', () => {
         expect(meta).toBeNull();
     });
 
-    it('returns null when banner row has no processed ImageData', async () => {
+    it('returns null metadata and linkPreviewUrl when banner row has no processed ImageData', async () => {
         const pageId = 'c0c0c0c0-e5f6-7890-abcd-ef1234567802';
         await db
             .insert('RopewikiPage', {
@@ -107,7 +107,7 @@ describe('getBannerImageMetadataForPage (integration)', () => {
             .run(conn);
 
         const meta = await getBannerImageMetadataForPage(conn, pageId);
-        expect(meta).toBeNull();
+        expect(meta).toEqual({ metadata: null, linkPreviewUrl: null });
     });
 
     it('returns metadata for first banner row by order (betaSection null)', async () => {
@@ -182,6 +182,6 @@ describe('getBannerImageMetadataForPage (integration)', () => {
             .run(conn);
 
         const meta = await getBannerImageMetadataForPage(conn, pageId);
-        expect(meta).toEqual(metaEarly);
+        expect(meta).toEqual({ metadata: metaEarly, linkPreviewUrl: null });
     });
 });

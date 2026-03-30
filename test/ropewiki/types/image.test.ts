@@ -1,7 +1,7 @@
 import { describe, it, expect } from '@jest/globals';
 import { RopewikiImage } from '../../../src/ropewiki/types/image';
 import { ImageDataEvent } from '../../../src/image-data/types/lambdaEvent';
-import { PageDataSource } from 'ropegeo-common';
+import { ImageVersion, PageDataSource } from 'ropegeo-common';
 import type * as s from 'zapatos/schema';
 
 describe('RopewikiImage', () => {
@@ -105,6 +105,20 @@ describe('RopewikiImage', () => {
             const ev = img.toImageDataEvent(false);
             expect(ev.downloadSource).toBe(false);
             expect(ev.existingProcessedImageId).toBe('eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee');
+        });
+
+        it('passes versions into ImageDataEvent when provided', () => {
+            const img = RopewikiImage.fromDbRow({
+                id: '11111111-1111-1111-1111-111111111111',
+                processedImage: null,
+                linkUrl: 'https://ropewiki.com/Image1',
+                fileUrl: 'https://ropewiki.com/files/Image1.jpg',
+                caption: null,
+                order: 1,
+            } as s.RopewikiImage.JSONSelectable);
+
+            const ev = img.toImageDataEvent(true, [ImageVersion.full]);
+            expect(ev.versions).toEqual([ImageVersion.full]);
         });
 
         it('passes existing processed image id to event when present', () => {

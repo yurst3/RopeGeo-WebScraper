@@ -1,4 +1,4 @@
-\restrict N2MiHB7X54OAIZ7yr0IuOyNqCfHL9jMvnaR3tpExiHaYJ4rndJdqR0ZYTAvTPU1
+\restrict i2Vjp4iGofNQWcQ4hzq7XABQ4c9WLboFmQhJ3ymhmARj2C8BJabstfdHjyHcSug
 
 -- Dumped from database version 18.1 (Debian 18.1-1.pgdg13+2)
 -- Dumped by pg_dump version 18.1 (Homebrew)
@@ -49,7 +49,8 @@ CREATE TABLE public."ImageData" (
     "deletedAt" timestamp without time zone,
     "allowUpdates" boolean DEFAULT true NOT NULL,
     "fullUrl" text,
-    metadata jsonb
+    metadata jsonb,
+    "linkPreviewUrl" text
 );
 
 
@@ -559,7 +560,7 @@ ALTER TABLE ONLY public."RopewikiRoute"
 -- PostgreSQL database dump complete
 --
 
-\unrestrict N2MiHB7X54OAIZ7yr0IuOyNqCfHL9jMvnaR3tpExiHaYJ4rndJdqR0ZYTAvTPU1
+\unrestrict i2Vjp4iGofNQWcQ4hzq7XABQ4c9WLboFmQhJ3ymhmARj2C8BJabstfdHjyHcSug
 
 
 --
@@ -601,4 +602,5 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20260311140000'),
     ('20260316213404'),
     ('20260317145108'),
-    ('20260317162901');
+    ('20260317162901'),
+    ('20260329120000');

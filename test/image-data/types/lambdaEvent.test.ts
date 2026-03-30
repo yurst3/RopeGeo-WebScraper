@@ -1,6 +1,6 @@
 import { describe, it, expect } from '@jest/globals';
 import { ImageDataEvent } from '../../../src/image-data/types/lambdaEvent';
-import { PageDataSource } from 'ropegeo-common';
+import { ImageVersion, PageDataSource } from 'ropegeo-common';
 import type { SqsRecord } from '@aws-lambda-powertools/parser/types';
 
 describe('ImageDataEvent', () => {
@@ -38,6 +38,33 @@ describe('ImageDataEvent', () => {
                 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
             );
             expect(event.existingProcessedImageId).toBe('aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa');
+        });
+
+        it('sets versions when provided and non-empty', () => {
+            const id = '11111111-1111-1111-1111-111111111111';
+            const sourceUrl = 'https://ropewiki.com/x.jpg';
+            const event = new ImageDataEvent(PageDataSource.Ropewiki, id, sourceUrl, true, undefined, [
+                ImageVersion.linkPreview,
+            ]);
+            expect(event.versions).toEqual([ImageVersion.linkPreview]);
+        });
+
+        it('throws when versions is empty array', () => {
+            const id = '11111111-1111-1111-1111-111111111111';
+            const sourceUrl = 'https://ropewiki.com/x.jpg';
+            expect(() => {
+                new ImageDataEvent(PageDataSource.Ropewiki, id, sourceUrl, true, undefined, []);
+            }).toThrow('Invalid ImageDataEvent: versions, when provided, must be non-empty');
+        });
+
+        it('throws when versions contains unknown value', () => {
+            const id = '11111111-1111-1111-1111-111111111111';
+            const sourceUrl = 'https://ropewiki.com/x.jpg';
+            expect(() => {
+                new ImageDataEvent(PageDataSource.Ropewiki, id, sourceUrl, true, undefined, [
+                    'bogus' as ImageVersion,
+                ]);
+            }).toThrow(/unknown version/);
         });
     });
 
@@ -291,6 +318,43 @@ describe('ImageDataEvent', () => {
             }).toThrow(
                 'Invalid ImageDataEvent: existingProcessedImageId is required when downloadSource is false',
             );
+        });
+
+        it('parses versions from SQS body when valid', () => {
+            const pageDataSource = PageDataSource.Ropewiki;
+            const id = '11111111-1111-1111-1111-111111111111';
+            const sourceUrl = 'https://ropewiki.com/x.jpg';
+            const record: SqsRecord = {
+                body: JSON.stringify({
+                    pageDataSource,
+                    pageImageId: id,
+                    sourceUrl,
+                    downloadSource: true,
+                    versions: [ImageVersion.banner, ImageVersion.linkPreview],
+                }),
+            } as SqsRecord;
+
+            const event = ImageDataEvent.fromSQSEventRecord(record);
+            expect(event.versions).toEqual([ImageVersion.banner, ImageVersion.linkPreview]);
+        });
+
+        it('throws when versions is not an array of ImageVersion strings', () => {
+            const pageDataSource = PageDataSource.Ropewiki;
+            const id = '11111111-1111-1111-1111-111111111111';
+            const sourceUrl = 'https://ropewiki.com/x.jpg';
+            const record: SqsRecord = {
+                body: JSON.stringify({
+                    pageDataSource,
+                    pageImageId: id,
+                    sourceUrl,
+                    downloadSource: true,
+                    versions: ['nope'],
+                }),
+            } as SqsRecord;
+
+            expect(() => {
+                ImageDataEvent.fromSQSEventRecord(record);
+            }).toThrow('Invalid ImageDataEvent: versions must be an array of ImageVersion strings');
         });
     });
 });

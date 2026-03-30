@@ -1,5 +1,5 @@
 import type { RopewikiPageView } from 'ropegeo-common';
-import { LinkPreview, LinkPreviewImage } from 'ropegeo-common';
+import { ImageVersion, LinkPreview, LinkPreviewImage } from 'ropegeo-common';
 import { Metadata } from '../../../image-data/types/metadata';
 
 /**
@@ -74,43 +74,72 @@ function linkPreviewDescription(view: RopewikiPageView): string {
     return parts.join(', ');
 }
 
-function bannerDimensionsFromMetadata(metadata: unknown): { width: string; height: string } {
+export type BannerImageLinkContext = {
+    metadata: unknown | null;
+    linkPreviewUrl: string | null;
+};
+
+function dimensionsFromMetadata(
+    metadata: unknown,
+    version: ImageVersion,
+): { width: string; height: string } {
     if (metadata == null) {
         return { width: '', height: '' };
     }
     const m = Metadata.fromJSON(metadata);
-    const b = m.banner;
-    if (b?.dimensions) {
+    const block = m[version] ?? null;
+    if (block?.dimensions) {
         return {
-            width: String(b.dimensions.width),
-            height: String(b.dimensions.height),
+            width: String(block.dimensions.width),
+            height: String(block.dimensions.height),
         };
     }
     return { width: '', height: '' };
 }
 
+function mimeFromMetadata(metadata: unknown, version: ImageVersion): string {
+    if (metadata == null) {
+        return 'image/avif';
+    }
+    const m = Metadata.fromJSON(metadata);
+    return m[version]?.mimeType ?? 'image/avif';
+}
+
 /**
- * Builds {@link LinkPreview} for social/crawler use from a loaded page view and optional raw
- * ImageData.metadata for the banner row (for og:image dimensions).
+ * Builds {@link LinkPreview} for social/crawler use from a loaded page view and banner ImageData fields.
  */
 export function buildLinkPreviewFromPageView(
     view: RopewikiPageView,
-    bannerMetadata: unknown | null,
+    banner: BannerImageLinkContext | null,
 ): LinkPreview {
     const title = linkPreviewTitle(view);
     const description = linkPreviewDescription(view);
 
     const bannerUrl = view.bannerImage?.bannerUrl ?? null;
+    const linkPreviewUrlFromPage = (
+        view.bannerImage as { linkPreviewUrl?: string | null } | null | undefined
+    )?.linkPreviewUrl;
+    const linkPreviewUrl =
+        (linkPreviewUrlFromPage != null && linkPreviewUrlFromPage !== ''
+            ? linkPreviewUrlFromPage
+            : null) ??
+        (banner?.linkPreviewUrl != null && banner.linkPreviewUrl !== '' ? banner.linkPreviewUrl : null);
+
+    const imageUrl =
+        linkPreviewUrl != null && linkPreviewUrl !== ''
+            ? linkPreviewUrl
+            : bannerUrl != null && bannerUrl !== ''
+              ? bannerUrl
+              : null;
+
     let image: LinkPreviewImage | null = null;
-    if (bannerUrl != null && bannerUrl !== '') {
-        const { width, height } = bannerDimensionsFromMetadata(bannerMetadata);
-        image = new LinkPreviewImage(
-            bannerUrl,
-            height,
-            width,
-            'image/avif',
-            title,
-        );
+    if (imageUrl != null && imageUrl !== '') {
+        const useLinkPreview = imageUrl === linkPreviewUrl && linkPreviewUrl !== null && linkPreviewUrl !== '';
+        const metaVersion = useLinkPreview ? ImageVersion.linkPreview : ImageVersion.banner;
+        const metaSource = banner?.metadata ?? null;
+        const { width, height } = dimensionsFromMetadata(metaSource, metaVersion);
+        const mime = mimeFromMetadata(metaSource, metaVersion);
+        image = new LinkPreviewImage(imageUrl, height, width, mime, title);
     }
 
     return new LinkPreview(title, description, image, 'RopeGeo', 'website');

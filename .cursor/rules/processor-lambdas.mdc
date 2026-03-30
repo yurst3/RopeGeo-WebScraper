@@ -35,7 +35,7 @@ Use this rule when adding or changing **processor** Lambdas: those that read fro
 
 ## 5. Reference implementations
 
-- **ImageProcessor**: `src/image-data/sqs/handleImageProcessorSQSMessages.ts`, `src/image-data/main.ts`, `src/image-data/util/convertToAvif.ts` (worker + abortSignal).
+- **ImageProcessor**: `src/image-data/sqs/handleImageProcessorSQSMessages.ts`, `src/image-data/main.ts`, `src/image-data/util/convertSource.ts` / `convertSourceWorker.ts` (worker + abortSignal).
 - **MapDataProcessor**: `src/map-data/sqs/handleMapDataSQSMessages.ts`, `src/map-data/main.ts`, `src/map-data/processors/processMapData.ts`, `src/map-data/http/downloadSourceFile.ts` (abortSignal → `httpRequest`).
 - **RopewikiPageProcessor**: `src/ropewiki/sqs/handleProcessPageSQSMessages.ts`, `src/ropewiki/processors/processPage.ts`.
 - **Helper**: `ropegeo-common/helpers/timeoutAfter`, `ropegeo-common/helpers/httpRequest` (abortSignal support).

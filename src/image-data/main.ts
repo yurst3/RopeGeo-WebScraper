@@ -1,3 +1,4 @@
+import { randomUUID } from 'crypto';
 import { PoolClient } from 'pg';
 import { processImageData } from './processors/processImageData';
 import upsertImageData from './database/upsertImageData';
@@ -25,10 +26,14 @@ export const main = async (
     client: PoolClient,
     abortSignal?: AbortSignal,
 ): Promise<void> => {
+    const imageDataId = imageDataEvent.existingProcessedImageId ?? randomUUID();
+
     const imageData = await processImageData(
         imageDataEvent,
         saveImageDataHookFn,
         logger,
+        imageDataId,
+        client,
         abortSignal,
     );
 
@@ -41,8 +46,8 @@ export const main = async (
     }
 
     const upserted = await upsertImageData(client, imageData);
-    const imageDataId = upserted.id;
-    if (!imageDataId) {
+    const persistedId = upserted.id;
+    if (!persistedId) {
         throw new Error('upsertImageData returned ImageData without id');
     }
 
@@ -50,6 +55,6 @@ export const main = async (
         client,
         imageDataEvent.pageDataSource,
         imageDataEvent.pageImageId,
-        imageDataId,
+        persistedId,
     );
 };

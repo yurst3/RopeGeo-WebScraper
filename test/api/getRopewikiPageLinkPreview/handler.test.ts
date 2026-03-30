@@ -138,11 +138,15 @@ describe('getRopewikiPageLinkPreview handler', () => {
             }),
         );
         mockGetBannerImageMetadataForPage.mockResolvedValue({
-            banner: {
-                sizeKB: 10,
-                dimensions: { width: 800, height: 400 },
-                orientation: 1,
+            metadata: {
+                banner: {
+                    sizeKB: 10,
+                    dimensions: { width: 800, height: 400 },
+                    orientation: 1,
+                    mimeType: 'image/avif',
+                },
             },
+            linkPreviewUrl: null,
         });
 
         const result = await handler({ pathParameters: { id } }, {});

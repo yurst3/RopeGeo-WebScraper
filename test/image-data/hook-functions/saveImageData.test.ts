@@ -1,4 +1,5 @@
 import { describe, it, expect, beforeEach, jest } from '@jest/globals';
+import { ImageVersion } from 'ropegeo-common';
 import {
     lambdaSaveImageData,
     nodeSaveImageData,
@@ -28,7 +29,15 @@ describe('saveImageData', () => {
     const bannerBuffer = Buffer.from('banner');
     const fullBuffer = Buffer.from('full');
     const losslessBuffer = Buffer.from('lossless');
+    const linkPreviewBuffer = Buffer.from('link');
     const metadata = new Metadata();
+    const buffers = {
+        [ImageVersion.preview]: previewBuffer,
+        [ImageVersion.linkPreview]: linkPreviewBuffer,
+        [ImageVersion.banner]: bannerBuffer,
+        [ImageVersion.full]: fullBuffer,
+        [ImageVersion.lossless]: losslessBuffer,
+    };
     let logger: ProgressLogger;
 
     beforeEach(() => {
@@ -47,70 +56,53 @@ describe('saveImageData', () => {
         it('throws when IMAGE_BUCKET_NAME is not set', async () => {
             delete process.env.IMAGE_BUCKET_NAME;
             await expect(
-                lambdaSaveImageData(
-                    imageDataId,
-                    sourceUrl,
-                    previewBuffer,
-                    bannerBuffer,
-                    fullBuffer,
-                    losslessBuffer,
-                    metadata,
-                    logger,
-                ),
+                lambdaSaveImageData(imageDataId, sourceUrl, buffers, metadata, logger),
             ).rejects.toThrow('IMAGE_BUCKET_NAME environment variable is not set');
             expect(mockUploadImageDataToS3).not.toHaveBeenCalled();
         });
 
         it('when local, skips upload and returns ImageData with placeholder URLs', async () => {
             process.env.DEV_ENVIRONMENT = 'local';
-            const result = await lambdaSaveImageData(
-                imageDataId,
-                sourceUrl,
-                previewBuffer,
-                bannerBuffer,
-                fullBuffer,
-                losslessBuffer,
-                metadata,
-                logger,
-            );
+            const result = await lambdaSaveImageData(imageDataId, sourceUrl, buffers, metadata, logger);
             expect(logger.logProgress).toHaveBeenCalledWith(`Skipping S3 upload for image data ${imageDataId} (local)`);
             expect(mockUploadImageDataToS3).not.toHaveBeenCalled();
             expect(result).toBeInstanceOf(ImageData);
             expect(result.id).toBe(imageDataId);
             expect(result.sourceUrl).toBe(sourceUrl);
             expect(result.previewUrl).toContain('/preview.avif');
+            expect(result.linkPreviewUrl).toContain('/linkPreview.jpg');
             expect(result.bannerUrl).toContain('/banner.avif');
             expect(result.fullUrl).toContain('/full.avif');
             expect(result.losslessUrl).toContain('/lossless.avif');
             expect(result.errorMessage).toBeUndefined();
         });
 
-        it('when not local, uploads all four and returns ImageData with URLs', async () => {
+        it('when not local, uploads all variants and returns ImageData with URLs', async () => {
             delete process.env.DEV_ENVIRONMENT;
             mockUploadImageDataToS3
                 .mockResolvedValueOnce('https://bucket.s3.amazonaws.com/id/preview.avif')
+                .mockResolvedValueOnce('https://bucket.s3.amazonaws.com/id/linkPreview.jpg')
                 .mockResolvedValueOnce('https://bucket.s3.amazonaws.com/id/banner.avif')
                 .mockResolvedValueOnce('https://bucket.s3.amazonaws.com/id/full.avif')
                 .mockResolvedValueOnce('https://bucket.s3.amazonaws.com/id/lossless.avif');
-            const result = await lambdaSaveImageData(
-                imageDataId,
-                sourceUrl,
-                previewBuffer,
-                bannerBuffer,
-                fullBuffer,
-                losslessBuffer,
-                metadata,
-                logger,
-            );
-            expect(mockUploadImageDataToS3).toHaveBeenCalledTimes(4);
+            const result = await lambdaSaveImageData(imageDataId, sourceUrl, buffers, metadata, logger);
+            expect(mockUploadImageDataToS3).toHaveBeenCalledTimes(5);
             expect(mockUploadImageDataToS3).toHaveBeenNthCalledWith(
                 1,
                 `${imageDataId}/preview.avif`,
                 previewBuffer,
-                undefined,
+                'image/avif',
+                expect.any(Array),
+            );
+            expect(mockUploadImageDataToS3).toHaveBeenNthCalledWith(
+                2,
+                `${imageDataId}/linkPreview.jpg`,
+                linkPreviewBuffer,
+                'image/jpeg',
                 expect.any(Array),
             );
             expect(result.previewUrl).toBe('https://bucket.s3.amazonaws.com/id/preview.avif');
+            expect(result.linkPreviewUrl).toBe('https://bucket.s3.amazonaws.com/id/linkPreview.jpg');
             expect(result.bannerUrl).toBe('https://bucket.s3.amazonaws.com/id/banner.avif');
             expect(result.fullUrl).toBe('https://bucket.s3.amazonaws.com/id/full.avif');
             expect(result.losslessUrl).toBe('https://bucket.s3.amazonaws.com/id/lossless.avif');
@@ -124,45 +116,28 @@ describe('saveImageData', () => {
                 if (errors) errors.push(key);
                 return Promise.resolve(undefined);
             });
-            const result = await lambdaSaveImageData(
-                imageDataId,
-                sourceUrl,
-                previewBuffer,
-                bannerBuffer,
-                fullBuffer,
-                losslessBuffer,
-                metadata,
-                logger,
-            );
+            const result = await lambdaSaveImageData(imageDataId, sourceUrl, buffers, metadata, logger);
             expect(result.previewUrl).toBeUndefined();
+            expect(result.linkPreviewUrl).toBeUndefined();
             expect(result.bannerUrl).toBeUndefined();
             expect(result.fullUrl).toBeUndefined();
             expect(result.losslessUrl).toBeUndefined();
             expect(result.errorMessage).toContain('preview.avif');
-            expect(result.errorMessage).toContain('banner.avif');
-            expect(result.errorMessage).toContain('full.avif');
-            expect(result.errorMessage).toContain('lossless.avif');
+            expect(result.errorMessage).toContain('linkPreview.jpg');
             expect(logger.logError).toHaveBeenCalledWith(`Image data ${imageDataId}: ${result.errorMessage}`);
         });
     });
 
     describe('nodeSaveImageData', () => {
         it('writes files and returns ImageData with file:// URLs', async () => {
-            const result = await nodeSaveImageData(
-                imageDataId,
-                sourceUrl,
-                previewBuffer,
-                bannerBuffer,
-                fullBuffer,
-                losslessBuffer,
-                metadata,
-                logger,
-            );
+            const result = await nodeSaveImageData(imageDataId, sourceUrl, buffers, metadata, logger);
             expect(result).toBeInstanceOf(ImageData);
             expect(result.id).toBe(imageDataId);
             expect(result.sourceUrl).toBe(sourceUrl);
             expect(result.previewUrl).toMatch(/^file:\/\//);
             expect(result.previewUrl).toContain('preview.avif');
+            expect(result.linkPreviewUrl).toMatch(/^file:\/\//);
+            expect(result.linkPreviewUrl).toContain('linkPreview.jpg');
             expect(result.bannerUrl).toMatch(/^file:\/\//);
             expect(result.fullUrl).toMatch(/^file:\/\//);
             expect(result.losslessUrl).toMatch(/^file:\/\//);

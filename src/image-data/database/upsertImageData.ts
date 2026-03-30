@@ -4,7 +4,8 @@ import ImageData from '../types/imageData';
 
 /**
  * Insert or update an ImageData record. ON CONFLICT (id) DO UPDATE.
- * When allowUpdates = false on conflict, the update is skipped.
+ * URL columns use COALESCE(EXCLUDED, existing) so null/omitted values preserve prior URLs on partial runs.
+ * metadata is merged with existing jsonb (shallow merge at top level).
  */
 const upsertImageData = async (
     conn: db.Queryable,
@@ -12,14 +13,15 @@ const upsertImageData = async (
 ): Promise<ImageData> => {
     const row = imageData.toDbRow();
 
-    const returned = await db.sql<db.SQL, (s.ImageData.JSONSelectable)[]>`
-        INSERT INTO "ImageData" ("id", "previewUrl", "bannerUrl", "fullUrl", "losslessUrl", "sourceUrl", "errorMessage", "metadata", "updatedAt", "deletedAt")
+    const returned = await db.sql<db.SQL, s.ImageData.JSONSelectable[]>`
+        INSERT INTO "ImageData" ("id", "previewUrl", "bannerUrl", "fullUrl", "losslessUrl", "linkPreviewUrl", "sourceUrl", "errorMessage", "metadata", "updatedAt", "deletedAt")
         VALUES (
             COALESCE(${db.param(row.id)}::uuid, gen_random_uuid()),
             ${db.param(row.previewUrl)},
             ${db.param(row.bannerUrl)},
             ${db.param(row.fullUrl)},
             ${db.param(row.losslessUrl)},
+            ${db.param(row.linkPreviewUrl)},
             ${db.param(row.sourceUrl)},
             ${db.param(row.errorMessage)},
             ${db.param(row.metadata)}::jsonb,
@@ -27,13 +29,14 @@ const upsertImageData = async (
             ${db.param(row.deletedAt)}
         )
         ON CONFLICT (id) DO UPDATE SET
-            "previewUrl" = EXCLUDED."previewUrl",
-            "bannerUrl" = EXCLUDED."bannerUrl",
-            "fullUrl" = EXCLUDED."fullUrl",
-            "losslessUrl" = EXCLUDED."losslessUrl",
-            "sourceUrl" = EXCLUDED."sourceUrl",
+            "previewUrl" = COALESCE(EXCLUDED."previewUrl", "ImageData"."previewUrl"),
+            "bannerUrl" = COALESCE(EXCLUDED."bannerUrl", "ImageData"."bannerUrl"),
+            "fullUrl" = COALESCE(EXCLUDED."fullUrl", "ImageData"."fullUrl"),
+            "losslessUrl" = COALESCE(EXCLUDED."losslessUrl", "ImageData"."losslessUrl"),
+            "linkPreviewUrl" = COALESCE(EXCLUDED."linkPreviewUrl", "ImageData"."linkPreviewUrl"),
+            "sourceUrl" = COALESCE(EXCLUDED."sourceUrl", "ImageData"."sourceUrl"),
             "errorMessage" = EXCLUDED."errorMessage",
-            "metadata" = EXCLUDED."metadata",
+            "metadata" = COALESCE("ImageData"."metadata", '{}'::jsonb) || COALESCE(EXCLUDED."metadata", '{}'::jsonb),
             "updatedAt" = EXCLUDED."updatedAt"
         WHERE "ImageData"."allowUpdates" = true
         RETURNING *
