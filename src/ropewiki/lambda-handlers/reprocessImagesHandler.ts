@@ -18,7 +18,6 @@ export const reprocessImagesHandler = async (
 
     let reprocessImagesEvent: ReprocessImagesEvent;
     try {
-        console.log('Event', event);
         reprocessImagesEvent = ReprocessImagesEvent.fromLambdaEvent(event);
     } catch (err) {
         return {

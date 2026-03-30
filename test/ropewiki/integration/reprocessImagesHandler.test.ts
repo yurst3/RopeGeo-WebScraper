@@ -6,10 +6,16 @@ import { ImageDataEvent } from '../../../src/image-data/types/lambdaEvent';
 import getRopewikiImagesToProcess from '../../../src/ropewiki/database/getRopewikiImagesToProcess';
 import { reprocessImagesHandler } from '../../../src/ropewiki/lambda-handlers/reprocessImagesHandler';
 
-jest.mock('../../../src/image-data/sqs/sendImageProcessorSQSMessage', () => ({
-    __esModule: true,
-    default: jest.fn(async () => {}),
-}));
+jest.mock('../../../src/image-data/sqs/sendImageProcessorSQSMessage', () => {
+    const actual = jest.requireActual<
+        typeof import('../../../src/image-data/sqs/sendImageProcessorSQSMessage')
+    >('../../../src/image-data/sqs/sendImageProcessorSQSMessage');
+    return {
+        __esModule: true,
+        serializeImageDataEventForQueue: actual.serializeImageDataEventForQueue,
+        default: jest.fn(async () => {}),
+    };
+});
 
 const mockSendImageProcessorSQSMessage = jest.mocked(sendImageProcessorSQSMessage);
 
