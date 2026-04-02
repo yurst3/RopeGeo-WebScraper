@@ -1,5 +1,5 @@
 import type * as s from 'zapatos/schema';
-import { PageDataSource, type ImageVersion } from 'ropegeo-common';
+import { PageDataSource, type ImageVersion } from 'ropegeo-common/classes';
 import { ImageDataEvent } from '../../image-data/types/lambdaEvent';
 
 /** Plain row shape returned by toDbRow (insert columns we supply). */

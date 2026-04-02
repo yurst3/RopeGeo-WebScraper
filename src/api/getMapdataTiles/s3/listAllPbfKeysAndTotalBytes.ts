@@ -1,4 +1,4 @@
-import listS3Objects from 'ropegeo-common/helpers/s3/listS3Objects';
+import { listS3Objects } from 'ropegeo-common/helpers';
 
 /**
  * Lists all `.pbf` object keys under `tiles/{mapDataId}/` and sums their byte sizes.

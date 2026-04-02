@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, jest } from '@jest/globals';
-import { PageDataSource, Route, RouteType } from 'ropegeo-common';
+import { PageDataSource, Route, RouteType } from 'ropegeo-common/classes';
 import { handler } from '../../../src/api/getRoutes/handler';
 
 let mockGetDatabaseConnection: jest.MockedFunction<typeof import('../../../src/helpers/getDatabaseConnection').default>;
@@ -94,17 +94,19 @@ describe('getRoutes handler', () => {
         expect(body.error).toMatch(/source|region/);
     });
 
-    it('returns 400 when region is present but source is absent', async () => {
+    it('returns 200 when region is present without source (all sources in subtree)', async () => {
+        const regionId = 'a1b2c3d4-e5f6-7890-abcd-ef1234567890';
+        mockGetRoutes.mockResolvedValue([]);
+
         const result = await handler(
-            { queryStringParameters: { region: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890' } },
+            { queryStringParameters: { region: regionId } },
             {},
         );
 
-        expect(mockGetRoutes).not.toHaveBeenCalled();
-        expect(result.statusCode).toBe(400);
-        const body = JSON.parse(result.body);
-        expect(body.message).toBe('Bad Request');
-        expect(body.error).toMatch(/source|region/);
+        expect(mockGetRoutes).toHaveBeenCalledTimes(1);
+        expect(result.statusCode).toBe(200);
+        const routesParams = mockGetRoutes.mock.calls[0]![1];
+        expect(routesParams.region).toEqual({ id: regionId, source: null });
     });
 
     it('returns 400 when source is invalid', async () => {
@@ -146,7 +148,7 @@ describe('getRoutes handler', () => {
         const routesParams = mockGetRoutes.mock.calls[0]![1];
         expect(routesParams).toBeDefined();
         expect(routesParams.region).not.toBeNull();
-        expect(routesParams.region!.source).toBe(PageDataSource.Ropewiki);
+        expect(routesParams.region!.source).toEqual([PageDataSource.Ropewiki]);
         expect(routesParams.region!.id).toBe(regionId);
         expect(result.statusCode).toBe(200);
         const body = JSON.parse(result.body);

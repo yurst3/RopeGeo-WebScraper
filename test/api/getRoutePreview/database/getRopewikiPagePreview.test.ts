@@ -8,7 +8,7 @@ import {
     afterEach,
 } from '@jest/globals';
 import * as db from 'zapatos/db';
-import { PageDataSource } from 'ropegeo-common';
+import { PageDataSource } from 'ropegeo-common/classes';
 import getRopewikiPagePreview from '../../../../src/api/getRoutePreview/database/getRopewikiPagePreview';
 import { RopewikiRoute } from '../../../../src/types/pageRoute';
 
@@ -96,7 +96,13 @@ describe('getRopewikiPagePreview (integration)', () => {
             aka: [],
             rating: 4.5,
             ratingCount: 12,
-            difficulty: { technical: '3', water: 'A', time: 'II', risk: 'PG13' },
+            difficulty: expect.objectContaining({
+                technical: '3',
+                water: 'A',
+                time: 'II',
+                risk: null,
+                effectiveRisk: 'PG13',
+            }),
             permit: 'No',
             externalLink: 'https://ropewiki.com/Bear_Creek_Canyon',
         });

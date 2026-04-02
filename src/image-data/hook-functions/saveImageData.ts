@@ -1,10 +1,10 @@
 import { mkdir, writeFile } from 'fs/promises';
 import { join } from 'path';
 import { pathToFileURL } from 'url';
-import { ImageVersion, VERSION_FORMAT } from 'ropegeo-common';
+import { ImageVersion, VERSION_FORMAT } from 'ropegeo-common/classes';
 import ImageData from '../types/imageData';
 import type { Metadata } from '../types/metadata';
-import ProgressLogger from 'ropegeo-common/helpers/progressLogger';
+import { ProgressLogger } from 'ropegeo-common/helpers';
 import uploadImageDataToS3, { buildImagePublicUrl } from '../s3/uploadImageDataToS3';
 import { ALL_IMAGE_VERSIONS, fileExtensionForImageVersion } from '../util/imageVersionFile';
 

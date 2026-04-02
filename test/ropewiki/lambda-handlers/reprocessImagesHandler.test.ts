@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, jest } from '@jest/globals';
-import { ImageVersion, PageDataSource } from 'ropegeo-common';
+import { ImageVersion, PageDataSource } from 'ropegeo-common/classes';
 import { reprocessImagesHandler } from '../../../src/ropewiki/lambda-handlers/reprocessImagesHandler';
 import { ImageDataEvent } from '../../../src/image-data/types/lambdaEvent';
 import { RopewikiImage } from '../../../src/ropewiki/types/image';

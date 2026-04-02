@@ -5,12 +5,17 @@ import type { SqsRecord } from '@aws-lambda-powertools/parser/types';
 // Mock dependencies
 jest.mock('../../../src/map-data/main');
 jest.mock('../../../src/map-data/types/lambdaEvent');
-jest.mock('ropegeo-common/helpers/progressLogger');
+jest.mock('ropegeo-common/helpers', () => ({
+    __esModule: true,
+    ProgressLogger: jest.fn(),
+    timeoutAfter: (_ms: number, fn: (signal: AbortSignal) => unknown) =>
+        fn(AbortSignal.timeout(60_000)),
+}));
 jest.mock('../../../src/map-data/sqs/deleteMapDataSQSMessage');
 
 const mockMain = require('../../../src/map-data/main').main as jest.MockedFunction<typeof import('../../../src/map-data/main').main>;
 const MapDataEvent = require('../../../src/map-data/types/lambdaEvent').MapDataEvent;
-const ProgressLogger = require('ropegeo-common/helpers/progressLogger').default;
+const ProgressLogger = require('ropegeo-common/helpers').ProgressLogger;
 const mockDeleteMapDataSQSMessage = require('../../../src/map-data/sqs/deleteMapDataSQSMessage').default as jest.MockedFunction<typeof import('../../../src/map-data/sqs/deleteMapDataSQSMessage').default>;
 
 const LAMBDA_TIMEOUT_MS = 900_000;

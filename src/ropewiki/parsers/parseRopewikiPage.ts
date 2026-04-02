@@ -1,7 +1,7 @@
 import { RopewikiBetaSection, RopewikiImage } from '../types/page';
 import uniqBy from 'lodash/uniqBy';
 import { launchBrowser } from '../../helpers/browserLauncher';
-import { timeoutAfter } from 'ropegeo-common/helpers/timeoutAfter';
+import { timeoutAfter } from 'ropegeo-common/helpers';
 
 /** Plain shape returned from browser eval; converted to class instances before returning from parseRopewikiPage. */
 type BetaSectionParse = { title: string; text: string; order: number };

@@ -42,22 +42,23 @@ describe('search handler', () => {
         mockSearchRopewiki.mockResolvedValue({ results: [], nextCursor: '' });
     });
 
-    it('returns 400 when name is missing', async () => {
+    it('returns 200 when name is missing (similarity + empty name → empty results)', async () => {
         const result = await handler({ queryStringParameters: {} }, {});
 
-        expect(mockSearchRopewiki).not.toHaveBeenCalled();
-        expect(result.statusCode).toBe(400);
-        expect(JSON.parse(result.body).error).toContain('name');
+        expect(mockSearchRopewiki).toHaveBeenCalledTimes(1);
+        expect(result.statusCode).toBe(200);
+        expect(JSON.parse(result.body)).toEqual({ results: [], nextCursor: '' });
     });
 
-    it('returns 400 when name is empty string', async () => {
+    it('returns 200 when name is only whitespace (treated as empty)', async () => {
         const result = await handler(
             { queryStringParameters: { name: '   ' } },
             {},
         );
 
-        expect(mockSearchRopewiki).not.toHaveBeenCalled();
-        expect(result.statusCode).toBe(400);
+        expect(mockSearchRopewiki).toHaveBeenCalledTimes(1);
+        expect(result.statusCode).toBe(200);
+        expect(JSON.parse(result.body)).toEqual({ results: [], nextCursor: '' });
     });
 
     it('returns 400 when similarity is invalid', async () => {
@@ -138,17 +139,19 @@ describe('search handler', () => {
             {},
         );
 
-        expect(mockSearchRopewiki).toHaveBeenCalledWith(mockClient, expect.objectContaining({
-            name: 'Imlay',
-            similarityThreshold: 0.5,
-            includePages: true,
-            includeRegions: true,
-            includeAka: true,
-            regionId: null,
-            order: 'similarity',
-            limit: 20,
-            cursor: null,
-        }));
+        expect(mockSearchRopewiki).toHaveBeenCalledWith(
+            mockClient,
+            expect.objectContaining({
+                name: 'Imlay',
+                similarityThreshold: 0.5,
+                includePages: true,
+                includeRegions: true,
+                includeAka: true,
+                order: 'similarity',
+                limit: 20,
+                cursor: null,
+            }),
+        );
         expect(result.statusCode).toBe(200);
         expect(result.headers).toEqual({
             'Content-Type': 'application/json',
@@ -187,7 +190,6 @@ describe('search handler', () => {
                     similarity: '0.3',
                     'include-pages': 'true',
                     'include-regions': 'false',
-                    region: 'c3d4e5f6-a7b8-9012-cdef-123456789012',
                     order: 'quality',
                     limit: '10',
                     cursor: validCursor,
@@ -196,16 +198,18 @@ describe('search handler', () => {
             {},
         );
 
-        expect(mockSearchRopewiki).toHaveBeenCalledWith(mockClient, expect.objectContaining({
-            name: 'Imlay',
-            similarityThreshold: 0.3,
-            includePages: true,
-            includeRegions: false,
-            includeAka: true,
-            regionId: 'c3d4e5f6-a7b8-9012-cdef-123456789012',
-            order: 'quality',
-            limit: 10,
-        }));
+        expect(mockSearchRopewiki).toHaveBeenCalledWith(
+            mockClient,
+            expect.objectContaining({
+                name: 'Imlay',
+                similarityThreshold: 0.3,
+                includePages: true,
+                includeRegions: false,
+                includeAka: true,
+                order: 'quality',
+                limit: 10,
+            }),
+        );
     });
 
     it('returns 400 when cursor is invalid', async () => {

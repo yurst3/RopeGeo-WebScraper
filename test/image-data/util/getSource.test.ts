@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, jest } from '@jest/globals';
-import { PageDataSource } from 'ropegeo-common';
+import { PageDataSource } from 'ropegeo-common/classes';
 import { ImageDataEvent } from '../../../src/image-data/types/lambdaEvent';
 import getSource, {
     NO_LOSSLESS_WHEN_SKIPPING_DOWNLOAD_MESSAGE,

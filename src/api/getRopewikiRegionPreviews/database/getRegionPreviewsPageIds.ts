@@ -1,5 +1,5 @@
 import * as db from 'zapatos/db';
-import { RegionPreviewsCursor, RopewikiRegionPreviewsParams } from 'ropegeo-common';
+import { RegionPreviewsCursor, RopewikiRegionPreviewsParams } from 'ropegeo-common/classes';
 
 type PaginationRow = { type: string; id: string; sort_key: number };
 

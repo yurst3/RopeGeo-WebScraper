@@ -1,12 +1,12 @@
 import { describe, it, expect, beforeEach, afterEach, jest } from '@jest/globals';
 import deleteImageProcessorSQSMessage from '../../../src/image-data/sqs/deleteImageProcessorSQSMessage';
 
-jest.mock('ropegeo-common/helpers/sqs/deleteSQSMessage', () => ({
+jest.mock('ropegeo-common/helpers', () => ({
     __esModule: true,
-    default: jest.fn().mockResolvedValue(undefined),
+    deleteSQSMessage: jest.fn().mockResolvedValue(undefined),
 }));
 
-const mockDeleteSQSMessage = require('ropegeo-common/helpers/sqs/deleteSQSMessage').default as jest.Mock;
+const mockDeleteSQSMessage = require('ropegeo-common/helpers').deleteSQSMessage as jest.Mock;
 
 describe('deleteImageProcessorSQSMessage', () => {
     const originalEnv = process.env;

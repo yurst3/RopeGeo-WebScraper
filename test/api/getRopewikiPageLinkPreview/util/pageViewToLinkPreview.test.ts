@@ -1,13 +1,13 @@
 import { describe, it, expect } from '@jest/globals';
-import type { RopewikiPageView } from 'ropegeo-common';
-import { Difficulty } from 'ropegeo-common';
+import type { RopewikiPageView } from 'ropegeo-common/classes';
+import { AcaDifficulty } from 'ropegeo-common/classes';
 import {
     buildLinkPreviewFromPageView,
     formatDifficultyForLinkPreview,
 } from '../../../../src/api/getRopewikiPageLinkPreview/util/pageViewToLinkPreview';
 
 function baseView(overrides: Partial<RopewikiPageView> = {}): RopewikiPageView {
-    const difficulty = new Difficulty('3', 'A', 'II', null);
+    const difficulty = new AcaDifficulty('3', 'A', 'II', null);
     return {
         name: 'X',
         aka: [],
@@ -44,8 +44,8 @@ function baseView(overrides: Partial<RopewikiPageView> = {}): RopewikiPageView {
 
 describe('pageViewToLinkPreview', () => {
     describe('formatDifficultyForLinkPreview', () => {
-        it('joins technical water time and risk', () => {
-            const d = new Difficulty('3', 'A', 'II', 'PG13');
+        it('joins technical water time and effective risk', () => {
+            const d = new AcaDifficulty('3', 'A', 'II', 'PG13');
             const v = baseView({ difficulty: d });
             expect(formatDifficultyForLinkPreview(v)).toBe('3A II PG13');
         });

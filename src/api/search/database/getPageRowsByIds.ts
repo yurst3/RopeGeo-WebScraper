@@ -1,5 +1,5 @@
 import * as db from 'zapatos/db';
-import type { GetRopewikiPagePreviewRow } from 'ropegeo-common';
+import type { GetRopewikiPagePreviewRow } from 'ropegeo-common/classes';
 
 export type PageRow = GetRopewikiPagePreviewRow & {
     mapData: string | null;
@@ -10,19 +10,20 @@ type SqlRow = PageRow & { pageId: string; aka?: string[] };
 
 /**
  * Fetches full page preview rows (for PagePreview) for the given page ids.
- * When includeAka is false, filters by page name similarity so only pages matching the
- * threshold are returned. When includeAka is true, returns all requested ids (getSearchPageIds
- * already filtered by page name or AKA name).
+ * When `applyNameSimilarity` is true and `includeAka` is false, filters by page name similarity.
+ * When `includeAka` is true, returns all requested ids (getSearchPageIds already filtered names).
+ * Set `applyNameSimilarity` false for quality global listing or distance order.
  */
 async function getPageRowsByIds(
     conn: db.Queryable,
     name: string,
     similarityThreshold: number,
     pageIds: string[],
-    options?: { includeAka?: boolean },
+    options?: { includeAka?: boolean; applyNameSimilarity?: boolean },
 ): Promise<Map<string, PageRow>> {
     if (pageIds.length === 0) return new Map();
-    const filterByPageName = options?.includeAka !== true;
+    const applyNameSimilarity = options?.applyNameSimilarity !== false;
+    const filterByPageName = options?.includeAka !== true && applyNameSimilarity;
     const rows = await db.sql<db.SQL, SqlRow[]>`
         SELECT
             p.id AS "pageId",

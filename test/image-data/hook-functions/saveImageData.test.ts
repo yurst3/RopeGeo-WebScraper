@@ -1,12 +1,12 @@
 import { describe, it, expect, beforeEach, jest } from '@jest/globals';
-import { ImageVersion } from 'ropegeo-common';
+import { ImageVersion } from 'ropegeo-common/classes';
 import {
     lambdaSaveImageData,
     nodeSaveImageData,
 } from '../../../src/image-data/hook-functions/saveImageData';
 import ImageData from '../../../src/image-data/types/imageData';
 import { Metadata } from '../../../src/image-data/types/metadata';
-import ProgressLogger from 'ropegeo-common/helpers/progressLogger';
+import { ProgressLogger } from 'ropegeo-common/helpers';
 
 jest.mock('fs/promises', () => ({
     mkdir: jest.fn().mockResolvedValue(undefined),

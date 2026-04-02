@@ -1,11 +1,11 @@
 import { describe, it, expect, beforeEach, jest } from '@jest/globals';
 import type { PoolClient } from 'pg';
-import { ImageVersion, PageDataSource } from 'ropegeo-common';
+import { ImageVersion, PageDataSource } from 'ropegeo-common/classes';
 import { processImageData } from '../../../src/image-data/processors/processImageData';
 import ImageData from '../../../src/image-data/types/imageData';
 import { ImageDataEvent } from '../../../src/image-data/types/lambdaEvent';
 import { Metadata } from '../../../src/image-data/types/metadata';
-import ProgressLogger from 'ropegeo-common/helpers/progressLogger';
+import { ProgressLogger } from 'ropegeo-common/helpers';
 import { ALL_IMAGE_VERSIONS } from '../../../src/image-data/util/imageVersionFile';
 
 let mockGetSource: jest.MockedFunction<typeof import('../../../src/image-data/util/getSource').default>;

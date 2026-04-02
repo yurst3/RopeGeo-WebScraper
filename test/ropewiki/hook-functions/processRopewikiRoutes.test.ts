@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, afterEach, jest } from '@jest/globals
 import { nodeProcessRopewikiRoutes, lambdaProcessRopewikiRoutes } from '../../../src/ropewiki/hook-functions/processRopewikiRoutes';
 import { RopewikiRoute } from '../../../src/types/pageRoute';
 import { MapDataEvent } from '../../../src/map-data/types/lambdaEvent';
-import { Route, RouteType } from 'ropegeo-common';
+import { Route, RouteType } from 'ropegeo-common/classes';
 import RopewikiPage from '../../../src/ropewiki/types/page';
 
 // Mock map-data/main
@@ -29,7 +29,7 @@ jest.mock('../../../src/helpers/getDatabaseConnection', () => ({
 }));
 
 // Mock ProgressLogger
-jest.mock('ropegeo-common/helpers/progressLogger', () => {
+jest.mock('ropegeo-common/helpers', () => {
     const mockSetChunk = jest.fn();
     const mockLogProgress = jest.fn();
     const mockLogError = jest.fn();
@@ -40,7 +40,7 @@ jest.mock('ropegeo-common/helpers/progressLogger', () => {
     }));
     return {
         __esModule: true,
-        default: MockProgressLogger,
+        ProgressLogger: MockProgressLogger,
     };
 });
 
@@ -70,8 +70,8 @@ describe('processRopewikiRoutes hook functions', () => {
         mockProcessPageRouteAndMapData = mapDataMain.main;
         mockProcessPageRouteAndMapData.mockResolvedValue(undefined);
         
-        const progressLogger = jest.requireMock('ropegeo-common/helpers/progressLogger') as { default: any };
-        MockProgressLogger = progressLogger.default;
+        const progressLogger = jest.requireMock('ropegeo-common/helpers') as { ProgressLogger: any };
+        MockProgressLogger = progressLogger.ProgressLogger;
         const loggerInstance = new MockProgressLogger('test', 1);
         mockSetChunk = loggerInstance.setChunk as jest.MockedFunction<(start: number, end: number) => void>;
         mockLogProgress = loggerInstance.logProgress as jest.MockedFunction<(message: string) => void>;

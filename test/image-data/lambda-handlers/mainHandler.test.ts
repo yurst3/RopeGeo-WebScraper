@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, jest } from '@jest/globals';
 import { mainHandler } from '../../../src/image-data/lambda-handlers/mainHandler';
-import { PageDataSource } from 'ropegeo-common';
+import { PageDataSource } from 'ropegeo-common/classes';
 import type { SqsEvent, SqsRecord } from '@aws-lambda-powertools/parser/types';
 
 let mockHandleImageProcessorSQSMessages: jest.MockedFunction<typeof import('../../../src/image-data/sqs/handleImageProcessorSQSMessages').default>;
@@ -29,14 +29,15 @@ jest.mock('../../../src/helpers/getDatabaseConnection', () => ({
     default: jest.fn(() => Promise.resolve(mockPool)),
 }));
 
-jest.mock('ropegeo-common/helpers/progressLogger', () => {
-    return jest.fn().mockImplementation(() => ({
+jest.mock('ropegeo-common/helpers', () => ({
+    __esModule: true,
+    ProgressLogger: jest.fn().mockImplementation(() => ({
         setChunk: jest.fn(),
         logProgress: jest.fn(),
         logError: jest.fn(),
         getResults: jest.fn(),
-    }));
-});
+    })),
+}));
 
 const mockContext = { getRemainingTimeInMillis: () => 900_000 };
 

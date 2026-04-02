@@ -5,7 +5,7 @@ import {
     RegionMiniMap,
     RopewikiRegionView,
     RoutesParams,
-} from 'ropegeo-common';
+} from 'ropegeo-common/classes';
 import { handler } from '../../../src/api/getRopewikiRegionView/handler';
 
 let mockGetDatabaseConnection: jest.MockedFunction<typeof import('../../../src/helpers/getDatabaseConnection').default>;
@@ -78,7 +78,11 @@ describe('getRopewikiRegionView handler', () => {
 
     it('returns 200 and RopewikiRegionView with CORS headers', async () => {
         const id = 'a1b2c3d4-e5f6-7890-abcd-ef1234567890';
-        const miniMap = new RegionMiniMap(new RoutesParams(PageDataSource.Ropewiki, id));
+        const miniMap = new RegionMiniMap(
+            new RoutesParams({
+                region: { id, source: [PageDataSource.Ropewiki] },
+            }),
+        );
         const mockView = new RopewikiRegionView(
             'North America',
             new Date('2025-01-15T00:00:00.000Z'),
@@ -116,10 +120,10 @@ describe('getRopewikiRegionView handler', () => {
         expect(body.result.pageCount).toBe(120);
         expect(body.result.totalPageCount).toBe(380);
         expect(body.result.syncDate).toBe('2025-01-10T08:00:00.000Z');
-        expect(body.result.miniMap).toEqual({
+        expect(body.result.miniMap).toMatchObject({
             miniMapType: 'geojson',
             routesParams: {
-                region: { source: 'ropewiki', id },
+                region: { id, source: ['ropewiki'] },
             },
         });
         expect(body.result.overview).toEqual({
@@ -133,7 +137,11 @@ describe('getRopewikiRegionView handler', () => {
 
     it('returns 200 with null overview when region has no overview', async () => {
         const id = 'a1b2c3d4-e5f6-7890-abcd-ef1234567890';
-        const miniMap = new RegionMiniMap(new RoutesParams(PageDataSource.Ropewiki, id));
+        const miniMap = new RegionMiniMap(
+            new RoutesParams({
+                region: { id, source: [PageDataSource.Ropewiki] },
+            }),
+        );
         const mockView = new RopewikiRegionView(
             'North America',
             new Date('2025-01-15T00:00:00.000Z'),

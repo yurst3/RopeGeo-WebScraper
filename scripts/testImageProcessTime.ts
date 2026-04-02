@@ -1,10 +1,10 @@
 import { randomUUID } from 'crypto';
 import type { PoolClient } from 'pg';
-import { PageDataSource } from 'ropegeo-common';
+import { PageDataSource } from 'ropegeo-common/classes';
 import { processImageData } from '../src/image-data/processors/processImageData';
 import { nodeSaveImageData } from '../src/image-data/hook-functions/saveImageData';
 import { ImageDataEvent } from '../src/image-data/types/lambdaEvent';
-import ProgressLogger from 'ropegeo-common/helpers/progressLogger';
+import { ProgressLogger } from 'ropegeo-common/helpers';
 
 function formatElapsed(ms: number): string {
     const totalSeconds = Math.floor(ms / 1000);

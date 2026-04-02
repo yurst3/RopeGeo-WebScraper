@@ -1,7 +1,7 @@
 import * as db from 'zapatos/db';
 import type * as s from 'zapatos/schema';
-import type { RopewikiPageView } from 'ropegeo-common';
-import { Bounds, Difficulty, PageMiniMap } from 'ropegeo-common';
+import type { RopewikiPageView } from 'ropegeo-common/classes';
+import { AcaDifficulty, Bounds, PageMiniMap } from 'ropegeo-common/classes';
 import getRopewikiRegionLineage from '../../../ropewiki/database/getRopewikiRegionLineage';
 import {
     downloadBytesForBannerImage,
@@ -192,7 +192,7 @@ const getRopewikiPageView = async (
         };
     });
 
-    const difficulty = new Difficulty(
+    const difficulty = new AcaDifficulty(
         page.technicalRating,
         page.waterRating,
         page.timeRating,

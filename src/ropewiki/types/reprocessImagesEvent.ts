@@ -1,4 +1,4 @@
-import type { ImageVersion } from 'ropegeo-common';
+import type { ImageVersion } from 'ropegeo-common/classes';
 import { assertValidImageVersions } from '../../image-data/util/imageVersionFile';
 
 export type ReprocessImagesEventOptions = {

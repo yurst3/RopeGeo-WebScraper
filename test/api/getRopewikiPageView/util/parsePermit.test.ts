@@ -1,5 +1,5 @@
 import { describe, it, expect } from '@jest/globals';
-import { PermitStatus } from 'ropegeo-common';
+import { PermitStatus } from 'ropegeo-common/classes';
 import parsePermit from '../../../../src/api/getRopewikiPageView/util/parsePermit';
 
 describe('parsePermit', () => {

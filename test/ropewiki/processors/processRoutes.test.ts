@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, jest } from '@jest/globals';
 import processRoutes from '../../../src/ropewiki/processors/processRoutes';
 import RopewikiPage from '../../../src/ropewiki/types/page';
-import { Route, RouteType } from 'ropegeo-common';
+import { Route, RouteType } from 'ropegeo-common/classes';
 import type { ProcessRopewikiRoutesHookFn } from '../../../src/ropewiki/hook-functions/processRopewikiRoutes';
 import { RopewikiRoute } from '../../../src/types/pageRoute';
 

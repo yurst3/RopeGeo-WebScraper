@@ -9,7 +9,7 @@ import upsertSiteLinks from '../../../src/ropewiki/database/upsertSiteLinks';
 import setBetaSectionsDeletedAt from '../../../src/ropewiki/database/setBetaSectionsDeletedAt';
 import setImagesDeletedAt from '../../../src/ropewiki/database/setImagesDeletedAt';
 import setPageSiteLinksDeletedAt from '../../../src/ropewiki/database/setPageSiteLinksDeletedAt';
-import ProgressLogger from 'ropegeo-common/helpers/progressLogger';
+import { ProgressLogger } from 'ropegeo-common/helpers';
 import * as db from 'zapatos/db';
 import RopewikiPage from '../../../src/ropewiki/types/page';
 

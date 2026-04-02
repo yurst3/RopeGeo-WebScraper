@@ -1,7 +1,7 @@
 import { Pool } from 'pg';
 import { describe, it, expect, beforeAll, afterAll, afterEach } from '@jest/globals';
 import * as db from 'zapatos/db';
-import { RopewikiRegionImagesParams } from 'ropegeo-common';
+import { RopewikiRegionImagesParams } from 'ropegeo-common/classes';
 import {
     getRegionImagesPage,
     cursorFromRow,

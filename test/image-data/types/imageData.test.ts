@@ -1,6 +1,6 @@
 import { describe, it, expect } from '@jest/globals';
 import ImageData from '../../../src/image-data/types/imageData';
-import { ImageVersion } from 'ropegeo-common';
+import { ImageVersion } from 'ropegeo-common/classes';
 import { Metadata, Orientation } from '../../../src/image-data/types/metadata';
 import type * as s from 'zapatos/schema';
 import type * as db from 'zapatos/db';

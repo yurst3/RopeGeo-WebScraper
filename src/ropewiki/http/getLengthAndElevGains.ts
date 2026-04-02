@@ -1,5 +1,5 @@
 import chunk from 'lodash/chunk';
-import httpRequest from 'ropegeo-common/helpers/httpRequest';
+import { httpRequest } from 'ropegeo-common/helpers';
 
 export interface LengthAndElevGain {
     overallLength: number | null;

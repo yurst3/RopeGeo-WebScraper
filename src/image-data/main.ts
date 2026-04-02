@@ -5,7 +5,7 @@ import upsertImageData from './database/upsertImageData';
 import updateProcessedImageForSource from './util/updateProcessedImageForSource';
 import type { SaveImageDataHookFn } from './hook-functions/saveImageData';
 import { ImageDataEvent } from './types/lambdaEvent';
-import ProgressLogger from 'ropegeo-common/helpers/progressLogger';
+import { ProgressLogger } from 'ropegeo-common/helpers';
 
 /**
  * Processes image data: obtain source from event, convert to AVIF (preview/banner/full),

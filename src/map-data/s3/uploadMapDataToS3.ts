@@ -1,5 +1,5 @@
 import { readFile } from 'fs/promises';
-import putS3Object from 'ropegeo-common/helpers/s3/putS3Object';
+import { putS3Object } from 'ropegeo-common/helpers';
 import { buildMapDataPublicUrl } from '../util/buildMapDataPublicUrl';
 
 /**

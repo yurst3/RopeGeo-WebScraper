@@ -9,7 +9,7 @@ import upsertSiteLinks from "../database/upsertSiteLinks";
 import setBetaSectionsDeletedAt from "../database/setBetaSectionsDeletedAt";
 import setImagesDeletedAt from "../database/setImagesDeletedAt";
 import setPageSiteLinksDeletedAt from "../database/setPageSiteLinksDeletedAt";
-import ProgressLogger from 'ropegeo-common/helpers/progressLogger';
+import { ProgressLogger } from 'ropegeo-common/helpers';
 import sendImageProcessorSQSMessage from "../../image-data/sqs/sendImageProcessorSQSMessage";
 
 import RopewikiPage from "../types/page";

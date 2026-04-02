@@ -1,7 +1,7 @@
 import * as db from 'zapatos/db';
 import type * as s from 'zapatos/schema';
 import { RopewikiRoute } from '../../types/pageRoute';
-import { Route } from 'ropegeo-common';
+import { Route } from 'ropegeo-common/classes';
 import RopewikiPage from '../types/page';
 import { makeUnnestPart } from '../../helpers/makeUnnestPart';
 

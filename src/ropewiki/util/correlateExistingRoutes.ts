@@ -1,6 +1,6 @@
 import * as db from 'zapatos/db';
 import RopewikiPage from '../types/page';
-import { Route } from 'ropegeo-common';
+import { Route } from 'ropegeo-common/classes';
 
 /**
  * Correlates existing routes with pages.

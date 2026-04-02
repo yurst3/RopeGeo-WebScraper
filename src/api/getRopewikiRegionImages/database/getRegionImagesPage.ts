@@ -2,8 +2,8 @@ import * as db from 'zapatos/db';
 import {
     RegionImagesCursor,
     RopewikiRegionImagesParams,
-} from 'ropegeo-common';
-import type { RopewikiRegionImageViewRow } from 'ropegeo-common';
+} from 'ropegeo-common/classes';
+import type { RopewikiRegionImageViewRow } from 'ropegeo-common/classes';
 
 /** Build RegionImagesCursor for the next page from the last row. */
 export function cursorFromRow(row: {

@@ -11,7 +11,7 @@ jest.mock('../../../src/ropewiki/processors/processPage', () => {
 });
 
 // Mock ProgressLogger
-jest.mock('ropegeo-common/helpers/progressLogger', () => {
+jest.mock('ropegeo-common/helpers', () => {
     const mockSetChunk = jest.fn();
     const mockLogProgress = jest.fn();
     const mockLogError = jest.fn();
@@ -22,7 +22,7 @@ jest.mock('ropegeo-common/helpers/progressLogger', () => {
     }));
     return {
         __esModule: true,
-        default: MockProgressLogger,
+        ProgressLogger: MockProgressLogger,
     };
 });
 
@@ -55,8 +55,8 @@ describe('processPagesChunk hook functions', () => {
         mockProcessPage = processPageModule.processPage;
         mockProcessPage.mockResolvedValue(undefined);
 
-        const progressLogger = jest.requireMock('ropegeo-common/helpers/progressLogger') as { default: any };
-        MockProgressLogger = progressLogger.default;
+        const progressLogger = jest.requireMock('ropegeo-common/helpers') as { ProgressLogger: any };
+        MockProgressLogger = progressLogger.ProgressLogger;
         const loggerInstance = new MockProgressLogger('test', 1);
         mockSetChunk = loggerInstance.setChunk as jest.MockedFunction<(start: number, end: number) => void>;
         mockLogProgress = loggerInstance.logProgress as jest.MockedFunction<(message: string) => void>;

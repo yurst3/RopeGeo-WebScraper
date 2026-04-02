@@ -1,4 +1,4 @@
-import deleteSQSMessage from 'ropegeo-common/helpers/sqs/deleteSQSMessage';
+import { deleteSQSMessage } from 'ropegeo-common/helpers';
 
 /**
  * Deletes a message from the MapDataProcessingQueue using its receipt handle.

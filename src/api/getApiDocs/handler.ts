@@ -1,4 +1,4 @@
-import getS3Object from 'ropegeo-common/helpers/s3/getS3Object';
+import { getS3Object } from 'ropegeo-common/helpers';
 
 const ALLOWED_FILES = ['index.html', 'openapi.yaml', 'openapi.json'] as const;
 const CONTENT_TYPES: Record<(typeof ALLOWED_FILES)[number], string> = {

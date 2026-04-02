@@ -1,9 +1,9 @@
 import getDatabaseConnection from '../src/helpers/getDatabaseConnection';
-import { PageDataSource } from 'ropegeo-common';
+import { PageDataSource } from 'ropegeo-common/classes';
 import { main } from '../src/image-data/main';
 import { nodeSaveImageData } from '../src/image-data/hook-functions/saveImageData';
 import { ImageDataEvent } from '../src/image-data/types/lambdaEvent';
-import ProgressLogger from 'ropegeo-common/helpers/progressLogger';
+import { ProgressLogger } from 'ropegeo-common/helpers';
 
 const queries: Record<PageDataSource, string> = {
     [PageDataSource.Ropewiki]: `

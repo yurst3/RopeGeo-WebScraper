@@ -1,4 +1,4 @@
-import { getSQSClient } from 'ropegeo-common/helpers/sqs/getSQSClient';
+import { getSQSClient } from 'ropegeo-common/helpers';
 import { getDlqArns } from './util/getDlqArns';
 import { startMoveTaskForDlq } from './sqs/startMoveTaskForDlq';
 

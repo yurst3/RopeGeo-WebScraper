@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, jest } from '@jest/globals';
-import { ImageVersion } from 'ropegeo-common';
+import { ImageVersion } from 'ropegeo-common/classes';
 import { runSourceConversionPipeline } from '../../../src/image-data/util/runSourceConversionPipeline';
 import { Metadata, Orientation } from '../../../src/image-data/types/metadata';
 import { ALL_IMAGE_VERSIONS } from '../../../src/image-data/util/imageVersionFile';

@@ -1,5 +1,5 @@
 import { mkdirSync } from 'fs';
-import ProgressLogger from 'ropegeo-common/helpers/progressLogger';
+import { ProgressLogger } from 'ropegeo-common/helpers';
 import { getFeaturesForGeojson } from '../util/getFeaturesForGeojson';
 import { writeGeojsonFile } from '../util/writeGeojsonFile';
 

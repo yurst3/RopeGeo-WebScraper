@@ -1,23 +1,33 @@
 import type { PoolClient } from 'pg';
-import { PageDataSource, Route, RoutesParams } from 'ropegeo-common';
+import { PageDataSource, Route, RoutesParams } from 'ropegeo-common/classes';
 import getAllRoutes from '../database/getAllRoutes';
 import getRopewikiRegionRoutes from '../database/getRopewikiRegionRoutes';
 
 /**
- * Returns routes based on params. When params.region is set and source is Ropewiki,
- * returns only routes for that region and its descendants; otherwise returns all non-deleted routes.
+ * Returns routes for GET /routes: global list or region subtree (ropewiki pages), with optional
+ * route-type and ACA difficulty filters. Source allow-list: empty/absent means all; if set and
+ * excludes ropewiki, no routes are returned for region-scoped queries (only ropewiki-backed routes exist).
  */
-const getRoutes = async (
-    client: PoolClient,
-    params: RoutesParams,
-): Promise<Route[]> => {
-    if (
-        params.region !== null &&
-        params.region.source === PageDataSource.Ropewiki
-    ) {
-        return getRopewikiRegionRoutes(client, params.region.id);
+const getRoutes = async (client: PoolClient, params: RoutesParams): Promise<Route[]> => {
+    const filters = {
+        routeType: params.routeType,
+        difficulty: params.difficulty,
+    };
+
+    if (params.region === null) {
+        return getAllRoutes(client, filters);
     }
-    return getAllRoutes(client);
+
+    const { id, source } = params.region;
+    if (
+        source !== null &&
+        source.length > 0 &&
+        !source.includes(PageDataSource.Ropewiki)
+    ) {
+        return [];
+    }
+
+    return getRopewikiRegionRoutes(client, id, filters);
 };
 
 export default getRoutes;

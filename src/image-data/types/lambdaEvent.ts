@@ -1,5 +1,5 @@
 import type { SqsRecord } from '@aws-lambda-powertools/parser/types';
-import { ImageVersion, PageDataSource } from 'ropegeo-common';
+import { ImageVersion, PageDataSource } from 'ropegeo-common/classes';
 import { assertValidImageVersions, ALL_IMAGE_VERSIONS } from '../util/imageVersionFile';
 
 export class ImageDataEvent {

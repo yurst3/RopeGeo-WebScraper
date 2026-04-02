@@ -1,8 +1,8 @@
 import { describe, it, expect, beforeEach, jest } from '@jest/globals';
 import type { PoolClient } from 'pg';
 import { handler } from '../../../src/api/getRopewikiPageView/handler';
-import type { RopewikiPageView } from 'ropegeo-common';
-import { Bounds, PageMiniMap, PermitStatus } from 'ropegeo-common';
+import type { RopewikiPageView } from 'ropegeo-common/classes';
+import { Bounds, PageMiniMap, PermitStatus } from 'ropegeo-common/classes';
 
 let mockGetDatabaseConnection: jest.MockedFunction<typeof import('../../../src/helpers/getDatabaseConnection').default>;
 let mockGetRopewikiPageView: jest.MockedFunction<typeof import('../../../src/api/getRopewikiPageView/database/getRopewikiPageView').default>;

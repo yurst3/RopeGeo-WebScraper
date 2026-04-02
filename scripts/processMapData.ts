@@ -1,11 +1,11 @@
 import * as db from 'zapatos/db';
 import type * as s from 'zapatos/schema';
 import getDatabaseConnection from '../src/helpers/getDatabaseConnection';
-import { PageDataSource } from 'ropegeo-common';
+import { PageDataSource } from 'ropegeo-common/classes';
 import { RopewikiRoute } from '../src/types/pageRoute';
 import { main } from '../src/map-data/main';
 import { nodeSaveMapData } from '../src/map-data/hook-functions/saveMapData';
-import ProgressLogger from 'ropegeo-common/helpers/progressLogger';
+import { ProgressLogger } from 'ropegeo-common/helpers';
 
 const queries: Record<PageDataSource, string> = {
     [PageDataSource.Ropewiki]: `SELECT rr.* FROM "RopewikiRoute" rr

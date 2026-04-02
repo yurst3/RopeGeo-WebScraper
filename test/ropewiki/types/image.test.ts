@@ -1,7 +1,7 @@
 import { describe, it, expect } from '@jest/globals';
 import { RopewikiImage } from '../../../src/ropewiki/types/image';
 import { ImageDataEvent } from '../../../src/image-data/types/lambdaEvent';
-import { ImageVersion, PageDataSource } from 'ropegeo-common';
+import { ImageVersion, PageDataSource } from 'ropegeo-common/classes';
 import type * as s from 'zapatos/schema';
 
 describe('RopewikiImage', () => {

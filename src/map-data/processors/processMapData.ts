@@ -9,7 +9,7 @@ import getSourceFile from '../s3/getSourceFile';
 import { convertToGeoJson } from '../util/convertToGeoJson';
 import { convertToTileDirectory } from '../util/convertToTileDirectory';
 import { getBoundsFromGeoJson } from '../util/getBoundsFromGeoJson';
-import ProgressLogger from 'ropegeo-common/helpers/progressLogger';
+import { ProgressLogger } from 'ropegeo-common/helpers';
 
 /**
  * Processes map data by downloading the source file (or fetching from S3 when downloadSource is false),

@@ -1,7 +1,7 @@
 import { Pool } from 'pg';
 import { describe, it, expect, beforeAll, afterAll, afterEach } from '@jest/globals';
 import * as db from 'zapatos/db';
-import { ImageVersion } from 'ropegeo-common';
+import { ImageVersion } from 'ropegeo-common/classes';
 import getImageDataMetadataById from '../../../src/image-data/database/getImageDataMetadataById';
 import { Metadata, Orientation } from '../../../src/image-data/types/metadata';
 

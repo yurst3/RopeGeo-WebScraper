@@ -2,11 +2,11 @@ import { describe, it, expect, afterEach, jest } from '@jest/globals';
 import fs from 'fs';
 import path from 'path';
 import getRopewikiPageHtml from '../../../src/ropewiki/http/getRopewikiPageHtml';
-import httpRequest from 'ropegeo-common/helpers/httpRequest';
+import { httpRequest } from 'ropegeo-common/helpers';
 
-jest.mock('ropegeo-common/helpers/httpRequest', () => ({
+jest.mock('ropegeo-common/helpers', () => ({
     __esModule: true,
-    default: jest.fn(),
+    httpRequest: jest.fn(),
 }));
 
 const fixturePath = path.join(__dirname, '..', 'data', 'regions', 'ropewikiRegionsResponse.json');

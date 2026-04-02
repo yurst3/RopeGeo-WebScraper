@@ -1,9 +1,9 @@
 import { describe, it, expect, beforeEach, afterEach, jest } from '@jest/globals';
 import { getMapDataBucketName } from '../../../../src/fargate-tasks/generateTrailTiles/s3/getMapDataBucketName';
 import { getS3Geojson } from '../../../../src/fargate-tasks/generateTrailTiles/s3/getS3Geojson';
-import getS3Object from 'ropegeo-common/helpers/s3/getS3Object';
+import { getS3Object } from 'ropegeo-common/helpers';
 
-jest.mock('ropegeo-common/helpers/s3/getS3Object', () => ({ __esModule: true, default: jest.fn() }));
+jest.mock('ropegeo-common/helpers', () => ({ __esModule: true, getS3Object: jest.fn() }));
 
 describe('getS3Geojson', () => {
     let originalEnv: NodeJS.ProcessEnv;

@@ -1,5 +1,5 @@
 import { writeFile } from 'fs/promises';
-import { PageDataSource } from 'ropegeo-common';
+import { PageDataSource } from 'ropegeo-common/classes';
 import type { ImageDataEvent } from '../types/lambdaEvent';
 import { downloadSourceImage } from '../http/downloadSourceImage';
 import getLosslessFile from '../s3/getLosslessFile';

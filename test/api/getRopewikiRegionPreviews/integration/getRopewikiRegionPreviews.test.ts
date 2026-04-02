@@ -1,6 +1,6 @@
 import { Pool } from 'pg';
 import { describe, it, expect, beforeAll, afterAll } from '@jest/globals';
-import { RopewikiRegionPreviewsParams, type PagePreview, type RegionPreview } from 'ropegeo-common';
+import { RopewikiRegionPreviewsParams, type PagePreview, type RegionPreview } from 'ropegeo-common/classes';
 import * as db from 'zapatos/db';
 import getRopewikiRegionPreviews from '../../../../src/api/getRopewikiRegionPreviews/util/getRopewikiRegionPreviews';
 

@@ -1,5 +1,5 @@
 import type { PoolClient } from 'pg';
-import { SearchParams } from 'ropegeo-common';
+import { SearchParams } from 'ropegeo-common/classes';
 import getDatabaseConnection from '../../helpers/getDatabaseConnection';
 import searchRopewiki from './util/searchRopewiki';
 
@@ -10,9 +10,9 @@ const CORS_HEADERS = {
 
 /**
  * Lambda handler for GET /search (API Gateway proxy integration).
- * Query params: name (required), similarity (default 0.5), include-pages (default true),
- * include-regions (default true), region (optional region id for ancestry filter), order (similarity | quality),
- * limit (default 20), cursor (optional base64url-encoded cursor for pagination).
+ * Query params follow ropegeo-common SearchParams: optional name (empty + similarity → no results;
+ * empty + quality → global listing), similarity, include-pages/regions/aka, order (similarity | quality | distance),
+ * lat/lon when order=distance, optional source pipe-list, optional ACA difficulty params, limit, cursor.
  */
 export const handler = async (
     event: {

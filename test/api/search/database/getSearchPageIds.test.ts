@@ -1,6 +1,6 @@
 import { Pool } from 'pg';
 import { describe, it, expect, beforeAll, afterAll } from '@jest/globals';
-import { SearchParams } from 'ropegeo-common';
+import { SearchParams } from 'ropegeo-common/classes';
 import * as db from 'zapatos/db';
 import getAllowedRegionIds from '../../../../src/ropewiki/database/getAllowedRegionIds';
 import { getSearchPageIds } from '../../../../src/api/search/database/getSearchPageIds';
@@ -60,6 +60,7 @@ describe('getSearchPageIds (integration)', () => {
                     '2025-01-01T00:00:00' as db.TimestampString,
                 quality: 5,
                 userVotes: 10,
+                coordinates: { lat: 40.0, lon: -111.0 },
             })
             .run(conn);
         await db
@@ -73,6 +74,7 @@ describe('getSearchPageIds (integration)', () => {
                     '2025-01-01T00:00:00' as db.TimestampString,
                 quality: 1,
                 userVotes: 1,
+                coordinates: { lat: 48.0, lon: -120.0 },
             })
             .run(conn);
         await db
@@ -86,6 +88,7 @@ describe('getSearchPageIds (integration)', () => {
                     '2025-01-01T00:00:00' as db.TimestampString,
                 quality: 1,
                 userVotes: 1,
+                coordinates: { lat: 40.5, lon: -111.5 },
             })
             .run(conn);
         await db
@@ -115,7 +118,6 @@ describe('getSearchPageIds (integration)', () => {
             true,
             true,
             false,
-            null,
             'similarity',
             10,
             null,
@@ -141,7 +143,6 @@ describe('getSearchPageIds (integration)', () => {
             true,
             true,
             false,
-            null,
             'similarity',
             2,
             null,
@@ -162,7 +163,6 @@ describe('getSearchPageIds (integration)', () => {
             true,
             true,
             false,
-            null,
             'similarity',
             2,
             null,
@@ -179,7 +179,6 @@ describe('getSearchPageIds (integration)', () => {
             true,
             true,
             false,
-            null,
             'similarity',
             2,
             cursorEncoded,
@@ -204,7 +203,6 @@ describe('getSearchPageIds (integration)', () => {
             true,
             true,
             false,
-            null,
             'similarity',
             10,
             null,
@@ -234,7 +232,6 @@ describe('getSearchPageIds (integration)', () => {
             false,
             true,
             false,
-            null,
             'similarity',
             10,
             null,
@@ -255,7 +252,6 @@ describe('getSearchPageIds (integration)', () => {
             true,
             false,
             false,
-            null,
             'similarity',
             10,
             null,
@@ -276,7 +272,6 @@ describe('getSearchPageIds (integration)', () => {
             true,
             false,
             true,
-            null,
             'similarity',
             10,
             null,
@@ -297,7 +292,6 @@ describe('getSearchPageIds (integration)', () => {
             true,
             false,
             false,
-            null,
             'similarity',
             10,
             null,
@@ -318,7 +312,6 @@ describe('getSearchPageIds (integration)', () => {
             true,
             true,
             false,
-            null,
             'similarity',
             10,
             null,
@@ -339,7 +332,6 @@ describe('getSearchPageIds (integration)', () => {
             true,
             true,
             false,
-            null,
             'similarity',
             10,
             null,
@@ -360,7 +352,6 @@ describe('getSearchPageIds (integration)', () => {
             true,
             true,
             false,
-            null,
             'quality',
             10,
             null,
@@ -389,7 +380,6 @@ describe('getSearchPageIds (integration)', () => {
             true,
             false,
             false,
-            null,
             'quality',
             1,
             null,
@@ -406,7 +396,6 @@ describe('getSearchPageIds (integration)', () => {
             true,
             false,
             false,
-            null,
             'quality',
             1,
             firstItems[0]!.encodeBase64(),
@@ -416,6 +405,70 @@ describe('getSearchPageIds (integration)', () => {
         expect(secondItems.length).toBe(1);
         expect(hasMoreSecond).toBe(false);
         expect(secondItems[0]!.id).toBe(pageInParentId);
+    });
+
+    it('with empty name and order similarity, returns no rows', async () => {
+        const params = new SearchParams(
+            '',
+            0.1,
+            true,
+            true,
+            false,
+            'similarity',
+            10,
+            null,
+        );
+        const { items, hasMore } = await getSearchPageIds(
+            conn,
+            params,
+            allowedRegionIds,
+        );
+        expect(items).toEqual([]);
+        expect(hasMore).toBe(false);
+    });
+
+    it('with empty name and order quality, returns global pages and regions', async () => {
+        const params = new SearchParams(
+            '',
+            0.1,
+            true,
+            true,
+            false,
+            'quality',
+            10,
+            null,
+        );
+        const { items, hasMore } = await getSearchPageIds(
+            conn,
+            params,
+            allowedRegionIds,
+        );
+        expect(items.length).toBe(5);
+        expect(hasMore).toBe(false);
+        const ids = new Set(items.map((c) => c.id));
+        expect(ids.has(pageId)).toBe(true);
+        expect(ids.has(pageInParentId)).toBe(true);
+        expect(ids.has(pageAkaOnlyId)).toBe(true);
+        expect(ids.has(parentRegionId)).toBe(true);
+        expect(ids.has(childRegionId)).toBe(true);
+    });
+
+    it('with order distance, ranks nearer page first among pages with coordinates', async () => {
+        const params = new SearchParams(
+            '',
+            0.1,
+            true,
+            false,
+            false,
+            'distance',
+            10,
+            undefined,
+            { lat: 40.0, lon: -111.0 },
+        );
+        const { items } = await getSearchPageIds(conn, params, allowedRegionIds);
+        const pageItems = items.filter((c) => c.type === 'page');
+        expect(pageItems.length).toBe(3);
+        expect(pageItems[0]!.id).toBe(pageId);
     });
 
     it('finds page in deep child when hierarchy uses name-based parentRegionName', async () => {
@@ -492,7 +545,6 @@ describe('getSearchPageIds (integration)', () => {
             true,
             true,
             false,
-            null,
             'similarity',
             10,
             null,

@@ -1,5 +1,5 @@
 import { GetObjectCommand } from '@aws-sdk/client-s3';
-import { getS3Client } from 'ropegeo-common/helpers/s3/getS3Client';
+import { getS3Client } from 'ropegeo-common/helpers';
 
 function isNoSuchKeyError(err: unknown): boolean {
     return err instanceof Error && (err as Error & { name?: string }).name === 'NoSuchKey';

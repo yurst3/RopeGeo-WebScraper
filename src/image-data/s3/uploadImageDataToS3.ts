@@ -1,4 +1,4 @@
-import putS3Object from 'ropegeo-common/helpers/s3/putS3Object';
+import { putS3Object } from 'ropegeo-common/helpers';
 
 const IMAGE_AVIF_CONTENT_TYPE = 'image/avif';
 

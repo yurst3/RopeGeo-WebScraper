@@ -1,8 +1,8 @@
 import { describe, it, expect, beforeEach, jest } from '@jest/globals';
 import type { PoolClient } from 'pg';
 import { handler } from '../../../src/api/getRopewikiPageLinkPreview/handler';
-import type { RopewikiPageView } from 'ropegeo-common';
-import { Difficulty, PermitStatus } from 'ropegeo-common';
+import type { RopewikiPageView } from 'ropegeo-common/classes';
+import { AcaDifficulty, PermitStatus } from 'ropegeo-common/classes';
 
 let mockGetDatabaseConnection: jest.MockedFunction<typeof import('../../../src/helpers/getDatabaseConnection').default>;
 let mockGetRopewikiPageView: jest.MockedFunction<
@@ -33,7 +33,7 @@ jest.mock('../../../src/api/getRopewikiPageLinkPreview/database/getBannerImageMe
 let consoleErrorSpy: ReturnType<typeof jest.spyOn>;
 
 function minimalView(overrides: Partial<RopewikiPageView> = {}): RopewikiPageView {
-    const difficulty = new Difficulty('3', 'A', 'II', 'PG13');
+    const difficulty = new AcaDifficulty('3', 'A', 'II', 'PG13');
     return {
         name: 'Test Canyon',
         aka: ['Alt One', 'Alt Two'],

@@ -1,22 +1,21 @@
 # /search
 get:
-  summary: Search pages and regions by name
+  summary: Search pages and regions
   description: |
-    Fuzzy search over Ropewiki page and region names using trigram similarity.
-    Optional region filter restricts results to that region and its descendants (region ancestry).
-    Results can be ordered by similarity or by quality * userVotes.
-    Query parameter validation follows ropegeo-common SearchParams.fromQueryStringParams (required name; similarity in [0,1]; include-pages, include-regions, and include-aka as true/false/1/0; at least one of include-pages or include-regions true; region a valid UUID if present; order one of similarity|quality; limit a positive integer; cursor a valid base64url-encoded cursor if present).
+    Search Ropewiki pages and regions. **Order `similarity`**: trigram `word_similarity` on names; empty name returns no results.
+    **Order `quality`**: rank by quality × userVotes; empty name lists all pages/regions (subject to filters). **Order `distance`**: pages only, ranked by (1 / distance) × quality × userVotes from `lat`/`lon` to page `coordinates`; requires `lat` and `lon`.
+    Optional **source** pipe-list filters page rows by `PageDataSource` (empty/absent = all). Optional **ACA difficulty** query keys match GET `/routes` (`difficulty-type`, `aca-technical-rating`, …) and apply to **page** paths only.
+    Validation follows ropegeo-common `SearchParams.fromQueryStringParams`.
   operationId: search
   tags:
     - search
   parameters:
     - name: name
       in: query
-      required: true
+      required: false
       schema:
         type: string
-        minLength: 1
-      description: Search term for fuzzy name matching (required, non-empty)
+      description: Fuzzy match text; may be empty when order is quality or distance (similarity requires non-empty for matches)
     - name: similarity
       in: query
       required: false
@@ -25,7 +24,7 @@ get:
         minimum: 0
         maximum: 1
         default: 0.5
-      description: Minimum trigram similarity threshold; number in [0, 1]
+      description: Minimum trigram similarity when matching names; number in [0, 1]
     - name: include-pages
       in: query
       required: false
@@ -39,21 +38,14 @@ get:
       schema:
         type: boolean
         default: true
-      description: Include region results; true, false, 1, or 0 (case-insensitive). At least one of include-pages or include-regions must be true.
+      description: Include region results; must be false when order is distance. At least one of include-pages or include-regions must be true.
     - name: include-aka
       in: query
       required: false
       schema:
         type: boolean
         default: false
-      description: When true, also match page "also known as" (aka) names; true, false, 1, or 0 (case-insensitive)
-    - name: region
-      in: query
-      required: false
-      schema:
-        type: string
-        format: uuid
-      description: Restrict results to this region and its descendants (region ancestry); must be a valid UUID if provided
+      description: When true, also match page AKA names
     - name: order
       in: query
       required: false
@@ -62,8 +54,57 @@ get:
         enum:
           - similarity
           - quality
+          - distance
         default: similarity
-      description: Sort by name similarity or by quality * userVotes
+      description: Result ordering strategy
+    - name: lat
+      in: query
+      required: false
+      schema:
+        type: number
+      description: Required with `lon` when order is `distance` (user latitude)
+    - name: lon
+      in: query
+      required: false
+      schema:
+        type: number
+      description: Required with `lat` when order is `distance` (user longitude)
+    - name: source
+      in: query
+      required: false
+      schema:
+        type: string
+      description: Pipe-delimited page data sources (e.g. `ropewiki`); omit or empty for all
+    - name: difficulty-type
+      in: query
+      required: false
+      schema:
+        type: string
+      description: Difficulty scale (e.g. `aca`); use with aca-*-rating params
+    - name: aca-technical-rating
+      in: query
+      required: false
+      schema:
+        type: string
+      description: Pipe-delimited ACA technical ratings filter
+    - name: aca-water-rating
+      in: query
+      required: false
+      schema:
+        type: string
+      description: Pipe-delimited ACA water ratings filter
+    - name: aca-time-rating
+      in: query
+      required: false
+      schema:
+        type: string
+      description: Pipe-delimited ACA time ratings filter
+    - name: aca-risk-rating
+      in: query
+      required: false
+      schema:
+        type: string
+      description: Pipe-delimited ACA risk ratings filter
     - name: limit
       in: query
       required: false
@@ -77,7 +118,7 @@ get:
       required: false
       schema:
         type: string
-      description: Base64url-encoded cursor for the next page (from previous response nextCursor); must be valid if provided
+      description: Base64url-encoded cursor from prior `nextCursor`
   x-amazon-apigateway-integration:
     $ref: '../integrations/searchLambda.yaml#/SearchLambdaIntegration'
   responses:
@@ -91,6 +132,6 @@ get:
             searchResponse:
               $ref: '../examples/searchResponse.yaml'
     '400':
-      description: Bad Request (e.g. missing or empty name, similarity not in [0,1], invalid include-pages/include-regions/include-aka, both include-pages and include-regions false, invalid region UUID, invalid order, invalid limit, invalid cursor)
+      description: Bad Request (invalid query per SearchParams)
     '500':
       description: Internal server error

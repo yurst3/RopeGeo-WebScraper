@@ -3,9 +3,8 @@ import type { SqsRecord } from '@aws-lambda-powertools/parser/types';
 import { main } from '../main';
 import { lambdaSaveMapData } from '../hook-functions/saveMapData';
 import { MapDataEvent } from '../types/lambdaEvent';
-import ProgressLogger from 'ropegeo-common/helpers/progressLogger';
+import { ProgressLogger, timeoutAfter } from 'ropegeo-common/helpers';
 import deleteMapDataSQSMessage from './deleteMapDataSQSMessage';
-import { timeoutAfter } from 'ropegeo-common/helpers/timeoutAfter';
 
 /**
  * Handles processing of map data from SQS records.

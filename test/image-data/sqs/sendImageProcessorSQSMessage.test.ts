@@ -1,14 +1,14 @@
 import { describe, it, expect, beforeEach, afterEach, jest } from '@jest/globals';
 import sendImageProcessorSQSMessage from '../../../src/image-data/sqs/sendImageProcessorSQSMessage';
-import { ImageVersion, PageDataSource } from 'ropegeo-common';
+import { ImageVersion, PageDataSource } from 'ropegeo-common/classes';
 import { ImageDataEvent } from '../../../src/image-data/types/lambdaEvent';
 
-jest.mock('ropegeo-common/helpers/sqs/sendSQSMessage', () => ({
+jest.mock('ropegeo-common/helpers', () => ({
     __esModule: true,
-    default: jest.fn().mockResolvedValue(undefined),
+    sendSQSMessage: jest.fn().mockResolvedValue(undefined),
 }));
 
-const mockSendSQSMessage = require('ropegeo-common/helpers/sqs/sendSQSMessage').default as jest.Mock;
+const mockSendSQSMessage = require('ropegeo-common/helpers').sendSQSMessage as jest.Mock;
 
 describe('sendImageProcessorSQSMessage', () => {
     const originalEnv = process.env;

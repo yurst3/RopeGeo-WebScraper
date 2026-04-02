@@ -2,13 +2,13 @@ import { describe, it, expect, beforeEach, afterEach, jest } from '@jest/globals
 import sendProcessPageSQSMessage from '../../../src/ropewiki/sqs/sendProcessPageSQSMessage';
 import RopewikiPage from '../../../src/ropewiki/types/page';
 
-jest.mock('ropegeo-common/helpers/sqs/sendSQSMessage', () => ({
+jest.mock('ropegeo-common/helpers', () => ({
     __esModule: true,
-    default: jest.fn(),
+    sendSQSMessage: jest.fn(),
 }));
 
-const sendSQSMessage = require('ropegeo-common/helpers/sqs/sendSQSMessage')
-    .default as jest.MockedFunction<typeof import('ropegeo-common/helpers/sqs/sendSQSMessage').default>;
+const sendSQSMessage = require('ropegeo-common/helpers')
+    .sendSQSMessage as jest.MockedFunction<typeof import('ropegeo-common/helpers').sendSQSMessage>;
 
 function createTestPage(overrides: { id?: string; name?: string } = {}): RopewikiPage {
     const page = new RopewikiPage(

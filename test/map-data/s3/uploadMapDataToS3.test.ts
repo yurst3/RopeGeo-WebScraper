@@ -8,9 +8,9 @@ jest.mock('fs/promises', () => ({
     readFile: (...args: unknown[]) => mockReadFile(...args),
 }));
 
-jest.mock('ropegeo-common/helpers/s3/putS3Object', () => ({
+jest.mock('ropegeo-common/helpers', () => ({
     __esModule: true,
-    default: (...args: unknown[]) => mockPutS3Object(...args),
+    putS3Object: (...args: unknown[]) => mockPutS3Object(...args),
 }));
 
 describe('uploadMapDataToS3', () => {

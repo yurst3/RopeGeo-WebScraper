@@ -3,7 +3,7 @@ import { describe, it, expect, beforeAll, afterAll, afterEach } from '@jest/glob
 import * as db from 'zapatos/db';
 import upsertRopewikiRoutes from '../../../src/ropewiki/database/upsertRopewikiRoutes';
 import { RopewikiRoute } from '../../../src/types/pageRoute';
-import { Route, RouteType } from 'ropegeo-common';
+import { Route, RouteType } from 'ropegeo-common/classes';
 import { routeFromDbRow, routeToDbRow } from '../../../src/converters/route';
 import RopewikiPage from '../../../src/ropewiki/types/page';
 

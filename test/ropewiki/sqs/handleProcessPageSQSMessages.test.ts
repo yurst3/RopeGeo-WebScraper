@@ -5,12 +5,16 @@ import type { SqsRecord } from '@aws-lambda-powertools/parser/types';
 // Mock dependencies
 jest.mock('../../../src/ropewiki/processors/processPage');
 jest.mock('../../../src/ropewiki/types/page');
-jest.mock('ropegeo-common/helpers/progressLogger');
+jest.mock('ropegeo-common/helpers', () => ({
+    __esModule: true,
+    ProgressLogger: jest.fn(),
+    timeoutAfter: (_ms: number, fn: () => unknown) => fn(),
+}));
 jest.mock('../../../src/ropewiki/sqs/deleteProcessPageSQSMessage');
 
 const mockProcessPage = require('../../../src/ropewiki/processors/processPage').processPage as jest.MockedFunction<typeof import('../../../src/ropewiki/processors/processPage').processPage>;
 const RopewikiPage = require('../../../src/ropewiki/types/page').default;
-const ProgressLogger = require('ropegeo-common/helpers/progressLogger').default;
+const ProgressLogger = require('ropegeo-common/helpers').ProgressLogger;
 const mockDeleteProcessPageSQSMessage = require('../../../src/ropewiki/sqs/deleteProcessPageSQSMessage').default as jest.MockedFunction<typeof import('../../../src/ropewiki/sqs/deleteProcessPageSQSMessage').default>;
 
 const LAMBDA_TIMEOUT_MS = 900_000;

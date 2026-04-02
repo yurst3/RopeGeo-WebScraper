@@ -1,12 +1,12 @@
 import { describe, it, expect, beforeEach, jest } from '@jest/globals';
 import { downloadSourceFile } from '../../../src/map-data/http/downloadSourceFile';
-import httpRequest from 'ropegeo-common/helpers/httpRequest';
+import { httpRequest } from 'ropegeo-common/helpers';
 import { writeFile } from 'fs/promises';
 import { join } from 'path';
 
-jest.mock('ropegeo-common/helpers/httpRequest', () => ({
+jest.mock('ropegeo-common/helpers', () => ({
     __esModule: true,
-    default: jest.fn(),
+    httpRequest: jest.fn(),
 }));
 
 // Mock fs/promises

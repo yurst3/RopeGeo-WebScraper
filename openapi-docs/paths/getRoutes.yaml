@@ -1,10 +1,12 @@
 # /routes
 get:
-  summary: List all routes
+  summary: List routes as GeoJSON
   description: |
-    Returns routes in the database as a GeoJSON Feature Collection. Each feature has id, name, and type properties and a Point geometry with the route coordinate.
-    Optional query parameters source and region restrict results to routes from the given source (e.g. ropewiki) in the given region and its descendants; both must be present or both absent. When both are present, the response includes a bounds object (north, south, east, west) covering all returned route coordinates, or null if there are no routes.
-    Query parameter validation follows ropegeo-common RoutesParams.fromQueryStringParams (source one of PageDataSource values, e.g. ropewiki; region a non-empty string when provided; source and region must both be present or both be absent).
+    Returns routes as a GeoJSON Feature Collection. Optional **region** scopes to routes linked to Ropewiki pages in that region and descendants.
+    Optional **source** pipe-list restricts by page data source when region is set (omit or empty = all sources). If the allow-list excludes all known sources (e.g. non-ropewiki only), the result is empty.
+    Optional **route-type** filters `Route.type`. Optional **ACA difficulty** query keys (`difficulty-type`, `aca-technical-rating`, …) filter routes that have a linked Ropewiki page matching the allow-lists.
+    **Source** without **region** remains invalid (ropegeo-common `RoutesParams`). **Region** may be provided without **source** (all sources in subtree).
+    Validation follows ropegeo-common `RoutesParams.fromQueryStringParams`.
   operationId: getRoutes
   tags:
     - routes
@@ -14,16 +16,55 @@ get:
       required: false
       schema:
         type: string
-        enum:
-          - ropewiki
-      description: Page data source; must be provided together with region if filtering by region
+      description: Pipe-delimited page data sources (e.g. `ropewiki`); only meaningful with `region`
     - name: region
       in: query
       required: false
       schema:
         type: string
         format: uuid
-      description: Region id (and its descendants) to restrict routes to; must be provided together with source if filtering
+      description: Region id (and descendants) to restrict routes
+    - name: route-type
+      in: query
+      required: false
+      schema:
+        type: string
+        enum:
+          - Unknown
+          - POI
+          - Cave
+          - Canyon
+      description: Filter by route type when set
+    - name: difficulty-type
+      in: query
+      required: false
+      schema:
+        type: string
+      description: Difficulty scale (e.g. `aca`)
+    - name: aca-technical-rating
+      in: query
+      required: false
+      schema:
+        type: string
+      description: Pipe-delimited ACA technical ratings
+    - name: aca-water-rating
+      in: query
+      required: false
+      schema:
+        type: string
+      description: Pipe-delimited ACA water ratings
+    - name: aca-time-rating
+      in: query
+      required: false
+      schema:
+        type: string
+      description: Pipe-delimited ACA time ratings
+    - name: aca-risk-rating
+      in: query
+      required: false
+      schema:
+        type: string
+      description: Pipe-delimited ACA risk ratings
   x-amazon-apigateway-integration:
     $ref: '../integrations/getRoutesLambda.yaml#/GetRoutesLambdaIntegration'
   responses:
@@ -37,6 +78,6 @@ get:
             getRoutesResponse:
               $ref: '../examples/getRoutesResponse.yaml'
     '400':
-      description: Bad Request (e.g. source without region or region without source; source not one of allowed values)
+      description: Bad Request (e.g. source without region, invalid UUID, invalid filters)
     '500':
       description: Internal server error

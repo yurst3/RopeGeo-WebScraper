@@ -1,6 +1,6 @@
 import { writeFile } from 'fs/promises';
 import { join } from 'path';
-import httpRequest from 'ropegeo-common/helpers/httpRequest';
+import { httpRequest } from 'ropegeo-common/helpers';
 
 /**
  * Downloads the source file from a URL and saves it to a temporary directory.

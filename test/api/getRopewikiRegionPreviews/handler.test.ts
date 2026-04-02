@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, jest } from '@jest/globals';
 import type { PoolClient } from 'pg';
-import { RopewikiRegionPreviewsResult } from 'ropegeo-common';
+import { RopewikiRegionPreviewsResult } from 'ropegeo-common/classes';
 import { handler } from '../../../src/api/getRopewikiRegionPreviews/handler';
 
 let mockGetDatabaseConnection: jest.MockedFunction<typeof import('../../../src/helpers/getDatabaseConnection').default>;

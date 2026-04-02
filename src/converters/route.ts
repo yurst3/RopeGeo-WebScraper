@@ -1,5 +1,5 @@
 import type * as s from 'zapatos/schema';
-import { Route, RouteType } from 'ropegeo-common';
+import { Route, RouteType } from 'ropegeo-common/classes';
 import RopewikiPage from '../ropewiki/types/page';
 
 export function routeFromDbRow(row: s.Route.JSONSelectable): Route {

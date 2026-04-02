@@ -1,22 +1,22 @@
 import { describe, it, expect, beforeEach, jest } from '@jest/globals';
 import { main } from '../../src/map-data/main';
-import { PageDataSource } from 'ropegeo-common';
+import { PageDataSource } from 'ropegeo-common/classes';
 import { PageRoute, RopewikiRoute } from '../../src/types/pageRoute';
 import MapData from '../../src/map-data/types/mapData';
 import type { SaveMapDataHookFn } from '../../src/map-data/hook-functions/saveMapData';
 import { MapDataEvent } from '../../src/map-data/types/lambdaEvent';
-import ProgressLogger from 'ropegeo-common/helpers/progressLogger';
+import { ProgressLogger } from 'ropegeo-common/helpers';
 import * as db from 'zapatos/db';
 
-// Mock ProgressLogger
-jest.mock('ropegeo-common/helpers/progressLogger', () => {
-    return jest.fn().mockImplementation(() => ({
+jest.mock('ropegeo-common/helpers', () => ({
+    __esModule: true,
+    ProgressLogger: jest.fn().mockImplementation(() => ({
         setChunk: jest.fn(),
         logProgress: jest.fn(),
         logError: jest.fn(),
         getResults: jest.fn(),
-    }));
-});
+    })),
+}));
 
 // Mock database connection
 const mockClient = {} as any;

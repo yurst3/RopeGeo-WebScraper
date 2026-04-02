@@ -3,7 +3,7 @@ import {
     RopewikiRegionImagesResult,
     RopewikiRegionImagesParams,
     RopewikiRegionImageView,
-} from 'ropegeo-common';
+} from 'ropegeo-common/classes';
 import getAllowedRegionIds from '../../../ropewiki/database/getAllowedRegionIds';
 import {
     getRegionImagesPage,

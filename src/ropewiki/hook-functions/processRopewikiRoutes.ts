@@ -1,7 +1,7 @@
 import { main as processPageRouteAndMapData } from '../../map-data/main';
 import { nodeSaveMapData } from '../../map-data/hook-functions/saveMapData';
 import { RopewikiRoute } from '../../types/pageRoute';
-import ProgressLogger from 'ropegeo-common/helpers/progressLogger';
+import { ProgressLogger } from 'ropegeo-common/helpers';
 import getDatabaseConnection from '../../helpers/getDatabaseConnection';
 import sendMapDataSQSMessage from '../sqs/sendMapDataSQSMessage';
 

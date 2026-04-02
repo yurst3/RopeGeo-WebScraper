@@ -1,6 +1,12 @@
 import { Pool } from 'pg';
 import { describe, it, expect, beforeAll, afterAll } from '@jest/globals';
-import { SearchParams, type PagePreview, type RegionPreview } from 'ropegeo-common';
+import {
+    SearchParams,
+    type DifficultyParams,
+    type PagePreview,
+    type RegionPreview,
+    PageDataSource,
+} from 'ropegeo-common/classes';
 import * as db from 'zapatos/db';
 import searchRopewiki from '../../../../src/api/search/util/searchRopewiki';
 
@@ -66,6 +72,7 @@ describe('searchRopewiki (integration)', () => {
                     '2025-01-01T00:00:00' as db.TimestampString,
                 quality: 5,
                 userVotes: 10,
+                coordinates: { lat: 40.0, lon: -111.0 },
             })
             .run(conn);
         await db
@@ -79,6 +86,7 @@ describe('searchRopewiki (integration)', () => {
                     '2025-01-01T00:00:00' as db.TimestampString,
                 quality: 1,
                 userVotes: 1,
+                coordinates: { lat: 48.0, lon: -120.0 },
             })
             .run(conn);
         await db
@@ -92,6 +100,7 @@ describe('searchRopewiki (integration)', () => {
                     '2025-01-01T00:00:00' as db.TimestampString,
                 quality: 1,
                 userVotes: 1,
+                coordinates: { lat: 40.5, lon: -111.5 },
             })
             .run(conn);
         await db
@@ -112,32 +121,53 @@ describe('searchRopewiki (integration)', () => {
         await pool.end();
     });
 
-    const defaultSearchParams = {
+    const defaultSearchFields = {
         name: 'SearchTest',
         similarityThreshold: 0.1,
         includePages: true,
         includeRegions: true,
         includeAka: true,
-        regionId: null as string | null,
         order: 'similarity' as const,
         limit: 50,
-        cursor: null as null,
+        cursor: null as string | null,
+        currentPosition: null as { lat: number; lon: number } | null,
+        source: null as PageDataSource[] | null,
+        difficulty: null as DifficultyParams | null,
     };
 
     function params(
         overrides: Partial<
-            Omit<typeof defaultSearchParams, 'order'> & {
-                order?: 'similarity' | 'quality';
+            typeof defaultSearchFields & {
+                order?: 'similarity' | 'quality' | 'distance';
             }
         > = {},
-    ): Parameters<typeof searchRopewiki>[1] {
-        return { ...defaultSearchParams, ...overrides } as Parameters<
-            typeof searchRopewiki
-        >[1];
+    ): SearchParams {
+        const o = { ...defaultSearchFields, ...overrides };
+        const includeAka = o.includePages === false ? false : o.includeAka;
+        const { cursor, ...rest } = { ...o, includeAka };
+        return new SearchParams(
+            rest.name,
+            rest.similarityThreshold,
+            rest.includePages,
+            rest.includeRegions,
+            rest.includeAka,
+            rest.order,
+            rest.limit,
+            cursor ?? undefined,
+            rest.currentPosition,
+            rest.source,
+            rest.difficulty,
+        );
+    }
+
+    async function runSearch(
+        overrides: Parameters<typeof params>[0] = {},
+    ): Promise<Awaited<ReturnType<typeof searchRopewiki>>> {
+        return searchRopewiki(conn, params(overrides));
     }
 
     it('returns PagePreview and RegionPreview matching name above threshold', async () => {
-        const { results } = await searchRopewiki(conn, params());
+        const { results } = await runSearch();
 
         const pages = results.filter(isPagePreview);
         const regions = results.filter(isRegionPreview);
@@ -149,53 +179,24 @@ describe('searchRopewiki (integration)', () => {
         expect(pageMatch?.regions).toContain('SearchTestChildRegion');
     });
 
-    it('filters by region ancestry when regionId provided', async () => {
-        const { results: resultWithParent } = await searchRopewiki(
-            conn,
-            params({ regionId: parentRegionId }),
-        );
-
-        const pagesWithParent = resultWithParent.filter(isPagePreview);
-        expect(pagesWithParent.some((p) => p.title === 'SearchTestPageImlay')).toBe(true);
-    });
-
-    it('excludes pages outside region ancestry when regionId is a different branch', async () => {
-        const otherRegionId = 'c0000001-0001-4000-8000-000000000001';
-        const { results } = await searchRopewiki(
-            conn,
-            params({ regionId: otherRegionId }),
-        );
-
-        expect(results.length).toBe(0);
-    });
-
     it('respects includePages false', async () => {
-        const { results } = await searchRopewiki(
-            conn,
-            params({ includePages: false }),
-        );
+        const { results } = await runSearch({ includePages: false });
 
         expect(results.every(isRegionPreview)).toBe(true);
     });
 
     it('respects includeRegions false', async () => {
-        const { results } = await searchRopewiki(
-            conn,
-            params({ includeRegions: false }),
-        );
+        const { results } = await runSearch({ includeRegions: false });
 
         expect(results.every(isPagePreview)).toBe(true);
     });
 
     it('with includeAka true, returns page matched by AKA name', async () => {
-        const { results } = await searchRopewiki(
-            conn,
-            params({
-                name: 'XyzAkaOnlyMatch',
-                includeRegions: false,
-                includeAka: true,
-            }),
-        );
+        const { results } = await runSearch({
+            name: 'XyzAkaOnlyMatch',
+            includeRegions: false,
+            includeAka: true,
+        });
 
         const pages = results.filter(isPagePreview);
         const akaMatchedPage = pages.find((p) => p.id === pageAkaOnlyId);
@@ -204,14 +205,11 @@ describe('searchRopewiki (integration)', () => {
     });
 
     it('with includeAka false, excludes page matched only by AKA name', async () => {
-        const { results } = await searchRopewiki(
-            conn,
-            params({
-                name: 'XyzAkaOnlyMatch',
-                includeRegions: false,
-                includeAka: false,
-            }),
-        );
+        const { results } = await runSearch({
+            name: 'XyzAkaOnlyMatch',
+            includeRegions: false,
+            includeAka: false,
+        });
 
         const pages = results.filter(isPagePreview);
         const akaMatchedPage = pages.find((p) => p.id === pageAkaOnlyId);
@@ -219,20 +217,51 @@ describe('searchRopewiki (integration)', () => {
     });
 
     it('returns empty results and empty nextCursor when no matches above threshold', async () => {
-        const { results, nextCursor } = await searchRopewiki(
-            conn,
-            params({ name: 'XyZzNoMatchQqWw', similarityThreshold: 0.99 }),
-        );
+        const { results, nextCursor } = await runSearch({
+            name: 'XyZzNoMatchQqWw',
+            similarityThreshold: 0.99,
+        });
 
         expect(results).toEqual([]);
         expect(nextCursor).toBeNull();
     });
 
+    it('with empty name and order similarity, returns no results', async () => {
+        const { results, nextCursor } = await runSearch({
+            name: '',
+            order: 'similarity',
+        });
+        expect(results).toEqual([]);
+        expect(nextCursor).toBeNull();
+    });
+
+    it('with empty name and order quality, returns global pages and regions', async () => {
+        const { results } = await runSearch({
+            name: '',
+            order: 'quality',
+        });
+        expect(results.length).toBeGreaterThanOrEqual(4);
+        const pages = results.filter(isPagePreview);
+        const regions = results.filter(isRegionPreview);
+        expect(pages.length).toBeGreaterThanOrEqual(2);
+        expect(regions.length).toBeGreaterThanOrEqual(2);
+    });
+
+    it('with order distance, ranks closer page first', async () => {
+        const { results } = await runSearch({
+            name: '',
+            order: 'distance',
+            includeRegions: false,
+            currentPosition: { lat: 40.0, lon: -111.0 },
+            limit: 10,
+        });
+        const pages = results.filter(isPagePreview);
+        expect(pages.length).toBe(3);
+        expect(pages[0]!.title).toBe('SearchTestPageImlay');
+    });
+
     it('with order quality, ranks pages by quality * userVotes', async () => {
-        const { results } = await searchRopewiki(
-            conn,
-            params({ includeRegions: false, order: 'quality' }),
-        );
+        const { results } = await runSearch({ includeRegions: false, order: 'quality' });
 
         const pages = results.filter(isPagePreview);
         expect(pages.length).toBe(2);
@@ -248,10 +277,7 @@ describe('searchRopewiki (integration)', () => {
     });
 
     it('with order quality, ranks regions by most popular page in subtree', async () => {
-        const { results } = await searchRopewiki(
-            conn,
-            params({ order: 'quality' }),
-        );
+        const { results } = await runSearch({ order: 'quality' });
 
         const pages = results.filter(isPagePreview);
         const regions = results.filter(isRegionPreview);
@@ -276,10 +302,7 @@ describe('searchRopewiki (integration)', () => {
     });
 
     it('with order quality and regions only, returns regions ordered by best page score', async () => {
-        const { results } = await searchRopewiki(
-            conn,
-            params({ includePages: false, order: 'quality' }),
-        );
+        const { results } = await runSearch({ includePages: false, order: 'quality' });
 
         const regions = results.filter(isRegionPreview);
         expect(regions.length).toBe(2);
@@ -296,34 +319,14 @@ describe('searchRopewiki (integration)', () => {
     });
 
     it('cursor pagination: first page has nextCursor when more results exist', async () => {
-        const params = new SearchParams(
-            'SearchTest',
-            0.1,
-            true,
-            true,
-            false,
-            null,
-            'similarity',
-            2,
-            null,
-        );
-        const { results, nextCursor } = await searchRopewiki(conn, params);
+        const pageParams = new SearchParams('SearchTest', 0.1, true, true, false, 'similarity', 2);
+        const { results, nextCursor } = await searchRopewiki(conn, pageParams);
         expect(results.length).toBe(2);
         expect(nextCursor).not.toBeNull();
     });
 
     it('cursor pagination: second page returns remaining results and empty nextCursor', async () => {
-        const firstParams = new SearchParams(
-            'SearchTest',
-            0.1,
-            true,
-            true,
-            false,
-            null,
-            'similarity',
-            2,
-            null,
-        );
+        const firstParams = new SearchParams('SearchTest', 0.1, true, true, false, 'similarity', 2);
         const first = await searchRopewiki(conn, firstParams);
         expect(first.results.length).toBe(2);
         expect(first.nextCursor).not.toBeNull();
@@ -334,10 +337,9 @@ describe('searchRopewiki (integration)', () => {
             true,
             true,
             false,
-            null,
             'similarity',
             2,
-            first.nextCursor,
+            first.nextCursor ?? undefined,
         );
         const second = await searchRopewiki(conn, secondParams);
         expect(second.results.length).toBe(2);

@@ -1,5 +1,5 @@
 import type * as db from 'zapatos/db';
-import type { PagePreview } from 'ropegeo-common';
+import type { PagePreview } from 'ropegeo-common/classes';
 import type { PageRoute } from '../../../types/pageRoute';
 import { RopewikiRoute } from '../../../types/pageRoute';
 import getRopewikiPagePreview from '../database/getRopewikiPagePreview';

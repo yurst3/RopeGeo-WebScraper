@@ -1,6 +1,6 @@
 import * as db from 'zapatos/db';
 import RopewikiPage from '../types/page';
-import { Route } from 'ropegeo-common';
+import { Route } from 'ropegeo-common/classes';
 import { routeFromDbRow, routeFromRopewikiPage, routeToDbRow } from '../../converters/route';
 import zip from 'lodash/zip';
 

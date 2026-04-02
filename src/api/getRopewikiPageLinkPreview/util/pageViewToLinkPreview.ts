@@ -1,18 +1,19 @@
-import type { RopewikiPageView } from 'ropegeo-common';
-import { ImageVersion, LinkPreview, LinkPreviewImage } from 'ropegeo-common';
+import type { AcaDifficulty, RopewikiPageView } from 'ropegeo-common/classes';
+import { ImageVersion, LinkPreview, LinkPreviewImage } from 'ropegeo-common/classes';
 import { Metadata } from '../../../image-data/types/metadata';
 
 /**
- * Difficulty line aligned with mobile PagePreview (technical + water + time + risk).
+ * Difficulty line aligned with mobile PagePreview (technical + water + time + effective risk).
  */
 export function formatDifficultyForLinkPreview(view: RopewikiPageView): string {
-    const d = view.difficulty;
+    const d = view.difficulty as AcaDifficulty;
     const main = [d.technical, d.water]
         .filter((x): x is NonNullable<typeof x> => x != null)
         .map((x) => String(x))
         .join('');
     const timePart = d.time != null ? ` ${String(d.time)}` : '';
-    const riskPart = d.risk != null ? ` ${String(d.risk)}` : '';
+    const riskForDisplay = d.effectiveRisk;
+    const riskPart = riskForDisplay != null ? ` ${String(riskForDisplay)}` : '';
     return (main + timePart + riskPart).trim();
 }
 

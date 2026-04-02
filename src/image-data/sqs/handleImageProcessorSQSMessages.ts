@@ -3,9 +3,8 @@ import type { SqsRecord } from '@aws-lambda-powertools/parser/types';
 import { main } from '../main';
 import { lambdaSaveImageData } from '../hook-functions/saveImageData';
 import { ImageDataEvent } from '../types/lambdaEvent';
-import ProgressLogger from 'ropegeo-common/helpers/progressLogger';
+import { ProgressLogger, timeoutAfter } from 'ropegeo-common/helpers';
 import deleteImageProcessorSQSMessage from './deleteImageProcessorSQSMessage';
-import { timeoutAfter } from 'ropegeo-common/helpers/timeoutAfter';
 
 /**
  * Handles processing of image data from SQS records.

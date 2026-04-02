@@ -6,7 +6,7 @@ import upsertPageRoute from './util/upsertPageRoute';
 import { PageRoute } from '../types/pageRoute';
 import type { SaveMapDataHookFn } from './hook-functions/saveMapData';
 import { MapDataEvent } from './types/lambdaEvent';
-import ProgressLogger from 'ropegeo-common/helpers/progressLogger';
+import { ProgressLogger } from 'ropegeo-common/helpers';
 
 /**
  * Processes map data by reading source file URL from the database, downloading it (or fetching from S3 when downloadSource is false),

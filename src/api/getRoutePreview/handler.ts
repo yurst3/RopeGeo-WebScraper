@@ -1,5 +1,5 @@
 import type { PoolClient } from 'pg';
-import { RoutePreviewResult } from 'ropegeo-common';
+import { RoutePreviewResult } from 'ropegeo-common/classes';
 import getDatabaseConnection from '../../helpers/getDatabaseConnection';
 import getPageRoutes from './database/getPageRoutes';
 import routeExists from './database/routeExists';

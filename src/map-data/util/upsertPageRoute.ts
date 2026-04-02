@@ -1,6 +1,6 @@
 import * as db from 'zapatos/db';
 import { default as upsertRopewikiRoute } from '../../ropewiki/database/upsertRopewikiRoute';
-import { PageDataSource } from 'ropegeo-common';
+import { PageDataSource } from 'ropegeo-common/classes';
 import { PageRoute, RopewikiRoute } from '../../types/pageRoute';
 
 /**
