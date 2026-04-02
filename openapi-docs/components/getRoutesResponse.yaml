@@ -1,40 +1,30 @@
 GetRoutesResponse:
   type: object
-  description: Result wrapper for getRoutes (ropegeo-common Result; resultType + result)
+  description: Page-based GET /routes response (ropegeo-common RouteResult; resultType `route`, GeoJSON features, total count, page index)
   required:
     - resultType
-    - result
+    - results
+    - total
+    - page
   properties:
     resultType:
       type: string
       enum:
-        - routesGeojson
-      description: Discriminator for single-result API responses (ropegeo-common ResultType)
-    result:
-      $ref: "#/RoutesGeojsonResult"
-      description: The GeoJSON Feature Collection of routes (RoutesGeojson)
-
-RoutesGeojsonResult:
-  type: object
-  description: GeoJSON Feature Collection of routes; each feature has id, name, and type properties and a Point geometry. When the request includes source and region query params, bounds is set from route coordinates (or null if there are no routes).
-  required:
-    - type
-    - features
-  properties:
-    type:
-      type: string
-      enum:
-        - FeatureCollection
-      description: GeoJSON type identifier for a Feature Collection
-    features:
+        - route
+      description: Discriminator for page-based route list (ropegeo-common PaginationResultType.Route)
+    results:
       type: array
-      description: List of GeoJSON Feature objects, one per route
+      description: GeoJSON Feature objects for this page (one per route row)
       items:
         $ref: "#/GeoJsonFeature"
-    bounds:
-      description: Bounding box of all route points when source+region query params are used; null when unscoped or when there are no routes
-      nullable: true
-      $ref: './miniMap.yaml#/Bounds'
+    total:
+      type: integer
+      minimum: 0
+      description: Total number of routes matching the query across all pages
+    page:
+      type: integer
+      minimum: 1
+      description: Current 1-based page index
 
 GeoJsonFeature:
   type: object

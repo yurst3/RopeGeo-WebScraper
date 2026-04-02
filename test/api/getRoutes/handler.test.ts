@@ -34,14 +34,14 @@ describe('getRoutes handler', () => {
         mockGetRoutes = require('../../../src/api/getRoutes/util/getRoutes').default;
 
         mockGetDatabaseConnection.mockResolvedValue(mockPool as never);
-        mockGetRoutes.mockResolvedValue([]);
+        mockGetRoutes.mockResolvedValue({ routes: [], total: 0 });
     });
 
-    it('returns 200 and GeoJSON Feature Collection of routes with CORS headers', async () => {
+    it('returns 200 and RouteResult (features, total, page) with CORS headers', async () => {
         const mockRoutes: Route[] = [
             new Route('id-1', 'Route One', RouteType.Canyon, { lat: 40.1, lon: -111.5 }),
         ];
-        mockGetRoutes.mockResolvedValue(mockRoutes);
+        mockGetRoutes.mockResolvedValue({ routes: mockRoutes, total: 1 });
 
         const result = await handler({}, {});
 
@@ -55,29 +55,29 @@ describe('getRoutes handler', () => {
             'Access-Control-Allow-Origin': '*',
         });
         const body = JSON.parse(result.body);
-        expect(body.resultType).toBe('routesGeojson');
-        expect(body.result).toEqual({
-            type: 'FeatureCollection',
-            bounds: null,
-            features: [
-                {
-                    type: 'Feature',
-                    geometry: { type: 'Point', coordinates: [-111.5, 40.1] },
-                    properties: { id: 'id-1', name: 'Route One', type: 'Canyon' },
-                },
-            ],
-        });
+        expect(body.resultType).toBe('route');
+        expect(body.total).toBe(1);
+        expect(body.page).toBe(1);
+        expect(body.results).toEqual([
+            {
+                type: 'Feature',
+                geometry: { type: 'Point', coordinates: [-111.5, 40.1] },
+                properties: { id: 'id-1', name: 'Route One', type: 'Canyon' },
+            },
+        ]);
     });
 
-    it('returns 200 and empty Feature Collection when no routes exist', async () => {
-        mockGetRoutes.mockResolvedValue([]);
+    it('returns 200 and empty results when no routes exist', async () => {
+        mockGetRoutes.mockResolvedValue({ routes: [], total: 0 });
 
         const result = await handler({}, {});
 
         expect(result.statusCode).toBe(200);
         const body = JSON.parse(result.body);
-        expect(body.resultType).toBe('routesGeojson');
-        expect(body.result).toEqual({ type: 'FeatureCollection', bounds: null, features: [] });
+        expect(body.resultType).toBe('route');
+        expect(body.results).toEqual([]);
+        expect(body.total).toBe(0);
+        expect(body.page).toBe(1);
     });
 
     it('returns 400 when source is present but region is absent', async () => {
@@ -96,7 +96,7 @@ describe('getRoutes handler', () => {
 
     it('returns 200 when region is present without source (all sources in subtree)', async () => {
         const regionId = 'a1b2c3d4-e5f6-7890-abcd-ef1234567890';
-        mockGetRoutes.mockResolvedValue([]);
+        mockGetRoutes.mockResolvedValue({ routes: [], total: 0 });
 
         const result = await handler(
             { queryStringParameters: { region: regionId } },
@@ -127,12 +127,12 @@ describe('getRoutes handler', () => {
         expect(body.error).toMatch(/source|ropewiki/);
     });
 
-    it('calls getRoutes with RoutesParams when source and region are present and returns filtered routes', async () => {
+    it('calls getRoutes with RoutesParams when source and region are present and returns filtered page', async () => {
         const regionId = 'a1b2c3d4-e5f6-7890-abcd-ef1234567890';
         const mockRoutes: Route[] = [
             new Route('id-2', 'Filtered Route', RouteType.Cave, { lat: 40.2, lon: -111.6 }),
         ];
-        mockGetRoutes.mockResolvedValue(mockRoutes);
+        mockGetRoutes.mockResolvedValue({ routes: mockRoutes, total: 42 });
 
         const result = await handler(
             {
@@ -152,23 +152,16 @@ describe('getRoutes handler', () => {
         expect(routesParams.region!.id).toBe(regionId);
         expect(result.statusCode).toBe(200);
         const body = JSON.parse(result.body);
-        expect(body.resultType).toBe('routesGeojson');
-        expect(body.result).toEqual({
-            type: 'FeatureCollection',
-            bounds: {
-                north: 40.2,
-                south: 40.2,
-                east: -111.6,
-                west: -111.6,
+        expect(body.resultType).toBe('route');
+        expect(body.total).toBe(42);
+        expect(body.page).toBe(1);
+        expect(body.results).toEqual([
+            {
+                type: 'Feature',
+                geometry: { type: 'Point', coordinates: [-111.6, 40.2] },
+                properties: { id: 'id-2', name: 'Filtered Route', type: 'Cave' },
             },
-            features: [
-                {
-                    type: 'Feature',
-                    geometry: { type: 'Point', coordinates: [-111.6, 40.2] },
-                    properties: { id: 'id-2', name: 'Filtered Route', type: 'Cave' },
-                },
-            ],
-        });
+        ]);
     });
 
     it('handles getDatabaseConnection failure and returns 500', async () => {

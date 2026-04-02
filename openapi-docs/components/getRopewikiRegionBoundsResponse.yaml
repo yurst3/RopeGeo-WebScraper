@@ -1,0 +1,15 @@
+GetRopewikiRegionBoundsResponse:
+  type: object
+  description: Result wrapper for GET /ropewiki/region/{id}/bounds (ropegeo-common RopewikiRegionBoundsResult)
+  required:
+    - resultType
+    - result
+  properties:
+    resultType:
+      type: string
+      enum:
+        - ropewikiRegionBounds
+      description: Discriminator (ropegeo-common ResultType.RopewikiRegionBounds)
+    result:
+      $ref: './miniMap.yaml#/Bounds'
+      description: Bounding box over all route marker coordinates in the region subtree (from Route rows only; no route-type or difficulty filters)

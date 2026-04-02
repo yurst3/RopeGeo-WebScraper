@@ -1,16 +1,33 @@
 # /routes
 get:
-  summary: List routes as GeoJSON
+  summary: List routes as GeoJSON (paginated)
   description: |
-    Returns routes as a GeoJSON Feature Collection. Optional **region** scopes to routes linked to Ropewiki pages in that region and descendants.
+    Returns one page of routes as GeoJSON Features (`resultType` **route**, `results`, `total`, `page`). Use **limit** and **page** for pagination (defaults match ropegeo-common `RoutesParams`: limit 500, page 1). Order is stable by route id.
+    Optional **region** scopes to routes linked to Ropewiki pages in that region and descendants.
     Optional **source** pipe-list restricts by page data source when region is set (omit or empty = all sources). If the allow-list excludes all known sources (e.g. non-ropewiki only), the result is empty.
-    Optional **route-type** filters `Route.type`. Optional **ACA difficulty** query keys (`difficulty-type`, `aca-technical-rating`, …) filter routes that have a linked Ropewiki page matching the allow-lists.
+    Optional **route-type** filters `Route.type`. Optional **ACA difficulty** query keys filter routes that have a linked Ropewiki page matching the allow-lists.
+    Map bounds for a region are not included; use **GET /ropewiki/region/{id}/bounds** for a bounding box over route coordinates in the subtree.
     **Source** without **region** remains invalid (ropegeo-common `RoutesParams`). **Region** may be provided without **source** (all sources in subtree).
     Validation follows ropegeo-common `RoutesParams.fromQueryStringParams`.
   operationId: getRoutes
   tags:
     - routes
   parameters:
+    - name: limit
+      in: query
+      required: false
+      schema:
+        type: integer
+        minimum: 1
+        maximum: 500
+      description: Page size (default 500; max 500)
+    - name: page
+      in: query
+      required: false
+      schema:
+        type: integer
+        minimum: 1
+      description: 1-based page index (default 1)
     - name: source
       in: query
       required: false
@@ -69,7 +86,7 @@ get:
     $ref: '../integrations/getRoutesLambda.yaml#/GetRoutesLambdaIntegration'
   responses:
     '200':
-      description: Successful response; GeoJSON Feature Collection of routes
+      description: Successful response; one page of GeoJSON route features with total count
       content:
         application/json:
           schema:

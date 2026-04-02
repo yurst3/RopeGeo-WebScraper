@@ -1,0 +1,58 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Lambda for GET /ropewiki/region/{id}/bounds API endpoint
+
+Resources:
+  GetRopewikiRegionBounds:
+    Type: 'AWS::Serverless::Function'
+    Properties:
+      Description: 'Lambda for GET /ropewiki/region/{id}/bounds; returns Bounds over route coordinates in region subtree'
+      Runtime: nodejs22.x
+      Architectures:
+        - arm64
+      Role:
+        'Fn::GetAtt': GetRopewikiRegionBoundsRole.Arn
+      CodeUri: ../../
+      Handler: src/api/getRopewikiRegionBounds/handler.handler
+      MemorySize: 256
+      Timeout: 30
+      VpcConfig:
+        SecurityGroupIds:
+          - Ref: LambdaSecurityGroup
+        SubnetIds:
+          - Ref: PrivateSubnet1
+      Environment:
+        Variables:
+          DEV_ENVIRONMENT:
+            Ref: devEnvironment
+          DB_HOST:
+            'Fn::If':
+              - UseDatabaseProxyInProd
+              - 'Fn::GetAtt': RDSProxy.Endpoint
+              - 'Fn::GetAtt': Database.Endpoint.Address
+          DB_PORT:
+            'Fn::GetAtt': Database.Endpoint.Port
+          USE_DATABASE_PROXY:
+            Ref: UseDatabaseProxy
+          DB_NAME:
+            'Fn::Sub': '${devEnvironment}db'
+          DB_USER:
+            Ref: DatabaseUsername
+          DB_PASSWORD:
+            Ref: DatabasePassword
+    Metadata:
+      BuildMethod: esbuild
+      BuildProperties:
+        Minify: true
+        Target: esnext
+        Sourcemap: true
+        EntryPoints:
+          - src/api/getRopewikiRegionBounds/handler.ts
+        External:
+          - sharp
+          - pdf-lib
+          - pdf-to-img
+Outputs:
+  GetRopewikiRegionBoundsLambdaArn:
+    Description: ARN of the GetRopewikiRegionBounds Lambda (for OpenAPI integration resolveYamlEnvs)
+    Value:
+      'Fn::GetAtt': GetRopewikiRegionBounds.Arn

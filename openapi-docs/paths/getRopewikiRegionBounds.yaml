@@ -1,0 +1,36 @@
+# /ropewiki/region/{id}/bounds
+get:
+  summary: Bounding box for route markers in a Ropewiki region subtree
+  description: |
+    Returns a geographic bounding box (**Bounds**) computed from **Route** row coordinates for every non-deleted route linked to a non-deleted Ropewiki page whose region is the given region or a descendant.
+    No **route-type**, difficulty, or **source** filters are applied. If no such routes with valid coordinates exist, the API returns **404**.
+    Clients should use this for map fitting; **GET /routes** does not include bounds on the GeoJSON payload.
+  operationId: getRopewikiRegionBounds
+  tags:
+    - ropewiki
+  parameters:
+    - name: id
+      in: path
+      required: true
+      description: RopewikiRegion uuid
+      schema:
+        type: string
+        format: uuid
+  x-amazon-apigateway-integration:
+    $ref: '../integrations/getRopewikiRegionBoundsLambda.yaml#/GetRopewikiRegionBoundsLambdaIntegration'
+  responses:
+    '200':
+      description: Successful response; Bounds in result
+      content:
+        application/json:
+          schema:
+            $ref: '../components/getRopewikiRegionBoundsResponse.yaml#/GetRopewikiRegionBoundsResponse'
+          examples:
+            getRopewikiRegionBoundsResponse:
+              $ref: '../examples/getRopewikiRegionBoundsResponse.yaml'
+    '400':
+      description: Bad Request; missing, empty, or invalid UUID id
+    '404':
+      description: Not Found; no route coordinates in the region subtree
+    '500':
+      description: Internal server error

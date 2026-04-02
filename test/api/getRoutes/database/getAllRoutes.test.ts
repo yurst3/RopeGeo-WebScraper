@@ -1,7 +1,10 @@
 import { Pool } from 'pg';
 import { describe, it, expect, beforeAll, afterAll, afterEach } from '@jest/globals';
 import * as db from 'zapatos/db';
-import getAllRoutes from '../../../../src/api/getRoutes/database/getAllRoutes';
+import {
+    countAllRoutes,
+    getAllRoutesPage,
+} from '../../../../src/api/getRoutes/database/getAllRoutes';
 
 describe('getAllRoutes (integration)', () => {
     const pool = new Pool({
@@ -45,8 +48,10 @@ describe('getAllRoutes (integration)', () => {
             ])
             .run(conn);
 
-        const result = await getAllRoutes(conn);
+        const total = await countAllRoutes(conn);
+        const result = await getAllRoutesPage(conn, null, 100, 0);
 
+        expect(total).toBe(1);
         expect(result.length).toBe(1);
         expect(result[0].name).toBe('Active Route');
         expect(result[0].type).toBe('Canyon');
@@ -62,8 +67,10 @@ describe('getAllRoutes (integration)', () => {
             ])
             .run(conn);
 
-        const result = await getAllRoutes(conn);
+        const total = await countAllRoutes(conn);
+        const result = await getAllRoutesPage(conn, null, 100, 0);
 
+        expect(total).toBe(2);
         expect(result.length).toBe(2);
         const names = result.map((r) => r.name).sort();
         expect(names).toEqual(['Route A', 'Route B']);
@@ -75,8 +82,10 @@ describe('getAllRoutes (integration)', () => {
         });
     });
 
-    it('returns empty array when no routes exist', async () => {
-        const result = await getAllRoutes(conn);
+    it('returns empty page when no routes exist', async () => {
+        const total = await countAllRoutes(conn);
+        const result = await getAllRoutesPage(conn, null, 100, 0);
+        expect(total).toBe(0);
         expect(result).toEqual([]);
     });
 });

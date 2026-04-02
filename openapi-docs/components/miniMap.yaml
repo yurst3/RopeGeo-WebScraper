@@ -72,7 +72,7 @@ PageMiniMap:
 
 RegionMiniMap:
   type: object
-  description: Region minimap — load route GeoJSON via GET /routes with routesParams (ropegeo-common RegionMiniMap)
+  description: Region minimap — load route features via GET /routes with routesParams; use GET /ropewiki/region/{id}/bounds for bbox (ropegeo-common RegionMiniMap)
   required:
     - miniMapType
     - routesParams

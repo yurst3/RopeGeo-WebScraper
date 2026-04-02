@@ -1,7 +1,10 @@
 import { Pool } from 'pg';
 import { describe, it, expect, beforeAll, afterAll, afterEach } from '@jest/globals';
 import * as db from 'zapatos/db';
-import getRopewikiRegionRoutes from '../../../../src/api/getRoutes/database/getRopewikiRegionRoutes';
+import {
+    countRopewikiRegionRoutes,
+    getRopewikiRegionRoutesPage,
+} from '../../../../src/api/getRoutes/database/getRopewikiRegionRoutes';
 
 describe('getRopewikiRegionRoutes (integration)', () => {
     const pool = new Pool({
@@ -104,7 +107,9 @@ describe('getRopewikiRegionRoutes (integration)', () => {
             .run(conn);
 
         try {
-            const filtered = await getRopewikiRegionRoutes(conn, regionId);
+            const total = await countRopewikiRegionRoutes(conn, regionId);
+            const filtered = await getRopewikiRegionRoutesPage(conn, regionId, null, 100, 0);
+            expect(total).toBe(1);
             expect(filtered.length).toBe(1);
             expect(filtered[0]).toBeDefined();
             expect(filtered[0]!.id).toBe(routeId);
@@ -171,7 +176,9 @@ describe('getRopewikiRegionRoutes (integration)', () => {
             .run(conn);
 
         try {
-            const result = await getRopewikiRegionRoutes(conn, parentRegionId);
+            const total = await countRopewikiRegionRoutes(conn, parentRegionId);
+            const result = await getRopewikiRegionRoutesPage(conn, parentRegionId, null, 100, 0);
+            expect(total).toBe(1);
             expect(result.length).toBe(1);
             expect(result[0]).toBeDefined();
             expect(result[0]!.id).toBe(routeInChildId);

@@ -28,6 +28,8 @@ paths:
     $ref: './paths/getRopewikiPageView.yaml'
   /ropewiki/region/{id}:
     $ref: './paths/getRopewikiRegionView.yaml'
+  /ropewiki/region/{id}/bounds:
+    $ref: './paths/getRopewikiRegionBounds.yaml'
   /ropewiki/region/{id}/images:
     $ref: './paths/getRopewikiRegionImages.yaml'
   /ropewiki/region/{id}/previews:

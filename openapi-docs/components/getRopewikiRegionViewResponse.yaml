@@ -90,4 +90,4 @@ RopewikiRegionView:
       description: External URL for the region
     miniMap:
       $ref: './miniMap.yaml#/RegionMiniMap'
-      description: Region minimap — clients call GET /routes with routesParams (bounds included on the GeoJSON when filtering by region)
+      description: Region minimap — clients call GET /routes with routesParams for markers and GET /ropewiki/region/{id}/bounds for fitting the map (bounds are not on the routes GeoJSON)

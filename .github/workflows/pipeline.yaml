@@ -422,6 +422,11 @@ jobs:
             --region ${PROD_REGION} \
             --query "Stacks[0].Outputs[?OutputKey=='GetRopewikiRegionViewLambdaArn'].OutputValue" \
             --output text)
+          GET_ROPEWIKI_REGION_BOUNDS_ARN=$(aws cloudformation describe-stacks \
+            --stack-name ${PROD_STACK_NAME} \
+            --region ${PROD_REGION} \
+            --query "Stacks[0].Outputs[?OutputKey=='GetRopewikiRegionBoundsLambdaArn'].OutputValue" \
+            --output text)
           GET_ROPEWIKI_REGION_PREVIEWS_ARN=$(aws cloudformation describe-stacks \
             --stack-name ${PROD_STACK_NAME} \
             --region ${PROD_REGION} \
@@ -453,6 +458,7 @@ jobs:
           echo "get_ropewiki_page_view_arn=${GET_ROPEWIKI_PAGE_VIEW_ARN}" >> $GITHUB_OUTPUT
           echo "get_ropewiki_page_link_preview_arn=${GET_ROPEWIKI_PAGE_LINK_PREVIEW_ARN}" >> $GITHUB_OUTPUT
           echo "get_ropewiki_region_view_arn=${GET_ROPEWIKI_REGION_VIEW_ARN}" >> $GITHUB_OUTPUT
+          echo "get_ropewiki_region_bounds_arn=${GET_ROPEWIKI_REGION_BOUNDS_ARN}" >> $GITHUB_OUTPUT
           echo "get_ropewiki_region_previews_arn=${GET_ROPEWIKI_REGION_PREVIEWS_ARN}" >> $GITHUB_OUTPUT
           echo "get_ropewiki_region_images_arn=${GET_ROPEWIKI_REGION_IMAGES_ARN}" >> $GITHUB_OUTPUT
           echo "search_arn=${SEARCH_ARN}" >> $GITHUB_OUTPUT
@@ -467,6 +473,7 @@ jobs:
           GET_ROPEWIKI_PAGE_VIEW_LAMBDA_ARN=${{ steps.stack-outputs.outputs.get_ropewiki_page_view_arn }} \
           GET_ROPEWIKI_PAGE_LINK_PREVIEW_LAMBDA_ARN=${{ steps.stack-outputs.outputs.get_ropewiki_page_link_preview_arn }} \
           GET_ROPEWIKI_REGION_VIEW_LAMBDA_ARN=${{ steps.stack-outputs.outputs.get_ropewiki_region_view_arn }} \
+          GET_ROPEWIKI_REGION_BOUNDS_LAMBDA_ARN=${{ steps.stack-outputs.outputs.get_ropewiki_region_bounds_arn }} \
           GET_ROPEWIKI_REGION_PREVIEWS_LAMBDA_ARN=${{ steps.stack-outputs.outputs.get_ropewiki_region_previews_arn }} \
           GET_ROPEWIKI_REGION_IMAGES_LAMBDA_ARN=${{ steps.stack-outputs.outputs.get_ropewiki_region_images_arn }} \
           SEARCH_LAMBDA_ARN=${{ steps.stack-outputs.outputs.search_arn }} \

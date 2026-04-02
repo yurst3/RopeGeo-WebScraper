@@ -1,5 +1,5 @@
 import type { PoolClient } from 'pg';
-import { RoutesGeojson, RoutesGeojsonResult, RoutesParams } from 'ropegeo-common/classes';
+import { RouteResult, RoutesParams } from 'ropegeo-common/classes';
 import getDatabaseConnection from '../../helpers/getDatabaseConnection';
 import getRoutes from './util/getRoutes';
 
@@ -10,8 +10,8 @@ const CORS_HEADERS = {
 
 /**
  * Lambda handler for GET /routes (API Gateway proxy integration).
- * Returns routes as a GeoJSON Feature Collection. Optional query params source and region
- * (validated via RoutesParams.fromQueryStringParams) restrict to that source/region and its descendants.
+ * Returns a page of routes as GeoJSON features (`RouteResult`: resultType `route`, `results`, `total`, `page`).
+ * Optional query params region, source, route-type, difficulty, limit, page (see ropegeo-common `RoutesParams`).
  */
 export const handler = async (
     event: {
@@ -39,10 +39,9 @@ export const handler = async (
     try {
         const pool = await getDatabaseConnection();
         client = await pool.connect();
-        const routes = await getRoutes(client, params);
-        const withBounds = params.region !== null;
-        const geojson = RoutesGeojson.fromRoutes(routes, withBounds);
-        const result = new RoutesGeojsonResult(geojson);
+        const { routes, total } = await getRoutes(client, params);
+        const features = routes.map((r) => r.toGeoJsonFeature());
+        const result = new RouteResult(features, total, params.page);
         return {
             statusCode: 200,
             headers: CORS_HEADERS,
