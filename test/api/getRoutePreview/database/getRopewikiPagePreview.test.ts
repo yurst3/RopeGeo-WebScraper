@@ -100,7 +100,7 @@ describe('getRopewikiPagePreview (integration)', () => {
                 technical: '3',
                 water: 'A',
                 time: 'II',
-                risk: null,
+                additionalRisk: null,
                 effectiveRisk: 'PG13',
             }),
             permit: 'No',

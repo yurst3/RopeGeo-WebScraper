@@ -12,8 +12,82 @@ export function searchAllowsRopewikiPages(source: PageDataSource[] | null): bool
 }
 
 /**
+ * SQL text expression for ACA effective risk on `RopewikiPage` alias `p`.
+ * Matches {@link AcaDifficulty} / `computeEffectiveRisk` in ropegeo-common (technical default floor).
+ */
+export function sqlAcaEffectiveRiskForPageP(): db.SQL {
+    return db.sql`
+(CASE
+  WHEN TRIM(COALESCE(p."riskRating", '')) = '' THEN
+    CASE TRIM(COALESCE(p."technicalRating", ''))
+      WHEN '1' THEN 'G'
+      WHEN '2' THEN 'PG'
+      WHEN '3' THEN 'PG13'
+      WHEN '4' THEN 'PG13'
+      ELSE NULL
+    END
+  ELSE
+    CASE
+      WHEN (
+        CASE TRIM(COALESCE(p."technicalRating", ''))
+          WHEN '1' THEN 'G'
+          WHEN '2' THEN 'PG'
+          WHEN '3' THEN 'PG13'
+          WHEN '4' THEN 'PG13'
+          ELSE NULL
+        END
+      ) IS NOT NULL
+      AND (
+        CASE UPPER(TRIM(p."riskRating"))
+          WHEN 'G' THEN 0 WHEN 'PG' THEN 1 WHEN 'PG13' THEN 2 WHEN 'R' THEN 3 WHEN 'X' THEN 4 WHEN 'XX' THEN 5
+          ELSE NULL
+        END
+      ) IS NOT NULL
+      AND (
+        CASE UPPER(TRIM(p."riskRating"))
+          WHEN 'G' THEN 0 WHEN 'PG' THEN 1 WHEN 'PG13' THEN 2 WHEN 'R' THEN 3 WHEN 'X' THEN 4 WHEN 'XX' THEN 5
+          ELSE NULL
+        END
+      ) < (
+        CASE (
+          CASE TRIM(COALESCE(p."technicalRating", ''))
+            WHEN '1' THEN 'G'
+            WHEN '2' THEN 'PG'
+            WHEN '3' THEN 'PG13'
+            WHEN '4' THEN 'PG13'
+            ELSE NULL
+          END
+        )
+          WHEN 'G' THEN 0 WHEN 'PG' THEN 1 WHEN 'PG13' THEN 2 WHEN 'R' THEN 3 WHEN 'X' THEN 4 WHEN 'XX' THEN 5
+          ELSE NULL
+        END
+      )
+      THEN (
+        CASE TRIM(COALESCE(p."technicalRating", ''))
+          WHEN '1' THEN 'G'
+          WHEN '2' THEN 'PG'
+          WHEN '3' THEN 'PG13'
+          WHEN '4' THEN 'PG13'
+          ELSE NULL
+        END
+      )
+      WHEN (
+        CASE UPPER(TRIM(p."riskRating"))
+          WHEN 'G' THEN 0 WHEN 'PG' THEN 1 WHEN 'PG13' THEN 2 WHEN 'R' THEN 3 WHEN 'X' THEN 4 WHEN 'XX' THEN 5
+          ELSE NULL
+        END
+      ) IS NOT NULL
+      THEN UPPER(TRIM(p."riskRating"))
+      ELSE NULL
+    END
+END)`;
+}
+
+/**
  * AND … fragments for ACA difficulty on `RopewikiPage` alias `p`.
  * Empty or inactive difficulty returns no extra SQL.
+ * Risk axis (`aca-risk-rating` / {@link AcaDifficultyParams.effectiveRisk}) matches **effective** risk
+ * (same rules as {@link AcaDifficulty}), not the raw `riskRating` column alone.
  */
 export function sqlAcaDifficultyOnPage(difficulty: DifficultyParams | null): db.SQL {
     if (difficulty == null || !difficulty.isActive()) {
@@ -37,9 +111,10 @@ export function sqlAcaDifficultyOnPage(difficulty: DifficultyParams | null): db.
         const lower = d.time.map((t) => t.toLowerCase());
         out = db.sql`${out} AND LOWER(TRIM(p."timeRating")) = ANY(${db.param(lower)}::text[])`;
     }
-    if (d.risk.length > 0) {
-        const upper = d.risk.map((x) => x.toUpperCase());
-        out = db.sql`${out} AND UPPER(TRIM(p."riskRating")) = ANY(${db.param(upper)}::text[])`;
+    if (d.effectiveRisk.length > 0) {
+        const upper = d.effectiveRisk.map((x) => x.toUpperCase());
+        const effExpr = sqlAcaEffectiveRiskForPageP();
+        out = db.sql`${out} AND (${effExpr}) = ANY(${db.param(upper)}::text[])`;
     }
     return out;
 }

@@ -18,7 +18,8 @@ value:
         technical: "3"
         water: A
         time: II
-        risk: PG
+        additionalRisk: PG
+        effectiveRisk: PG13
       permit: No
       mapData: c3d4e5f6-a7b8-9012-cdef-123456789012
       externalLink: https://ropewiki.com/Bear_Creek_Canyon
@@ -36,7 +37,8 @@ value:
         technical: null
         water: null
         time: null
-        risk: null
+        additionalRisk: null
+        effectiveRisk: null
       permit: null
       mapData: null
       externalLink: https://ropewiki.com/Devil_Gulch

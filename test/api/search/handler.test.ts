@@ -121,7 +121,7 @@ describe('search handler', () => {
                 title: 'Imlay Canyon',
                 regions: ['Utah'],
                 aka: [],
-                difficulty: { technical: '3', water: 'B', time: 'III', risk: null },
+                difficulty: { technical: '3', water: 'B', time: 'III', additionalRisk: null },
                 mapData: null,
                 externalLink: 'https://ropewiki.com/Imlay_Canyon',
                 permit: null,

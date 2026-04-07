@@ -94,12 +94,13 @@ PagePreview:
 
 Difficulty:
   type: object
-  description: Difficulty ratings (technical, water, time, risk); each property nullable
+  description: ACA difficulty (technical, water, time, additionalRisk from DB, effectiveRisk for display/filters); each property nullable where noted
   required:
     - technical
     - water
     - time
-    - risk
+    - additionalRisk
+    - effectiveRisk
   properties:
     technical:
       type: string
@@ -136,10 +137,22 @@ Difficulty:
         - V
         - VI
         - null
-    risk:
+    additionalRisk:
       type: string
       nullable: true
-      description: Risk rating (G, PG, PG13, R, X, XX)
+      description: Raw stored risk rating from ropewiki (`riskRating`); null if unset (G, PG, PG13, R, X, XX)
+      enum:
+        - G
+        - PG
+        - PG13
+        - R
+        - X
+        - XX
+        - null
+    effectiveRisk:
+      type: string
+      nullable: true
+      description: Effective risk for display and API filters (never milder than the default implied by technical); same enum as additionalRisk
       enum:
         - G
         - PG

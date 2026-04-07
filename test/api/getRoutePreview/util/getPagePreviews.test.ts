@@ -44,7 +44,7 @@ describe('getPagePreviews', () => {
             ratingCount: 12,
             title: 'First Page',
             regions: ['Utah'],
-            difficulty: { technical: '3', water: 'A', time: 'II', risk: null },
+            difficulty: { technical: '3', water: 'A', time: 'II', additionalRisk: null },
             mapData: null,
             externalLink: 'https://ropewiki.com/First_Page',
         };
@@ -56,7 +56,7 @@ describe('getPagePreviews', () => {
             ratingCount: 5,
             title: 'Second Page',
             regions: ['Nevada'],
-            difficulty: { technical: '2', water: 'B', time: 'I', risk: null },
+            difficulty: { technical: '2', water: 'B', time: 'I', additionalRisk: null },
             mapData: null,
             externalLink: 'https://ropewiki.com/Second_Page',
         };

@@ -1,6 +1,6 @@
 # /ropewiki/region/{id}/bounds
 get:
-  summary: Bounding box for route markers in a Ropewiki region subtree
+  summary: Get Ropewiki region bounds
   description: |
     Returns a geographic bounding box (**Bounds**) computed from **Route** row coordinates for every non-deleted route linked to a non-deleted Ropewiki page whose region is the given region or a descendant.
     No **route-type**, difficulty, or **source** filters are applied. If no such routes with valid coordinates exist, the API returns **404**.

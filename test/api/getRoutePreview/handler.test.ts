@@ -96,7 +96,7 @@ describe('getRoutePreview handler', () => {
                 ratingCount: 12,
                 title: 'Bear Creek Canyon',
                 regions: ['Utah'],
-                difficulty: { technical: '3', water: 'A', time: 'II', risk: null },
+                difficulty: { technical: '3', water: 'A', time: 'II', additionalRisk: null },
                 mapData: null,
                 externalLink: 'https://ropewiki.com/Bear_Creek_Canyon',
             },

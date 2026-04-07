@@ -13,7 +13,8 @@ value:
       technical: "3"
       water: A
       time: II
-      risk: PG13
+      additionalRisk: PG13
+      effectiveRisk: PG13
     permit: No
     rappelCount: 5
     jumps: null

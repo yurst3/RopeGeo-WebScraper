@@ -19,7 +19,8 @@ value:
         technical: "3"
         water: B
         time: III
-        risk: PG
+        additionalRisk: PG
+        effectiveRisk: PG13
       permit: No
       mapData: null
       externalLink: https://ropewiki.com/Imlay_Canyon

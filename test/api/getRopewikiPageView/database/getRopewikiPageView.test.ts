@@ -92,7 +92,13 @@ describe('getRopewikiPageView (integration)', () => {
         expect(result!.url).toBe('https://ropewiki.com/Bear_Creek_Canyon');
         expect(result!.quality).toBe(4.5);
         expect(result!.userVotes).toBe(12);
-        expect(result!.difficulty).toMatchObject({ technical: '3', water: 'A', time: 'II', risk: 'PG13' });
+        expect(result!.difficulty).toMatchObject({
+            technical: '3',
+            water: 'A',
+            time: 'II',
+            additionalRisk: 'PG13',
+            effectiveRisk: 'PG13',
+        });
         expect(result!.permit).toBe('No');
         expect(result!.aka).toEqual([]);
         expect(result!.months).toEqual([]);

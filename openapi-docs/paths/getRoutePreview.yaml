@@ -1,7 +1,7 @@
 # /route/{routeId}/preview
 get:
   summary: Get route preview
-  description: Returns page previews for the given route (e.g. Ropewiki pages linked to the route). Each preview includes id, source, banner image URL, rating, rating count, title, region names, difficulty (technical, water, time, risk), mapData id, and externalLink (page URL).
+  description: Returns page previews for the given route (e.g. Ropewiki pages linked to the route). Each preview includes id, source, banner image URL, rating, rating count, title, region names, difficulty (technical, water, time, additionalRisk, effectiveRisk), mapData id, and externalLink (page URL).
   operationId: getRoutePreview
   tags:
     - routes
