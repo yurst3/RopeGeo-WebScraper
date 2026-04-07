@@ -5,24 +5,27 @@ import { routeFromDbRow } from '../../../converters/route';
 import { sqlAcaDifficultyOnPage } from '../../shared/acaPageDifficultySql';
 
 export type RouteListFilters = {
-    routeType: RouteType | null;
+    routeTypes: RouteType[] | null;
     difficulty: DifficultyParams | null;
 };
 
 /**
- * Counts non-deleted routes matching optional route-type and ACA difficulty filters.
+ * Counts non-deleted routes matching optional route-type allow-list and ACA difficulty filters.
  */
 export async function countAllRoutes(
     conn: db.Queryable,
     filters?: RouteListFilters | null,
 ): Promise<number> {
-    const routeType = filters?.routeType ?? null;
+    const routeTypes = filters?.routeTypes ?? null;
     const diff =
         filters?.difficulty != null && filters.difficulty.isActive()
             ? filters.difficulty
             : null;
 
-    if (routeType === null && diff === null) {
+    if (
+        (routeTypes === null || routeTypes.length === 0) &&
+        diff === null
+    ) {
         const rows = await db.sql<db.SQL, { c: string }[]>`
             SELECT COUNT(*)::text AS c FROM "Route" WHERE "deletedAt" IS NULL
         `.run(conn);
@@ -31,7 +34,9 @@ export async function countAllRoutes(
 
     const diffSql = sqlAcaDifficultyOnPage(diff);
     const routeTypeCond =
-        routeType === null ? db.sql`TRUE` : db.sql`r.type = ${db.param(routeType)}`;
+        routeTypes === null || routeTypes.length === 0
+            ? db.sql`TRUE`
+            : db.sql`r.type = ANY(${db.param(routeTypes)}::text[])`;
     const diffCond =
         diff === null
             ? db.sql`TRUE`
@@ -61,13 +66,16 @@ export async function getAllRoutesPage(
     limit: number,
     offset: number,
 ): Promise<Route[]> {
-    const routeType = filters?.routeType ?? null;
+    const routeTypes = filters?.routeTypes ?? null;
     const diff =
         filters?.difficulty != null && filters.difficulty.isActive()
             ? filters.difficulty
             : null;
 
-    if (routeType === null && diff === null) {
+    if (
+        (routeTypes === null || routeTypes.length === 0) &&
+        diff === null
+    ) {
         const rows = await db.sql<db.SQL, s.Route.JSONSelectable[]>`
             SELECT r.id, r.name, r.type, r.coordinates, r."createdAt", r."updatedAt", r."deletedAt", r."allowUpdates"
             FROM "Route" r
@@ -80,7 +88,9 @@ export async function getAllRoutesPage(
 
     const diffSql = sqlAcaDifficultyOnPage(diff);
     const routeTypeCond =
-        routeType === null ? db.sql`TRUE` : db.sql`r.type = ${db.param(routeType)}`;
+        routeTypes === null || routeTypes.length === 0
+            ? db.sql`TRUE`
+            : db.sql`r.type = ANY(${db.param(routeTypes)}::text[])`;
     const diffCond =
         diff === null
             ? db.sql`TRUE`

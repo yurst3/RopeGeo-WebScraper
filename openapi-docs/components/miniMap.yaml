@@ -47,6 +47,17 @@ RoutesParams:
   properties:
     region:
       $ref: '#/RoutesParamsRegion'
+    routeTypes:
+      type: array
+      description: Optional allow-list of `Route.type` values (ropegeo-common `RoutesParams.routeTypes`)
+      items:
+        type: string
+        description: Route classification
+        enum:
+          - Unknown
+          - POI
+          - Cave
+          - Canyon
 
 PageMiniMap:
   type: object

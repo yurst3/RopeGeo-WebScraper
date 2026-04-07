@@ -56,12 +56,12 @@ describe('getRoutes util', () => {
 
         expect(mockCountAllRoutes).toHaveBeenCalledTimes(1);
         expect(mockCountAllRoutes).toHaveBeenCalledWith(mockClient, {
-            routeType: null,
+            routeTypes: null,
             difficulty: null,
         });
         expect(mockGetAllRoutesPage).toHaveBeenCalledWith(
             mockClient,
-            { routeType: null, difficulty: null },
+            { routeTypes: null, difficulty: null },
             PaginationParams.DEFAULT_LIMIT,
             0,
         );
@@ -84,13 +84,13 @@ describe('getRoutes util', () => {
 
         expect(mockCountRopewikiRegionRoutes).toHaveBeenCalledTimes(1);
         expect(mockCountRopewikiRegionRoutes).toHaveBeenCalledWith(mockClient, regionId, {
-            routeType: null,
+            routeTypes: null,
             difficulty: null,
         });
         expect(mockGetRopewikiRegionRoutesPage).toHaveBeenCalledWith(
             mockClient,
             regionId,
-            { routeType: null, difficulty: null },
+            { routeTypes: null, difficulty: null },
             PaginationParams.DEFAULT_LIMIT,
             0,
         );
@@ -126,5 +126,25 @@ describe('getRoutes util', () => {
         const result = await getRoutes(mockClient as never, params);
 
         expect(result).toEqual({ routes: mockRoutes, total: 5 });
+    });
+
+    it('passes routeTypes filter through to global count and page', async () => {
+        const params = new RoutesParams({
+            region: null,
+            routeTypes: [RouteType.Canyon, RouteType.Cave],
+        });
+        await getRoutes(mockClient as never, params);
+
+        const filters = {
+            routeTypes: [RouteType.Canyon, RouteType.Cave],
+            difficulty: null,
+        };
+        expect(mockCountAllRoutes).toHaveBeenCalledWith(mockClient, filters);
+        expect(mockGetAllRoutesPage).toHaveBeenCalledWith(
+            mockClient,
+            filters,
+            PaginationParams.DEFAULT_LIMIT,
+            0,
+        );
     });
 });

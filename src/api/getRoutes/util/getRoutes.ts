@@ -16,7 +16,7 @@ export type GetRoutesPageResult = {
 
 /**
  * Returns one page of routes for GET /routes: global list or region subtree (ropewiki pages),
- * with optional route-type and ACA difficulty filters. Source allow-list: empty/absent means all;
+ * with optional route-types allow-list and ACA difficulty filters. Source allow-list: empty/absent means all;
  * if set and excludes ropewiki, returns `{ routes: [], total: 0 }` for region-scoped queries.
  */
 const getRoutes = async (
@@ -24,7 +24,7 @@ const getRoutes = async (
     params: RoutesParams,
 ): Promise<GetRoutesPageResult> => {
     const filters = {
-        routeType: params.routeType,
+        routeTypes: params.routeTypes,
         difficulty: params.difficulty,
     };
 

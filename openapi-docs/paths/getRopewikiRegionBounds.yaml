@@ -3,7 +3,7 @@ get:
   summary: Get Ropewiki region bounds
   description: |
     Returns a geographic bounding box (**Bounds**) computed from **Route** row coordinates for every non-deleted route linked to a non-deleted Ropewiki page whose region is the given region or a descendant.
-    No **route-type**, difficulty, or **source** filters are applied. If no such routes with valid coordinates exist, the API returns **404**.
+    No **route-types**, difficulty, or **source** filters are applied. If no such routes with valid coordinates exist, the API returns **404**.
     Clients should use this for map fitting; **GET /routes** does not include bounds on the GeoJSON payload.
   operationId: getRopewikiRegionBounds
   tags:

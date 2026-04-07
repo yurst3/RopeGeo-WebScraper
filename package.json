@@ -58,7 +58,7 @@
     "pdf-to-img": "^5.0.0",
     "pg": "^8.16.3",
     "puppeteer": "^22.5.0",
-    "ropegeo-common": "^1.10.0",
+    "ropegeo-common": "^1.10.1",
     "sharp": "^0.34.5",
     "undici": "^7.11.0",
     "uuid": "^13.0.0",

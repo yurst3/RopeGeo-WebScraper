@@ -109,6 +109,23 @@ describe('getRoutes handler', () => {
         expect(routesParams.region).toEqual({ id: regionId, source: null });
     });
 
+    it('parses route-types pipe-list into RoutesParams.routeTypes', async () => {
+        mockGetRoutes.mockResolvedValue({ routes: [], total: 0 });
+
+        const result = await handler(
+            {
+                queryStringParameters: {
+                    'route-types': 'Canyon|Cave',
+                },
+            },
+            {},
+        );
+
+        expect(result.statusCode).toBe(200);
+        const routesParams = mockGetRoutes.mock.calls[0]![1];
+        expect(routesParams.routeTypes).toEqual([RouteType.Canyon, RouteType.Cave]);
+    });
+
     it('returns 400 when source is invalid', async () => {
         const result = await handler(
             {

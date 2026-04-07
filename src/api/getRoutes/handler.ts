@@ -11,7 +11,7 @@ const CORS_HEADERS = {
 /**
  * Lambda handler for GET /routes (API Gateway proxy integration).
  * Returns a page of routes as GeoJSON features (`RouteResult`: resultType `route`, `results`, `total`, `page`).
- * Optional query params region, source, route-type, difficulty, limit, page (see ropegeo-common `RoutesParams`).
+ * Optional query params region, source, route-types, difficulty, limit, page (see ropegeo-common `RoutesParams`).
  */
 export const handler = async (
     event: {

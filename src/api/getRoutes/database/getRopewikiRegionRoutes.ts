@@ -19,14 +19,16 @@ export async function countRopewikiRegionRoutes(
         return 0;
     }
 
-    const routeType = filters?.routeType ?? null;
+    const routeTypes = filters?.routeTypes ?? null;
     const diff =
         filters?.difficulty != null && filters.difficulty.isActive()
             ? filters.difficulty
             : null;
     const diffSql = sqlAcaDifficultyOnPage(diff);
     const routeTypeCond =
-        routeType === null ? db.sql`TRUE` : db.sql`r.type = ${db.param(routeType)}`;
+        routeTypes === null || routeTypes.length === 0
+            ? db.sql`TRUE`
+            : db.sql`r.type = ANY(${db.param(routeTypes)}::text[])`;
 
     const rows = await db.sql<db.SQL, { c: string }[]>`
         SELECT COUNT(*)::text AS c
@@ -56,14 +58,16 @@ export async function getRopewikiRegionRoutesPage(
         return [];
     }
 
-    const routeType = filters?.routeType ?? null;
+    const routeTypes = filters?.routeTypes ?? null;
     const diff =
         filters?.difficulty != null && filters.difficulty.isActive()
             ? filters.difficulty
             : null;
     const diffSql = sqlAcaDifficultyOnPage(diff);
     const routeTypeCond =
-        routeType === null ? db.sql`TRUE` : db.sql`r.type = ${db.param(routeType)}`;
+        routeTypes === null || routeTypes.length === 0
+            ? db.sql`TRUE`
+            : db.sql`r.type = ANY(${db.param(routeTypes)}::text[])`;
 
     const rows = await db.sql<db.SQL, s.Route.JSONSelectable[]>`
         SELECT r.id, r.name, r.type, r.coordinates, r."createdAt", r."updatedAt", r."deletedAt", r."allowUpdates"

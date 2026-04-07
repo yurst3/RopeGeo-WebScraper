@@ -12,4 +12,4 @@ GetRopewikiRegionBoundsResponse:
       description: Discriminator (ropegeo-common ResultType.RopewikiRegionBounds)
     result:
       $ref: './miniMap.yaml#/Bounds'
-      description: Bounding box over all route marker coordinates in the region subtree (from Route rows only; no route-type or difficulty filters)
+      description: Bounding box over all route marker coordinates in the region subtree (from Route rows only; no route-types or difficulty filters)
