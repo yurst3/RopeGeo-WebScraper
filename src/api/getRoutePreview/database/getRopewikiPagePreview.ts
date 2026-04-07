@@ -1,6 +1,6 @@
 import * as db from 'zapatos/db';
-import type { GetRopewikiPagePreviewRow } from 'ropegeo-common/classes';
-import { PagePreview } from 'ropegeo-common/classes';
+import type { GetRopewikiPagePreviewRow } from 'ropegeo-common/models';
+import { PagePreview } from 'ropegeo-common/models';
 import type { RopewikiRoute } from '../../../types/pageRoute';
 import getRopewikiRegionLineage from '../../../ropewiki/database/getRopewikiRegionLineage';
 

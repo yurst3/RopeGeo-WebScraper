@@ -1,4 +1,4 @@
-import { PageDataSource, RegionMiniMap, RopewikiRegionView, RoutesParams } from 'ropegeo-common/classes';
+import { PageDataSource, RegionMiniMap, RopewikiRegionView, RoutesParams } from 'ropegeo-common/models';
 import * as db from 'zapatos/db';
 
 interface GetRopewikiRegionViewRow {

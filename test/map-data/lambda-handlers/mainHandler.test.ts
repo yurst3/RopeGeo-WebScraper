@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, jest } from '@jest/globals';
 import { mainHandler } from '../../../src/map-data/lambda-handlers/mainHandler';
-import { PageDataSource } from 'ropegeo-common/classes';
+import { PageDataSource } from 'ropegeo-common/models';
 import { MapDataEvent } from '../../../src/map-data/types/lambdaEvent';
 import type { SqsEvent, SqsRecord } from '@aws-lambda-powertools/parser/types';
 

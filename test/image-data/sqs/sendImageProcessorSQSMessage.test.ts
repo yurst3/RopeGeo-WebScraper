@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, afterEach, jest } from '@jest/globals';
 import sendImageProcessorSQSMessage from '../../../src/image-data/sqs/sendImageProcessorSQSMessage';
-import { ImageVersion, PageDataSource } from 'ropegeo-common/classes';
+import { ImageVersion, PageDataSource } from 'ropegeo-common/models';
 import { ImageDataEvent } from '../../../src/image-data/types/lambdaEvent';
 
 jest.mock('ropegeo-common/helpers', () => ({

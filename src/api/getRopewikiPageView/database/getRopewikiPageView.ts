@@ -1,7 +1,7 @@
 import * as db from 'zapatos/db';
 import type * as s from 'zapatos/schema';
-import type { RopewikiPageView } from 'ropegeo-common/classes';
-import { AcaDifficulty, Bounds, PageMiniMap } from 'ropegeo-common/classes';
+import type { RopewikiPageView } from 'ropegeo-common/models';
+import { AcaDifficulty, Bounds, PageMiniMap } from 'ropegeo-common/models';
 import getRopewikiRegionLineage from '../../../ropewiki/database/getRopewikiRegionLineage';
 import {
     downloadBytesForBannerImage,

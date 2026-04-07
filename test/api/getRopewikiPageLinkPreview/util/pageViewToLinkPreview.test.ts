@@ -1,6 +1,6 @@
 import { describe, it, expect } from '@jest/globals';
-import type { RopewikiPageView } from 'ropegeo-common/classes';
-import { AcaDifficulty } from 'ropegeo-common/classes';
+import type { RopewikiPageView } from 'ropegeo-common/models';
+import { AcaDifficulty } from 'ropegeo-common/models';
 import {
     buildLinkPreviewFromPageView,
     formatDifficultyForLinkPreview,

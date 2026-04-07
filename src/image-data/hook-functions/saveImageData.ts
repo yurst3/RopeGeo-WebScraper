@@ -1,7 +1,7 @@
 import { mkdir, writeFile } from 'fs/promises';
 import { join } from 'path';
 import { pathToFileURL } from 'url';
-import { ImageVersion, VERSION_FORMAT } from 'ropegeo-common/classes';
+import { ImageVersion, VERSION_FORMAT } from 'ropegeo-common/models';
 import ImageData from '../types/imageData';
 import type { Metadata } from '../types/metadata';
 import { ProgressLogger } from 'ropegeo-common/helpers';

@@ -1,5 +1,5 @@
 import type { PoolClient } from 'pg';
-import { RopewikiPageLinkPreviewResult } from 'ropegeo-common/classes';
+import { RopewikiPageLinkPreviewResult } from 'ropegeo-common/models';
 import getDatabaseConnection from '../../helpers/getDatabaseConnection';
 import getBannerImageMetadataForPage from './database/getBannerImageMetadataForPage';
 import getRopewikiPageView from '../getRopewikiPageView/database/getRopewikiPageView';

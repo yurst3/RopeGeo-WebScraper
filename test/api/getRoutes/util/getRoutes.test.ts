@@ -5,7 +5,7 @@ import {
     Route,
     RoutesParams,
     RouteType,
-} from 'ropegeo-common/classes';
+} from 'ropegeo-common/models';
 import getRoutes from '../../../../src/api/getRoutes/util/getRoutes';
 
 let mockCountAllRoutes: jest.MockedFunction<

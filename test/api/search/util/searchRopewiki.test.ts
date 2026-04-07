@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, jest } from '@jest/globals';
-import { SearchParams, SearchResults } from 'ropegeo-common/classes';
-import { SearchCursor } from 'ropegeo-common/classes';
+import { SearchParams, SearchResults } from 'ropegeo-common/models';
+import { SearchCursor } from 'ropegeo-common/models';
 import searchRopewiki from '../../../../src/api/search/util/searchRopewiki';
 
 const mockConn = {} as import('zapatos/db').Queryable;

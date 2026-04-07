@@ -1,4 +1,4 @@
-import { ImageVersion, VERSION_FORMAT } from 'ropegeo-common/classes';
+import { ImageVersion, VERSION_FORMAT } from 'ropegeo-common/models';
 
 /**
  * EXIF orientation values 1–8. Keys describe the display transformation.

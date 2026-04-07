@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, jest } from '@jest/globals';
 import { main } from '../../src/image-data/main';
-import { PageDataSource } from 'ropegeo-common/classes';
+import { PageDataSource } from 'ropegeo-common/models';
 import { ImageDataEvent } from '../../src/image-data/types/lambdaEvent';
 import ImageData from '../../src/image-data/types/imageData';
 import type { SaveImageDataHookFn } from '../../src/image-data/hook-functions/saveImageData';

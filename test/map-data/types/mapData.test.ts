@@ -1,5 +1,5 @@
 import { describe, it, expect } from '@jest/globals';
-import { Bounds } from 'ropegeo-common/classes';
+import { Bounds } from 'ropegeo-common/models';
 import MapData from '../../../src/map-data/types/mapData';
 
 // Type definitions matching zapatos schema for testing

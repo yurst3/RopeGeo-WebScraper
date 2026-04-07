@@ -1,5 +1,5 @@
 import * as db from 'zapatos/db';
-import { SearchCursor, SearchParams } from 'ropegeo-common/classes';
+import { SearchCursor, SearchParams } from 'ropegeo-common/models';
 import {
     searchAllowsRopewikiPages,
     sqlAcaDifficultyOnPage,

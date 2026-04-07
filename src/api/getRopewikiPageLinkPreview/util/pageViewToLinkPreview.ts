@@ -1,5 +1,5 @@
-import type { AcaDifficulty, RopewikiPageView } from 'ropegeo-common/classes';
-import { ImageVersion, LinkPreview, LinkPreviewImage } from 'ropegeo-common/classes';
+import type { AcaDifficulty, RopewikiPageView } from 'ropegeo-common/models';
+import { ImageVersion, LinkPreview, LinkPreviewImage } from 'ropegeo-common/models';
 import { Metadata } from '../../../image-data/types/metadata';
 
 /**

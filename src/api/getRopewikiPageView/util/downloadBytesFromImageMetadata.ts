@@ -1,4 +1,4 @@
-import { DownloadBytes, ImageVersion } from 'ropegeo-common/classes';
+import { DownloadBytes, ImageVersion } from 'ropegeo-common/models';
 import type { ImageMetadata } from '../../../image-data/types/metadata';
 import { Metadata } from '../../../image-data/types/metadata';
 

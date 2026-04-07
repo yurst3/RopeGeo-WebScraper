@@ -1,6 +1,6 @@
 import { randomUUID } from 'crypto';
 import type { PoolClient } from 'pg';
-import { PageDataSource } from 'ropegeo-common/classes';
+import { PageDataSource } from 'ropegeo-common/models';
 import { processImageData } from '../src/image-data/processors/processImageData';
 import { nodeSaveImageData } from '../src/image-data/hook-functions/saveImageData';
 import { ImageDataEvent } from '../src/image-data/types/lambdaEvent';

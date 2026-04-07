@@ -1,5 +1,5 @@
 import type { PoolClient } from 'pg';
-import { RopewikiRegionPreviewsParams } from 'ropegeo-common/classes';
+import { RopewikiRegionPreviewsParams } from 'ropegeo-common/models';
 import getDatabaseConnection from '../../helpers/getDatabaseConnection';
 import getAllowedRegionIds from '../../ropewiki/database/getAllowedRegionIds';
 import getRopewikiRegionPreviews from './util/getRopewikiRegionPreviews';

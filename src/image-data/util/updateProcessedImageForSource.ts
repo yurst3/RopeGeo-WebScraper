@@ -1,5 +1,5 @@
 import * as db from 'zapatos/db';
-import { PageDataSource } from 'ropegeo-common/classes';
+import { PageDataSource } from 'ropegeo-common/models';
 import updateProcessedImage from '../../ropewiki/database/updateProcessedImage';
 
 const updateProcessedRopewikiImage = updateProcessedImage;

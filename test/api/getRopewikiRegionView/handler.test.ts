@@ -5,7 +5,7 @@ import {
     RegionMiniMap,
     RopewikiRegionView,
     RoutesParams,
-} from 'ropegeo-common/classes';
+} from 'ropegeo-common/models';
 import { handler } from '../../../src/api/getRopewikiRegionView/handler';
 
 let mockGetDatabaseConnection: jest.MockedFunction<typeof import('../../../src/helpers/getDatabaseConnection').default>;

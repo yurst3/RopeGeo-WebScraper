@@ -1,5 +1,5 @@
-import type { GetRopewikiPagePreviewRow } from 'ropegeo-common/classes';
-import { PageDataSource, PagePreview, RegionPreview } from 'ropegeo-common/classes';
+import type { GetRopewikiPagePreviewRow } from 'ropegeo-common/models';
+import { PageDataSource, PagePreview, RegionPreview } from 'ropegeo-common/models';
 import type * as db from 'zapatos/db';
 import getRopewikiRegionLineage from '../database/getRopewikiRegionLineage';
 import getRegionPreviewUrls from '../database/getRegionPreviewUrls';

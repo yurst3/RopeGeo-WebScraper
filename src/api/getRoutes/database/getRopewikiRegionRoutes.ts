@@ -1,4 +1,4 @@
-import { Route } from 'ropegeo-common/classes';
+import { Route } from 'ropegeo-common/models';
 import * as db from 'zapatos/db';
 import type * as s from 'zapatos/schema';
 import { routeFromDbRow } from '../../../converters/route';

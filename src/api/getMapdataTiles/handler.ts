@@ -1,4 +1,4 @@
-import { MapDataTileKeysResults } from 'ropegeo-common/classes';
+import { MapDataTileKeysResults } from 'ropegeo-common/models';
 import getTilesAndTotalBytes from './util/getTilesAndTotalBytes';
 
 const CORS_HEADERS = {

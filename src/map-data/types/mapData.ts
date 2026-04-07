@@ -1,5 +1,5 @@
 import type * as s from 'zapatos/schema';
-import { Bounds } from 'ropegeo-common/classes';
+import { Bounds } from 'ropegeo-common/models';
 
 export class MapData {
     id: string | undefined;

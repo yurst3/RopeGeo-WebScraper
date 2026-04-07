@@ -3,7 +3,7 @@ import {
     AcaDifficultyParams,
     PageDataSource,
     type DifficultyParams,
-} from 'ropegeo-common/classes';
+} from 'ropegeo-common/models';
 
 /** When source allow-list is empty/absent, all sources; otherwise require ropewiki for page rows. */
 export function searchAllowsRopewikiPages(source: PageDataSource[] | null): boolean {

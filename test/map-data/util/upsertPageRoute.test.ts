@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, jest } from '@jest/globals';
 import upsertPageRoute from '../../../src/map-data/util/upsertPageRoute';
-import { PageDataSource } from 'ropegeo-common/classes';
+import { PageDataSource } from 'ropegeo-common/models';
 import { PageRoute, RopewikiRoute } from '../../../src/types/pageRoute';
 import * as db from 'zapatos/db';
 

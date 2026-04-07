@@ -2,7 +2,7 @@
  * Worker for image encoding. workerData: { sourcePath?, sourceBuffer?, versions: ImageVersion[] }.
  */
 import { parentPort, workerData } from 'worker_threads';
-import { ImageVersion } from 'ropegeo-common/classes';
+import { ImageVersion } from 'ropegeo-common/models';
 import { Metadata } from '../types/metadata';
 import { runSourceConversionPipeline } from './runSourceConversionPipeline';
 

@@ -1,4 +1,4 @@
-import { Bounds } from 'ropegeo-common/classes';
+import { Bounds } from 'ropegeo-common/models';
 
 /**
  * Updates the bounds with all [lon, lat] positions from a single geometry.

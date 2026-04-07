@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, jest } from '@jest/globals';
 import type { PoolClient } from 'pg';
-import { ImageVersion, PageDataSource } from 'ropegeo-common/classes';
+import { ImageVersion, PageDataSource } from 'ropegeo-common/models';
 import { processImageData } from '../../../src/image-data/processors/processImageData';
 import ImageData from '../../../src/image-data/types/imageData';
 import { ImageDataEvent } from '../../../src/image-data/types/lambdaEvent';

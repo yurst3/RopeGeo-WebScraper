@@ -1,6 +1,6 @@
 import sharp from 'sharp';
 import { stat } from 'fs/promises';
-import { ImageVersion } from 'ropegeo-common/classes';
+import { ImageVersion } from 'ropegeo-common/models';
 import { Metadata, ImageMetadata, Orientation } from '../types/metadata';
 
 const PREVIEW_SIZE = 256;

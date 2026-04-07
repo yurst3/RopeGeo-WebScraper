@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, jest } from '@jest/globals';
-import { PageDataSource, Route, RouteType } from 'ropegeo-common/classes';
+import { PageDataSource, Route, RouteType } from 'ropegeo-common/models';
 import { handler } from '../../../src/api/getRoutes/handler';
 
 let mockGetDatabaseConnection: jest.MockedFunction<typeof import('../../../src/helpers/getDatabaseConnection').default>;

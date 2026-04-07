@@ -1,6 +1,6 @@
 import { describe, it, expect, beforeEach, jest } from '@jest/globals';
 import { mainHandler } from '../../../src/image-data/lambda-handlers/mainHandler';
-import { PageDataSource } from 'ropegeo-common/classes';
+import { PageDataSource } from 'ropegeo-common/models';
 import type { SqsEvent, SqsRecord } from '@aws-lambda-powertools/parser/types';
 
 let mockHandleImageProcessorSQSMessages: jest.MockedFunction<typeof import('../../../src/image-data/sqs/handleImageProcessorSQSMessages').default>;

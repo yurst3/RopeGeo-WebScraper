@@ -1,7 +1,7 @@
 import { Worker } from 'worker_threads';
 import { existsSync } from 'fs';
 import { join } from 'path';
-import { ImageVersion } from 'ropegeo-common/classes';
+import { ImageVersion } from 'ropegeo-common/models';
 import { runSourceConversionPipeline } from './runSourceConversionPipeline';
 import { Metadata } from '../types/metadata';
 

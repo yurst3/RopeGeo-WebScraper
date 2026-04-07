@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, jest } from '@jest/globals';
-import { PaginationResultType } from 'ropegeo-common/classes';
+import { PaginationResultType } from 'ropegeo-common/models';
 import { handler } from '../../../src/api/getMapdataTiles/handler';
 
 let mockGetTiles: jest.MockedFunction<

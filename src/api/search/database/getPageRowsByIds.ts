@@ -1,5 +1,5 @@
 import * as db from 'zapatos/db';
-import type { GetRopewikiPagePreviewRow } from 'ropegeo-common/classes';
+import type { GetRopewikiPagePreviewRow } from 'ropegeo-common/models';
 
 export type PageRow = GetRopewikiPagePreviewRow & {
     mapData: string | null;

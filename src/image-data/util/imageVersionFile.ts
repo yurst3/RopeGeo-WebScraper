@@ -1,4 +1,4 @@
-import { ImageVersion, VERSION_FORMAT } from 'ropegeo-common/classes';
+import { ImageVersion, VERSION_FORMAT } from 'ropegeo-common/models';
 
 /** Ordered list of all encoded output versions (excludes `source`, which is not an {@link ImageVersion}). */
 export const ALL_IMAGE_VERSIONS: ImageVersion[] = [

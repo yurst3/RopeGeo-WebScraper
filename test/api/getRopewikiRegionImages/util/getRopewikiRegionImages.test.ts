@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, jest } from '@jest/globals';
-import { RopewikiRegionImagesParams, RopewikiRegionImageView } from 'ropegeo-common/classes';
+import { RopewikiRegionImagesParams, RopewikiRegionImageView } from 'ropegeo-common/models';
 import getRopewikiRegionImages from '../../../../src/api/getRopewikiRegionImages/util/getRopewikiRegionImages';
 
 const mockConn = {} as import('zapatos/db').Queryable;

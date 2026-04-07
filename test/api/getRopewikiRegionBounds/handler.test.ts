@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, jest } from '@jest/globals';
-import { Bounds } from 'ropegeo-common/classes';
+import { Bounds } from 'ropegeo-common/models';
 import { handler } from '../../../src/api/getRopewikiRegionBounds/handler';
 
 let mockGetDatabaseConnection: jest.MockedFunction<typeof import('../../../src/helpers/getDatabaseConnection').default>;

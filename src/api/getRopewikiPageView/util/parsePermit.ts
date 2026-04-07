@@ -1,4 +1,4 @@
-import { PermitStatus } from 'ropegeo-common/classes';
+import { PermitStatus } from 'ropegeo-common/models';
 
 /**
  * Maps a permits string from the DB to PermitStatus enum, or null if empty/unknown.

@@ -1,6 +1,6 @@
 import { Pool } from 'pg';
 import { describe, it, expect, beforeAll, afterAll } from '@jest/globals';
-import { SearchParams } from 'ropegeo-common/classes';
+import { SearchParams } from 'ropegeo-common/models';
 import * as db from 'zapatos/db';
 import getAllowedRegionIds from '../../../../src/ropewiki/database/getAllowedRegionIds';
 import { getSearchPageIds } from '../../../../src/api/search/database/getSearchPageIds';

@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, jest } from '@jest/globals';
-import { RopewikiRegionPreviewsParams, PagePreview, RegionPreview } from 'ropegeo-common/classes';
+import { RopewikiRegionPreviewsParams, PagePreview, RegionPreview } from 'ropegeo-common/models';
 import getRopewikiRegionPreviews from '../../../../src/api/getRopewikiRegionPreviews/util/getRopewikiRegionPreviews';
 
 const mockConn = {} as import('zapatos/db').Queryable;

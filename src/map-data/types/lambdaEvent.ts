@@ -1,5 +1,5 @@
 import type { SqsRecord } from '@aws-lambda-powertools/parser/types';
-import { PageDataSource } from 'ropegeo-common/classes';
+import { PageDataSource } from 'ropegeo-common/models';
 
 export class MapDataEvent {
     source: PageDataSource;

@@ -1,6 +1,6 @@
 import { describe, it, expect } from '@jest/globals';
 import { ImageDataEvent } from '../../../src/image-data/types/lambdaEvent';
-import { ImageVersion, PageDataSource } from 'ropegeo-common/classes';
+import { ImageVersion, PageDataSource } from 'ropegeo-common/models';
 import type { SqsRecord } from '@aws-lambda-powertools/parser/types';
 
 describe('ImageDataEvent', () => {

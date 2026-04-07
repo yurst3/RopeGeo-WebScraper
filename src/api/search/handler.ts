@@ -1,5 +1,5 @@
 import type { PoolClient } from 'pg';
-import { SearchParams } from 'ropegeo-common/classes';
+import { SearchParams } from 'ropegeo-common/models';
 import getDatabaseConnection from '../../helpers/getDatabaseConnection';
 import searchRopewiki from './util/searchRopewiki';
 

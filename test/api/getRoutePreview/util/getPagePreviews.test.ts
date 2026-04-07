@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, jest } from '@jest/globals';
 import getPagePreviews from '../../../../src/api/getRoutePreview/util/getPagePreviews';
-import type { PagePreview } from 'ropegeo-common/classes';
-import { PageDataSource } from 'ropegeo-common/classes';
+import type { PagePreview } from 'ropegeo-common/models';
+import { PageDataSource } from 'ropegeo-common/models';
 import { PageRoute, RopewikiRoute } from '../../../../src/types/pageRoute';
 
 let mockGetRopewikiPagePreview: jest.MockedFunction<

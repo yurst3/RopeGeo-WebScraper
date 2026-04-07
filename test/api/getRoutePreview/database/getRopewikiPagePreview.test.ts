@@ -8,7 +8,7 @@ import {
     afterEach,
 } from '@jest/globals';
 import * as db from 'zapatos/db';
-import { PageDataSource } from 'ropegeo-common/classes';
+import { PageDataSource } from 'ropegeo-common/models';
 import getRopewikiPagePreview from '../../../../src/api/getRoutePreview/database/getRopewikiPagePreview';
 import { RopewikiRoute } from '../../../../src/types/pageRoute';
 

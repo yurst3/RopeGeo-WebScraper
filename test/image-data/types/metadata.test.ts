@@ -1,5 +1,5 @@
 import { describe, it, expect } from '@jest/globals';
-import { ImageVersion } from 'ropegeo-common/classes';
+import { ImageVersion } from 'ropegeo-common/models';
 import { Metadata, Orientation } from '../../../src/image-data/types/metadata';
 
 describe('Metadata', () => {

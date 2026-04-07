@@ -1,4 +1,4 @@
-import { Bounds } from 'ropegeo-common/classes';
+import { Bounds } from 'ropegeo-common/models';
 import * as db from 'zapatos/db';
 import getAllowedRegionIds from '../../../ropewiki/database/getAllowedRegionIds';
 

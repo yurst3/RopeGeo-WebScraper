@@ -1,5 +1,5 @@
 import type { PoolClient } from 'pg';
-import { PageDataSource, Route, RoutesParams } from 'ropegeo-common/classes';
+import { PageDataSource, Route, RoutesParams } from 'ropegeo-common/models';
 import {
     countAllRoutes,
     getAllRoutesPage,

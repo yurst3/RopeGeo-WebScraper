@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, jest } from '@jest/globals';
-import { PageDataSource } from 'ropegeo-common/classes';
+import { PageDataSource } from 'ropegeo-common/models';
 import updateProcessedImageForSource from '../../../src/image-data/util/updateProcessedImageForSource';
 
 const mockUpdateProcessedImage = jest.fn<() => Promise<void>>();

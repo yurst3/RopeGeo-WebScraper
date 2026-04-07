@@ -6,7 +6,7 @@ import {
     type PagePreview,
     type RegionPreview,
     PageDataSource,
-} from 'ropegeo-common/classes';
+} from 'ropegeo-common/models';
 import * as db from 'zapatos/db';
 import searchRopewiki from '../../../../src/api/search/util/searchRopewiki';
 

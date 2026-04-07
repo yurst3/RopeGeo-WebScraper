@@ -1,6 +1,6 @@
 import { describe, it, expect } from '@jest/globals';
 import { MapDataEvent } from '../../../src/map-data/types/lambdaEvent';
-import { PageDataSource } from 'ropegeo-common/classes';
+import { PageDataSource } from 'ropegeo-common/models';
 import type { SqsRecord } from '@aws-lambda-powertools/parser/types';
 
 describe('MapDataEvent', () => {

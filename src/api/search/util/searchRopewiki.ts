@@ -1,5 +1,5 @@
 import * as db from 'zapatos/db';
-import { SearchParams, SearchResults } from 'ropegeo-common/classes';
+import { SearchParams, SearchResults } from 'ropegeo-common/models';
 import getAllowedRegionIds from '../../../ropewiki/database/getAllowedRegionIds';
 import { enrichRopewikiPreviews } from '../../../ropewiki/util/enrichRopewikiPreviews';
 import getPageRowsByIds from '../database/getPageRowsByIds';
