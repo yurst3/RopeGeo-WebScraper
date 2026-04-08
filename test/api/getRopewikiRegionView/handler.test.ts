@@ -80,7 +80,7 @@ describe('getRopewikiRegionView handler', () => {
         const id = 'a1b2c3d4-e5f6-7890-abcd-ef1234567890';
         const miniMap = new RegionMiniMap(
             new RoutesParams({
-                region: { id, source: [PageDataSource.Ropewiki] },
+                region: { id, source: PageDataSource.Ropewiki },
             }),
         );
         const mockView = new RopewikiRegionView(
@@ -123,7 +123,7 @@ describe('getRopewikiRegionView handler', () => {
         expect(body.result.miniMap).toMatchObject({
             miniMapType: 'geojson',
             routesParams: {
-                region: { id, source: ['ropewiki'] },
+                region: { id, source: 'ropewiki' },
             },
         });
         expect(body.result.overview).toEqual({
@@ -139,7 +139,7 @@ describe('getRopewikiRegionView handler', () => {
         const id = 'a1b2c3d4-e5f6-7890-abcd-ef1234567890';
         const miniMap = new RegionMiniMap(
             new RoutesParams({
-                region: { id, source: [PageDataSource.Ropewiki] },
+                region: { id, source: PageDataSource.Ropewiki },
             }),
         );
         const mockView = new RopewikiRegionView(

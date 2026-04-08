@@ -3,11 +3,15 @@ get:
   summary: List routes as GeoJSON (paginated)
   description: |
     Returns one page of routes as GeoJSON Features (`resultType` **route**, `results`, `total`, `page`). Use **limit** and **page** for pagination (defaults match ropegeo-common `RoutesParams`: limit 500, page 1). Order is stable by route id.
-    Optional **region** scopes to routes linked to Ropewiki pages in that region and descendants.
-    Optional **source** pipe-list restricts by page data source when region is set (omit or empty = all sources). If the allow-list excludes all known sources (e.g. non-ropewiki only), the result is empty.
+
+    **Region scope:** pass **region-id** (UUID) and **region-source** (single page data source, e.g. `ropewiki`) together. They identify which catalogue’s routes to load for that region subtree. Omit both for a global listing.
+
+    **Global source filter:** when **region-id** is omitted, optional **sources** is a pipe-delimited allow-list of page data sources (e.g. `ropewiki`). Omit or empty **sources** = all sources. **region-id** / **region-source** must not be combined with **sources** (ropegeo-common validation).
+
     Optional **route-types** is an allow-list for `Route.type` (pipe-delimited in the query string, e.g. `Canyon|Cave`). Optional **ACA difficulty** query keys filter routes that have a linked Ropewiki page matching the allow-lists. **`aca-risk-rating`** matches **effective** ACA risk (technical default floor when stored risk is null or milder), not the raw `riskRating` column alone.
+
     Map bounds for a region are not included; use **GET /ropewiki/region/{id}/bounds** for a bounding box over route coordinates in the subtree.
-    **Source** without **region** remains invalid (ropegeo-common `RoutesParams`). **Region** may be provided without **source** (all sources in subtree).
+
     Validation follows ropegeo-common `RoutesParams.fromQueryStringParams`.
   operationId: getRoutes
   tags:
@@ -28,19 +32,29 @@ get:
         type: integer
         minimum: 1
       description: 1-based page index (default 1)
-    - name: source
-      in: query
-      required: false
-      schema:
-        type: string
-      description: Pipe-delimited page data sources (e.g. `ropewiki`); only meaningful with `region`
-    - name: region
+    - name: region-id
       in: query
       required: false
       schema:
         type: string
         format: uuid
-      description: Region id (and descendants) to restrict routes
+      description: Ropewiki region id (and descendants) to restrict routes; requires **region-source** when set
+    - name: region-source
+      in: query
+      required: false
+      schema:
+        type: string
+        enum:
+          - ropewiki
+      description: Single page data source for the region scope; required when **region-id** is set
+    - name: sources
+      in: query
+      required: false
+      schema:
+        type: string
+      description: |
+        Pipe-delimited allow-list of page data sources for **global** listings only (e.g. `ropewiki`).
+        Must not be sent together with **region-id** / **region-source**.
     - name: route-types
       in: query
       required: false
@@ -102,6 +116,6 @@ get:
             getRoutesResponse:
               $ref: '../examples/getRoutesResponse.yaml'
     '400':
-      description: Bad Request (e.g. source without region, invalid UUID, invalid filters)
+      description: Bad Request (e.g. **region-source** without **region-id**, **region-id** without **region-source**, mixing region params with **sources**, invalid UUID, invalid filters)
     '500':
       description: Internal server error

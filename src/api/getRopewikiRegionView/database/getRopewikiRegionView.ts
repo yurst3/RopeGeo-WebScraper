@@ -74,7 +74,7 @@ const getRopewikiRegionView = async (
 
     const miniMap = new RegionMiniMap(
         new RoutesParams({
-            region: { id: regionId, source: [PageDataSource.Ropewiki] },
+            region: { id: regionId, source: PageDataSource.Ropewiki },
         }),
     );
 

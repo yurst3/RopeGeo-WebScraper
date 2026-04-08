@@ -15,37 +15,38 @@ export type GetRoutesPageResult = {
 };
 
 /**
- * Returns one page of routes for GET /routes: global list or region subtree (ropewiki pages),
- * with optional route-types allow-list and ACA difficulty filters. Source allow-list: empty/absent means all;
- * if set and excludes ropewiki, returns `{ routes: [], total: 0 }` for region-scoped queries.
+ * Returns one page of routes for GET /routes: global list (optional `sources` allow-list) or
+ * region subtree (`region-id` + `region-source`), with optional route-types and ACA difficulty filters.
+ * Region scope requires ropewiki catalogue; other catalogues return an empty page until supported.
  */
 const getRoutes = async (
     client: PoolClient,
     params: RoutesParams,
 ): Promise<GetRoutesPageResult> => {
-    const filters = {
-        routeTypes: params.routeTypes,
-        difficulty: params.difficulty,
-    };
-
     const limit = params.limit;
     const offset = (params.page - 1) * limit;
 
     if (params.region === null) {
+        const filters = {
+            routeTypes: params.routeTypes,
+            difficulty: params.difficulty,
+            sources: params.sources,
+        };
         const total = await countAllRoutes(client, filters);
         const routes = await getAllRoutesPage(client, filters, limit, offset);
         return { routes, total };
     }
 
     const { id, source } = params.region;
-    if (
-        source !== null &&
-        source.length > 0 &&
-        !source.includes(PageDataSource.Ropewiki)
-    ) {
+    if (source !== PageDataSource.Ropewiki) {
         return { routes: [], total: 0 };
     }
 
+    const filters = {
+        routeTypes: params.routeTypes,
+        difficulty: params.difficulty,
+        sources: null,
+    };
     const total = await countRopewikiRegionRoutes(client, id, filters);
     const routes = await getRopewikiRegionRoutesPage(client, id, filters, limit, offset);
     return { routes, total };

@@ -80,9 +80,24 @@ describe('getRoutes handler', () => {
         expect(body.page).toBe(1);
     });
 
-    it('returns 400 when source is present but region is absent', async () => {
+    it('returns 200 when global sources is set without region-id', async () => {
+        mockGetRoutes.mockResolvedValue({ routes: [], total: 0 });
+
         const result = await handler(
-            { queryStringParameters: { source: PageDataSource.Ropewiki } },
+            { queryStringParameters: { sources: PageDataSource.Ropewiki } },
+            {},
+        );
+
+        expect(mockGetRoutes).toHaveBeenCalledTimes(1);
+        expect(result.statusCode).toBe(200);
+        const routesParams = mockGetRoutes.mock.calls[0]![1];
+        expect(routesParams.region).toBeNull();
+        expect(routesParams.sources).toEqual([PageDataSource.Ropewiki]);
+    });
+
+    it('returns 400 when region-source is present but region-id is absent', async () => {
+        const result = await handler(
+            { queryStringParameters: { 'region-source': PageDataSource.Ropewiki } },
             {},
         );
 
@@ -91,22 +106,38 @@ describe('getRoutes handler', () => {
         expect(result.headers['Content-Type']).toBe('application/json');
         const body = JSON.parse(result.body);
         expect(body.message).toBe('Bad Request');
-        expect(body.error).toMatch(/source|region/);
+        expect(body.error).toMatch(/region-id|region-source/);
     });
 
-    it('returns 200 when region is present without source (all sources in subtree)', async () => {
+    it('returns 400 when region-id is present without region-source', async () => {
         const regionId = 'a1b2c3d4-e5f6-7890-abcd-ef1234567890';
-        mockGetRoutes.mockResolvedValue({ routes: [], total: 0 });
-
         const result = await handler(
-            { queryStringParameters: { region: regionId } },
+            { queryStringParameters: { 'region-id': regionId } },
             {},
         );
 
-        expect(mockGetRoutes).toHaveBeenCalledTimes(1);
-        expect(result.statusCode).toBe(200);
-        const routesParams = mockGetRoutes.mock.calls[0]![1];
-        expect(routesParams.region).toEqual({ id: regionId, source: null });
+        expect(mockGetRoutes).not.toHaveBeenCalled();
+        expect(result.statusCode).toBe(400);
+        const body = JSON.parse(result.body);
+        expect(body.message).toBe('Bad Request');
+        expect(body.error).toMatch(/region-source/);
+    });
+
+    it('returns 400 when region-id and global sources are combined', async () => {
+        const regionId = 'a1b2c3d4-e5f6-7890-abcd-ef1234567890';
+        const result = await handler(
+            {
+                queryStringParameters: {
+                    'region-id': regionId,
+                    'region-source': PageDataSource.Ropewiki,
+                    sources: PageDataSource.Ropewiki,
+                },
+            },
+            {},
+        );
+
+        expect(mockGetRoutes).not.toHaveBeenCalled();
+        expect(result.statusCode).toBe(400);
     });
 
     it('parses route-types pipe-list into RoutesParams.routeTypes', async () => {
@@ -126,12 +157,12 @@ describe('getRoutes handler', () => {
         expect(routesParams.routeTypes).toEqual([RouteType.Canyon, RouteType.Cave]);
     });
 
-    it('returns 400 when source is invalid', async () => {
+    it('returns 400 when region-source token is invalid', async () => {
         const result = await handler(
             {
                 queryStringParameters: {
-                    source: 'invalid',
-                    region: 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
+                    'region-source': 'invalid',
+                    'region-id': 'a1b2c3d4-e5f6-7890-abcd-ef1234567890',
                 },
             },
             {},
@@ -141,10 +172,10 @@ describe('getRoutes handler', () => {
         expect(result.statusCode).toBe(400);
         const body = JSON.parse(result.body);
         expect(body.message).toBe('Bad Request');
-        expect(body.error).toMatch(/source|ropewiki/);
+        expect(body.error).toMatch(/PageDataSource|token/);
     });
 
-    it('calls getRoutes with RoutesParams when source and region are present and returns filtered page', async () => {
+    it('calls getRoutes with RoutesParams when region-id and region-source are present', async () => {
         const regionId = 'a1b2c3d4-e5f6-7890-abcd-ef1234567890';
         const mockRoutes: Route[] = [
             new Route('id-2', 'Filtered Route', RouteType.Cave, { lat: 40.2, lon: -111.6 }),
@@ -154,8 +185,8 @@ describe('getRoutes handler', () => {
         const result = await handler(
             {
                 queryStringParameters: {
-                    source: PageDataSource.Ropewiki,
-                    region: regionId,
+                    'region-source': PageDataSource.Ropewiki,
+                    'region-id': regionId,
                 },
             },
             {},
@@ -165,7 +196,7 @@ describe('getRoutes handler', () => {
         const routesParams = mockGetRoutes.mock.calls[0]![1];
         expect(routesParams).toBeDefined();
         expect(routesParams.region).not.toBeNull();
-        expect(routesParams.region!.source).toEqual([PageDataSource.Ropewiki]);
+        expect(routesParams.region!.source).toBe(PageDataSource.Ropewiki);
         expect(routesParams.region!.id).toBe(regionId);
         expect(result.statusCode).toBe(200);
         const body = JSON.parse(result.body);

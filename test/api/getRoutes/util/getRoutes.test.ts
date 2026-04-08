@@ -58,10 +58,11 @@ describe('getRoutes util', () => {
         expect(mockCountAllRoutes).toHaveBeenCalledWith(mockClient, {
             routeTypes: null,
             difficulty: null,
+            sources: null,
         });
         expect(mockGetAllRoutesPage).toHaveBeenCalledWith(
             mockClient,
-            { routeTypes: null, difficulty: null },
+            { routeTypes: null, difficulty: null, sources: null },
             PaginationParams.DEFAULT_LIMIT,
             0,
         );
@@ -69,10 +70,31 @@ describe('getRoutes util', () => {
         expect(mockGetRopewikiRegionRoutesPage).not.toHaveBeenCalled();
     });
 
-    it('calls region count + page when params.region is set with source Ropewiki', async () => {
+    it('passes global sources allow-list to count + page', async () => {
+        const params = new RoutesParams({
+            region: null,
+            sources: [PageDataSource.Ropewiki],
+        });
+        await getRoutes(mockClient as never, params);
+
+        const filters = {
+            routeTypes: null,
+            difficulty: null,
+            sources: [PageDataSource.Ropewiki],
+        };
+        expect(mockCountAllRoutes).toHaveBeenCalledWith(mockClient, filters);
+        expect(mockGetAllRoutesPage).toHaveBeenCalledWith(
+            mockClient,
+            filters,
+            PaginationParams.DEFAULT_LIMIT,
+            0,
+        );
+    });
+
+    it('calls region count + page when params.region is set with ropewiki source', async () => {
         const regionId = 'a1b2c3d4-e5f6-7890-abcd-ef1234567890';
         const params = new RoutesParams({
-            region: { id: regionId, source: [PageDataSource.Ropewiki] },
+            region: { id: regionId, source: PageDataSource.Ropewiki },
         });
         const mockRoutes: Route[] = [
             new Route('id-1', 'Region Route', RouteType.Canyon, { lat: 40.1, lon: -111.5 }),
@@ -86,11 +108,12 @@ describe('getRoutes util', () => {
         expect(mockCountRopewikiRegionRoutes).toHaveBeenCalledWith(mockClient, regionId, {
             routeTypes: null,
             difficulty: null,
+            sources: null,
         });
         expect(mockGetRopewikiRegionRoutesPage).toHaveBeenCalledWith(
             mockClient,
             regionId,
-            { routeTypes: null, difficulty: null },
+            { routeTypes: null, difficulty: null, sources: null },
             PaginationParams.DEFAULT_LIMIT,
             0,
         );
@@ -115,7 +138,7 @@ describe('getRoutes util', () => {
     it('returns region page and total when params.region is set', async () => {
         const regionId = 'b2c3d4e5-f6a7-8901-bcde-f23456789012';
         const params = new RoutesParams({
-            region: { id: regionId, source: [PageDataSource.Ropewiki] },
+            region: { id: regionId, source: PageDataSource.Ropewiki },
         });
         const mockRoutes: Route[] = [
             new Route('id-2', 'Filtered', RouteType.POI, { lat: 40.0, lon: -111.0 }),
@@ -138,6 +161,7 @@ describe('getRoutes util', () => {
         const filters = {
             routeTypes: [RouteType.Canyon, RouteType.Cave],
             difficulty: null,
+            sources: null,
         };
         expect(mockCountAllRoutes).toHaveBeenCalledWith(mockClient, filters);
         expect(mockGetAllRoutesPage).toHaveBeenCalledWith(

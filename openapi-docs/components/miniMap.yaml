@@ -41,12 +41,22 @@ RoutesParamsRegion:
 
 RoutesParams:
   type: object
-  description: ropegeo-common RoutesParams JSON shape (RegionMiniMap.routesParams)
+  description: |
+    ropegeo-common RoutesParams JSON shape (RegionMiniMap.routesParams).
+    Region minimap uses nested **region** with a single **source** string; **sources** is for global listings only and must not be set together with **region**.
   required:
     - region
   properties:
     region:
       $ref: '#/RoutesParamsRegion'
+    sources:
+      type: array
+      nullable: true
+      description: Global source allow-list (omit or null when **region** is set)
+      items:
+        type: string
+        enum:
+          - ropewiki
     routeTypes:
       type: array
       description: Optional allow-list of `Route.type` values (ropegeo-common `RoutesParams.routeTypes`)
