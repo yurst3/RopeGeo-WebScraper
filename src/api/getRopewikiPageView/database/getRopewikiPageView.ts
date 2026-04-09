@@ -13,6 +13,30 @@ import parseRappelInfo from '../util/parseRappelInfo';
 import stringArray from '../util/stringArray';
 
 /** Builds combined min/max time or single number from two DB jsonb columns. */
+function parseLatLonComponent(value: unknown): number | null {
+    if (typeof value === 'number' && Number.isFinite(value)) {
+        return value;
+    }
+    if (typeof value === 'string') {
+        const trimmed = value.trim();
+        if (trimmed === '') return null;
+        const n = Number(trimmed);
+        if (Number.isFinite(n)) return n;
+    }
+    return null;
+}
+
+/** Normalizes RopewikiPage.coordinates jsonb to WGS84 degrees or null when missing/invalid. */
+function normalizePageCoordinates(raw: db.JSONValue | null): { lat: number; lon: number } | null {
+    if (raw == null) return null;
+    if (typeof raw !== 'object' || Array.isArray(raw)) return null;
+    const o = raw as Record<string, unknown>;
+    const lat = parseLatLonComponent(o.lat);
+    const lon = parseLatLonComponent(o.lon);
+    if (lat === null || lon === null) return null;
+    return { lat, lon };
+}
+
 function minMaxOrNumber(
     minRaw: db.JSONValue | null,
     maxRaw: db.JSONValue | null,
@@ -30,12 +54,13 @@ const ROPEWIKI_PAGE_VIEW_COLUMNS: (keyof s.RopewikiPage.Selectable)[] = [
     'id', 'name', 'url', 'quality', 'userVotes', 'technicalRating', 'waterRating', 'timeRating', 'riskRating', 'permits', 'rappelInfo', 'rappelCount', 'rappelLongest', 'vehicle',
     'shuttleTime', 'minOverallTime', 'maxOverallTime', 'overallLength', 'approachLength', 'approachElevGain', 'descentLength', 'descentElevGain', 'exitLength', 'exitElevGain',
     'minApproachTime', 'maxApproachTime', 'minDescentTime', 'maxDescentTime', 'minExitTime', 'maxExitTime',
-    'months', 'latestRevisionDate', 'deletedAt', 'region',
+    'months', 'latestRevisionDate', 'deletedAt', 'region', 'coordinates',
 ];
 
 /**
  * Fetches a single RopewikiPage by id and builds a RopewikiPageView (with banner image and beta sections).
  * Maps DB length/elev columns (overallLength, approachLength, approachElevGain, descentLength, descentElevGain, exitLength, exitElevGain) to the view.
+ * Exposes `coordinates` from `RopewikiPage.coordinates` when lat/lon are usable; otherwise null (not inferred from minimap bounds).
  * Returns null if the page does not exist or is deleted.
  */
 const getRopewikiPageView = async (
@@ -202,6 +227,7 @@ const getRopewikiPageView = async (
     const { rappelCount, jumps } = parseRappelInfo(page.rappelInfo, page.rappelCount);
 
     const regions = await getRopewikiRegionLineage(conn, page.region);
+    const coordinates = normalizePageCoordinates(page.coordinates);
 
     const view = {
         name: page.name,
@@ -233,6 +259,7 @@ const getRopewikiPageView = async (
         bannerImage,
         betaSections: betaSectionsView,
         miniMap,
+        coordinates,
     };
 
     return view as unknown as RopewikiPageView;

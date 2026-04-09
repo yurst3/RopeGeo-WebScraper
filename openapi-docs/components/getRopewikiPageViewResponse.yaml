@@ -197,6 +197,26 @@ RopewikiPageView:
       description: Page minimap (tiles + bounds) when MapData has a non-empty layer id, tile template, and valid bounds; otherwise null
       nullable: true
       $ref: './miniMap.yaml#/PageMiniMap'
+    coordinates:
+      description: Page centroid in WGS84 degrees when stored coordinates are valid; otherwise null (not inferred from minimap bounds)
+      nullable: true
+      $ref: "#/PageViewCoordinates"
+
+PageViewCoordinates:
+  type: object
+  description: Geographic point in WGS84 degrees (latitude and longitude)
+  required:
+    - lat
+    - lon
+  properties:
+    lat:
+      type: number
+      format: float
+      description: Latitude in degrees
+    lon:
+      type: number
+      format: float
+      description: Longitude in degrees
 
 BetaSectionImage:
   type: object

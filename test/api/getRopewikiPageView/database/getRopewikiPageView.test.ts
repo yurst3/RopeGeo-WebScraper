@@ -122,6 +122,45 @@ describe('getRopewikiPageView (integration)', () => {
         expect(result!.bannerImage).toBeNull();
         expect(result!.betaSections).toEqual([]);
         expect(result!.miniMap).toBeNull();
+        expect(result!.coordinates).toBeNull();
+    });
+
+    it('returns normalized coordinates when page has valid coordinates json', async () => {
+        const pageId = 'f1f2c3d4-e5f6-7890-abcd-ef1234567890';
+        await db
+            .insert('RopewikiPage', {
+                id: pageId,
+                pageId: '800',
+                name: 'Geo Page',
+                region: testRegionId,
+                url: 'https://ropewiki.com/Geo_Page',
+                latestRevisionDate: '2025-01-01T00:00:00' as db.TimestampString,
+                coordinates: { lat: 40.123, lon: -111.456 },
+            })
+            .run(conn);
+
+        const result = await getRopewikiPageView(conn, pageId);
+        expect(result).not.toBeNull();
+        expect(result!.coordinates).toEqual({ lat: 40.123, lon: -111.456 });
+    });
+
+    it('returns null coordinates when stored json is not a usable lat/lon object', async () => {
+        const pageId = 'f2f2c3d4-e5f6-7890-abcd-ef1234567890';
+        await db
+            .insert('RopewikiPage', {
+                id: pageId,
+                pageId: '801',
+                name: 'Bad Coords Page',
+                region: testRegionId,
+                url: 'https://ropewiki.com/Bad',
+                latestRevisionDate: '2025-01-01T00:00:00' as db.TimestampString,
+                coordinates: { lat: 'not-a-number', lon: 10 },
+            })
+            .run(conn);
+
+        const result = await getRopewikiPageView(conn, pageId);
+        expect(result).not.toBeNull();
+        expect(result!.coordinates).toBeNull();
     });
 
     it('returns null when page does not exist', async () => {

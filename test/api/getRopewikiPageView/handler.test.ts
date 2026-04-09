@@ -96,6 +96,7 @@ describe('getRopewikiPageView handler', () => {
             bannerImage: null,
             betaSections: [],
             miniMap: null,
+            coordinates: null,
         } as RopewikiPageView;
         mockGetRopewikiPageView.mockResolvedValue(mockView);
 
@@ -153,6 +154,7 @@ describe('getRopewikiPageView handler', () => {
             bannerImage: null,
             betaSections: [],
             miniMap,
+            coordinates: null,
         } as RopewikiPageView;
         mockGetRopewikiPageView.mockResolvedValue(mockView);
 
