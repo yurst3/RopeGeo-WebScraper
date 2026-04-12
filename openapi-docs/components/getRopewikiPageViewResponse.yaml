@@ -194,9 +194,13 @@ RopewikiPageView:
         $ref: "#/BetaSection"
       description: Beta sections with text and images
     miniMap:
-      description: Page minimap (tiles + bounds) when MapData has a non-empty layer id, tile template, and valid bounds; otherwise null
+      type: object
       nullable: true
-      $ref: './miniMap.yaml#/PageMiniMap'
+      description: |
+        Vector tile minimap when MapData has layer id, tile template, and valid bounds; otherwise **centeredGeojson** when the page has a linked route without that full tile set; otherwise null.
+      anyOf:
+        - $ref: './miniMap.yaml#/PageMiniMap'
+        - $ref: './miniMap.yaml#/CenteredRegionMiniMap'
     coordinates:
       description: Page centroid in WGS84 degrees when stored coordinates are valid; otherwise null (not inferred from minimap bounds)
       nullable: true

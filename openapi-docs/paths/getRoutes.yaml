@@ -10,7 +10,7 @@ get:
 
     Optional **route-types** is an allow-list for `Route.type` (pipe-delimited in the query string, e.g. `Canyon|Cave`). Optional **ACA difficulty** query keys filter routes that have a linked Ropewiki page matching the allow-lists. **`aca-risk-rating`** matches **effective** ACA risk (technical default floor when stored risk is null or milder), not the raw `riskRating` column alone.
 
-    Map bounds for a region are not included; use **GET /ropewiki/region/{id}/bounds** for a bounding box over route coordinates in the subtree.
+    Map bounds for a region are not included on this response; use **GET /ropewiki/region/{id}** and read **`miniMap.bounds`** on the region minimap (null when no route coordinates exist in the subtree).
 
     Validation follows ropegeo-common `RoutesParams.fromQueryStringParams`.
   operationId: getRoutes

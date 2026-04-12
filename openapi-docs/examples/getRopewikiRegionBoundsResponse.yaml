@@ -1,8 +1,0 @@
-summary: Sample region route bounds
-value:
-  resultType: ropewikiRegionBounds
-  result:
-    north: 40.5
-    south: 40.1
-    east: -111.2
-    west: -111.8

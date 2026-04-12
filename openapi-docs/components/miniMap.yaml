@@ -74,6 +74,7 @@ PageMiniMap:
   description: Page minimap — vector tile template + bounds (ropegeo-common PageMiniMap)
   required:
     - miniMapType
+    - title
     - layerId
     - tilesTemplate
     - bounds
@@ -82,6 +83,9 @@ PageMiniMap:
       type: string
       enum:
         - tilesTemplate
+    title:
+      type: string
+      description: Display title (linked Route.name)
     layerId:
       type: string
       description: Layer / map data identifier for the tile set
@@ -93,14 +97,48 @@ PageMiniMap:
 
 RegionMiniMap:
   type: object
-  description: Region minimap — load route features via GET /routes with routesParams; use GET /ropewiki/region/{id}/bounds for bbox (ropegeo-common RegionMiniMap)
+  description: Region minimap — load route features via GET /routes with routesParams; bbox is miniMap.bounds (null when no coordinates in subtree) (ropegeo-common RegionMiniMap)
   required:
     - miniMapType
+    - title
+    - bounds
     - routesParams
   properties:
     miniMapType:
       type: string
       enum:
         - geojson
+    title:
+      type: string
+      description: Region display name
+    bounds:
+      type: object
+      nullable: true
+      description: Bounding box over route coordinates in the region subtree, or null when none
+      allOf:
+        - $ref: '#/Bounds'
     routesParams:
       $ref: '#/RoutesParams'
+
+CenteredRegionMiniMap:
+  type: object
+  description: Page minimap fallback — centered route over GET /routes with region-scoped routesParams (ropegeo-common CenteredRegionMiniMap)
+  required:
+    - miniMapType
+    - title
+    - routesParams
+    - centeredRouteId
+  properties:
+    miniMapType:
+      type: string
+      enum:
+        - centeredGeojson
+    title:
+      type: string
+      description: Linked Route.name
+    routesParams:
+      $ref: '#/RoutesParams'
+    centeredRouteId:
+      type: string
+      format: uuid
+      description: Route id to emphasize when fitting the map

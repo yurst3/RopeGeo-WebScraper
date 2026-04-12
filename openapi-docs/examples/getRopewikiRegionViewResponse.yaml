@@ -28,6 +28,12 @@ value:
     externalLink: https://ropewiki.com/North_America
     miniMap:
       miniMapType: geojson
+      title: North America
+      bounds:
+        north: 49.0
+        south: 25.0
+        east: -66.0
+        west: -125.0
       routesParams:
         region:
           source: ropewiki

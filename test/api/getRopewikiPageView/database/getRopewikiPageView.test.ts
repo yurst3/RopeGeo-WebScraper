@@ -8,6 +8,7 @@ import {
     afterEach,
 } from '@jest/globals';
 import * as db from 'zapatos/db';
+import { CenteredRegionMiniMap, MiniMapType, PageDataSource } from 'ropegeo-common/models';
 import getRopewikiPageView from '../../../../src/api/getRopewikiPageView/database/getRopewikiPageView';
 
 describe('getRopewikiPageView (integration)', () => {
@@ -641,9 +642,10 @@ describe('getRopewikiPageView (integration)', () => {
         expect(result!.miniMap!.bounds.south).toBe(bounds.south);
         expect(result!.miniMap!.bounds.east).toBe(bounds.east);
         expect(result!.miniMap!.bounds.west).toBe(bounds.west);
+        expect(result!.miniMap!.title).toBe('Trail Route');
     });
 
-    it('returns miniMap null when page has route but MapData has null tilesTemplate', async () => {
+    it('returns CenteredRegionMiniMap when page has route but MapData has null tilesTemplate', async () => {
         const pageId = 'e2e3e3d4-e5f6-7890-abcd-ef1234567890';
         const mapDataId = '47f6d4fb-8359-52fe-926f-9c0f7bbf6e72';
         const routeId = 'f2f3f3d4-e5f6-7890-abcd-ef1234567890';
@@ -686,7 +688,13 @@ describe('getRopewikiPageView (integration)', () => {
         const result = await getRopewikiPageView(conn, pageId);
 
         expect(result).not.toBeNull();
-        expect(result!.miniMap).toBeNull();
+        const mm = result!.miniMap;
+        expect(mm).not.toBeNull();
+        expect(mm!.miniMapType).toBe(MiniMapType.CenteredGeojson);
+        const cr = mm as CenteredRegionMiniMap;
+        expect(cr.centeredRouteId).toBe(routeId);
+        expect(cr.title).toBe('Route No Tiles');
+        expect(cr.routesParams.region).toEqual({ id: testRegionId, source: PageDataSource.Ropewiki });
     });
 
     it('returns miniMap null when page has no route with map data', async () => {
@@ -715,7 +723,7 @@ describe('getRopewikiPageView (integration)', () => {
         expect(result!.miniMap).toBeNull();
     });
 
-    it('returns miniMap null when MapData has null bounds', async () => {
+    it('returns CenteredRegionMiniMap when MapData has null bounds', async () => {
         const pageId = 'a3b3c3d4-e5f6-7890-abcd-ef1234567890';
         const mapDataId = '57f6d4fb-8359-52fe-926f-9c0f7bbf6e73';
         const routeId = 'b3f3f3d4-e5f6-7890-abcd-ef1234567890';
@@ -759,6 +767,12 @@ describe('getRopewikiPageView (integration)', () => {
         const result = await getRopewikiPageView(conn, pageId);
 
         expect(result).not.toBeNull();
-        expect(result!.miniMap).toBeNull();
+        const mm = result!.miniMap;
+        expect(mm).not.toBeNull();
+        expect(mm!.miniMapType).toBe(MiniMapType.CenteredGeojson);
+        const cr = mm as CenteredRegionMiniMap;
+        expect(cr.centeredRouteId).toBe(routeId);
+        expect(cr.title).toBe('Route With Tiles No Bounds');
+        expect(cr.routesParams.region).toEqual({ id: testRegionId, source: PageDataSource.Ropewiki });
     });
 });

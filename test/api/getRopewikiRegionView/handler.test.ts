@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach, jest } from '@jest/globals';
 import type { PoolClient } from 'pg';
 import {
+    Bounds,
     PageDataSource,
     RegionMiniMap,
     RopewikiRegionView,
@@ -82,6 +83,8 @@ describe('getRopewikiRegionView handler', () => {
             new RoutesParams({
                 region: { id, source: PageDataSource.Ropewiki },
             }),
+            new Bounds(49, 25, -66, -125),
+            'North America',
         );
         const mockView = new RopewikiRegionView(
             'North America',
@@ -122,6 +125,8 @@ describe('getRopewikiRegionView handler', () => {
         expect(body.result.syncDate).toBe('2025-01-10T08:00:00.000Z');
         expect(body.result.miniMap).toMatchObject({
             miniMapType: 'geojson',
+            title: 'North America',
+            bounds: { north: 49, south: 25, east: -66, west: -125 },
             routesParams: {
                 region: { id, source: 'ropewiki' },
             },
@@ -141,6 +146,8 @@ describe('getRopewikiRegionView handler', () => {
             new RoutesParams({
                 region: { id, source: PageDataSource.Ropewiki },
             }),
+            null,
+            'North America',
         );
         const mockView = new RopewikiRegionView(
             'North America',

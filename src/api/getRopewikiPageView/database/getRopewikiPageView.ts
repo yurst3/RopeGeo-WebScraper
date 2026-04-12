@@ -1,7 +1,14 @@
 import * as db from 'zapatos/db';
 import type * as s from 'zapatos/schema';
 import type { RopewikiPageView } from 'ropegeo-common/models';
-import { AcaDifficulty, Bounds, PageMiniMap } from 'ropegeo-common/models';
+import {
+    AcaDifficulty,
+    Bounds,
+    CenteredRegionMiniMap,
+    PageDataSource,
+    PageMiniMap,
+    RoutesParams,
+} from 'ropegeo-common/models';
 import getRopewikiRegionLineage from '../../../ropewiki/database/getRopewikiRegionLineage';
 import {
     downloadBytesForBannerImage,
@@ -88,13 +95,15 @@ const getRopewikiPageView = async (
         metadata: db.JSONValue | null;
     };
 
-    type MapDataRow = {
-        id: string;
+    type RouteMapRow = {
+        routeId: string;
+        routeName: string;
+        mapDataId: string | null;
         tilesTemplate: string | null;
         bounds: { north: number; south: number; east: number; west: number } | null;
     };
 
-    const [imageRows, betaSections, akaRows, mapDataRows] = await Promise.all([
+    const [imageRows, betaSections, akaRows, routeMapRows] = await Promise.all([
         db.sql<db.SQL, ImageRow[]>`
             SELECT
                 i.id,
@@ -126,53 +135,74 @@ const getRopewikiPageView = async (
             )
             .run(conn)
             .then((rows) => rows.map((r) => r.name)),
-        db.sql<db.SQL, MapDataRow[]>`
-            SELECT m.id,
-                   m."tilesTemplate",
-                   m."bounds"
+        db.sql<db.SQL, RouteMapRow[]>`
+            SELECT
+                r.id AS "routeId",
+                r.name AS "routeName",
+                m.id AS "mapDataId",
+                m."tilesTemplate",
+                m."bounds"
             FROM "RopewikiRoute" rr
-            INNER JOIN "MapData" m ON m.id = rr."mapData"
+            INNER JOIN "Route" r ON r.id = rr.route AND r."deletedAt" IS NULL
+            LEFT JOIN "MapData" m ON m.id = rr."mapData"
             WHERE rr."ropewikiPage" = ${db.param(pageId)}::uuid
               AND rr."deletedAt" IS NULL
+            ORDER BY rr."createdAt" ASC NULLS LAST
             LIMIT 1
         `.run(conn),
     ]);
 
-    const firstMapDataRow = mapDataRows[0];
-    let tilesTemplate = firstMapDataRow?.tilesTemplate ?? null;
-    const rawBounds = firstMapDataRow?.bounds ?? null;
-    let bounds =
-        rawBounds != null &&
-        typeof rawBounds === 'object' &&
-        typeof (rawBounds as Record<string, unknown>).north === 'number' &&
-        typeof (rawBounds as Record<string, unknown>).south === 'number' &&
-        typeof (rawBounds as Record<string, unknown>).east === 'number' &&
-        typeof (rawBounds as Record<string, unknown>).west === 'number'
-            ? (rawBounds as { north: number; south: number; east: number; west: number })
-            : null;
+    const routeRow = routeMapRows[0];
+    const minimapTitle = (() => {
+        const n = routeRow?.routeName?.trim() ?? '';
+        if (n.length > 0) return n;
+        return page.name;
+    })();
 
-    // Keep tilesTemplate and bounds mutually consistent:
-    // - If there is no tilesTemplate, there should also be no bounds.
-    // - If bounds are missing, clear tilesTemplate.
-    if (tilesTemplate == null) {
-        bounds = null;
-    } else if (bounds == null) {
-        tilesTemplate = null;
+    let miniMap: PageMiniMap | CenteredRegionMiniMap | null = null;
+    if (routeRow != null) {
+        let tilesTemplate = routeRow.tilesTemplate ?? null;
+        const rawBounds = routeRow.bounds ?? null;
+        let bounds =
+            rawBounds != null &&
+            typeof rawBounds === 'object' &&
+            typeof (rawBounds as Record<string, unknown>).north === 'number' &&
+            typeof (rawBounds as Record<string, unknown>).south === 'number' &&
+            typeof (rawBounds as Record<string, unknown>).east === 'number' &&
+            typeof (rawBounds as Record<string, unknown>).west === 'number'
+                ? (rawBounds as { north: number; south: number; east: number; west: number })
+                : null;
+
+        if (tilesTemplate == null) {
+            bounds = null;
+        } else if (bounds == null) {
+            tilesTemplate = null;
+        }
+
+        const layerId =
+            routeRow.mapDataId != null &&
+            typeof routeRow.mapDataId === 'string' &&
+            routeRow.mapDataId.length > 0
+                ? routeRow.mapDataId
+                : null;
+
+        if (layerId != null && tilesTemplate != null && bounds != null) {
+            miniMap = new PageMiniMap(
+                layerId,
+                tilesTemplate,
+                new Bounds(bounds.north, bounds.south, bounds.east, bounds.west),
+                minimapTitle,
+            );
+        } else {
+            miniMap = new CenteredRegionMiniMap(
+                new RoutesParams({
+                    region: { id: page.region, source: PageDataSource.Ropewiki },
+                }),
+                routeRow.routeId,
+                minimapTitle,
+            );
+        }
     }
-
-    const mapDataId = firstMapDataRow?.id;
-    const layerId =
-        mapDataId != null && typeof mapDataId === 'string' && mapDataId.length > 0
-            ? mapDataId
-            : null;
-    const miniMap =
-        layerId != null && tilesTemplate != null && bounds != null
-            ? new PageMiniMap(
-                  layerId,
-                  tilesTemplate,
-                  new Bounds(bounds.north, bounds.south, bounds.east, bounds.west),
-              )
-            : null;
 
     const bannerImageRow = imageRows.find((i) => i.betaSection == null);
     const bannerImage = bannerImageRow

@@ -1,6 +1,6 @@
 import { Bounds } from 'ropegeo-common/models';
 import * as db from 'zapatos/db';
-import getAllowedRegionIds from '../../../ropewiki/database/getAllowedRegionIds';
+import getAllowedRegionIds from './getAllowedRegionIds';
 
 type ExtentRow = {
     n: string | null;

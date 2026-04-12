@@ -127,6 +127,7 @@ describe('getRopewikiPageView handler', () => {
             '38f5c3fa-7248-41ed-815e-8b9e6aae5d61',
             template,
             new Bounds(39.5, 38.1, -108.2, -110.0),
+            'Bear Creek Canyon',
         );
         const mockView = {
             name: 'Bear Creek Canyon',
@@ -164,6 +165,7 @@ describe('getRopewikiPageView handler', () => {
         const body = JSON.parse(result.body);
         expect(body.result.miniMap).toEqual({
             miniMapType: 'tilesTemplate',
+            title: 'Bear Creek Canyon',
             layerId: '38f5c3fa-7248-41ed-815e-8b9e6aae5d61',
             tilesTemplate: template,
             bounds: { north: 39.5, south: 38.1, east: -108.2, west: -110.0 },

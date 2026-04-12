@@ -56,6 +56,7 @@ value:
     latestRevisionDate: "2025-01-01T00:00:00.000Z"
     miniMap:
       miniMapType: tilesTemplate
+      title: Bear Creek Canyon
       layerId: 38f5c3fa-7248-41ed-815e-8b9e6aae5d61
       tilesTemplate: "https://api.webscraper.ropegeo.com/mapdata/tiles/38f5c3fa-7248-41ed-815e-8b9e6aae5d61/{z}/{x}/{y}.pbf"
       bounds:
