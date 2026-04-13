@@ -3,6 +3,10 @@ summary: Sample RopewikiPageViewResult (resultType + result)
 value:
   resultType: ropewikiPageView
   result:
+    id: 2f5e0e95-75dc-46f1-8589-0fe73d3efa6e
+    routeType: Canyon
+    pageViewType: ropewiki
+    fetchType: online
     name: Bear Creek Canyon
     aka:
       - Bear Creek
@@ -55,10 +59,11 @@ value:
         name: United States
     latestRevisionDate: "2025-01-01T00:00:00.000Z"
     miniMap:
-      miniMapType: tilesTemplate
+      miniMapType: onlineTilesTemplate
+      fetchType: online
       title: Bear Creek Canyon
       layerId: 38f5c3fa-7248-41ed-815e-8b9e6aae5d61
-      tilesTemplate: "https://api.webscraper.ropegeo.com/mapdata/tiles/38f5c3fa-7248-41ed-815e-8b9e6aae5d61/{z}/{x}/{y}.pbf"
+      onlineTilesTemplate: "https://api.webscraper.ropegeo.com/mapdata/tiles/38f5c3fa-7248-41ed-815e-8b9e6aae5d61/{z}/{x}/{y}.pbf"
       bounds:
         north: 39.5
         south: 38.1
@@ -68,6 +73,7 @@ value:
       lat: 38.85
       lon: -109.15
     bannerImage:
+      fetchType: online
       order: 0
       id: 7b8e9c0a-1d2e-4f30-a1b2-c3d4e5f60789
       bannerUrl: https://ropewiki.com/images/thumb/1/2/BearCreek.jpg/400px-BearCreek.jpg

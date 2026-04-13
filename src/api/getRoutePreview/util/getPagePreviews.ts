@@ -1,5 +1,5 @@
 import type * as db from 'zapatos/db';
-import type { PagePreview } from 'ropegeo-common/models';
+import type { OnlinePagePreview } from 'ropegeo-common/models';
 import type { PageRoute } from '../../../types/pageRoute';
 import { RopewikiRoute } from '../../../types/pageRoute';
 import getRopewikiPagePreview from '../database/getRopewikiPagePreview';
@@ -12,7 +12,7 @@ import getRopewikiPagePreview from '../database/getRopewikiPagePreview';
 const getPagePreviews = async (
     conn: db.Queryable,
     pageRoutes: PageRoute[],
-): Promise<PagePreview[]> => {
+): Promise<OnlinePagePreview[]> => {
     return Promise.all(
         pageRoutes.map((pr) => {
             if (pr instanceof RopewikiRoute) {

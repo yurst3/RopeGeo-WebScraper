@@ -125,6 +125,7 @@ describe('getRopewikiRegionView handler', () => {
         expect(body.result.syncDate).toBe('2025-01-10T08:00:00.000Z');
         expect(body.result.miniMap).toMatchObject({
             miniMapType: 'geojson',
+            fetchType: 'online',
             title: 'North America',
             bounds: { north: 49, south: 25, east: -66, west: -125 },
             routesParams: {
@@ -132,6 +133,7 @@ describe('getRopewikiRegionView handler', () => {
             },
         });
         expect(body.result.overview).toEqual({
+            fetchType: 'online',
             order: 1,
             title: 'Overview',
             text: 'Canyoneering regions.',

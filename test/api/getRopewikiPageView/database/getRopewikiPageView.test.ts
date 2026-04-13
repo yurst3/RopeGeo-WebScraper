@@ -8,7 +8,13 @@ import {
     afterEach,
 } from '@jest/globals';
 import * as db from 'zapatos/db';
-import { CenteredRegionMiniMap, MiniMapType, PageDataSource } from 'ropegeo-common/models';
+import {
+    MiniMapType,
+    OnlineCenteredRegionMiniMap,
+    OnlinePageMiniMap,
+    PageDataSource,
+    RouteType,
+} from 'ropegeo-common/models';
 import getRopewikiPageView from '../../../../src/api/getRopewikiPageView/database/getRopewikiPageView';
 
 describe('getRopewikiPageView (integration)', () => {
@@ -89,6 +95,9 @@ describe('getRopewikiPageView (integration)', () => {
         const result = await getRopewikiPageView(conn, pageId);
 
         expect(result).not.toBeNull();
+        expect(result!.fetchType).toBe('online');
+        expect(result!.id).toBe(pageId);
+        expect(result!.routeType).toBe(RouteType.Unknown);
         expect(result!.name).toBe('Bear Creek Canyon');
         expect(result!.url).toBe('https://ropewiki.com/Bear_Creek_Canyon');
         expect(result!.quality).toBe(4.5);
@@ -218,6 +227,7 @@ describe('getRopewikiPageView (integration)', () => {
         const result = await getRopewikiPageView(conn, pageId);
 
         expect(result).not.toBeNull();
+        expect(result!.bannerImage!.fetchType).toBe('online');
         expect(result!.bannerImage).not.toBeNull();
         expect(result!.bannerImage!.id).toMatch(
             /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i,
@@ -306,6 +316,7 @@ describe('getRopewikiPageView (integration)', () => {
         const result = await getRopewikiPageView(conn, pageId);
 
         expect(result).not.toBeNull();
+        expect(result!.bannerImage!.fetchType).toBe('online');
         expect(result!.bannerImage!.downloadBytes!.preview).toBe(1024);
         expect(result!.bannerImage!.downloadBytes!.banner).toBe(2048);
         expect(result!.bannerImage!.downloadBytes!.full).toBe(4096);
@@ -373,7 +384,9 @@ describe('getRopewikiPageView (integration)', () => {
 
         expect(result).not.toBeNull();
         expect(result!.betaSections).toHaveLength(1);
+        expect(result!.betaSections[0]!.fetchType).toBe('online');
         expect(result!.betaSections[0]!.images).toHaveLength(2);
+        expect(result!.betaSections[0]!.images[0]!.fetchType).toBe('online');
         expect(result!.betaSections[0]!.images[0]!.bannerUrl).toBeNull();
         expect(result!.betaSections[0]!.images[0]!.fullUrl).toBeNull();
         expect(result!.betaSections[0]!.images[1]!.bannerUrl).toBe(
@@ -636,8 +649,12 @@ describe('getRopewikiPageView (integration)', () => {
 
         expect(result).not.toBeNull();
         expect(result!.miniMap).not.toBeNull();
+        expect(result!.routeType).toBe(RouteType.Canyon);
+        expect(result!.miniMap).toBeInstanceOf(OnlinePageMiniMap);
+        expect(result!.miniMap!.fetchType).toBe('online');
         expect(result!.miniMap!.layerId).toBe(mapDataId);
-        expect(result!.miniMap!.tilesTemplate).toBe(tilesTemplate);
+        expect((result!.miniMap as OnlinePageMiniMap).onlineTilesTemplate).toBe(tilesTemplate);
+        expect((result!.miniMap as Record<string, unknown>).offlineTilesTemplate).toBeUndefined();
         expect(result!.miniMap!.bounds.north).toBe(bounds.north);
         expect(result!.miniMap!.bounds.south).toBe(bounds.south);
         expect(result!.miniMap!.bounds.east).toBe(bounds.east);
@@ -690,10 +707,13 @@ describe('getRopewikiPageView (integration)', () => {
         expect(result).not.toBeNull();
         const mm = result!.miniMap;
         expect(mm).not.toBeNull();
-        expect(mm!.miniMapType).toBe(MiniMapType.CenteredGeojson);
-        const cr = mm as CenteredRegionMiniMap;
+        expect(mm).toBeInstanceOf(OnlineCenteredRegionMiniMap);
+        expect(mm!.miniMapType).toBe(MiniMapType.OnlineCenteredGeojson);
+        const cr = mm as OnlineCenteredRegionMiniMap;
+        expect(cr.fetchType).toBe('online');
         expect(cr.centeredRouteId).toBe(routeId);
         expect(cr.title).toBe('Route No Tiles');
+        expect((cr as Record<string, unknown>).downloadedGeojson).toBeUndefined();
         expect(cr.routesParams.region).toEqual({ id: testRegionId, source: PageDataSource.Ropewiki });
     });
 
@@ -769,8 +789,10 @@ describe('getRopewikiPageView (integration)', () => {
         expect(result).not.toBeNull();
         const mm = result!.miniMap;
         expect(mm).not.toBeNull();
-        expect(mm!.miniMapType).toBe(MiniMapType.CenteredGeojson);
-        const cr = mm as CenteredRegionMiniMap;
+        expect(mm).toBeInstanceOf(OnlineCenteredRegionMiniMap);
+        expect(mm!.miniMapType).toBe(MiniMapType.OnlineCenteredGeojson);
+        const cr = mm as OnlineCenteredRegionMiniMap;
+        expect(cr.fetchType).toBe('online');
         expect(cr.centeredRouteId).toBe(routeId);
         expect(cr.title).toBe('Route With Tiles No Bounds');
         expect(cr.routesParams.region).toEqual({ id: testRegionId, source: PageDataSource.Ropewiki });

@@ -71,25 +71,30 @@ RoutesParams:
 
 PageMiniMap:
   type: object
-  description: Page minimap — vector tile template + bounds (ropegeo-common PageMiniMap)
+  description: Online page minimap — vector tile template + bounds (ropegeo-common OnlinePageMiniMap)
   required:
     - miniMapType
+    - fetchType
     - title
     - layerId
-    - tilesTemplate
+    - onlineTilesTemplate
     - bounds
   properties:
     miniMapType:
       type: string
       enum:
-        - tilesTemplate
+        - onlineTilesTemplate
+    fetchType:
+      type: string
+      enum:
+        - online
     title:
       type: string
       description: Display title (linked Route.name)
     layerId:
       type: string
       description: Layer / map data identifier for the tile set
-    tilesTemplate:
+    onlineTilesTemplate:
       type: string
       description: Tile URL template with {z}, {x}, and {y} placeholders
     bounds:
@@ -100,6 +105,7 @@ RegionMiniMap:
   description: Region minimap — load route features via GET /routes with routesParams; bbox is miniMap.bounds (null when no coordinates in subtree) (ropegeo-common RegionMiniMap)
   required:
     - miniMapType
+    - fetchType
     - title
     - bounds
     - routesParams
@@ -108,6 +114,10 @@ RegionMiniMap:
       type: string
       enum:
         - geojson
+    fetchType:
+      type: string
+      enum:
+        - online
     title:
       type: string
       description: Region display name
@@ -122,9 +132,10 @@ RegionMiniMap:
 
 CenteredRegionMiniMap:
   type: object
-  description: Page minimap fallback — centered route over GET /routes with region-scoped routesParams (ropegeo-common CenteredRegionMiniMap)
+  description: Online page minimap fallback — centered route over GET /routes with region-scoped routesParams (ropegeo-common OnlineCenteredRegionMiniMap)
   required:
     - miniMapType
+    - fetchType
     - title
     - routesParams
     - centeredRouteId
@@ -132,7 +143,11 @@ CenteredRegionMiniMap:
     miniMapType:
       type: string
       enum:
-        - centeredGeojson
+        - onlineCenteredGeojson
+    fetchType:
+      type: string
+      enum:
+        - online
     title:
       type: string
       description: Linked Route.name

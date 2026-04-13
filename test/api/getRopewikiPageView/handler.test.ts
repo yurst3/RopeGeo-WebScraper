@@ -2,7 +2,12 @@ import { describe, it, expect, beforeEach, jest } from '@jest/globals';
 import type { PoolClient } from 'pg';
 import { handler } from '../../../src/api/getRopewikiPageView/handler';
 import type { RopewikiPageView } from 'ropegeo-common/models';
-import { Bounds, PageMiniMap, PermitStatus } from 'ropegeo-common/models';
+import {
+    Bounds,
+    OnlinePageMiniMap,
+    PermitStatus,
+    RouteType,
+} from 'ropegeo-common/models';
 
 let mockGetDatabaseConnection: jest.MockedFunction<typeof import('../../../src/helpers/getDatabaseConnection').default>;
 let mockGetRopewikiPageView: jest.MockedFunction<typeof import('../../../src/api/getRopewikiPageView/database/getRopewikiPageView').default>;
@@ -71,6 +76,10 @@ describe('getRopewikiPageView handler', () => {
     it('returns 200 and RopewikiPageView with CORS headers', async () => {
         const id = 'a1b2c3d4-e5f6-7890-abcd-ef1234567890';
         const mockView: RopewikiPageView = {
+            id,
+            routeType: RouteType.Unknown,
+            pageViewType: 'ropewiki',
+            fetchType: 'online',
             name: 'Bear Creek Canyon',
             aka: [],
             url: 'https://ropewiki.com/Bear_Creek_Canyon',
@@ -97,6 +106,9 @@ describe('getRopewikiPageView handler', () => {
             betaSections: [],
             miniMap: null,
             coordinates: null,
+            descentElevGain: null,
+            exitLength: null,
+            approachLength: null,
         } as RopewikiPageView;
         mockGetRopewikiPageView.mockResolvedValue(mockView);
 
@@ -123,13 +135,17 @@ describe('getRopewikiPageView handler', () => {
         const id = 'a1b2c3d4-e5f6-7890-abcd-ef1234567890';
         const template =
             'https://api.webscraper.ropegeo.com/mapdata/tiles/38f5c3fa-7248-41ed-815e-8b9e6aae5d61/{z}/{x}/{y}.pbf';
-        const miniMap = new PageMiniMap(
+        const miniMap = new OnlinePageMiniMap(
             '38f5c3fa-7248-41ed-815e-8b9e6aae5d61',
             template,
             new Bounds(39.5, 38.1, -108.2, -110.0),
             'Bear Creek Canyon',
         );
         const mockView = {
+            id,
+            routeType: RouteType.Canyon,
+            pageViewType: 'ropewiki',
+            fetchType: 'online',
             name: 'Bear Creek Canyon',
             aka: [],
             url: 'https://ropewiki.com/Bear_Creek_Canyon',
@@ -156,6 +172,9 @@ describe('getRopewikiPageView handler', () => {
             betaSections: [],
             miniMap,
             coordinates: null,
+            descentElevGain: null,
+            exitLength: null,
+            approachLength: null,
         } as RopewikiPageView;
         mockGetRopewikiPageView.mockResolvedValue(mockView);
 
@@ -164,10 +183,11 @@ describe('getRopewikiPageView handler', () => {
         expect(result.statusCode).toBe(200);
         const body = JSON.parse(result.body);
         expect(body.result.miniMap).toEqual({
-            miniMapType: 'tilesTemplate',
+            miniMapType: 'onlineTilesTemplate',
+            fetchType: 'online',
             title: 'Bear Creek Canyon',
             layerId: '38f5c3fa-7248-41ed-815e-8b9e6aae5d61',
-            tilesTemplate: template,
+            onlineTilesTemplate: template,
             bounds: { north: 39.5, south: 38.1, east: -108.2, west: -110.0 },
         });
     });

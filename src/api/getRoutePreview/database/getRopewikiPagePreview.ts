@@ -1,6 +1,6 @@
 import * as db from 'zapatos/db';
 import type { GetRopewikiPagePreviewRow } from 'ropegeo-common/models';
-import { PagePreview } from 'ropegeo-common/models';
+import { PagePreview, OnlinePagePreview } from 'ropegeo-common/models';
 import type { RopewikiRoute } from '../../../types/pageRoute';
 import getRopewikiRegionLineage from '../../../ropewiki/database/getRopewikiRegionLineage';
 
@@ -15,7 +15,7 @@ type Row = GetRopewikiPagePreviewRow & { aka?: string[] };
 const getRopewikiPagePreview = async (
     conn: db.Queryable,
     ropewikiRoute: RopewikiRoute,
-): Promise<PagePreview> => {
+): Promise<OnlinePagePreview> => {
     const pageId = ropewikiRoute.page;
 
     const rows = await db.sql<db.SQL, Row[]>`
@@ -69,7 +69,7 @@ const getRopewikiPagePreview = async (
         ropewikiRoute.mapData ?? null,
         regions,
         aka,
-    );
+    ) as OnlinePagePreview;
 };
 
 export default getRopewikiPagePreview;

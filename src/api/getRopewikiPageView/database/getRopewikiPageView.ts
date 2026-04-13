@@ -1,12 +1,15 @@
 import * as db from 'zapatos/db';
 import type * as s from 'zapatos/schema';
-import type { RopewikiPageView } from 'ropegeo-common/models';
 import {
     AcaDifficulty,
     Bounds,
-    CenteredRegionMiniMap,
+    OnlineBetaSection,
+    OnlineBetaSectionImage,
+    OnlineCenteredRegionMiniMap,
+    OnlinePageMiniMap,
+    OnlineRopewikiPageView,
     PageDataSource,
-    PageMiniMap,
+    RouteType,
     RoutesParams,
 } from 'ropegeo-common/models';
 import getRopewikiRegionLineage from '../../../ropewiki/database/getRopewikiRegionLineage';
@@ -73,7 +76,7 @@ const ROPEWIKI_PAGE_VIEW_COLUMNS: (keyof s.RopewikiPage.Selectable)[] = [
 const getRopewikiPageView = async (
     conn: db.Queryable,
     pageId: string,
-): Promise<RopewikiPageView | null> => {
+): Promise<OnlineRopewikiPageView | null> => {
     const rows = await db
         .select('RopewikiPage', { id: pageId }, { columns: ROPEWIKI_PAGE_VIEW_COLUMNS })
         .run(conn);
@@ -98,6 +101,7 @@ const getRopewikiPageView = async (
     type RouteMapRow = {
         routeId: string;
         routeName: string;
+        routeType: string;
         mapDataId: string | null;
         tilesTemplate: string | null;
         bounds: { north: number; south: number; east: number; west: number } | null;
@@ -139,6 +143,7 @@ const getRopewikiPageView = async (
             SELECT
                 r.id AS "routeId",
                 r.name AS "routeName",
+                r.type AS "routeType",
                 m.id AS "mapDataId",
                 m."tilesTemplate",
                 m."bounds"
@@ -159,7 +164,7 @@ const getRopewikiPageView = async (
         return page.name;
     })();
 
-    let miniMap: PageMiniMap | CenteredRegionMiniMap | null = null;
+    let miniMap: OnlinePageMiniMap | OnlineCenteredRegionMiniMap | null = null;
     if (routeRow != null) {
         let tilesTemplate = routeRow.tilesTemplate ?? null;
         const rawBounds = routeRow.bounds ?? null;
@@ -187,14 +192,14 @@ const getRopewikiPageView = async (
                 : null;
 
         if (layerId != null && tilesTemplate != null && bounds != null) {
-            miniMap = new PageMiniMap(
+            miniMap = new OnlinePageMiniMap(
                 layerId,
                 tilesTemplate,
                 new Bounds(bounds.north, bounds.south, bounds.east, bounds.west),
                 minimapTitle,
             );
         } else {
-            miniMap = new CenteredRegionMiniMap(
+            miniMap = new OnlineCenteredRegionMiniMap(
                 new RoutesParams({
                     region: { id: page.region, source: PageDataSource.Ropewiki },
                 }),
@@ -206,17 +211,16 @@ const getRopewikiPageView = async (
 
     const bannerImageRow = imageRows.find((i) => i.betaSection == null);
     const bannerImage = bannerImageRow
-        ? {
-              order: bannerImageRow.order ?? 0,
-              id: bannerImageRow.id,
-              bannerUrl: bannerImageRow.bannerUrl,
-              fullUrl: bannerImageRow.fullUrl,
-              linkPreviewUrl: bannerImageRow.linkPreviewUrl,
-              linkUrl: bannerImageRow.linkUrl,
-              caption: bannerImageRow.caption,
-              latestRevisionDate: new Date(bannerImageRow.latestRevisionDate),
-              downloadBytes: downloadBytesForBannerImage(bannerImageRow.metadata),
-          }
+        ? new OnlineBetaSectionImage(
+              bannerImageRow.order ?? 0,
+              bannerImageRow.id,
+              bannerImageRow.bannerUrl ?? null,
+              bannerImageRow.fullUrl ?? null,
+              bannerImageRow.linkUrl,
+              bannerImageRow.caption,
+              new Date(bannerImageRow.latestRevisionDate),
+              downloadBytesForBannerImage(bannerImageRow.metadata),
+          )
         : null;
 
     const imagesBySection = new Map<string | null, ImageRow[]>();
@@ -227,24 +231,26 @@ const getRopewikiPageView = async (
     }
 
     const betaSectionsView = betaSections.map((sec) => {
-        const secImages = (imagesBySection.get(sec.id) ?? []).map((i) => ({
-                order: i.order ?? 0,
-                id: i.id,
-                bannerUrl: i.bannerUrl,
-                fullUrl: i.fullUrl,
-                linkPreviewUrl: i.linkPreviewUrl,
-                linkUrl: i.linkUrl,
-                caption: i.caption,
-                latestRevisionDate: new Date(i.latestRevisionDate),
-                downloadBytes: downloadBytesForBetaSectionImage(i.metadata),
-            }));
-        return {
-            order: sec.order ?? 0,
-            title: sec.title,
-            text: sec.text,
-            images: secImages,
-            latestRevisionDate: new Date(sec.latestRevisionDate),
-        };
+        const secImages = (imagesBySection.get(sec.id) ?? []).map(
+            (i) =>
+                new OnlineBetaSectionImage(
+                    i.order ?? 0,
+                    i.id,
+                    i.bannerUrl ?? null,
+                    i.fullUrl ?? null,
+                    i.linkUrl,
+                    i.caption,
+                    new Date(i.latestRevisionDate),
+                    downloadBytesForBetaSectionImage(i.metadata),
+                ),
+        );
+        return new OnlineBetaSection(
+            sec.order ?? 0,
+            sec.title,
+            sec.text,
+            new Date(sec.latestRevisionDate),
+            secImages,
+        );
     });
 
     const difficulty = new AcaDifficulty(
@@ -259,40 +265,46 @@ const getRopewikiPageView = async (
     const regions = await getRopewikiRegionLineage(conn, page.region);
     const coordinates = normalizePageCoordinates(page.coordinates);
 
-    const view = {
-        name: page.name,
-        aka: akaRows,
-        url: page.url,
-        quality: page.quality ?? 0,
-        userVotes: page.userVotes ?? 0,
-        difficulty: difficulty as RopewikiPageView['difficulty'],
-        permit: parsePermit(page.permits),
+    const routeType = routeRow?.routeType;
+    const normalizedRouteType =
+        routeType != null && Object.values(RouteType).includes(routeType as RouteType)
+            ? (routeType as RouteType)
+            : RouteType.Unknown;
+
+    return new OnlineRopewikiPageView(
+        page.id,
+        normalizedRouteType,
+        page.name,
+        akaRows,
+        page.url,
+        Number(page.quality ?? 0),
+        Number(page.userVotes ?? 0),
+        regions,
+        difficulty,
+        parsePermit(page.permits),
         rappelCount,
         jumps,
-        vehicle: page.vehicle ?? null,
-        rappelLongest: page.rappelLongest == null ? null : numericValue(page.rappelLongest),
-        shuttleTime: page.shuttleTime == null ? null : numericValue(page.shuttleTime),
-        overallTime: minMaxOrNumber(page.minOverallTime, page.maxOverallTime),
-        overallLength: page.overallLength != null ? Number(page.overallLength) : null,
-        approachLength: page.approachLength != null ? Number(page.approachLength) : null,
-        approachElevGain: page.approachElevGain != null ? Number(page.approachElevGain) : null,
-        descentLength: page.descentLength != null ? Number(page.descentLength) : null,
-        descentElevGain: page.descentElevGain != null ? Number(page.descentElevGain) : null,
-        exitLength: page.exitLength != null ? Number(page.exitLength) : null,
-        exitElevGain: page.exitElevGain != null ? Number(page.exitElevGain) : null,
-        approachTime: minMaxOrNumber(page.minApproachTime, page.maxApproachTime),
-        descentTime: minMaxOrNumber(page.minDescentTime, page.maxDescentTime),
-        exitTime: minMaxOrNumber(page.minExitTime, page.maxExitTime),
-        months: page.months == null ? [] : stringArray(page.months),
-        latestRevisionDate: new Date(page.latestRevisionDate),
-        regions,
+        page.vehicle ?? null,
+        page.rappelLongest == null ? null : numericValue(page.rappelLongest),
+        page.shuttleTime == null ? null : numericValue(page.shuttleTime),
+        page.overallLength != null ? Number(page.overallLength) : null,
+        page.descentLength != null ? Number(page.descentLength) : null,
+        page.exitLength != null ? Number(page.exitLength) : null,
+        page.approachLength != null ? Number(page.approachLength) : null,
+        minMaxOrNumber(page.minOverallTime, page.maxOverallTime),
+        minMaxOrNumber(page.minApproachTime, page.maxApproachTime),
+        minMaxOrNumber(page.minDescentTime, page.maxDescentTime),
+        minMaxOrNumber(page.minExitTime, page.maxExitTime),
+        page.approachElevGain != null ? Number(page.approachElevGain) : null,
+        page.descentElevGain != null ? Number(page.descentElevGain) : null,
+        page.exitElevGain != null ? Number(page.exitElevGain) : null,
+        page.months == null ? [] : stringArray(page.months),
+        new Date(page.latestRevisionDate),
         bannerImage,
-        betaSections: betaSectionsView,
+        betaSectionsView,
         miniMap,
         coordinates,
-    };
-
-    return view as unknown as RopewikiPageView;
+    );
 };
 
 export default getRopewikiPageView;

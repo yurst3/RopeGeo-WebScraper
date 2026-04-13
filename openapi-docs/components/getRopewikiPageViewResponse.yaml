@@ -16,8 +16,12 @@ GetRopewikiPageViewResponse:
 
 RopewikiPageView:
   type: object
-  description: Full view of a Ropewiki page (GET /ropewiki/page/{id}). The page is identified by the path parameter `id` (RopewikiPage uuid); the response does not repeat an external Ropewiki page id string.
+  description: Full online view of a Ropewiki page (GET /ropewiki/page/{id}) as ropegeo-common OnlineRopewikiPageView.
   required:
+    - id
+    - routeType
+    - pageViewType
+    - fetchType
     - name
     - aka
     - url
@@ -29,6 +33,28 @@ RopewikiPageView:
     - latestRevisionDate
     - betaSections
   properties:
+    id:
+      type: string
+      format: uuid
+      description: RopewikiPage row id
+    routeType:
+      type: string
+      enum:
+        - Unknown
+        - POI
+        - Cave
+        - Canyon
+      description: Route type for the linked route when available; Unknown when no linked route is available
+    pageViewType:
+      type: string
+      enum:
+        - ropewiki
+      description: Page view discriminator
+    fetchType:
+      type: string
+      enum:
+        - online
+      description: Online/offline discriminator for page-view model families
     name:
       type: string
       description: Page name
@@ -197,7 +223,7 @@ RopewikiPageView:
       type: object
       nullable: true
       description: |
-        Vector tile minimap when MapData has layer id, tile template, and valid bounds; otherwise **centeredGeojson** when the page has a linked route without that full tile set; otherwise null.
+        Online vector tile minimap when MapData has layer id, tile template, and valid bounds; otherwise **onlineCenteredGeojson** when the page has a linked route without that full tile set; otherwise null.
       anyOf:
         - $ref: './miniMap.yaml#/PageMiniMap'
         - $ref: './miniMap.yaml#/CenteredRegionMiniMap'
@@ -224,8 +250,9 @@ PageViewCoordinates:
 
 BetaSectionImage:
   type: object
-  description: Image view (banner or beta-section image)
+  description: Online image view (banner or beta-section image) as ropegeo-common OnlineBetaSectionImage
   required:
+    - fetchType
     - order
     - id
     - bannerUrl
@@ -235,6 +262,10 @@ BetaSectionImage:
     - latestRevisionDate
     - downloadBytes
   properties:
+    fetchType:
+      type: string
+      enum:
+        - online
     order:
       type: integer
     id:
@@ -289,14 +320,19 @@ DownloadBytes:
 
 BetaSection:
   type: object
-  description: Beta section with title, text, and images
+  description: Online beta section (ropegeo-common OnlineBetaSection)
   required:
+    - fetchType
     - order
     - title
     - text
     - images
     - latestRevisionDate
   properties:
+    fetchType:
+      type: string
+      enum:
+        - online
     order:
       type: integer
     title:

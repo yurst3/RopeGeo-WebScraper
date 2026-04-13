@@ -12,6 +12,7 @@ value:
     pageCount: 120
     totalPageCount: 380
     overview:
+      fetchType: online
       order: 1
       title: Overview
       text: Canyoneering regions across North America.
@@ -28,6 +29,7 @@ value:
     externalLink: https://ropewiki.com/North_America
     miniMap:
       miniMapType: geojson
+      fetchType: online
       title: North America
       bounds:
         north: 49.0
