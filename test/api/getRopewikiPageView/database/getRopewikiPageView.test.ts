@@ -708,7 +708,7 @@ describe('getRopewikiPageView (integration)', () => {
         const mm = result!.miniMap;
         expect(mm).not.toBeNull();
         expect(mm).toBeInstanceOf(OnlineCenteredRegionMiniMap);
-        expect(mm!.miniMapType).toBe(MiniMapType.OnlineCenteredGeojson);
+        expect(mm!.miniMapType).toBe(MiniMapType.CenteredRegion);
         const cr = mm as OnlineCenteredRegionMiniMap;
         expect(cr.fetchType).toBe('online');
         expect(cr.centeredRouteId).toBe(routeId);
@@ -790,7 +790,7 @@ describe('getRopewikiPageView (integration)', () => {
         const mm = result!.miniMap;
         expect(mm).not.toBeNull();
         expect(mm).toBeInstanceOf(OnlineCenteredRegionMiniMap);
-        expect(mm!.miniMapType).toBe(MiniMapType.OnlineCenteredGeojson);
+        expect(mm!.miniMapType).toBe(MiniMapType.CenteredRegion);
         const cr = mm as OnlineCenteredRegionMiniMap;
         expect(cr.fetchType).toBe('online');
         expect(cr.centeredRouteId).toBe(routeId);

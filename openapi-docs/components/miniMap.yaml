@@ -1,4 +1,4 @@
-# Shared minimap types (ropegeo-common PageMiniMap, RegionMiniMap, RoutesParams, Bounds)
+# Shared minimap types (ropegeo-common OnlinePageMiniMap, OnlineRegionMiniMap, OnlineCenteredRegionMiniMap, RoutesParams, Bounds)
 
 Bounds:
   type: object
@@ -42,8 +42,8 @@ RoutesParamsRegion:
 RoutesParams:
   type: object
   description: |
-    ropegeo-common RoutesParams JSON shape (RegionMiniMap.routesParams).
-    Region minimap uses nested **region** with a single **source** string; **sources** is for global listings only and must not be set together with **region**.
+    ropegeo-common RoutesParams JSON shape (e.g. OnlineRegionMiniMap.routesParams, OnlineCenteredRegionMiniMap.routesParams).
+    Region-scoped minimaps use nested **region** with a single **source** string; **sources** is for global listings only and must not be set together with **region**.
   required:
     - region
   properties:
@@ -83,7 +83,7 @@ PageMiniMap:
     miniMapType:
       type: string
       enum:
-        - onlineTilesTemplate
+        - page
     fetchType:
       type: string
       enum:
@@ -100,9 +100,9 @@ PageMiniMap:
     bounds:
       $ref: '#/Bounds'
 
-RegionMiniMap:
+OnlineRegionMiniMap:
   type: object
-  description: Region minimap — load route features via GET /routes with routesParams; bbox is miniMap.bounds (null when no coordinates in subtree) (ropegeo-common RegionMiniMap)
+  description: Online region minimap — load route features via GET /routes with routesParams; bbox is miniMap.bounds (null when no coordinates in subtree) (ropegeo-common OnlineRegionMiniMap)
   required:
     - miniMapType
     - fetchType
@@ -113,7 +113,7 @@ RegionMiniMap:
     miniMapType:
       type: string
       enum:
-        - geojson
+        - region
     fetchType:
       type: string
       enum:
@@ -130,7 +130,7 @@ RegionMiniMap:
     routesParams:
       $ref: '#/RoutesParams'
 
-CenteredRegionMiniMap:
+OnlineCenteredRegionMiniMap:
   type: object
   description: Online page minimap fallback — centered route over GET /routes with region-scoped routesParams (ropegeo-common OnlineCenteredRegionMiniMap)
   required:
@@ -143,7 +143,7 @@ CenteredRegionMiniMap:
     miniMapType:
       type: string
       enum:
-        - onlineCenteredGeojson
+        - centeredRegion
     fetchType:
       type: string
       enum:

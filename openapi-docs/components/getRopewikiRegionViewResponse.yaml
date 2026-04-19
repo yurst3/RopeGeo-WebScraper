@@ -89,5 +89,5 @@ RopewikiRegionView:
       format: uri
       description: External URL for the region
     miniMap:
-      $ref: './miniMap.yaml#/RegionMiniMap'
+      $ref: './miniMap.yaml#/OnlineRegionMiniMap'
       description: Region minimap — clients call GET /routes with routesParams for markers; use miniMap.bounds to fit the map (null when no route coordinates exist in the subtree)

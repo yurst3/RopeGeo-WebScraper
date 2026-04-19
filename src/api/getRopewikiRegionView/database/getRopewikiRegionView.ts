@@ -1,6 +1,6 @@
 import {
+    OnlineRegionMiniMap,
     PageDataSource,
-    RegionMiniMap,
     RopewikiRegionView,
     RoutesParams,
 } from 'ropegeo-common/models';
@@ -79,7 +79,7 @@ const getRopewikiRegionView = async (
         Array.isArray(regionsParsed) && regionsParsed.length > 0 ? regionsParsed : undefined;
 
     const bounds = await getRopewikiRegionRouteBounds(conn, regionId);
-    const miniMap = new RegionMiniMap(
+    const miniMap = new OnlineRegionMiniMap(
         new RoutesParams({
             region: { id: regionId, source: PageDataSource.Ropewiki },
         }),

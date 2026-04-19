@@ -183,7 +183,7 @@ describe('getRopewikiPageView handler', () => {
         expect(result.statusCode).toBe(200);
         const body = JSON.parse(result.body);
         expect(body.result.miniMap).toEqual({
-            miniMapType: 'onlineTilesTemplate',
+            miniMapType: 'page',
             fetchType: 'online',
             title: 'Bear Creek Canyon',
             layerId: '38f5c3fa-7248-41ed-815e-8b9e6aae5d61',

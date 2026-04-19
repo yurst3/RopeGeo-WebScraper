@@ -2,8 +2,8 @@ import { describe, it, expect, beforeEach, jest } from '@jest/globals';
 import type { PoolClient } from 'pg';
 import {
     Bounds,
+    OnlineRegionMiniMap,
     PageDataSource,
-    RegionMiniMap,
     RopewikiRegionView,
     RoutesParams,
 } from 'ropegeo-common/models';
@@ -79,7 +79,7 @@ describe('getRopewikiRegionView handler', () => {
 
     it('returns 200 and RopewikiRegionView with CORS headers', async () => {
         const id = 'a1b2c3d4-e5f6-7890-abcd-ef1234567890';
-        const miniMap = new RegionMiniMap(
+        const miniMap = new OnlineRegionMiniMap(
             new RoutesParams({
                 region: { id, source: PageDataSource.Ropewiki },
             }),
@@ -124,7 +124,7 @@ describe('getRopewikiRegionView handler', () => {
         expect(body.result.totalPageCount).toBe(380);
         expect(body.result.syncDate).toBe('2025-01-10T08:00:00.000Z');
         expect(body.result.miniMap).toMatchObject({
-            miniMapType: 'geojson',
+            miniMapType: 'region',
             fetchType: 'online',
             title: 'North America',
             bounds: { north: 49, south: 25, east: -66, west: -125 },
@@ -144,7 +144,7 @@ describe('getRopewikiRegionView handler', () => {
 
     it('returns 200 with null overview when region has no overview', async () => {
         const id = 'a1b2c3d4-e5f6-7890-abcd-ef1234567890';
-        const miniMap = new RegionMiniMap(
+        const miniMap = new OnlineRegionMiniMap(
             new RoutesParams({
                 region: { id, source: PageDataSource.Ropewiki },
             }),

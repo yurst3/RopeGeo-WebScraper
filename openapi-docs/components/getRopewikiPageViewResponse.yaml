@@ -226,7 +226,7 @@ RopewikiPageView:
         Online vector tile minimap when MapData has layer id, tile template, and valid bounds; otherwise **onlineCenteredGeojson** when the page has a linked route without that full tile set; otherwise null.
       anyOf:
         - $ref: './miniMap.yaml#/PageMiniMap'
-        - $ref: './miniMap.yaml#/CenteredRegionMiniMap'
+        - $ref: './miniMap.yaml#/OnlineCenteredRegionMiniMap'
     coordinates:
       description: Page centroid in WGS84 degrees when stored coordinates are valid; otherwise null (not inferred from minimap bounds)
       nullable: true
