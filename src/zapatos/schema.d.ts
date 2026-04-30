@@ -509,6 +509,12 @@ declare module 'zapatos/schema' {
       */
       bounds: object | null;
       /**
+      * **MapData.legend**
+      * - `jsonb` in database
+      * - Nullable, no default
+      */
+      legend: object | null;
+      /**
       * **MapData.updatedAt**
       * - `timestamp` in database
       * - `NOT NULL`, default: `CURRENT_TIMESTAMP`
@@ -582,6 +588,12 @@ declare module 'zapatos/schema' {
       * - Nullable, no default
       */
       bounds: object | null;
+      /**
+      * **MapData.legend**
+      * - `jsonb` in database
+      * - Nullable, no default
+      */
+      legend: object | null;
       /**
       * **MapData.updatedAt**
       * - `timestamp` in database
@@ -657,6 +669,12 @@ declare module 'zapatos/schema' {
       */
       bounds?: object | db.Parameter<object> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, object | db.Parameter<object> | db.SQLFragment | db.ParentColumn>;
       /**
+      * **MapData.legend**
+      * - `jsonb` in database
+      * - Nullable, no default
+      */
+      legend?: object | db.Parameter<object> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, object | db.Parameter<object> | db.SQLFragment | db.ParentColumn>;
+      /**
       * **MapData.updatedAt**
       * - `timestamp` in database
       * - `NOT NULL`, default: `CURRENT_TIMESTAMP`
@@ -731,6 +749,12 @@ declare module 'zapatos/schema' {
       */
       bounds?: object | db.Parameter<object> | null | db.DefaultType | db.SQLFragment;
       /**
+      * **MapData.legend**
+      * - `jsonb` in database
+      * - Nullable, no default
+      */
+      legend?: object | db.Parameter<object> | null | db.DefaultType | db.SQLFragment;
+      /**
       * **MapData.updatedAt**
       * - `timestamp` in database
       * - `NOT NULL`, default: `CURRENT_TIMESTAMP`
@@ -804,6 +828,12 @@ declare module 'zapatos/schema' {
       * - Nullable, no default
       */
       bounds?: object | db.Parameter<object> | null | db.DefaultType | db.SQLFragment | db.SQLFragment<any, object | db.Parameter<object> | null | db.DefaultType | db.SQLFragment>;
+      /**
+      * **MapData.legend**
+      * - `jsonb` in database
+      * - Nullable, no default
+      */
+      legend?: object | db.Parameter<object> | null | db.DefaultType | db.SQLFragment | db.SQLFragment<any, object | db.Parameter<object> | null | db.DefaultType | db.SQLFragment>;
       /**
       * **MapData.updatedAt**
       * - `timestamp` in database

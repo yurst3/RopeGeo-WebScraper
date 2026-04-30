@@ -1,5 +1,5 @@
 import { describe, it, expect } from '@jest/globals';
-import { Bounds } from 'ropegeo-common/models';
+import { Bounds, LineLegendItem } from 'ropegeo-common/models';
 import MapData from '../../../src/map-data/types/mapData';
 
 // Type definitions matching zapatos schema for testing
@@ -10,6 +10,10 @@ type MapDataJSONSelectable = {
     geoJson: string | null;
     tilesTemplate: string | null;
     bounds: object | null;
+    legend?: object | null;
+    sourceFileUrl?: string;
+    errorMessage?: string | null;
+    allowUpdates?: boolean;
     deletedAt: string | null; // Always null in database, but present in schema
     createdAt: string;
     updatedAt: string;
@@ -123,6 +127,7 @@ describe('MapData', () => {
             expect(dbRow.geoJson).toBeNull();
             expect(dbRow.tilesTemplate).toBeNull();
             expect(dbRow.bounds).toBeNull();
+            expect(dbRow.legend).toBeNull();
             expect(dbRow.deletedAt).toBeNull(); // Always null
             expect(dbRow.updatedAt).toBeInstanceOf(Date);
         });
@@ -270,6 +275,7 @@ describe('MapData', () => {
                 geoJson: dbRow.geoJson ?? null,
                 tilesTemplate: dbRow.tilesTemplate ?? null,
                 bounds: dbRow.bounds ?? null,
+                legend: dbRow.legend ?? null,
                 deletedAt: null, // Always null
                 createdAt: new Date().toISOString(),
                 updatedAt: (dbRow.updatedAt as Date).toISOString(),
@@ -300,6 +306,7 @@ describe('MapData', () => {
                 geoJson: dbRow.geoJson ?? null,
                 tilesTemplate: dbRow.tilesTemplate ?? null,
                 bounds: dbRow.bounds ?? null,
+                legend: dbRow.legend ?? null,
                 deletedAt: null, // Always null
                 createdAt: new Date().toISOString(),
                 updatedAt: (dbRow.updatedAt as Date).toISOString(),
@@ -326,6 +333,7 @@ describe('MapData', () => {
                 geoJson: dbRow.geoJson ?? null,
                 tilesTemplate: dbRow.tilesTemplate ?? null,
                 bounds: dbRow.bounds ?? null,
+                legend: dbRow.legend ?? null,
                 deletedAt: null,
                 createdAt: new Date().toISOString(),
                 updatedAt: (dbRow.updatedAt as Date).toISOString(),
@@ -336,6 +344,34 @@ describe('MapData', () => {
             expect(restored.bounds!.south).toBe(49);
             expect(restored.bounds!.east).toBe(-122);
             expect(restored.bounds!.west).toBe(-123);
+        });
+
+        it('round-trips legend via setLegend, toDbRow, and fromDbRow', () => {
+            const id = '99999999-9999-9999-9999-999999999999';
+            const original = new MapData(undefined, undefined, undefined, undefined, id, '', undefined);
+            const b = new Bounds(40, 39, -110, -111);
+            original.setLegend({
+                seg: new LineLegendItem('seg', 'Segment', b, '#00f', '2'),
+            });
+            const dbRow = original.toDbRow();
+            const jsonRow: MapDataJSONSelectable = {
+                id: dbRow.id ?? id,
+                gpx: dbRow.gpx ?? null,
+                kml: dbRow.kml ?? null,
+                geoJson: dbRow.geoJson ?? null,
+                tilesTemplate: dbRow.tilesTemplate ?? null,
+                bounds: dbRow.bounds ?? null,
+                legend: dbRow.legend ?? null,
+                sourceFileUrl: '',
+                errorMessage: null,
+                allowUpdates: true,
+                deletedAt: null,
+                createdAt: new Date().toISOString(),
+                updatedAt: (dbRow.updatedAt as Date).toISOString(),
+            };
+            const restored = MapData.fromDbRow(jsonRow);
+            expect(restored.legend?.seg).toBeInstanceOf(LineLegendItem);
+            expect(restored.legend?.seg.name).toBe('Segment');
         });
     });
 });

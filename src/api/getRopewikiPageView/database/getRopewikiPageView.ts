@@ -3,6 +3,7 @@ import type * as s from 'zapatos/schema';
 import {
     AcaDifficulty,
     Bounds,
+    LegendItem,
     OnlineBetaSection,
     OnlineBetaSectionImage,
     OnlineCenteredRegionMiniMap,
@@ -12,6 +13,7 @@ import {
     RouteType,
     RoutesParams,
 } from 'ropegeo-common/models';
+import '../../../map-data/types/mapData';
 import getRopewikiRegionLineage from '../../../ropewiki/database/getRopewikiRegionLineage';
 import {
     downloadBytesForBannerImage,
@@ -105,6 +107,7 @@ const getRopewikiPageView = async (
         mapDataId: string | null;
         tilesTemplate: string | null;
         bounds: { north: number; south: number; east: number; west: number } | null;
+        legend: db.JSONValue | null;
     };
 
     const [imageRows, betaSections, akaRows, routeMapRows] = await Promise.all([
@@ -146,7 +149,8 @@ const getRopewikiPageView = async (
                 r.type AS "routeType",
                 m.id AS "mapDataId",
                 m."tilesTemplate",
-                m."bounds"
+                m."bounds",
+                m."legend"
             FROM "RopewikiRoute" rr
             INNER JOIN "Route" r ON r.id = rr.route AND r."deletedAt" IS NULL
             LEFT JOIN "MapData" m ON m.id = rr."mapData"
@@ -191,12 +195,34 @@ const getRopewikiPageView = async (
                 ? routeRow.mapDataId
                 : null;
 
+        let pageLegend: Record<string, LegendItem> | undefined;
+        const rawLegend = routeRow.legend ?? null;
+        if (
+            rawLegend != null &&
+            typeof rawLegend === 'object' &&
+            !Array.isArray(rawLegend)
+        ) {
+            try {
+                const parsed = LegendItem.legendRecordFromResult(
+                    rawLegend,
+                    'getRopewikiPageView.MapData.legend',
+                );
+                pageLegend = Object.keys(parsed).length > 0 ? parsed : undefined;
+            } catch (e) {
+                console.warn(
+                    'getRopewikiPageView: invalid MapData.legend, omitting from miniMap:',
+                    e instanceof Error ? e.message : e,
+                );
+            }
+        }
+
         if (layerId != null && tilesTemplate != null && bounds != null) {
             miniMap = new OnlinePageMiniMap(
                 layerId,
                 tilesTemplate,
                 new Bounds(bounds.north, bounds.south, bounds.east, bounds.west),
                 minimapTitle,
+                pageLegend,
             );
         } else {
             miniMap = new OnlineCenteredRegionMiniMap(

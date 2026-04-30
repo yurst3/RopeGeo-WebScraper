@@ -53,6 +53,18 @@ function collectCoordinates(geometry: GeoJSON.Geometry, bounds: Bounds): void {
 }
 
 /**
+ * Bounding box for a single geometry (WGS84), or null when no finite coordinates.
+ */
+export function getBoundsFromGeometry(geometry: GeoJSON.Geometry): Bounds | null {
+    const bounds = new Bounds(-Infinity, Infinity, -Infinity, Infinity);
+    collectCoordinates(geometry, bounds);
+    if (!Number.isFinite(bounds.north) || !Number.isFinite(bounds.south)) {
+        return null;
+    }
+    return bounds;
+}
+
+/**
  * Walks the FeatureCollection's features and all geometries (including nested
  * GeometryCollections), tracks min/max lat/lon, and returns a Bounds object
  * or null if there are no features or no coordinates.

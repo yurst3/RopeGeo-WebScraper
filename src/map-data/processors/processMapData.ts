@@ -2,12 +2,14 @@ import { mkdtemp, rm, readFile, writeFile } from 'fs/promises';
 import { join } from 'path';
 import { tmpdir } from 'os';
 import { randomUUID } from 'crypto';
+import type { LegendItem } from 'ropegeo-common/models';
 import MapData from '../types/mapData';
 import type { SaveMapDataHookFn } from '../hook-functions/saveMapData';
 import { downloadSourceFile } from '../http/downloadSourceFile';
 import getSourceFile from '../s3/getSourceFile';
 import { convertToGeoJson } from '../util/convertToGeoJson';
 import { convertToTileDirectory } from '../util/convertToTileDirectory';
+import { enrichGeoJsonWithLegendIds } from '../util/enrichGeoJsonWithLegendIds';
 import { getBoundsFromGeoJson } from '../util/getBoundsFromGeoJson';
 import { ProgressLogger } from 'ropegeo-common/helpers';
 
@@ -102,6 +104,25 @@ export const processMapData = async (
         geoJsonFilePath = geoJsonPath;
         errorMessage = geoJsonError;
 
+        let postEnrichLegend: Record<string, LegendItem> | undefined;
+        let postEnrichGeo: GeoJSON.FeatureCollection | undefined;
+
+        if (geoJsonFilePath && !errorMessage) {
+            try {
+                const geoJsonContent = await readFile(geoJsonFilePath, 'utf-8');
+                const parsed = JSON.parse(geoJsonContent) as GeoJSON.FeatureCollection;
+                const { geoJson: enriched, legend } = enrichGeoJsonWithLegendIds(parsed);
+                postEnrichLegend = legend;
+                postEnrichGeo = enriched;
+                await writeFile(geoJsonFilePath, JSON.stringify(enriched), 'utf-8');
+            } catch (e) {
+                const msg = e instanceof Error ? e.message : String(e);
+                errorMessage = `Failed to enrich GeoJSON for legend: ${msg}`;
+                postEnrichLegend = undefined;
+                postEnrichGeo = undefined;
+            }
+        }
+
         let tilesDirPath: string | undefined;
         if (geoJsonFilePath && !errorMessage) {
             const tilesOutputDir = join(tempDir, 'tiles');
@@ -136,15 +157,16 @@ export const processMapData = async (
             logger,
         );
 
-        if (geoJsonFilePath && !errorMessage) {
+        if (postEnrichGeo != null && !errorMessage) {
             try {
-                const geoJsonContent = await readFile(geoJsonFilePath, 'utf-8');
-                const geoJson = JSON.parse(geoJsonContent) as GeoJSON.FeatureCollection;
-                const bounds = getBoundsFromGeoJson(geoJson);
-                mapData.setBounds(bounds);
+                mapData.setBounds(getBoundsFromGeoJson(postEnrichGeo));
+                mapData.setLegend(postEnrichLegend);
             } catch {
                 mapData.setBounds(null);
+                mapData.setLegend(undefined);
             }
+        } else {
+            mapData.setLegend(undefined);
         }
 
         return mapData;

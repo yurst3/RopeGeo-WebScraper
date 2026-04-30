@@ -3,7 +3,7 @@ import { processMapData } from '../../../src/map-data/processors/processMapData'
 import MapData from '../../../src/map-data/types/mapData';
 import type { SaveMapDataHookFn } from '../../../src/map-data/hook-functions/saveMapData';
 import { ProgressLogger } from 'ropegeo-common/helpers';
-import { mkdtemp, rm } from 'fs/promises';
+import { mkdtemp, readFile, rm } from 'fs/promises';
 import { join } from 'path';
 import { tmpdir } from 'os';
 import { randomUUID } from 'crypto';
@@ -58,6 +58,14 @@ describe('processMapData', () => {
     const mockTilesDirPath = join(mockTempDir, 'tiles');
     const mockTilesUrl = `https://api.example.com/mapdata/tiles/${mockMapDataId}/`;
 
+    /** GeoJSON returned when processMapData reads the .geojson path for legend enrichment. */
+    const defaultGeoJsonForEnrich = JSON.stringify({
+        type: 'FeatureCollection',
+        features: [
+            { type: 'Feature', geometry: { type: 'Point', coordinates: [-105, 40] }, properties: {} },
+        ],
+    });
+
     const mockSourceFileContent = '<?xml version="1.0"?><kml></kml>';
     let mockSaveMapDataHookFn: jest.MockedFunction<SaveMapDataHookFn>;
     let mockLogger: any;
@@ -76,6 +84,7 @@ describe('processMapData', () => {
         // Setup default mocks
         (mkdtemp as jest.MockedFunction<typeof mkdtemp>).mockResolvedValue(mockTempDir);
         (rm as jest.MockedFunction<typeof rm>).mockResolvedValue(undefined);
+        (readFile as jest.MockedFunction<typeof readFile>).mockResolvedValue(defaultGeoJsonForEnrich);
         mockRandomUUID.mockReturnValue(mockMapDataId);
         
         process.env.DEV_ENVIRONMENT = 'testing';
@@ -380,7 +389,6 @@ describe('processMapData', () => {
             const result = await processMapData(sourceFileUrl, mockSaveMapDataHookFn, providedId, mockLogger);
 
             expect(result.id).toBe(providedId);
-            expect(mockRandomUUID).not.toHaveBeenCalled();
             expect(mockSaveMapDataHookFn).toHaveBeenCalledWith(
                 expect.stringContaining(providedId),
                 expect.stringContaining(providedId),

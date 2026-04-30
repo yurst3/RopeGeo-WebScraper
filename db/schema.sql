@@ -1,4 +1,4 @@
-\restrict CJbH4Sf7eVKofAEAGateaAfVPsR3d99wLTJZSmcRbTmkr30e7D8VjVpeb5qkZa2
+\restrict HbCv0S9fRnC1Hax7NhK4h5fUvCwGkKeGn4ZLalfHSdm5GgxxBr2DzHfEB8N64Fy
 
 -- Dumped from database version 18.1 (Debian 18.1-1.pgdg13+2)
 -- Dumped by pg_dump version 18.1 (Homebrew)
@@ -70,7 +70,8 @@ CREATE TABLE public."MapData" (
     "sourceFileUrl" text DEFAULT ''::text NOT NULL,
     "errorMessage" text,
     "allowUpdates" boolean DEFAULT true NOT NULL,
-    bounds jsonb
+    bounds jsonb,
+    legend jsonb
 );
 
 
@@ -560,7 +561,7 @@ ALTER TABLE ONLY public."RopewikiRoute"
 -- PostgreSQL database dump complete
 --
 
-\unrestrict CJbH4Sf7eVKofAEAGateaAfVPsR3d99wLTJZSmcRbTmkr30e7D8VjVpeb5qkZa2
+\unrestrict HbCv0S9fRnC1Hax7NhK4h5fUvCwGkKeGn4ZLalfHSdm5GgxxBr2DzHfEB8N64Fy
 
 
 --
@@ -603,4 +604,5 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20260316213404'),
     ('20260317145108'),
     ('20260317162901'),
-    ('20260329120000');
+    ('20260329120000'),
+    ('20260430103000');

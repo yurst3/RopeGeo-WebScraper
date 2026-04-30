@@ -245,6 +245,23 @@ Resources:
             - Ref: RdsIamAuthPolicy
             - Ref: 'AWS::NoValue'
         - Ref: SQSMapDataProcessingQueuePolicy
+  MapDataReprocessorRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: 'sts:AssumeRole'
+      ManagedPolicyArns:
+        - Ref: LambdaExecutionPolicy
+        - 'Fn::If':
+            - HasRdsDbiResourceId
+            - Ref: RdsIamAuthPolicy
+            - Ref: 'AWS::NoValue'
+        - Ref: SQSMapDataProcessingQueuePolicy
   RopewikiImageReprocessorRole:
     Type: 'AWS::IAM::Role'
     Properties:

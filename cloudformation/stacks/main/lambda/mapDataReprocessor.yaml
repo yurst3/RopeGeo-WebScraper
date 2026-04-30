@@ -1,0 +1,57 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Lambda that enqueues MapData reprocessing jobs for all linked Ropewiki routes
+
+Resources:
+  MapDataReprocessor:
+    Type: 'AWS::Serverless::Function'
+    Properties:
+      Description: Enqueues MapDataProcessingQueue messages for MapData rows (S3-backed when downloadSource is false)
+      Runtime: nodejs22.x
+      Architectures:
+        - arm64
+      CodeUri: ../../
+      Handler: src/map-data/lambda-handlers/reprocessMapData.reprocessMapData
+      MemorySize: 1024
+      Timeout: 900
+      VpcConfig:
+        SecurityGroupIds:
+          - Ref: LambdaSecurityGroup
+        SubnetIds:
+          - Ref: PrivateSubnet1
+      Role:
+        'Fn::GetAtt': MapDataReprocessorRole.Arn
+      Environment:
+        Variables:
+          DEV_ENVIRONMENT:
+            Ref: devEnvironment
+          PROXY_URL:
+            Ref: ProxyUrl
+          DB_HOST:
+            'Fn::If':
+              - UseDatabaseProxyInProd
+              - 'Fn::GetAtt': RDSProxy.Endpoint
+              - 'Fn::GetAtt': Database.Endpoint.Address
+          DB_PORT:
+            'Fn::GetAtt': Database.Endpoint.Port
+          USE_DATABASE_PROXY:
+            Ref: UseDatabaseProxy
+          DB_NAME:
+            'Fn::Sub': '${devEnvironment}db'
+          DB_USER:
+            Ref: DatabaseUsername
+          DB_PASSWORD:
+            Ref: DatabasePassword
+          MAP_DATA_PROCESSING_QUEUE_URL:
+            Ref: MapDataProcessingQueue
+    Metadata:
+      BuildMethod: esbuild
+      BuildProperties:
+        Minify: true
+        Target: esnext
+        Sourcemap: true
+        EntryPoints:
+          - src/map-data/lambda-handlers/reprocessMapData.ts
+        External:
+          - sharp
+          - pdf-lib
+          - pdf-to-img

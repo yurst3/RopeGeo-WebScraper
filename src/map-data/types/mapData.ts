@@ -1,5 +1,14 @@
 import type * as s from 'zapatos/schema';
-import { Bounds } from 'ropegeo-common/models';
+import {
+    Bounds,
+    LegendItem,
+    LineLegendItem,
+    PointLegendItem,
+    PolygonLegendItem,
+} from 'ropegeo-common/models';
+
+/** Ensures ropegeo-common registers LegendItem.fromResult parsers before legendRecordFromResult. */
+export const _legendParserSideEffect: unknown[] = [PointLegendItem, LineLegendItem, PolygonLegendItem];
 
 export class MapData {
     id: string | undefined;
@@ -8,6 +17,7 @@ export class MapData {
     geoJson: string | undefined;
     tilesTemplate: string | undefined;
     bounds: Bounds | undefined;
+    legend?: Record<string, LegendItem>;
     sourceFileUrl: string;
     errorMessage: string | undefined;
 
@@ -34,14 +44,29 @@ export class MapData {
         this.bounds = bounds ?? undefined;
     }
 
+    setLegend(legend: Record<string, LegendItem> | null | undefined): void {
+        if (legend == null || Object.keys(legend).length === 0) {
+            delete this.legend;
+        } else {
+            this.legend = legend;
+        }
+    }
+
     toDbRow(): s.MapData.Insertable {
         const now = new Date();
+        const legendJson =
+            this.legend != null
+                ? Object.fromEntries(
+                      Object.entries(this.legend).map(([key, item]) => [key, item.toPlain()]),
+                  )
+                : null;
         const row: s.MapData.Insertable = {
             gpx: this.gpx ?? null,
             kml: this.kml ?? null,
             geoJson: this.geoJson ?? null,
             tilesTemplate: this.tilesTemplate ?? null,
             bounds: this.bounds ?? null,
+            legend: legendJson,
             sourceFileUrl: this.sourceFileUrl,
             errorMessage: this.errorMessage ?? null,
             updatedAt: now,
@@ -68,6 +93,19 @@ export class MapData {
         );
         mapData.bounds =
             row.bounds != null ? Bounds.fromResult(row.bounds) : undefined;
+        if (row.legend != null && typeof row.legend === 'object' && !Array.isArray(row.legend)) {
+            try {
+                const parsed = LegendItem.legendRecordFromResult(row.legend, 'MapData.legend');
+                if (Object.keys(parsed).length > 0) {
+                    mapData.legend = parsed;
+                }
+            } catch (e) {
+                console.warn(
+                    `MapData ${row.id}: invalid legend json, omitting:`,
+                    e instanceof Error ? e.message : e,
+                );
+            }
+        }
         return mapData;
     }
 }

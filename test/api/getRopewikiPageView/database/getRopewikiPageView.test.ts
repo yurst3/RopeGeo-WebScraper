@@ -9,6 +9,7 @@ import {
 } from '@jest/globals';
 import * as db from 'zapatos/db';
 import {
+    LegendFeatureType,
     MiniMapType,
     OnlineCenteredRegionMiniMap,
     OnlinePageMiniMap,
@@ -629,11 +630,20 @@ describe('getRopewikiPageView (integration)', () => {
                 coordinates: { lat: 40.1, lon: -111.5 },
             })
             .run(conn);
+        const legend = {
+            trail: {
+                featureType: 'line',
+                id: 'trail',
+                name: 'Main trail',
+                bounds,
+            },
+        };
         await db
             .insert('MapData', {
                 id: mapDataId,
                 tilesTemplate,
                 bounds,
+                legend,
                 sourceFileUrl: '',
             })
             .run(conn);
@@ -660,6 +670,9 @@ describe('getRopewikiPageView (integration)', () => {
         expect(result!.miniMap!.bounds.east).toBe(bounds.east);
         expect(result!.miniMap!.bounds.west).toBe(bounds.west);
         expect(result!.miniMap!.title).toBe('Trail Route');
+        const mm = result!.miniMap as OnlinePageMiniMap;
+        expect(mm.legend?.trail.featureType).toBe(LegendFeatureType.Line);
+        expect(mm.legend?.trail.name).toBe('Main trail');
     });
 
     it('returns CenteredRegionMiniMap when page has route but MapData has null tilesTemplate', async () => {

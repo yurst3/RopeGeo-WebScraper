@@ -99,6 +99,69 @@ PageMiniMap:
       description: Tile URL template with {z}, {x}, and {y} placeholders
     bounds:
       $ref: '#/Bounds'
+    legend:
+      type: object
+      nullable: true
+      description: |
+        Optional keyed legend entries for vector layers (ropegeo-common `PageMiniMap.legend`); values use `featureType` `point`, `line`, or `polygon` with type-specific fields.
+      additionalProperties:
+        $ref: '#/LegendItem'
+
+LegendItem:
+  type: object
+  description: Discriminated legend entry (ropegeo-common LegendItem wire shape)
+  required:
+    - featureType
+    - id
+    - name
+  properties:
+    featureType:
+      type: string
+      enum:
+        - point
+        - line
+        - polygon
+      description: Geometry kind for this legend row
+    id:
+      type: string
+      description: Stable id for the legend entry (matches object key when produced by the server)
+    name:
+      type: string
+      description: Display label
+    coordinates:
+      type: object
+      description: Point position (WGS84) when featureType is point
+      required:
+        - lat
+        - lon
+      properties:
+        lat:
+          type: number
+        lon:
+          type: number
+    icon:
+      type: string
+      nullable: true
+      description: Optional icon hint for point entries
+    bounds:
+      $ref: '#/Bounds'
+      description: Bounding box for line or polygon entries
+    strokeColor:
+      type: string
+      nullable: true
+      description: Line stroke color when featureType is line
+    strokeWidth:
+      type: string
+      nullable: true
+      description: Line stroke width when featureType is line
+    borderColor:
+      type: string
+      nullable: true
+      description: Polygon outline color when featureType is polygon
+    fillColor:
+      type: string
+      nullable: true
+      description: Polygon fill color when featureType is polygon
 
 OnlineRegionMiniMap:
   type: object

@@ -69,6 +69,18 @@ value:
         south: 38.1
         east: -108.2
         west: -110.0
+      legend:
+        main:
+          featureType: line
+          id: main
+          name: Main fork
+          bounds:
+            north: 39.5
+            south: 38.1
+            east: -108.2
+            west: -110.0
+          strokeColor: '#3388ff'
+          strokeWidth: '2'
     coordinates:
       lat: 38.85
       lon: -109.15
