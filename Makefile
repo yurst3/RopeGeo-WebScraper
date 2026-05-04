@@ -46,13 +46,21 @@ build-MapDataProcessor:
 		--sourcemap \
 		--external:@sparticuz/chromium
 
-	# Copy tippecanoe binary into artifact (required at runtime in Lambda; path is LAMBDA_TASK_ROOT/tippecanoe)
+	# Copy tippecanoe and tile-join into artifact (MapDataProcessor: LAMBDA_TASK_ROOT/tippecanoe, LAMBDA_TASK_ROOT/tile-join)
 	@TIPPECANOE=$$(command -v tippecanoe 2>/dev/null || echo ""); \
 	if [ -z "$$TIPPECANOE" ] && [ -x /usr/local/bin/tippecanoe ]; then TIPPECANOE=/usr/local/bin/tippecanoe; fi; \
+	TILE_JOIN=$$(command -v tile-join 2>/dev/null || echo ""); \
+	if [ -z "$$TILE_JOIN" ] && [ -x /usr/local/bin/tile-join ]; then TILE_JOIN=/usr/local/bin/tile-join; fi; \
 	if [ -n "$$TIPPECANOE" ]; then \
 		cp "$$TIPPECANOE" $(ARTIFACTS_DIR)/tippecanoe && chmod +x $(ARTIFACTS_DIR)/tippecanoe && echo "tippecanoe binary copied successfully"; \
 	else \
 		echo "ERROR: tippecanoe not found. MapDataProcessor needs it for vector tile conversion. Install it (e.g. brew install tippecanoe) or ensure the build environment installs it from source."; \
+		exit 1; \
+	fi; \
+	if [ -n "$$TILE_JOIN" ]; then \
+		cp "$$TILE_JOIN" $(ARTIFACTS_DIR)/tile-join && chmod +x $(ARTIFACTS_DIR)/tile-join && echo "tile-join binary copied successfully"; \
+	else \
+		echo "ERROR: tile-join not found. MapDataProcessor needs it to merge per-layer tilesets. Install tippecanoe (includes tile-join) or build felt/tippecanoe from source."; \
 		exit 1; \
 	fi
 

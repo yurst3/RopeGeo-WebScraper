@@ -76,7 +76,8 @@ PageMiniMap:
     - miniMapType
     - fetchType
     - title
-    - layerId
+    - polyLineLayerId
+    - pointLayerId
     - onlineTilesTemplate
     - bounds
   properties:
@@ -91,9 +92,12 @@ PageMiniMap:
     title:
       type: string
       description: Display title (linked Route.name)
-    layerId:
+    polyLineLayerId:
       type: string
-      description: Layer / map data identifier for the tile set
+      description: MVT source-layer name for line and polygon features (server uses `PolyLines`)
+    pointLayerId:
+      type: string
+      description: MVT source-layer name for point and multipoint features (server uses `Points`)
     onlineTilesTemplate:
       type: string
       description: Tile URL template with {z}, {x}, and {y} placeholders

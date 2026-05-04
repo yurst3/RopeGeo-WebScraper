@@ -8,6 +8,10 @@ import {
     PermitStatus,
     RouteType,
 } from 'ropegeo-common/models';
+import {
+    PAGE_MINIMAP_POINT_LAYER_ID,
+    PAGE_MINIMAP_POLYLINE_LAYER_ID,
+} from '../../../src/constants/pageMinimapMvtLayerIds';
 
 let mockGetDatabaseConnection: jest.MockedFunction<typeof import('../../../src/helpers/getDatabaseConnection').default>;
 let mockGetRopewikiPageView: jest.MockedFunction<typeof import('../../../src/api/getRopewikiPageView/database/getRopewikiPageView').default>;
@@ -102,6 +106,7 @@ describe('getRopewikiPageView handler', () => {
             months: ['Jun', 'Jul'],
             latestRevisionDate: new Date('2025-01-01T00:00:00.000Z'),
             regions: [{ id: 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee', name: 'Utah' }],
+            mapDataId: null,
             bannerImage: null,
             betaSections: [],
             miniMap: null,
@@ -136,7 +141,8 @@ describe('getRopewikiPageView handler', () => {
         const template =
             'https://api.webscraper.ropegeo.com/mapdata/tiles/38f5c3fa-7248-41ed-815e-8b9e6aae5d61/{z}/{x}/{y}.pbf';
         const miniMap = new OnlinePageMiniMap(
-            '38f5c3fa-7248-41ed-815e-8b9e6aae5d61',
+            PAGE_MINIMAP_POLYLINE_LAYER_ID,
+            PAGE_MINIMAP_POINT_LAYER_ID,
             template,
             new Bounds(39.5, 38.1, -108.2, -110.0),
             'Bear Creek Canyon',
@@ -168,6 +174,7 @@ describe('getRopewikiPageView handler', () => {
             months: ['Jun', 'Jul'],
             latestRevisionDate: new Date('2025-01-01T00:00:00.000Z'),
             regions: [{ id: 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee', name: 'Utah' }],
+            mapDataId: '38f5c3fa-7248-41ed-815e-8b9e6aae5d61',
             bannerImage: null,
             betaSections: [],
             miniMap,
@@ -182,11 +189,13 @@ describe('getRopewikiPageView handler', () => {
 
         expect(result.statusCode).toBe(200);
         const body = JSON.parse(result.body);
+        expect(body.result.mapDataId).toBe('38f5c3fa-7248-41ed-815e-8b9e6aae5d61');
         expect(body.result.miniMap).toEqual({
             miniMapType: 'page',
             fetchType: 'online',
             title: 'Bear Creek Canyon',
-            layerId: '38f5c3fa-7248-41ed-815e-8b9e6aae5d61',
+            polyLineLayerId: 'PolyLines',
+            pointLayerId: 'Points',
             onlineTilesTemplate: template,
             bounds: { north: 39.5, south: 38.1, east: -108.2, west: -110.0 },
         });

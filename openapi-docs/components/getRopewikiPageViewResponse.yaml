@@ -210,6 +210,12 @@ RopewikiPageView:
       type: string
       format: date-time
       description: Last revision date
+    mapDataId:
+      type: string
+      format: uuid
+      nullable: true
+      description: |
+        **MapData** id for this page’s vector tile set when the minimap is a full page tile (`OnlinePageMiniMap`); null when the minimap is a centered-region fallback, absent, or there is no map data id.
     bannerImage:
       $ref: "#/BetaSectionImage"
       nullable: true
@@ -223,7 +229,7 @@ RopewikiPageView:
       type: object
       nullable: true
       description: |
-        Online vector tile minimap when MapData has layer id, tile template, and valid bounds; otherwise **onlineCenteredGeojson** when the page has a linked route without that full tile set; otherwise null.
+        Online vector tile minimap when MapData has a non-empty id, tile template, and valid bounds; otherwise **centeredRegion** when the page has a linked route without that full tile set; otherwise null. Use **mapDataId** on the page view for the MapData record id; MVT layer names are **polyLineLayerId** / **pointLayerId** on the minimap.
       anyOf:
         - $ref: './miniMap.yaml#/PageMiniMap'
         - $ref: './miniMap.yaml#/OnlineCenteredRegionMiniMap'

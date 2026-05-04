@@ -13,6 +13,10 @@ import {
     RouteType,
     RoutesParams,
 } from 'ropegeo-common/models';
+import {
+    PAGE_MINIMAP_POINT_LAYER_ID,
+    PAGE_MINIMAP_POLYLINE_LAYER_ID,
+} from '../../../constants/pageMinimapMvtLayerIds';
 import '../../../map-data/types/mapData';
 import getRopewikiRegionLineage from '../../../ropewiki/database/getRopewikiRegionLineage';
 import {
@@ -169,6 +173,7 @@ const getRopewikiPageView = async (
     })();
 
     let miniMap: OnlinePageMiniMap | OnlineCenteredRegionMiniMap | null = null;
+    let mapDataId: string | null = null;
     if (routeRow != null) {
         let tilesTemplate = routeRow.tilesTemplate ?? null;
         const rawBounds = routeRow.bounds ?? null;
@@ -188,7 +193,7 @@ const getRopewikiPageView = async (
             tilesTemplate = null;
         }
 
-        const layerId =
+        const routeMapDataId =
             routeRow.mapDataId != null &&
             typeof routeRow.mapDataId === 'string' &&
             routeRow.mapDataId.length > 0
@@ -216,15 +221,18 @@ const getRopewikiPageView = async (
             }
         }
 
-        if (layerId != null && tilesTemplate != null && bounds != null) {
+        if (routeMapDataId != null && tilesTemplate != null && bounds != null) {
+            mapDataId = routeMapDataId;
             miniMap = new OnlinePageMiniMap(
-                layerId,
+                PAGE_MINIMAP_POLYLINE_LAYER_ID,
+                PAGE_MINIMAP_POINT_LAYER_ID,
                 tilesTemplate,
                 new Bounds(bounds.north, bounds.south, bounds.east, bounds.west),
                 minimapTitle,
                 pageLegend,
             );
         } else {
+            mapDataId = null;
             miniMap = new OnlineCenteredRegionMiniMap(
                 new RoutesParams({
                     region: { id: page.region, source: PageDataSource.Ropewiki },
@@ -328,6 +336,7 @@ const getRopewikiPageView = async (
         new Date(page.latestRevisionDate),
         bannerImage,
         betaSectionsView,
+        mapDataId,
         miniMap,
         coordinates,
     );
