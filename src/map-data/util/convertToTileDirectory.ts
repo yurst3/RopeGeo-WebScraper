@@ -4,8 +4,9 @@ import { spawn } from 'child_process';
 
 /**
  * Converts a single GeoJSON file to a directory of {z}/{x}/{y}.pbf tiles using Tippecanoe.
- * Uses the same options as generateTrailTiles makeTiles except: layer name = mapDataId,
- * min zoom 0, max zoom 20. Does not filter or expand features (direct conversion).
+ * Layer name = mapDataId, min zoom 0, max zoom 20. Also: `-r1` (no fractional point drop by zoom),
+ * `--no-clipping` (features not clipped to tile bounds), `--no-feature-limit`, no tile size limit,
+ * no tile compression — for consistent point/line presence in page minimap tiles.
  *
  * @param geoJsonFilePath - Path to the GeoJSON file
  * @param outputDir - Full path to the output directory (e.g. /tmp/map-data-xxx/tiles)
@@ -48,6 +49,9 @@ export async function convertToTileDirectory(
                     '--reverse-source-polygon-winding',
                     '--no-tile-compression',
                     '--no-tile-size-limit',
+                    '-r1',
+                    '--no-clipping',
+                    '--no-feature-limit',
                     geoJsonFilePath,
                 ],
                 { stdio: ['ignore', 'pipe', 'pipe'] }

@@ -68,6 +68,9 @@ describe('convertToTileDirectory', () => {
                 '0',
                 '-z',
                 '20',
+                '-r1',
+                '--no-clipping',
+                '--no-feature-limit',
                 mockGeoJsonFilePath,
             ]),
             expect.any(Object)
