@@ -44,13 +44,11 @@ export async function convertToTileDirectory(
         '--detect-longitude-wraparound',
         '--use-source-polygon-winding',
         '--reverse-source-polygon-winding',
-        '--no-tile-compression',
-        '--no-tile-size-limit',
         '--no-feature-limit',
     ];
 
     /** Extra Tippecanoe flags for point tiles only (not used for PolyLines). */
-    const tippecanoePointsLayerArgs = ['-r1', '--no-clipping', '--no-duplication'];
+    const tippecanoePointsLayerArgs = ['-r1', '--no-duplication'];
 
     const runSpawn = async (command: string, args: string[]): Promise<void> => {
         await new Promise<void>((resolve, reject) => {
@@ -132,8 +130,6 @@ export async function convertToTileDirectory(
                 '-e',
                 outputDir,
                 '-f',
-                '-pk',
-                '-pC',
                 ...mbtilesPaths,
             ]);
         } finally {
