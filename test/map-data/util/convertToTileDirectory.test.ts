@@ -85,7 +85,6 @@ describe('convertToTileDirectory', () => {
             expect.arrayContaining(['-l', 'PolyLines', '-o', join(mockWorkDir, 'poly.mbtiles')]),
         );
         expect(polyArgs).not.toContain('-r1');
-        expect(polyArgs).not.toContain('--no-clipping');
         expect(polyArgs).not.toContain('--no-duplication');
         expect(pointsArgs).toEqual(
             expect.arrayContaining([
@@ -94,13 +93,12 @@ describe('convertToTileDirectory', () => {
                 '-o',
                 join(mockWorkDir, 'points.mbtiles'),
                 '-r1',
-                '--no-clipping',
                 '--no-duplication',
             ]),
         );
         expect(spawn).toHaveBeenCalledWith(
             'tile-join',
-            ['-e', mockOutputDir, '-f', '-pk', '-pC', join(mockWorkDir, 'poly.mbtiles'), join(mockWorkDir, 'points.mbtiles')],
+            ['-e', mockOutputDir, '-f', join(mockWorkDir, 'poly.mbtiles'), join(mockWorkDir, 'points.mbtiles')],
             expect.any(Object),
         );
         expect(rm).toHaveBeenCalledWith(mockWorkDir, { recursive: true, force: true });
