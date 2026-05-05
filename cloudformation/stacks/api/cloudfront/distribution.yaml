@@ -90,6 +90,27 @@ Resources:
           return request;
         }
 
+  # Cache key = URL path + Accept-Encoding only (matches CachingOptimized intent without query strings).
+  MapDataCachePolicyPathOnly:
+    Type: AWS::CloudFront::CachePolicy
+    Properties:
+      CachePolicyConfig:
+        Name:
+          'Fn::Sub': '${AWS::StackName}-mapdata-path-only'
+        Comment: /mapdata/* S3 — ignore query strings in cache key and do not forward them to origin
+        DefaultTTL: 86400
+        MaxTTL: 31536000
+        MinTTL: 0
+        ParametersInCacheKeyAndForwardedToOrigin:
+          EnableAcceptEncodingGzip: true
+          EnableAcceptEncodingBrotli: true
+          CookiesConfig:
+            CookieBehavior: none
+          HeadersConfig:
+            HeaderBehavior: none
+          QueryStringsConfig:
+            QueryStringBehavior: none
+
   WebScraperDistribution:
     Type: AWS::CloudFront::Distribution
     DependsOn:
@@ -99,6 +120,18 @@ Resources:
         Comment: WebScraper API, docs and map data
         Enabled: true
         DefaultRootObject: ''
+        # Do not cache 5xx at edge (TTL 0). S3 may still apply a ~1s minimum for some errors per AWS behavior.
+        CustomErrorResponses:
+          - ErrorCode: 500
+            ErrorCachingMinTTL: 0
+          - ErrorCode: 501
+            ErrorCachingMinTTL: 0
+          - ErrorCode: 502
+            ErrorCachingMinTTL: 0
+          - ErrorCode: 503
+            ErrorCachingMinTTL: 0
+          - ErrorCode: 504
+            ErrorCachingMinTTL: 0
         Aliases:
           'Fn::If':
             - CreateCloudFrontWithDomain
@@ -227,7 +260,8 @@ Resources:
                   - GET
                   - HEAD
                 Compress: true
-                CachePolicyId: 658327ea-f89d-4fab-a63d-7e88639e58f6
+                CachePolicyId:
+                  Ref: MapDataCachePolicyPathOnly
                 FunctionAssociations:
                   - EventType: viewer-request
                     FunctionARN:
@@ -305,7 +339,8 @@ Resources:
                   - GET
                   - HEAD
                 Compress: true
-                CachePolicyId: 658327ea-f89d-4fab-a63d-7e88639e58f6
+                CachePolicyId:
+                  Ref: MapDataCachePolicyPathOnly
                 FunctionAssociations:
                   - EventType: viewer-request
                     FunctionARN:
