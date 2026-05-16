@@ -102,7 +102,7 @@ get:
       required: false
       schema:
         type: string
-      description: Pipe-delimited ACA risk ratings; pages match when their **effective** risk (see ropegeo-common `AcaDifficulty`) is in the set
+      description: Pipe-delimited ACA risk ratings; pages match when their **effective** risk (see ropegeo-common `AcaDifficultyRating`) is in the set
   x-amazon-apigateway-integration:
     $ref: '../integrations/getRoutesLambda.yaml#/GetRoutesLambdaIntegration'
   responses:

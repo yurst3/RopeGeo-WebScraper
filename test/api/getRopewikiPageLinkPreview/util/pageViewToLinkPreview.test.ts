@@ -1,20 +1,20 @@
 import { describe, it, expect } from '@jest/globals';
 import type { RopewikiPageView } from 'ropegeo-common/models';
-import { AcaDifficulty } from 'ropegeo-common/models';
+import { AcaDifficultyRating } from 'ropegeo-common/models';
 import {
     buildLinkPreviewFromPageView,
     formatDifficultyForLinkPreview,
 } from '../../../../src/api/getRopewikiPageLinkPreview/util/pageViewToLinkPreview';
 
 function baseView(overrides: Partial<RopewikiPageView> = {}): RopewikiPageView {
-    const difficulty = new AcaDifficulty('3', 'A', 'II', null);
+    const difficultyRating = new AcaDifficultyRating('3', 'A', 'II', null);
     return {
         name: 'X',
         aka: [],
         url: 'https://ropewiki.com/X',
         quality: 1,
         userVotes: 0,
-        difficulty,
+        difficultyRating,
         permit: null,
         rappelCount: null,
         jumps: null,
@@ -46,8 +46,8 @@ function baseView(overrides: Partial<RopewikiPageView> = {}): RopewikiPageView {
 describe('pageViewToLinkPreview', () => {
     describe('formatDifficultyForLinkPreview', () => {
         it('joins technical water time and effective risk', () => {
-            const d = new AcaDifficulty('3', 'A', 'II', 'PG13');
-            const v = baseView({ difficulty: d });
+            const d = new AcaDifficultyRating('3', 'A', 'II', 'PG13');
+            const v = baseView({ difficultyRating: d });
             expect(formatDifficultyForLinkPreview(v)).toBe('3A II PG13');
         });
     });

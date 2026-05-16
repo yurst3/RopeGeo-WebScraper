@@ -96,7 +96,7 @@ describe('getRopewikiPagePreview (integration)', () => {
             aka: [],
             rating: 4.5,
             ratingCount: 12,
-            difficulty: expect.objectContaining({
+            difficultyRating: expect.objectContaining({
                 technical: '3',
                 water: 'A',
                 time: 'II',

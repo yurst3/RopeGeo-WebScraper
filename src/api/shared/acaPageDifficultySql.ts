@@ -13,7 +13,7 @@ export function searchAllowsRopewikiPages(source: PageDataSource[] | null): bool
 
 /**
  * SQL text expression for ACA effective risk on `RopewikiPage` alias `p`.
- * Matches {@link AcaDifficulty} / `computeEffectiveRisk` in ropegeo-common (technical default floor).
+ * Matches {@link AcaDifficultyRating} / `computeEffectiveRisk` in ropegeo-common (technical default floor).
  */
 export function sqlAcaEffectiveRiskForPageP(): db.SQL {
     return db.sql`
@@ -87,7 +87,7 @@ END)`;
  * AND … fragments for ACA difficulty on `RopewikiPage` alias `p`.
  * Empty or inactive difficulty returns no extra SQL.
  * Risk axis (`aca-risk-rating` / {@link AcaDifficultyParams.effectiveRisk}) matches **effective** risk
- * (same rules as {@link AcaDifficulty}), not the raw `riskRating` column alone.
+ * (same rules as {@link AcaDifficultyRating}), not the raw `riskRating` column alone.
  */
 export function sqlAcaDifficultyOnPage(difficulty: DifficultyParams | null): db.SQL {
     if (difficulty == null || !difficulty.isActive()) {

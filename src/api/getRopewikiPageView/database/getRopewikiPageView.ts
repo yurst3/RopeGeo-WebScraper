@@ -1,7 +1,7 @@
 import * as db from 'zapatos/db';
 import type * as s from 'zapatos/schema';
 import {
-    AcaDifficulty,
+    AcaDifficultyRating,
     Bounds,
     LegendItem,
     OnlineBetaSection,
@@ -287,7 +287,7 @@ const getRopewikiPageView = async (
         );
     });
 
-    const difficulty = new AcaDifficulty(
+    const difficultyRating = new AcaDifficultyRating(
         page.technicalRating,
         page.waterRating,
         page.timeRating,
@@ -314,7 +314,7 @@ const getRopewikiPageView = async (
         Number(page.quality ?? 0),
         Number(page.userVotes ?? 0),
         regions,
-        difficulty,
+        difficultyRating,
         parsePermit(page.permits),
         rappelCount,
         jumps,

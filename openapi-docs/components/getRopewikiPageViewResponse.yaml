@@ -27,7 +27,7 @@ RopewikiPageView:
     - url
     - quality
     - userVotes
-    - difficulty
+    - difficultyRating
     - regions
     - months
     - latestRevisionDate
@@ -74,8 +74,8 @@ RopewikiPageView:
     userVotes:
       type: integer
       description: Number of votes
-    difficulty:
-      $ref: "./getRoutePreviewResponse.yaml#/Difficulty"
+    difficultyRating:
+      $ref: "./getRoutePreviewResponse.yaml#/DifficultyRating"
     permit:
       type: string
       nullable: true

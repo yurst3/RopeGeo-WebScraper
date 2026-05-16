@@ -14,7 +14,7 @@ value:
         - Utah
       aka:
         - Bear Creek
-      difficulty:
+      difficultyRating:
         technical: "3"
         water: A
         time: II
@@ -33,7 +33,7 @@ value:
       regions:
         - Colorado
       aka: []
-      difficulty:
+      difficultyRating:
         technical: null
         water: null
         time: null

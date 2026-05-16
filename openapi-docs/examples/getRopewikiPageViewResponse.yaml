@@ -13,7 +13,7 @@ value:
     url: https://ropewiki.com/Bear_Creek_Canyon
     quality: 4.5
     userVotes: 12
-    difficulty:
+    difficultyRating:
       technical: "3"
       water: A
       time: II
