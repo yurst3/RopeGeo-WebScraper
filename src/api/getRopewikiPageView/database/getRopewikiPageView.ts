@@ -25,6 +25,7 @@ import {
 } from '../util/downloadBytesFromImageMetadata';
 import numericValue from '../util/numericValue';
 import parsePermit from '../util/parsePermit';
+import parseVehicle from '../util/parseVehicle';
 import parseRappelInfo from '../util/parseRappelInfo';
 import stringArray from '../util/stringArray';
 
@@ -318,7 +319,7 @@ const getRopewikiPageView = async (
         parsePermit(page.permits),
         rappelCount,
         jumps,
-        page.vehicle ?? null,
+        parseVehicle(page.vehicle),
         page.rappelLongest == null ? null : numericValue(page.rappelLongest),
         page.shuttleTime == null ? null : numericValue(page.shuttleTime),
         page.overallLength != null ? Number(page.overallLength) : null,

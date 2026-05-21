@@ -22,7 +22,7 @@ value:
     permit: No
     rappelCount: 5
     jumps: null
-    vehicle: Passenger
+    vehicle: passenger
     rappelLongest: 195
     shuttleTime: 0
     overallTime:

@@ -104,7 +104,13 @@ RopewikiPageView:
     vehicle:
       type: string
       nullable: true
-      description: Vehicle requirement
+      description: Vehicle requirement (RopewikiVehicleType, or null)
+      enum:
+        - passenger
+        - highClearance
+        - fourWd
+        - fourWdHighClearance
+        - fourWdVeryHighClearance
     rappelLongest:
       type: number
       nullable: true
