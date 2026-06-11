@@ -4,3 +4,5 @@ extends:
 
 rules:
   operation-tag-defined: off
+  # Redocly bundle --dereferenced inlines all $refs; leftover components.* entries are not referenced.
+  oas3-unused-component: off

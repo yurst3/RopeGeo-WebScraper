@@ -71,6 +71,8 @@ value:
         south: 38.1
         east: -108.2
         west: -110.0
+      tileCount: 42
+      tileTotalBytes: 8192
       legend:
         main:
           featureType: line
