@@ -44,6 +44,55 @@ export async function countRopewikiRegionRoutes(
 }
 
 /**
+ * Sums serialized route coordinate payload bytes for routes in the region subtree matching optional filters.
+ */
+export async function sumRopewikiRegionRouteBytes(
+    conn: db.Queryable,
+    regionUuid: string,
+    filters?: RouteListFilters | null,
+): Promise<number> {
+    const allowedRegionIds = await getAllowedRegionIds(conn, regionUuid);
+    if (allowedRegionIds.length === 0) {
+        return 0;
+    }
+
+    const routeTypes = filters?.routeTypes ?? null;
+    const diff =
+        filters?.difficulty != null && filters.difficulty.isActive()
+            ? filters.difficulty
+            : null;
+    const diffSql = sqlAcaDifficultyOnPage(diff);
+    const routeTypeCond =
+        routeTypes === null || routeTypes.length === 0
+            ? db.sql`TRUE`
+            : db.sql`r.type = ANY(${db.param(routeTypes)}::text[])`;
+
+    const rows = await db.sql<db.SQL, { total: string }[]>`
+        SELECT COALESCE(SUM(LENGTH(r.coordinates::text)), 0)::text AS total
+        FROM "Route" r
+        INNER JOIN "RopewikiRoute" rr ON rr.route = r.id AND rr."deletedAt" IS NULL
+        INNER JOIN "RopewikiPage" p ON p.id = rr."ropewikiPage" AND p."deletedAt" IS NULL
+        WHERE r."deletedAt" IS NULL
+          AND p.region = ANY(${db.param(allowedRegionIds)}::uuid[])
+          AND ${routeTypeCond}
+          ${diffSql}
+    `.run(conn);
+    return parseInt(rows[0]!.total, 10);
+}
+
+export async function getRopewikiRegionRouteStats(
+    conn: db.Queryable,
+    regionUuid: string,
+    filters?: RouteListFilters | null,
+): Promise<{ routeCount: number; totalBytes: number }> {
+    const [routeCount, totalBytes] = await Promise.all([
+        countRopewikiRegionRoutes(conn, regionUuid, filters),
+        sumRopewikiRegionRouteBytes(conn, regionUuid, filters),
+    ]);
+    return { routeCount, totalBytes };
+}
+
+/**
  * Fetches one page of routes in the region subtree, ordered by route id.
  */
 export async function getRopewikiRegionRoutesPage(

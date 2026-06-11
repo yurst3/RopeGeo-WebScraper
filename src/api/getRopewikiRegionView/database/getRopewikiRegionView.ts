@@ -5,6 +5,7 @@ import {
     RoutesParams,
 } from 'ropegeo-common/models';
 import * as db from 'zapatos/db';
+import { getRopewikiRegionRouteStats } from '../../getRoutes/database/getRopewikiRegionRoutes';
 import getRopewikiRegionRouteBounds from '../../../ropewiki/database/getRopewikiRegionRouteBounds';
 
 interface GetRopewikiRegionViewRow {
@@ -78,13 +79,19 @@ const getRopewikiRegionView = async (
     const regions =
         Array.isArray(regionsParsed) && regionsParsed.length > 0 ? regionsParsed : undefined;
 
-    const bounds = await getRopewikiRegionRouteBounds(conn, regionId);
+    const routesParams = new RoutesParams({
+        region: { id: regionId, source: PageDataSource.Ropewiki },
+    });
+    const [bounds, routeStats] = await Promise.all([
+        getRopewikiRegionRouteBounds(conn, regionId),
+        getRopewikiRegionRouteStats(conn, regionId, routesParams),
+    ]);
     const miniMap = new OnlineRegionMiniMap(
-        new RoutesParams({
-            region: { id: regionId, source: PageDataSource.Ropewiki },
-        }),
+        routesParams,
         bounds,
         row.name,
+        routeStats.routeCount,
+        routeStats.totalBytes,
     );
 
     return new RopewikiRegionView(

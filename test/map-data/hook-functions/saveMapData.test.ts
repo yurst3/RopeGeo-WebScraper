@@ -58,6 +58,12 @@ jest.mock('ropegeo-common/helpers', () => ({
     })),
 }));
 
+jest.mock('../../../src/map-data/util/countPbfFilesInDirectory', () => ({
+    countPbfFilesInDirectory: jest.fn(() =>
+        Promise.resolve({ tileCount: 3, tileTotalBytes: 1024 }),
+    ),
+}));
+
 describe('saveMapData hook functions', () => {
     const originalEnv = process.env;
     const originalCwd = process.cwd;
@@ -174,6 +180,8 @@ describe('saveMapData hook functions', () => {
             expect(result.gpx).toBeUndefined();
             expect(result.geoJson).toBe(`https://${bucketName}.s3.amazonaws.com/geojson/${mapDataId}.geojson`);
             expect(result.tilesTemplate).toBe(expectedTilesTemplate);
+            expect(result.tileCount).toBe(3);
+            expect(result.tileTotalBytes).toBe(1024);
             expect(result.sourceFileUrl).toBe(sourceFileUrl);
             expect(result.errorMessage).toBeUndefined();
             expect(mockUploadMapDataTilesToS3).toHaveBeenCalledWith(tilesDirPath, mapDataId, bucketName);

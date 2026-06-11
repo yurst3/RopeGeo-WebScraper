@@ -80,6 +80,8 @@ PageMiniMap:
     - pointLayerId
     - onlineTilesTemplate
     - bounds
+    - tileCount
+    - tileTotalBytes
   properties:
     miniMapType:
       type: string
@@ -103,6 +105,14 @@ PageMiniMap:
       description: Tile URL template with {z}, {x}, and {y} placeholders
     bounds:
       $ref: '#/Bounds'
+    tileCount:
+      type: integer
+      minimum: 0
+      description: Number of `.pbf` tile objects for this page's map data
+    tileTotalBytes:
+      type: integer
+      minimum: 0
+      description: Total byte size of all `.pbf` tiles for this page's map data
     legend:
       type: object
       nullable: true
@@ -176,6 +186,8 @@ OnlineRegionMiniMap:
     - title
     - bounds
     - routesParams
+    - routeCount
+    - totalBytes
   properties:
     miniMapType:
       type: string
@@ -196,6 +208,14 @@ OnlineRegionMiniMap:
         - $ref: '#/Bounds'
     routesParams:
       $ref: '#/RoutesParams'
+    routeCount:
+      type: integer
+      minimum: 0
+      description: Routes matching routesParams in the region subtree
+    totalBytes:
+      type: integer
+      minimum: 0
+      description: Sum of serialized route coordinate payload bytes for matching routes
 
 OnlineCenteredRegionMiniMap:
   type: object
@@ -206,6 +226,8 @@ OnlineCenteredRegionMiniMap:
     - title
     - routesParams
     - centeredRouteId
+    - routeCount
+    - totalBytes
   properties:
     miniMapType:
       type: string
@@ -224,3 +246,11 @@ OnlineCenteredRegionMiniMap:
       type: string
       format: uuid
       description: Route id to emphasize when fitting the map
+    routeCount:
+      type: integer
+      minimum: 0
+      description: Routes matching routesParams in the region subtree
+    totalBytes:
+      type: integer
+      minimum: 0
+      description: Sum of serialized route coordinate payload bytes for matching routes

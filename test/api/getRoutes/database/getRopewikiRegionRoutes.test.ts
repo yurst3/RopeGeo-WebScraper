@@ -4,6 +4,7 @@ import * as db from 'zapatos/db';
 import {
     countRopewikiRegionRoutes,
     getRopewikiRegionRoutesPage,
+    sumRopewikiRegionRouteBytes,
 } from '../../../../src/api/getRoutes/database/getRopewikiRegionRoutes';
 
 describe('getRopewikiRegionRoutes (integration)', () => {
@@ -108,8 +109,10 @@ describe('getRopewikiRegionRoutes (integration)', () => {
 
         try {
             const total = await countRopewikiRegionRoutes(conn, regionId);
+            const totalBytes = await sumRopewikiRegionRouteBytes(conn, regionId);
             const filtered = await getRopewikiRegionRoutesPage(conn, regionId, null, 100, 0);
             expect(total).toBe(1);
+            expect(totalBytes).toBeGreaterThan(0);
             expect(filtered.length).toBe(1);
             expect(filtered[0]).toBeDefined();
             expect(filtered[0]!.id).toBe(routeId);

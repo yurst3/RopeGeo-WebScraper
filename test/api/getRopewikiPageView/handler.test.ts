@@ -146,6 +146,8 @@ describe('getRopewikiPageView handler', () => {
             template,
             new Bounds(39.5, 38.1, -108.2, -110.0),
             'Bear Creek Canyon',
+            42,
+            8192,
         );
         const mockView = {
             id,
@@ -198,6 +200,8 @@ describe('getRopewikiPageView handler', () => {
             pointLayerId: 'Points',
             onlineTilesTemplate: template,
             bounds: { north: 39.5, south: 38.1, east: -108.2, west: -110.0 },
+            tileCount: 42,
+            tileTotalBytes: 8192,
         });
     });
 

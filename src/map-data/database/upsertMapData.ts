@@ -12,7 +12,7 @@ const upsertMapData = async (
     const row = mapData.toDbRow();
 
     const returned = await db.sql<db.SQL, (s.MapData.JSONSelectable)[]>`
-        INSERT INTO "MapData" ("id", "gpx", "kml", "geoJson", "tilesTemplate", "bounds", "legend", "sourceFileUrl", "errorMessage", "updatedAt", "deletedAt")
+        INSERT INTO "MapData" ("id", "gpx", "kml", "geoJson", "tilesTemplate", "bounds", "legend", "tileCount", "tileTotalBytes", "sourceFileUrl", "errorMessage", "updatedAt", "deletedAt")
         VALUES (
             COALESCE(${db.param(row.id)}::uuid, gen_random_uuid()),
             ${db.param(row.gpx)},
@@ -21,6 +21,8 @@ const upsertMapData = async (
             ${db.param(row.tilesTemplate)},
             ${db.param(row.bounds)},
             ${db.param(row.legend)},
+            ${db.param(row.tileCount)},
+            ${db.param(row.tileTotalBytes)},
             ${db.param(row.sourceFileUrl)},
             ${db.param(row.errorMessage)},
             ${db.param(row.updatedAt)},
@@ -33,6 +35,8 @@ const upsertMapData = async (
             "tilesTemplate" = EXCLUDED."tilesTemplate",
             "bounds" = EXCLUDED."bounds",
             "legend" = EXCLUDED."legend",
+            "tileCount" = EXCLUDED."tileCount",
+            "tileTotalBytes" = EXCLUDED."tileTotalBytes",
             "updatedAt" = EXCLUDED."updatedAt",
             "sourceFileUrl" = EXCLUDED."sourceFileUrl",
             "errorMessage" = EXCLUDED."errorMessage"

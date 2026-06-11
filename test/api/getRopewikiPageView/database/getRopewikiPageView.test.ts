@@ -644,6 +644,8 @@ describe('getRopewikiPageView (integration)', () => {
                 tilesTemplate,
                 bounds,
                 legend,
+                tileCount: 12,
+                tileTotalBytes: 4096,
                 sourceFileUrl: '',
             })
             .run(conn);
@@ -675,6 +677,8 @@ describe('getRopewikiPageView (integration)', () => {
         const mm = result!.miniMap as OnlinePageMiniMap;
         expect(mm.legend?.trail.featureType).toBe(LegendFeatureType.Line);
         expect(mm.legend?.trail.name).toBe('Main trail');
+        expect(mm.tileCount).toBe(12);
+        expect(mm.tileTotalBytes).toBe(4096);
     });
 
     it('returns CenteredRegionMiniMap when page has route but MapData has null tilesTemplate', async () => {
@@ -731,6 +735,8 @@ describe('getRopewikiPageView (integration)', () => {
         expect(cr.title).toBe('Route No Tiles');
         expect((cr as Record<string, unknown>).downloadedGeojson).toBeUndefined();
         expect(cr.routesParams.region).toEqual({ id: testRegionId, source: PageDataSource.Ropewiki });
+        expect(cr.routeCount).toBeGreaterThanOrEqual(0);
+        expect(cr.totalBytes).toBeGreaterThanOrEqual(0);
     });
 
     it('returns miniMap null when page has no route with map data', async () => {

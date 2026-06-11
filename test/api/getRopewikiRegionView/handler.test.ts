@@ -85,6 +85,8 @@ describe('getRopewikiRegionView handler', () => {
             }),
             new Bounds(49, 25, -66, -125),
             'North America',
+            120,
+            65536,
         );
         const mockView = new RopewikiRegionView(
             'North America',
@@ -150,6 +152,8 @@ describe('getRopewikiRegionView handler', () => {
             }),
             null,
             'North America',
+            0,
+            0,
         );
         const mockView = new RopewikiRegionView(
             'North America',

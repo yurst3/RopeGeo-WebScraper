@@ -18,6 +18,8 @@ export class MapData {
     tilesTemplate: string | undefined;
     bounds: Bounds | undefined;
     legend?: Record<string, LegendItem>;
+    tileCount: number;
+    tileTotalBytes: number;
     sourceFileUrl: string;
     errorMessage: string | undefined;
 
@@ -36,8 +38,15 @@ export class MapData {
         this.tilesTemplate = tilesTemplate;
         this.id = id;
         this.bounds = undefined;
+        this.tileCount = 0;
+        this.tileTotalBytes = 0;
         this.sourceFileUrl = sourceFileUrl ?? '';
         this.errorMessage = errorMessage;
+    }
+
+    setTileCounts(tileCount: number, tileTotalBytes: number): void {
+        this.tileCount = tileCount;
+        this.tileTotalBytes = tileTotalBytes;
     }
 
     setBounds(bounds: Bounds | null ): void {
@@ -67,6 +76,8 @@ export class MapData {
             tilesTemplate: this.tilesTemplate ?? null,
             bounds: this.bounds ?? null,
             legend: legendJson,
+            tileCount: this.tileCount,
+            tileTotalBytes: this.tileTotalBytes,
             sourceFileUrl: this.sourceFileUrl,
             errorMessage: this.errorMessage ?? null,
             updatedAt: now,
@@ -93,6 +104,9 @@ export class MapData {
         );
         mapData.bounds =
             row.bounds != null ? Bounds.fromResult(row.bounds) : undefined;
+        mapData.tileCount = row.tileCount ?? 0;
+        mapData.tileTotalBytes =
+            row.tileTotalBytes == null ? 0 : Number(row.tileTotalBytes);
         if (row.legend != null && typeof row.legend === 'object' && !Array.isArray(row.legend)) {
             try {
                 const parsed = LegendItem.legendRecordFromResult(row.legend, 'MapData.legend');

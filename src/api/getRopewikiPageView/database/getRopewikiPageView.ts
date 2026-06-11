@@ -18,6 +18,7 @@ import {
     PAGE_MINIMAP_POLYLINE_LAYER_ID,
 } from '../../../constants/pageMinimapMvtLayerIds';
 import '../../../map-data/types/mapData';
+import { getRopewikiRegionRouteStats } from '../../getRoutes/database/getRopewikiRegionRoutes';
 import getRopewikiRegionLineage from '../../../ropewiki/database/getRopewikiRegionLineage';
 import {
     downloadBytesForBannerImage,
@@ -111,6 +112,8 @@ const getRopewikiPageView = async (
         routeType: string;
         mapDataId: string | null;
         tilesTemplate: string | null;
+        tileCount: number;
+        tileTotalBytes: string | number;
         bounds: { north: number; south: number; east: number; west: number } | null;
         legend: db.JSONValue | null;
     };
@@ -154,6 +157,8 @@ const getRopewikiPageView = async (
                 r.type AS "routeType",
                 m.id AS "mapDataId",
                 m."tilesTemplate",
+                m."tileCount",
+                m."tileTotalBytes",
                 m."bounds",
                 m."legend"
             FROM "RopewikiRoute" rr
@@ -230,16 +235,26 @@ const getRopewikiPageView = async (
                 tilesTemplate,
                 new Bounds(bounds.north, bounds.south, bounds.east, bounds.west),
                 minimapTitle,
+                routeRow.tileCount ?? 0,
+                Number(routeRow.tileTotalBytes ?? 0),
                 pageLegend,
             );
         } else {
             mapDataId = null;
+            const centeredRoutesParams = new RoutesParams({
+                region: { id: page.region, source: PageDataSource.Ropewiki },
+            });
+            const centeredRouteStats = await getRopewikiRegionRouteStats(
+                conn,
+                page.region,
+                centeredRoutesParams,
+            );
             miniMap = new OnlineCenteredRegionMiniMap(
-                new RoutesParams({
-                    region: { id: page.region, source: PageDataSource.Ropewiki },
-                }),
+                centeredRoutesParams,
                 routeRow.routeId,
                 minimapTitle,
+                centeredRouteStats.routeCount,
+                centeredRouteStats.totalBytes,
             );
         }
     }

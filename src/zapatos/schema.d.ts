@@ -72,17 +72,17 @@ declare module 'zapatos/schema' {
       */
       id: string;
       /**
-      * **ImageData.losslessUrl**
-      * - `text` in database
-      * - Nullable, no default
-      */
-      losslessUrl: string | null;
-      /**
       * **ImageData.linkPreviewUrl**
       * - `text` in database
       * - Nullable, no default
       */
       linkPreviewUrl: string | null;
+      /**
+      * **ImageData.losslessUrl**
+      * - `text` in database
+      * - Nullable, no default
+      */
+      losslessUrl: string | null;
       /**
       * **ImageData.metadata**
       * - `jsonb` in database
@@ -152,17 +152,17 @@ declare module 'zapatos/schema' {
       */
       id: string;
       /**
-      * **ImageData.losslessUrl**
-      * - `text` in database
-      * - Nullable, no default
-      */
-      losslessUrl: string | null;
-      /**
       * **ImageData.linkPreviewUrl**
       * - `text` in database
       * - Nullable, no default
       */
       linkPreviewUrl: string | null;
+      /**
+      * **ImageData.losslessUrl**
+      * - `text` in database
+      * - Nullable, no default
+      */
+      losslessUrl: string | null;
       /**
       * **ImageData.metadata**
       * - `jsonb` in database
@@ -232,17 +232,17 @@ declare module 'zapatos/schema' {
       */
       id?: string | db.Parameter<string> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, string | db.Parameter<string> | db.SQLFragment | db.ParentColumn>;
       /**
-      * **ImageData.losslessUrl**
-      * - `text` in database
-      * - Nullable, no default
-      */
-      losslessUrl?: string | db.Parameter<string> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, string | db.Parameter<string> | db.SQLFragment | db.ParentColumn>;
-      /**
       * **ImageData.linkPreviewUrl**
       * - `text` in database
       * - Nullable, no default
       */
       linkPreviewUrl?: string | db.Parameter<string> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, string | db.Parameter<string> | db.SQLFragment | db.ParentColumn>;
+      /**
+      * **ImageData.losslessUrl**
+      * - `text` in database
+      * - Nullable, no default
+      */
+      losslessUrl?: string | db.Parameter<string> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, string | db.Parameter<string> | db.SQLFragment | db.ParentColumn>;
       /**
       * **ImageData.metadata**
       * - `jsonb` in database
@@ -312,17 +312,17 @@ declare module 'zapatos/schema' {
       */
       id?: string | db.Parameter<string> | db.DefaultType | db.SQLFragment;
       /**
-      * **ImageData.losslessUrl**
-      * - `text` in database
-      * - Nullable, no default
-      */
-      losslessUrl?: string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment;
-      /**
       * **ImageData.linkPreviewUrl**
       * - `text` in database
       * - Nullable, no default
       */
       linkPreviewUrl?: string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment;
+      /**
+      * **ImageData.losslessUrl**
+      * - `text` in database
+      * - Nullable, no default
+      */
+      losslessUrl?: string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment;
       /**
       * **ImageData.metadata**
       * - `jsonb` in database
@@ -392,17 +392,17 @@ declare module 'zapatos/schema' {
       */
       id?: string | db.Parameter<string> | db.DefaultType | db.SQLFragment | db.SQLFragment<any, string | db.Parameter<string> | db.DefaultType | db.SQLFragment>;
       /**
-      * **ImageData.losslessUrl**
-      * - `text` in database
-      * - Nullable, no default
-      */
-      losslessUrl?: string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment | db.SQLFragment<any, string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment>;
-      /**
       * **ImageData.linkPreviewUrl**
       * - `text` in database
       * - Nullable, no default
       */
       linkPreviewUrl?: string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment | db.SQLFragment<any, string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment>;
+      /**
+      * **ImageData.losslessUrl**
+      * - `text` in database
+      * - Nullable, no default
+      */
+      losslessUrl?: string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment | db.SQLFragment<any, string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment>;
       /**
       * **ImageData.metadata**
       * - `jsonb` in database
@@ -449,6 +449,12 @@ declare module 'zapatos/schema' {
       */
       allowUpdates: boolean;
       /**
+      * **MapData.bounds**
+      * - `jsonb` in database
+      * - Nullable, no default
+      */
+      bounds: db.JSONValue | null;
+      /**
       * **MapData.createdAt**
       * - `timestamp` in database
       * - `NOT NULL`, default: `CURRENT_TIMESTAMP`
@@ -491,29 +497,35 @@ declare module 'zapatos/schema' {
       */
       kml: string | null;
       /**
+      * **MapData.legend**
+      * - `jsonb` in database
+      * - Nullable, no default
+      */
+      legend: db.JSONValue | null;
+      /**
       * **MapData.sourceFileUrl**
       * - `text` in database
       * - `NOT NULL`, default: `''::text`
       */
       sourceFileUrl: string;
       /**
+      * **MapData.tileCount**
+      * - `int4` in database
+      * - `NOT NULL`, default: `0`
+      */
+      tileCount: number;
+      /**
+      * **MapData.tileTotalBytes**
+      * - `int8` in database
+      * - `NOT NULL`, default: `0`
+      */
+      tileTotalBytes: db.Int8String;
+      /**
       * **MapData.tilesTemplate**
       * - `text` in database
       * - Nullable, no default
       */
       tilesTemplate: string | null;
-      /**
-      * **MapData.bounds**
-      * - `jsonb` in database
-      * - Nullable, no default
-      */
-      bounds: object | null;
-      /**
-      * **MapData.legend**
-      * - `jsonb` in database
-      * - Nullable, no default
-      */
-      legend: object | null;
       /**
       * **MapData.updatedAt**
       * - `timestamp` in database
@@ -528,6 +540,12 @@ declare module 'zapatos/schema' {
       * - `NOT NULL`, default: `true`
       */
       allowUpdates: boolean;
+      /**
+      * **MapData.bounds**
+      * - `jsonb` in database
+      * - Nullable, no default
+      */
+      bounds: db.JSONValue | null;
       /**
       * **MapData.createdAt**
       * - `timestamp` in database
@@ -571,29 +589,35 @@ declare module 'zapatos/schema' {
       */
       kml: string | null;
       /**
+      * **MapData.legend**
+      * - `jsonb` in database
+      * - Nullable, no default
+      */
+      legend: db.JSONValue | null;
+      /**
       * **MapData.sourceFileUrl**
       * - `text` in database
       * - `NOT NULL`, default: `''::text`
       */
       sourceFileUrl: string;
       /**
+      * **MapData.tileCount**
+      * - `int4` in database
+      * - `NOT NULL`, default: `0`
+      */
+      tileCount: number;
+      /**
+      * **MapData.tileTotalBytes**
+      * - `int8` in database
+      * - `NOT NULL`, default: `0`
+      */
+      tileTotalBytes: number;
+      /**
       * **MapData.tilesTemplate**
       * - `text` in database
       * - Nullable, no default
       */
       tilesTemplate: string | null;
-      /**
-      * **MapData.bounds**
-      * - `jsonb` in database
-      * - Nullable, no default
-      */
-      bounds: object | null;
-      /**
-      * **MapData.legend**
-      * - `jsonb` in database
-      * - Nullable, no default
-      */
-      legend: object | null;
       /**
       * **MapData.updatedAt**
       * - `timestamp` in database
@@ -608,6 +632,12 @@ declare module 'zapatos/schema' {
       * - `NOT NULL`, default: `true`
       */
       allowUpdates?: boolean | db.Parameter<boolean> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, boolean | db.Parameter<boolean> | db.SQLFragment | db.ParentColumn>;
+      /**
+      * **MapData.bounds**
+      * - `jsonb` in database
+      * - Nullable, no default
+      */
+      bounds?: db.JSONValue | db.Parameter<db.JSONValue> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, db.JSONValue | db.Parameter<db.JSONValue> | db.SQLFragment | db.ParentColumn>;
       /**
       * **MapData.createdAt**
       * - `timestamp` in database
@@ -651,29 +681,35 @@ declare module 'zapatos/schema' {
       */
       kml?: string | db.Parameter<string> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, string | db.Parameter<string> | db.SQLFragment | db.ParentColumn>;
       /**
+      * **MapData.legend**
+      * - `jsonb` in database
+      * - Nullable, no default
+      */
+      legend?: db.JSONValue | db.Parameter<db.JSONValue> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, db.JSONValue | db.Parameter<db.JSONValue> | db.SQLFragment | db.ParentColumn>;
+      /**
       * **MapData.sourceFileUrl**
       * - `text` in database
       * - `NOT NULL`, default: `''::text`
       */
       sourceFileUrl?: string | db.Parameter<string> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, string | db.Parameter<string> | db.SQLFragment | db.ParentColumn>;
       /**
+      * **MapData.tileCount**
+      * - `int4` in database
+      * - `NOT NULL`, default: `0`
+      */
+      tileCount?: number | db.Parameter<number> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, number | db.Parameter<number> | db.SQLFragment | db.ParentColumn>;
+      /**
+      * **MapData.tileTotalBytes**
+      * - `int8` in database
+      * - `NOT NULL`, default: `0`
+      */
+      tileTotalBytes?: (number | db.Int8String | bigint) | db.Parameter<(number | db.Int8String | bigint)> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, (number | db.Int8String | bigint) | db.Parameter<(number | db.Int8String | bigint)> | db.SQLFragment | db.ParentColumn>;
+      /**
       * **MapData.tilesTemplate**
       * - `text` in database
       * - Nullable, no default
       */
       tilesTemplate?: string | db.Parameter<string> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, string | db.Parameter<string> | db.SQLFragment | db.ParentColumn>;
-      /**
-      * **MapData.bounds**
-      * - `jsonb` in database
-      * - Nullable, no default
-      */
-      bounds?: object | db.Parameter<object> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, object | db.Parameter<object> | db.SQLFragment | db.ParentColumn>;
-      /**
-      * **MapData.legend**
-      * - `jsonb` in database
-      * - Nullable, no default
-      */
-      legend?: object | db.Parameter<object> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, object | db.Parameter<object> | db.SQLFragment | db.ParentColumn>;
       /**
       * **MapData.updatedAt**
       * - `timestamp` in database
@@ -688,6 +724,12 @@ declare module 'zapatos/schema' {
       * - `NOT NULL`, default: `true`
       */
       allowUpdates?: boolean | db.Parameter<boolean> | db.DefaultType | db.SQLFragment;
+      /**
+      * **MapData.bounds**
+      * - `jsonb` in database
+      * - Nullable, no default
+      */
+      bounds?: db.JSONValue | db.Parameter<db.JSONValue> | null | db.DefaultType | db.SQLFragment;
       /**
       * **MapData.createdAt**
       * - `timestamp` in database
@@ -731,29 +773,35 @@ declare module 'zapatos/schema' {
       */
       kml?: string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment;
       /**
+      * **MapData.legend**
+      * - `jsonb` in database
+      * - Nullable, no default
+      */
+      legend?: db.JSONValue | db.Parameter<db.JSONValue> | null | db.DefaultType | db.SQLFragment;
+      /**
       * **MapData.sourceFileUrl**
       * - `text` in database
       * - `NOT NULL`, default: `''::text`
       */
       sourceFileUrl?: string | db.Parameter<string> | db.DefaultType | db.SQLFragment;
       /**
+      * **MapData.tileCount**
+      * - `int4` in database
+      * - `NOT NULL`, default: `0`
+      */
+      tileCount?: number | db.Parameter<number> | db.DefaultType | db.SQLFragment;
+      /**
+      * **MapData.tileTotalBytes**
+      * - `int8` in database
+      * - `NOT NULL`, default: `0`
+      */
+      tileTotalBytes?: (number | db.Int8String | bigint) | db.Parameter<(number | db.Int8String | bigint)> | db.DefaultType | db.SQLFragment;
+      /**
       * **MapData.tilesTemplate**
       * - `text` in database
       * - Nullable, no default
       */
       tilesTemplate?: string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment;
-      /**
-      * **MapData.bounds**
-      * - `jsonb` in database
-      * - Nullable, no default
-      */
-      bounds?: object | db.Parameter<object> | null | db.DefaultType | db.SQLFragment;
-      /**
-      * **MapData.legend**
-      * - `jsonb` in database
-      * - Nullable, no default
-      */
-      legend?: object | db.Parameter<object> | null | db.DefaultType | db.SQLFragment;
       /**
       * **MapData.updatedAt**
       * - `timestamp` in database
@@ -768,6 +816,12 @@ declare module 'zapatos/schema' {
       * - `NOT NULL`, default: `true`
       */
       allowUpdates?: boolean | db.Parameter<boolean> | db.DefaultType | db.SQLFragment | db.SQLFragment<any, boolean | db.Parameter<boolean> | db.DefaultType | db.SQLFragment>;
+      /**
+      * **MapData.bounds**
+      * - `jsonb` in database
+      * - Nullable, no default
+      */
+      bounds?: db.JSONValue | db.Parameter<db.JSONValue> | null | db.DefaultType | db.SQLFragment | db.SQLFragment<any, db.JSONValue | db.Parameter<db.JSONValue> | null | db.DefaultType | db.SQLFragment>;
       /**
       * **MapData.createdAt**
       * - `timestamp` in database
@@ -811,29 +865,35 @@ declare module 'zapatos/schema' {
       */
       kml?: string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment | db.SQLFragment<any, string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment>;
       /**
+      * **MapData.legend**
+      * - `jsonb` in database
+      * - Nullable, no default
+      */
+      legend?: db.JSONValue | db.Parameter<db.JSONValue> | null | db.DefaultType | db.SQLFragment | db.SQLFragment<any, db.JSONValue | db.Parameter<db.JSONValue> | null | db.DefaultType | db.SQLFragment>;
+      /**
       * **MapData.sourceFileUrl**
       * - `text` in database
       * - `NOT NULL`, default: `''::text`
       */
       sourceFileUrl?: string | db.Parameter<string> | db.DefaultType | db.SQLFragment | db.SQLFragment<any, string | db.Parameter<string> | db.DefaultType | db.SQLFragment>;
       /**
+      * **MapData.tileCount**
+      * - `int4` in database
+      * - `NOT NULL`, default: `0`
+      */
+      tileCount?: number | db.Parameter<number> | db.DefaultType | db.SQLFragment | db.SQLFragment<any, number | db.Parameter<number> | db.DefaultType | db.SQLFragment>;
+      /**
+      * **MapData.tileTotalBytes**
+      * - `int8` in database
+      * - `NOT NULL`, default: `0`
+      */
+      tileTotalBytes?: (number | db.Int8String | bigint) | db.Parameter<(number | db.Int8String | bigint)> | db.DefaultType | db.SQLFragment | db.SQLFragment<any, (number | db.Int8String | bigint) | db.Parameter<(number | db.Int8String | bigint)> | db.DefaultType | db.SQLFragment>;
+      /**
       * **MapData.tilesTemplate**
       * - `text` in database
       * - Nullable, no default
       */
       tilesTemplate?: string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment | db.SQLFragment<any, string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment>;
-      /**
-      * **MapData.bounds**
-      * - `jsonb` in database
-      * - Nullable, no default
-      */
-      bounds?: object | db.Parameter<object> | null | db.DefaultType | db.SQLFragment | db.SQLFragment<any, object | db.Parameter<object> | null | db.DefaultType | db.SQLFragment>;
-      /**
-      * **MapData.legend**
-      * - `jsonb` in database
-      * - Nullable, no default
-      */
-      legend?: object | db.Parameter<object> | null | db.DefaultType | db.SQLFragment | db.SQLFragment<any, object | db.Parameter<object> | null | db.DefaultType | db.SQLFragment>;
       /**
       * **MapData.updatedAt**
       * - `timestamp` in database

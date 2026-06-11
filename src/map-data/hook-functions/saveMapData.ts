@@ -9,6 +9,7 @@ import getMapData from '../database/getMapData';
 import moveFile from '../util/moveFile';
 import { moveDirectory } from '../util/moveDirectory';
 import { buildMapDataTilesTemplate } from '../util/buildMapDataPublicUrl';
+import { countPbfFilesInDirectory } from '../util/countPbfFilesInDirectory';
 
 const SKIP_S3_REASON = 'skipping S3 upload because there is no S3 Bucket configured';
 
@@ -117,10 +118,15 @@ export const lambdaSaveMapData: SaveMapDataHookFn = async (
     }
 
     let tilesTemplate: string | undefined;
+    let tileCount = 0;
+    let tileTotalBytes = 0;
     if (tilesDirPath) {
         try {
             const tilesUrl = await uploadMapDataTilesToS3(tilesDirPath, mapDataId, bucketName);
             tilesTemplate = buildMapDataTilesTemplate(tilesUrl);
+            const counts = await countPbfFilesInDirectory(tilesDirPath);
+            tileCount = counts.tileCount;
+            tileTotalBytes = counts.tileTotalBytes;
         } catch (error) {
             const errorMsg = error instanceof Error ? error.message : String(error);
             uploadErrors.push(`Failed to upload tiles: ${errorMsg}`);
@@ -140,6 +146,7 @@ export const lambdaSaveMapData: SaveMapDataHookFn = async (
         sourceFileUrl,
         errorMessage,
     );
+    mapData.setTileCounts(tileCount, tileTotalBytes);
 
     if (errorMessage) {
         logger.logError(`Map data ${mapDataId} ${errorMessage}`);
@@ -176,6 +183,8 @@ export const nodeSaveMapData: SaveMapDataHookFn = async (
     let sourceFile: string | undefined;
     let geoJsonFile: string | undefined;
     let tilesTemplate: string | undefined;
+    let tileCount = 0;
+    let tileTotalBytes = 0;
 
     const moveErrors: string[] = [];
 
@@ -206,6 +215,9 @@ export const nodeSaveMapData: SaveMapDataHookFn = async (
         try {
             await moveDirectory(tilesDirPath, tilesDestPath);
             tilesTemplate = buildMapDataTilesTemplate(tilesDestPath);
+            const counts = await countPbfFilesInDirectory(tilesDestPath);
+            tileCount = counts.tileCount;
+            tileTotalBytes = counts.tileTotalBytes;
         } catch (error) {
             const errorMsg = error instanceof Error ? error.message : String(error);
             moveErrors.push(`Failed to move tiles directory: ${errorMsg}`);
@@ -225,6 +237,7 @@ export const nodeSaveMapData: SaveMapDataHookFn = async (
         sourceFileUrl,
         errorMessage,
     );
+    mapData.setTileCounts(tileCount, tileTotalBytes);
 
     if (errorMessage) {
         logger.logError(`Map data ${mapDataId} ${errorMessage}`);
