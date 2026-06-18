@@ -35,6 +35,5 @@ export const reprocessRoutesHandler = async () => {
         };
     } finally {
         if (client) client.release();
-        if (pool) await pool.end();
     }
 };

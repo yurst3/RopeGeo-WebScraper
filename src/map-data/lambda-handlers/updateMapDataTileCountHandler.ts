@@ -58,6 +58,5 @@ export const updateMapDataTileCountHandler = async (): Promise<{
         };
     } finally {
         client?.release();
-        await pool?.end();
     }
 };

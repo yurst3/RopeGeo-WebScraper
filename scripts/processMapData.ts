@@ -1,6 +1,6 @@
 import * as db from 'zapatos/db';
 import type * as s from 'zapatos/schema';
-import getDatabaseConnection from '../src/helpers/getDatabaseConnection';
+import getDatabaseConnection, { resetDatabaseConnectionPool } from '../src/helpers/getDatabaseConnection';
 import { PageDataSource } from 'ropegeo-common/models';
 import { RopewikiRoute } from '../src/types/pageRoute';
 import { main } from '../src/map-data/main';
@@ -69,7 +69,7 @@ async function processMapDataScript() {
         console.error('Error processing map data:', error);
     } finally {
         client.release();
-        await pool.end();
+        await resetDatabaseConnectionPool();
     }
 }
 

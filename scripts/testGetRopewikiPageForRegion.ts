@@ -1,4 +1,4 @@
-import getDatabaseConnection from '../src/helpers/getDatabaseConnection';
+import getDatabaseConnection, { resetDatabaseConnectionPool } from '../src/helpers/getDatabaseConnection';
 import processRegions from '../src/ropewiki/processors/processRegions';
 import getPagesForRegion from '../src/ropewiki/http/getPagesForRegion';
 
@@ -22,7 +22,7 @@ async function main() {
         console.log(`Received ${pages.length} page(s):`);
         pages.forEach((p, i) => console.log(JSON.stringify(p, null, 4)));
     } finally {
-        await pool.end();
+        await resetDatabaseConnectionPool();
     }
 }
 

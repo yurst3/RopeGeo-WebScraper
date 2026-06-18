@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, afterEach, jest } from '@jest/globals
 import type { Pool, PoolConfig } from 'pg';
 import { Pool as PoolClass } from 'pg';
 import { Signer as SignerClass } from '@aws-sdk/rds-signer';
-import getDatabaseConnection from '../../src/helpers/getDatabaseConnection';
+import getDatabaseConnection, { resetDatabaseConnectionPool } from '../../src/helpers/getDatabaseConnection';
 
 // Mock pg module
 const mockPoolInstance = {
@@ -33,8 +33,9 @@ describe('getDatabaseConnection', () => {
     const mockPool = PoolClass as jest.MockedClass<typeof PoolClass>;
     const mockSignerConstructor = SignerClass as jest.MockedClass<typeof SignerClass>;
 
-    beforeEach(() => {
+    beforeEach(async () => {
         jest.clearAllMocks();
+        await resetDatabaseConnectionPool();
         process.env = { ...originalEnv };
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         mockPool.mockImplementation(() => mockPoolInstance as any);
@@ -42,7 +43,8 @@ describe('getDatabaseConnection', () => {
         mockSignerConstructor.mockImplementation(() => mockSignerInstance as any);
     });
 
-    afterEach(() => {
+    afterEach(async () => {
+        await resetDatabaseConnectionPool();
         process.env = originalEnv;
     });
 
@@ -64,6 +66,9 @@ describe('getDatabaseConnection', () => {
             database: 'testdb',
             user: 'testuser',
             password: 'testpass',
+            max: 2,
+            idleTimeoutMillis: 60_000,
+            allowExitOnIdle: true,
             ssl: undefined,
         });
     });
@@ -87,6 +92,9 @@ describe('getDatabaseConnection', () => {
             database: 'testdb',
             user: 'testuser',
             password: 'testpass',
+            max: 2,
+            idleTimeoutMillis: 60_000,
+            allowExitOnIdle: true,
             ssl: undefined,
         });
         expect(mockSignerConstructor).not.toHaveBeenCalled();
@@ -123,6 +131,9 @@ describe('getDatabaseConnection', () => {
             database: 'dev-db',
             user: 'admin',
             password: mockToken,
+            max: 2,
+            idleTimeoutMillis: 60_000,
+            allowExitOnIdle: true,
             ssl: {
                 rejectUnauthorized: false,
             },
@@ -152,6 +163,9 @@ describe('getDatabaseConnection', () => {
             database: 'production-db',
             user: 'admin',
             password: 'testpass',
+            max: 2,
+            idleTimeoutMillis: 60_000,
+            allowExitOnIdle: true,
             ssl: {
                 rejectUnauthorized: false,
             },
@@ -341,6 +355,32 @@ describe('getDatabaseConnection', () => {
         process.env.AWS_REGION = 'us-east-1';
 
         await expect(getDatabaseConnection()).rejects.toThrow('Failed to generate auth token');
+    });
+
+    it('returns the same pool instance on repeated calls', async () => {
+        process.env.DB_HOST = 'localhost';
+        process.env.DB_NAME = 'testdb';
+        process.env.DB_USER = 'testuser';
+        process.env.DB_PASSWORD = 'testpass';
+
+        const first = await getDatabaseConnection();
+        const second = await getDatabaseConnection();
+
+        expect(second).toBe(first);
+        expect(mockPool).toHaveBeenCalledTimes(1);
+    });
+
+    it('uses DB_POOL_MAX when set', async () => {
+        process.env.DB_HOST = 'localhost';
+        process.env.DB_NAME = 'testdb';
+        process.env.DB_USER = 'testuser';
+        process.env.DB_PASSWORD = 'testpass';
+        process.env.DB_POOL_MAX = '5';
+
+        await getDatabaseConnection();
+
+        const poolConfig = mockPool.mock.calls[0]?.[0];
+        expect(poolConfig?.max).toBe(5);
     });
 });
 

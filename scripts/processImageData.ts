@@ -1,4 +1,4 @@
-import getDatabaseConnection from '../src/helpers/getDatabaseConnection';
+import getDatabaseConnection, { resetDatabaseConnectionPool } from '../src/helpers/getDatabaseConnection';
 import { PageDataSource } from 'ropegeo-common/models';
 import { main } from '../src/image-data/main';
 import { nodeSaveImageData } from '../src/image-data/hook-functions/saveImageData';
@@ -99,7 +99,7 @@ async function processImageDataScript() {
         process.exit(1);
     } finally {
         client.release();
-        await pool.end();
+        await resetDatabaseConnectionPool();
     }
 }
 

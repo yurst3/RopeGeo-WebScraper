@@ -10,14 +10,18 @@ import { RopewikiRegion } from '../../src/ropewiki/types/region';
 const defaultMainEvent: MainEvent = { processPages: true, processRoutes: true };
 
 // Mock all dependencies
-jest.mock('../../src/helpers/getDatabaseConnection');
+jest.mock('../../src/helpers/getDatabaseConnection', () => ({
+    __esModule: true,
+    default: jest.fn(),
+    resetDatabaseConnectionPool: jest.fn(() => Promise.resolve()),
+}));
 jest.mock('../../src/ropewiki/processors/processRegions');
 jest.mock('../../src/ropewiki/util/getRegionsUnderLimit');
 jest.mock('../../src/ropewiki/processors/processPagesForRegion');
 jest.mock('../../src/ropewiki/processors/processRoutes');
 jest.mock('../../src/ropewiki/database/updateRegionTrueCounts');
 
-import getDatabaseConnection from '../../src/helpers/getDatabaseConnection';
+import getDatabaseConnection, { resetDatabaseConnectionPool } from '../../src/helpers/getDatabaseConnection';
 import processRegions from '../../src/ropewiki/processors/processRegions';
 import getRegionCountsUnderLimit from '../../src/ropewiki/util/getRegionsUnderLimit';
 import { getProcessPagesForRegionFn } from '../../src/ropewiki/processors/processPagesForRegion';
@@ -25,6 +29,7 @@ import processRoutes from '../../src/ropewiki/processors/processRoutes';
 import updateRegionTrueCounts from '../../src/ropewiki/database/updateRegionTrueCounts';
 
 const mockGetDatabaseConnection = getDatabaseConnection as jest.MockedFunction<typeof getDatabaseConnection>;
+const mockResetDatabaseConnectionPool = resetDatabaseConnectionPool as jest.MockedFunction<typeof resetDatabaseConnectionPool>;
 const mockProcessRegions = processRegions as jest.MockedFunction<typeof processRegions>;
 const mockGetRegionCountsUnderLimit = getRegionCountsUnderLimit as jest.MockedFunction<typeof getRegionCountsUnderLimit>;
 const mockGetProcessPagesForRegionFn = getProcessPagesForRegionFn as jest.MockedFunction<typeof getProcessPagesForRegionFn>;
@@ -163,7 +168,7 @@ describe('main', () => {
         expect(mockProcessPagesForRegion).toHaveBeenNthCalledWith(1, 'Region 1', 100, { 'Region 1': 'region-id-1', 'Region 2': 'region-id-2' });
         expect(mockProcessPagesForRegion).toHaveBeenNthCalledWith(2, 'Region 2', 200, { 'Region 1': 'region-id-1', 'Region 2': 'region-id-2' });
         expect(mockProcessRoutes).toHaveBeenCalledWith(mockPool, [page1, page2], mockProcessRopewikiRoutesHookFn);
-        expect(mockPool.end).toHaveBeenCalledTimes(1);
+        expect(mockResetDatabaseConnectionPool).toHaveBeenCalledTimes(1);
     });
 
     it('handles empty regions list', async () => {
@@ -182,7 +187,7 @@ describe('main', () => {
         expect(consoleLogSpy).toHaveBeenCalledWith('Getting pages from 0 regions: ');
         expect(mockProcessPagesForRegion).not.toHaveBeenCalled();
         expect(mockProcessRoutes).toHaveBeenCalledWith(mockPool, [], mockProcessRopewikiRoutesHookFn);
-        expect(mockPool.end).toHaveBeenCalledTimes(1);
+        expect(mockResetDatabaseConnectionPool).toHaveBeenCalledTimes(1);
     });
 
     it('handles single region', async () => {
@@ -247,7 +252,7 @@ describe('main', () => {
         jest.advanceTimersByTime(1000);
 
         await expect(promise).rejects.toThrow('Failed to process regions');
-        expect(mockPool.end).toHaveBeenCalledTimes(1);
+        expect(mockResetDatabaseConnectionPool).toHaveBeenCalledTimes(1);
         expect(mockProcessRoutes).not.toHaveBeenCalled();
     });
 
@@ -263,7 +268,7 @@ describe('main', () => {
         jest.advanceTimersByTime(1000);
 
         await expect(promise).rejects.toThrow('Failed to get regions');
-        expect(mockPool.end).toHaveBeenCalledTimes(1);
+        expect(mockResetDatabaseConnectionPool).toHaveBeenCalledTimes(1);
         expect(mockProcessPagesForRegion).not.toHaveBeenCalled();
         expect(mockProcessRoutes).not.toHaveBeenCalled();
     });
@@ -283,7 +288,7 @@ describe('main', () => {
         jest.advanceTimersByTime(1000);
 
         await expect(promise).rejects.toThrow('Failed to process pages');
-        expect(mockPool.end).toHaveBeenCalledTimes(1);
+        expect(mockResetDatabaseConnectionPool).toHaveBeenCalledTimes(1);
         expect(mockProcessRoutes).not.toHaveBeenCalled();
     });
 
@@ -304,7 +309,7 @@ describe('main', () => {
         jest.advanceTimersByTime(1000);
 
         await expect(promise).rejects.toThrow('Failed to process routes');
-        expect(mockPool.end).toHaveBeenCalledTimes(1);
+        expect(mockResetDatabaseConnectionPool).toHaveBeenCalledTimes(1);
     });
 
     it('always ends the pool connection in finally block', async () => {
@@ -323,8 +328,8 @@ describe('main', () => {
 
         await expect(promise).rejects.toThrow('Processing error');
         
-        // Verify pool.end is called even when an error occurs
-        expect(mockPool.end).toHaveBeenCalledTimes(1);
+        // Verify the shared pool is reset even when an error occurs
+        expect(mockResetDatabaseConnectionPool).toHaveBeenCalledTimes(1);
     });
 
     it('returns correct elapsed time in seconds', async () => {

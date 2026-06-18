@@ -3,7 +3,7 @@ import { getProcessPagesForRegionFn } from './processors/processPagesForRegion';
 import type { ProcessPagesChunkHookFn } from './hook-functions/processPagesChunk';
 import type { ProcessRopewikiRoutesHookFn } from './hook-functions/processRopewikiRoutes';
 import getRegionCountsUnderLimit from './util/getRegionsUnderLimit';
-import getDatabaseConnection from '../helpers/getDatabaseConnection';
+import getDatabaseConnection, { resetDatabaseConnectionPool } from '../helpers/getDatabaseConnection';
 import processRoutes from "./processors/processRoutes";
 import updateRegionTrueCounts from "./database/updateRegionTrueCounts";
 import { nodeProcessPagesChunk } from "./hook-functions/processPagesChunk";
@@ -58,7 +58,7 @@ export const main = async (
         
         return elapsedTimeSeconds;
     } finally {
-        await pool.end();
+        await resetDatabaseConnectionPool();
     }
 }
 

@@ -106,11 +106,10 @@ describe('reprocessImagesHandler', () => {
         expect(JSON.parse(result.body).enqueuedCount).toBe(0);
     });
 
-    it('releases client and ends pool on success', async () => {
+    it('releases client on success', async () => {
         await reprocessImagesHandler();
 
         expect(mockClient.release).toHaveBeenCalledTimes(1);
-        expect(mockPool.end).toHaveBeenCalledTimes(1);
     });
 
     it('handles getDatabaseConnection failure and returns 500', async () => {
@@ -225,12 +224,11 @@ describe('reprocessImagesHandler', () => {
         expect(JSON.parse(result.body).error).toBe('SQS send failed');
     });
 
-    it('releases client and ends pool on error', async () => {
+    it('releases client on error', async () => {
         mockGetRopewikiImagesToProcess.mockRejectedValue(new Error('Query failed'));
 
         await reprocessImagesHandler();
 
         expect(mockClient.release).toHaveBeenCalledTimes(1);
-        expect(mockPool.end).toHaveBeenCalledTimes(1);
     });
 });

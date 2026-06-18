@@ -94,7 +94,6 @@ describe('processPageHandler', () => {
         expect(mockHandleProcessPageSQSMessages).toHaveBeenCalledTimes(1);
         expect(mockHandleProcessPageSQSMessages).toHaveBeenCalledWith(event.Records, mockClient, 900_000, expect.any(Function));
         expect(mockClient.release).toHaveBeenCalledTimes(1);
-        expect(mockPool.end).toHaveBeenCalledTimes(1);
 
         expect(result.statusCode).toBe(200);
         const body = JSON.parse(result.body);
@@ -291,14 +290,13 @@ describe('processPageHandler', () => {
         expect(body.results).toBeUndefined();
     });
 
-    it('always releases client and ends pool in finally block', async () => {
+    it('always releases client in finally block', async () => {
         const event = createSqsEvent([createPageData('123', 'Test Page')]);
         mockHandleProcessPageSQSMessages.mockRejectedValue(new Error('Processing failed'));
 
         await processPageHandler(event, {});
 
         expect(mockClient.release).toHaveBeenCalledTimes(1);
-        expect(mockPool.end).toHaveBeenCalledTimes(1);
     });
 
     it('handles non-Error objects in catch block', async () => {

@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach, jest } from '@jest/globals';
-import getDatabaseConnection from '../../../src/helpers/getDatabaseConnection';
+import getDatabaseConnection, { resetDatabaseConnectionPool } from '../../../src/helpers/getDatabaseConnection';
 import { getMapDataIds } from '../../../src/fargate-tasks/generateTrailTiles/database/getMapDataIds';
 import { processGeojsons } from '../../../src/fargate-tasks/generateTrailTiles/processors/processGeojsons';
 import { makeTiles } from '../../../src/fargate-tasks/generateTrailTiles/util/makeTiles';
@@ -7,7 +7,11 @@ import { uploadTilesToS3 } from '../../../src/fargate-tasks/generateTrailTiles/s
 import { invalidateCloudFrontCache } from '../../../src/fargate-tasks/generateTrailTiles/cloudfront/invalidateCloudFrontCache';
 import { main } from '../../../src/fargate-tasks/generateTrailTiles/main';
 
-jest.mock('../../../src/helpers/getDatabaseConnection', () => ({ __esModule: true, default: jest.fn() }));
+jest.mock('../../../src/helpers/getDatabaseConnection', () => ({
+    __esModule: true,
+    default: jest.fn(),
+    resetDatabaseConnectionPool: jest.fn(() => Promise.resolve()),
+}));
 jest.mock('../../../src/fargate-tasks/generateTrailTiles/database/getMapDataIds', () => ({ getMapDataIds: jest.fn() }));
 jest.mock('../../../src/fargate-tasks/generateTrailTiles/processors/processGeojsons', () => ({ processGeojsons: jest.fn() }));
 jest.mock('../../../src/fargate-tasks/generateTrailTiles/util/makeTiles', () => ({ makeTiles: jest.fn() }));
@@ -20,7 +24,7 @@ describe('main (generateTrailTiles)', () => {
     const mockMapDataIds = ['aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa'];
     let originalEnv: NodeJS.ProcessEnv;
     let mockRelease: ReturnType<typeof jest.fn>;
-    let mockPoolEnd: ReturnType<typeof jest.fn>;
+    let mockResetDatabaseConnectionPool: jest.MockedFunction<typeof resetDatabaseConnectionPool>;
 
     beforeEach(() => {
         jest.clearAllMocks();
@@ -32,10 +36,9 @@ describe('main (generateTrailTiles)', () => {
         };
 
         mockRelease = jest.fn();
-        mockPoolEnd = jest.fn();
+        mockResetDatabaseConnectionPool = jest.mocked(resetDatabaseConnectionPool);
         const mockPool = {
             connect: jest.fn(),
-            end: mockPoolEnd,
         };
         // @ts-expect-error - mock pool client shape for test
         (mockPool.connect as jest.Mock).mockResolvedValue({ release: mockRelease });
@@ -79,7 +82,7 @@ describe('main (generateTrailTiles)', () => {
         expect(makeTiles).toHaveBeenCalledWith('geojson', 'trails');
         expect(uploadTilesToS3).toHaveBeenCalledWith('trails', 'tiles/trails', 'test-map-data-bucket');
         expect(mockRelease).toHaveBeenCalledTimes(1);
-        expect(mockPoolEnd).toHaveBeenCalledTimes(1);
+        expect(mockResetDatabaseConnectionPool).toHaveBeenCalledTimes(1);
         expect(invalidateCloudFrontCache).toHaveBeenCalledWith(
             'arn:aws:cloudfront::123:distribution/E2',
             'tiles/trails'
@@ -111,13 +114,13 @@ describe('main (generateTrailTiles)', () => {
         );
     });
 
-    it('releases client and ends pool when getMapDataIds throws', async () => {
+    it('releases client and resets pool when getMapDataIds throws', async () => {
         jest.mocked(getMapDataIds).mockRejectedValue(new Error('DB error'));
 
         await expect(main()).rejects.toThrow('DB error');
 
         expect(mockRelease).toHaveBeenCalledTimes(1);
-        expect(mockPoolEnd).toHaveBeenCalledTimes(1);
+        expect(mockResetDatabaseConnectionPool).toHaveBeenCalledTimes(1);
         expect(processGeojsons).not.toHaveBeenCalled();
         expect(makeTiles).not.toHaveBeenCalled();
     });

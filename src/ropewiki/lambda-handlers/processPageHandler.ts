@@ -74,6 +74,5 @@ export const processPageHandler = async (event: SqsEvent, context: any) => {
         };
     } finally {
         if (client) client.release();
-        if (pool) await pool.end();
     }
 };

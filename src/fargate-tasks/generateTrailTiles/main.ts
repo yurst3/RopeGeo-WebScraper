@@ -9,7 +9,7 @@
  * Optional: CLOUDFRONT_DISTRIBUTION_ARN to run a CloudFront invalidation after upload.
  */
 
-import getDatabaseConnection from '../../helpers/getDatabaseConnection';
+import getDatabaseConnection, { resetDatabaseConnectionPool } from '../../helpers/getDatabaseConnection';
 import { getMapDataIds } from './database/getMapDataIds';
 import { getMapDataBucketName } from './s3/getMapDataBucketName';
 import { processGeojsons } from './processors/processGeojsons';
@@ -48,7 +48,7 @@ export async function main(): Promise<void> {
         throw err;
     } finally {
         client?.release();
-        await pool?.end();
+        await resetDatabaseConnectionPool();
     }
 }
 

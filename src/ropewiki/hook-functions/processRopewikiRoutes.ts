@@ -47,7 +47,6 @@ export const nodeProcessRopewikiRoutes: ProcessRopewikiRoutesHookFn = async (
         }
     } finally {
         client.release();
-        await pool.end();
     }
 };
 

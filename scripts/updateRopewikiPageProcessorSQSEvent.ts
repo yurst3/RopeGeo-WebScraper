@@ -1,6 +1,6 @@
 import * as db from 'zapatos/db';
 import type * as s from 'zapatos/schema';
-import getDatabaseConnection from '../src/helpers/getDatabaseConnection';
+import getDatabaseConnection, { resetDatabaseConnectionPool } from '../src/helpers/getDatabaseConnection';
 import RopewikiPage from '../src/ropewiki/types/page';
 import { readFileSync, writeFileSync } from 'fs';
 import { join } from 'path';
@@ -88,7 +88,7 @@ async function main() {
 
         console.log(`Successfully updated RopewikiPageProcessorSQSEvent.json with ${records.length} records`);
     } finally {
-        await pool.end();
+        await resetDatabaseConnectionPool();
     }
 }
 

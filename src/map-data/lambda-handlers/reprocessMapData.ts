@@ -63,6 +63,5 @@ export const reprocessMapData = async (
         };
     } finally {
         if (client) client.release();
-        if (pool) await pool.end();
     }
 };
