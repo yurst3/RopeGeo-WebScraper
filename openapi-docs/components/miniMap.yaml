@@ -113,6 +113,11 @@ PageMiniMap:
       type: integer
       minimum: 0
       description: Total byte size of all `.pbf` tiles for this page's map data
+    mapDataId:
+      type: string
+      format: uuid
+      nullable: true
+      description: MapData record id for this page's vector tile set
     legend:
       type: object
       nullable: true

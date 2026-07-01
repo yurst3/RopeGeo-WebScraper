@@ -147,6 +147,7 @@ tmp/
 temp/
 .savedMapData/
 .savedImageData/
+.savedDownloadFolders/
 
 # Redocly/OpenAPI docs build output
 docs-build/

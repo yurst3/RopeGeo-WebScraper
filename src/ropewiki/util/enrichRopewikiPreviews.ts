@@ -1,5 +1,5 @@
 import type { GetRopewikiPagePreviewRow } from 'ropegeo-common/models';
-import { PageDataSource, PagePreview, RegionPreview } from 'ropegeo-common/models';
+import { OnlinePagePreview, PageDataSource, PagePreview, RegionPreview } from 'ropegeo-common/models';
 import type * as db from 'zapatos/db';
 import getRopewikiRegionLineage from '../database/getRopewikiRegionLineage';
 import getRegionPreviewUrls from '../database/getRegionPreviewUrls';
@@ -10,6 +10,7 @@ export type RopewikiPreviewItem = { type: 'page' | 'region'; id: string };
 export type RopewikiPreviewPageRow = GetRopewikiPagePreviewRow & {
     mapData: string | null;
     aka: string[];
+    downloadFolder: string | null;
 };
 
 /** Region row shape required to build RegionPreview. */
@@ -74,6 +75,8 @@ export async function enrichRopewikiPreviews(
             results.push(
                 PagePreview.fromDbRow(row, row.mapData ?? null, regions, row.aka ?? []),
             );
+            const preview = results[results.length - 1] as OnlinePagePreview;
+            preview.downloadFolder = row.downloadFolder ?? null;
         } else {
             const row = regionRowsById.get(item.id);
             if (!row) continue;

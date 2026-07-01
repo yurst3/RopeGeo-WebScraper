@@ -662,7 +662,7 @@ describe('getRopewikiPageView (integration)', () => {
         expect(result).not.toBeNull();
         expect(result!.miniMap).not.toBeNull();
         expect(result!.routeType).toBe(RouteType.Canyon);
-        expect(result!.mapDataId).toBe(mapDataId);
+        expect((result!.miniMap as OnlinePageMiniMap).mapDataId).toBe(mapDataId);
         expect(result!.miniMap).toBeInstanceOf(OnlinePageMiniMap);
         expect(result!.miniMap!.fetchType).toBe('online');
         expect((result!.miniMap as OnlinePageMiniMap).polyLineLayerId).toBe('PolyLines');
@@ -724,7 +724,6 @@ describe('getRopewikiPageView (integration)', () => {
         const result = await getRopewikiPageView(conn, pageId);
 
         expect(result).not.toBeNull();
-        expect(result!.mapDataId).toBeNull();
         const mm = result!.miniMap;
         expect(mm).not.toBeNull();
         expect(mm).toBeInstanceOf(OnlineCenteredRegionMiniMap);
@@ -762,7 +761,6 @@ describe('getRopewikiPageView (integration)', () => {
         const result = await getRopewikiPageView(conn, pageId);
 
         expect(result).not.toBeNull();
-        expect(result!.mapDataId).toBeNull();
         expect(result!.miniMap).toBeNull();
     });
 
@@ -810,7 +808,6 @@ describe('getRopewikiPageView (integration)', () => {
         const result = await getRopewikiPageView(conn, pageId);
 
         expect(result).not.toBeNull();
-        expect(result!.mapDataId).toBeNull();
         const mm = result!.miniMap;
         expect(mm).not.toBeNull();
         expect(mm).toBeInstanceOf(OnlineCenteredRegionMiniMap);

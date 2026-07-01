@@ -72,7 +72,7 @@ const ROPEWIKI_PAGE_VIEW_COLUMNS: (keyof s.RopewikiPage.Selectable)[] = [
     'id', 'name', 'url', 'quality', 'userVotes', 'technicalRating', 'waterRating', 'timeRating', 'riskRating', 'permits', 'rappelInfo', 'rappelCount', 'rappelLongest', 'vehicle',
     'shuttleTime', 'minOverallTime', 'maxOverallTime', 'overallLength', 'approachLength', 'approachElevGain', 'descentLength', 'descentElevGain', 'exitLength', 'exitElevGain',
     'minApproachTime', 'maxApproachTime', 'minDescentTime', 'maxDescentTime', 'minExitTime', 'maxExitTime',
-    'months', 'latestRevisionDate', 'deletedAt', 'region', 'coordinates',
+    'months', 'latestRevisionDate', 'deletedAt', 'region', 'coordinates', 'downloadFolder',
 ];
 
 /**
@@ -179,7 +179,6 @@ const getRopewikiPageView = async (
     })();
 
     let miniMap: OnlinePageMiniMap | OnlineCenteredRegionMiniMap | null = null;
-    let mapDataId: string | null = null;
     if (routeRow != null) {
         let tilesTemplate = routeRow.tilesTemplate ?? null;
         const rawBounds = routeRow.bounds ?? null;
@@ -228,7 +227,6 @@ const getRopewikiPageView = async (
         }
 
         if (routeMapDataId != null && tilesTemplate != null && bounds != null) {
-            mapDataId = routeMapDataId;
             miniMap = new OnlinePageMiniMap(
                 PAGE_MINIMAP_POLYLINE_LAYER_ID,
                 PAGE_MINIMAP_POINT_LAYER_ID,
@@ -237,10 +235,10 @@ const getRopewikiPageView = async (
                 minimapTitle,
                 routeRow.tileCount ?? 0,
                 Number(routeRow.tileTotalBytes ?? 0),
+                routeMapDataId,
                 pageLegend,
             );
         } else {
-            mapDataId = null;
             const centeredRoutesParams = new RoutesParams({
                 region: { id: page.region, source: PageDataSource.Ropewiki },
             });
@@ -352,9 +350,9 @@ const getRopewikiPageView = async (
         new Date(page.latestRevisionDate),
         bannerImage,
         betaSectionsView,
-        mapDataId,
         miniMap,
         coordinates,
+        page.downloadFolder ?? null,
     );
 };
 

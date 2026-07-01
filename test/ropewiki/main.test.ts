@@ -20,6 +20,9 @@ jest.mock('../../src/ropewiki/util/getRegionsUnderLimit');
 jest.mock('../../src/ropewiki/processors/processPagesForRegion');
 jest.mock('../../src/ropewiki/processors/processRoutes');
 jest.mock('../../src/ropewiki/database/updateRegionTrueCounts');
+jest.mock('../../src/ropewiki/database/invalidateDownloadFolderForPage', () => ({
+    invalidateDownloadFolderForPages: jest.fn(() => Promise.resolve()),
+}));
 
 import getDatabaseConnection, { resetDatabaseConnectionPool } from '../../src/helpers/getDatabaseConnection';
 import processRegions from '../../src/ropewiki/processors/processRegions';
@@ -27,6 +30,7 @@ import getRegionCountsUnderLimit from '../../src/ropewiki/util/getRegionsUnderLi
 import { getProcessPagesForRegionFn } from '../../src/ropewiki/processors/processPagesForRegion';
 import processRoutes from '../../src/ropewiki/processors/processRoutes';
 import updateRegionTrueCounts from '../../src/ropewiki/database/updateRegionTrueCounts';
+import { invalidateDownloadFolderForPages } from '../../src/ropewiki/database/invalidateDownloadFolderForPage';
 
 const mockGetDatabaseConnection = getDatabaseConnection as jest.MockedFunction<typeof getDatabaseConnection>;
 const mockResetDatabaseConnectionPool = resetDatabaseConnectionPool as jest.MockedFunction<typeof resetDatabaseConnectionPool>;
@@ -35,6 +39,7 @@ const mockGetRegionCountsUnderLimit = getRegionCountsUnderLimit as jest.MockedFu
 const mockGetProcessPagesForRegionFn = getProcessPagesForRegionFn as jest.MockedFunction<typeof getProcessPagesForRegionFn>;
 const mockProcessRoutes = processRoutes as jest.MockedFunction<typeof processRoutes>;
 const mockUpdateRegionTrueCounts = updateRegionTrueCounts as jest.MockedFunction<typeof updateRegionTrueCounts>;
+const mockInvalidateDownloadFolderForPages = invalidateDownloadFolderForPages as jest.MockedFunction<typeof invalidateDownloadFolderForPages>;
 
 describe('main', () => {
     let mockPool: Pool;
@@ -70,6 +75,7 @@ describe('main', () => {
         mockGetProcessPagesForRegionFn.mockReturnValue(mockProcessPagesForRegion);
         mockProcessRoutes.mockResolvedValue(undefined);
         mockUpdateRegionTrueCounts.mockResolvedValue(undefined);
+        mockInvalidateDownloadFolderForPages.mockResolvedValue(undefined);
     });
 
     afterEach(() => {
@@ -168,6 +174,7 @@ describe('main', () => {
         expect(mockProcessPagesForRegion).toHaveBeenNthCalledWith(1, 'Region 1', 100, { 'Region 1': 'region-id-1', 'Region 2': 'region-id-2' });
         expect(mockProcessPagesForRegion).toHaveBeenNthCalledWith(2, 'Region 2', 200, { 'Region 1': 'region-id-1', 'Region 2': 'region-id-2' });
         expect(mockProcessRoutes).toHaveBeenCalledWith(mockPool, [page1, page2], mockProcessRopewikiRoutesHookFn);
+        expect(mockInvalidateDownloadFolderForPages).toHaveBeenCalledWith(mockPool, []);
         expect(mockResetDatabaseConnectionPool).toHaveBeenCalledTimes(1);
     });
 

@@ -11,6 +11,9 @@ Parameters:
     Type: String
     Default: ''
     Description: Name of the S3 bucket for processed images (output from main stack ImageDataBucketName). Leave blank to skip /images/* CloudFront behavior.
+  PageZipBucketName:
+    Type: String
+    Description: Name of the S3 bucket for page download ZIP bundles (output from main stack PageZipBucketName).
   CustomDomainName:
     Type: String
     Default: api.webscraper.ropegeo.com

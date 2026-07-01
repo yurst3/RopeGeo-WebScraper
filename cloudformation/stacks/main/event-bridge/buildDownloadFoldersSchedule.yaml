@@ -1,0 +1,31 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: EventBridge schedule rule for build download folders task
+
+Resources:
+  BuildDownloadFoldersScheduleRule:
+    Type: 'AWS::Events::Rule'
+    Properties:
+      Name:
+        'Fn::Sub': '${devEnvironment}-build-download-folders-daily'
+      Description: Run build download folders task once per day at noon UTC
+      ScheduleExpression: cron(0 12 * * ? *)
+      State: ENABLED
+      Targets:
+        - Id: BuildDownloadFoldersEcsTask
+          Arn:
+            'Fn::GetAtt': EcsCluster.Arn
+          RoleArn:
+            'Fn::GetAtt': BuildDownloadFoldersEventBridgeRole.Arn
+          EcsParameters:
+            TaskDefinitionArn:
+              Ref: BuildDownloadFoldersTaskDefinition
+            TaskCount: 1
+            LaunchType: FARGATE
+            NetworkConfiguration:
+              AwsVpcConfiguration:
+                Subnets:
+                  - Ref: PrivateSubnet1
+                  - Ref: PrivateSubnet2
+                SecurityGroups:
+                  - Ref: LambdaSecurityGroup
+                AssignPublicIp: DISABLED

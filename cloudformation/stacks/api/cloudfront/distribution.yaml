@@ -66,6 +66,24 @@ Resources:
           return request;
         }
 
+  StripPageZipsPrefixFunction:
+    Type: AWS::CloudFront::Function
+    Properties:
+      Name:
+        'Fn::Sub': '${AWS::StackName}-strip-page-zips-prefix'
+      AutoPublish: true
+      FunctionConfig:
+        Comment: Strip /page-zips prefix for page zip bucket origin
+        Runtime: cloudfront-js-1.0
+      FunctionCode: |
+        function handler(event) {
+          var request = event.request;
+          if (request.uri && request.uri.indexOf('/page-zips/') === 0) {
+            request.uri = request.uri.replace(/^\/page-zips\//, '/');
+          }
+          return request;
+        }
+
   RootRedirectFunction:
     Type: AWS::CloudFront::Function
     Properties:
@@ -166,6 +184,12 @@ Resources:
                 OriginAccessControlId:
                   'Fn::GetAtt': [WebScraperOAC, Id]
                 S3OriginConfig: {}
+              - Id: PageZipBucket
+                DomainName:
+                  'Fn::Sub': '${PageZipBucketName}.s3.${AWS::Region}.amazonaws.com'
+                OriginAccessControlId:
+                  'Fn::GetAtt': [WebScraperOAC, Id]
+                S3OriginConfig: {}
               - Id: WebScraperApi
                 DomainName:
                   'Fn::Sub': '${WebScraperApi}.execute-api.${AWS::Region}.amazonaws.com'
@@ -183,6 +207,12 @@ Resources:
               - Id: DocsBucket
                 DomainName:
                   'Fn::Sub': '${DocsBucketName}.s3.${AWS::Region}.amazonaws.com'
+                OriginAccessControlId:
+                  'Fn::GetAtt': [WebScraperOAC, Id]
+                S3OriginConfig: {}
+              - Id: PageZipBucket
+                DomainName:
+                  'Fn::Sub': '${PageZipBucketName}.s3.${AWS::Region}.amazonaws.com'
                 OriginAccessControlId:
                   'Fn::GetAtt': [WebScraperOAC, Id]
                 S3OriginConfig: {}
@@ -281,6 +311,21 @@ Resources:
                   - EventType: viewer-request
                     FunctionARN:
                       'Fn::GetAtt': [StripImagesPrefixFunction, FunctionARN]
+              - PathPattern: /page-zips/*
+                TargetOriginId: PageZipBucket
+                ViewerProtocolPolicy: redirect-to-https
+                AllowedMethods:
+                  - GET
+                  - HEAD
+                CachedMethods:
+                  - GET
+                  - HEAD
+                Compress: true
+                CachePolicyId: 658327ea-f89d-4fab-a63d-7e88639e58f6
+                FunctionAssociations:
+                  - EventType: viewer-request
+                    FunctionARN:
+                      'Fn::GetAtt': [StripPageZipsPrefixFunction, FunctionARN]
               - PathPattern: /docs/*
                 TargetOriginId: DocsBucket
                 ViewerProtocolPolicy: redirect-to-https
@@ -345,6 +390,21 @@ Resources:
                   - EventType: viewer-request
                     FunctionARN:
                       'Fn::GetAtt': [StripMapDataPrefixFunction, FunctionARN]
+              - PathPattern: /page-zips/*
+                TargetOriginId: PageZipBucket
+                ViewerProtocolPolicy: redirect-to-https
+                AllowedMethods:
+                  - GET
+                  - HEAD
+                CachedMethods:
+                  - GET
+                  - HEAD
+                Compress: true
+                CachePolicyId: 658327ea-f89d-4fab-a63d-7e88639e58f6
+                FunctionAssociations:
+                  - EventType: viewer-request
+                    FunctionARN:
+                      'Fn::GetAtt': [StripPageZipsPrefixFunction, FunctionARN]
               - PathPattern: /docs/*
                 TargetOriginId: DocsBucket
                 ViewerProtocolPolicy: redirect-to-https

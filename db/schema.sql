@@ -1,4 +1,4 @@
-\restrict cRzpcwhdQh3iZMwJbltYMD8q13SJZbAx6NWawp4ySFx3MmbMl22icX3gsx7KZNS
+\restrict DmMZ7olDUEsDDAZ2hfjpLU4ZPRd7iA97VsxoJ6anf1J0cFzIeIEQrgTSLKma8wf
 
 -- Dumped from database version 18.1 (Debian 18.1-1.pgdg13+2)
 -- Dumped by pg_dump version 18.1 (Homebrew)
@@ -178,7 +178,9 @@ CREATE TABLE public."RopewikiPage" (
     "approachLength" numeric,
     "descentElevGain" numeric,
     "exitLength" numeric,
-    "allowUpdates" boolean DEFAULT true NOT NULL
+    "allowUpdates" boolean DEFAULT true NOT NULL,
+    "downloadFolder" text,
+    "downloadFolderBuiltAt" timestamp without time zone
 );
 
 
@@ -563,7 +565,7 @@ ALTER TABLE ONLY public."RopewikiRoute"
 -- PostgreSQL database dump complete
 --
 
-\unrestrict cRzpcwhdQh3iZMwJbltYMD8q13SJZbAx6NWawp4ySFx3MmbMl22icX3gsx7KZNS
+\unrestrict DmMZ7olDUEsDDAZ2hfjpLU4ZPRd7iA97VsxoJ6anf1J0cFzIeIEQrgTSLKma8wf
 
 
 --
@@ -608,4 +610,5 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20260317162901'),
     ('20260329120000'),
     ('20260430103000'),
-    ('20260529120000');
+    ('20260529120000'),
+    ('20260624120000');

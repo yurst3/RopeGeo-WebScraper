@@ -216,12 +216,6 @@ RopewikiPageView:
       type: string
       format: date-time
       description: Last revision date
-    mapDataId:
-      type: string
-      format: uuid
-      nullable: true
-      description: |
-        **MapData** id for this page’s vector tile set when the minimap is a full page tile (`OnlinePageMiniMap`); null when the minimap is a centered-region fallback, absent, or there is no map data id.
     bannerImage:
       $ref: "#/BetaSectionImage"
       nullable: true
@@ -235,7 +229,7 @@ RopewikiPageView:
       type: object
       nullable: true
       description: |
-        Online vector tile minimap when MapData has a non-empty id, tile template, and valid bounds; otherwise **centeredRegion** when the page has a linked route without that full tile set; otherwise null. Use **mapDataId** on the page view for the MapData record id; MVT layer names are **polyLineLayerId** / **pointLayerId** on the minimap.
+        Online vector tile minimap when MapData has a non-empty id, tile template, and valid bounds; otherwise **centeredRegion** when the page has a linked route without that full tile set; otherwise null. Use **mapDataId** on page minimaps for the MapData record id; MVT layer names are **polyLineLayerId** / **pointLayerId** on the minimap.
       anyOf:
         - $ref: './miniMap.yaml#/PageMiniMap'
         - $ref: './miniMap.yaml#/OnlineCenteredRegionMiniMap'
@@ -243,6 +237,11 @@ RopewikiPageView:
       description: Page centroid in WGS84 degrees when stored coordinates are valid; otherwise null (not inferred from minimap bounds)
       nullable: true
       $ref: "#/PageViewCoordinates"
+    downloadFolder:
+      type: string
+      format: uri
+      nullable: true
+      description: Public HTTPS URL to a pre-built offline page ZIP bundle, or null when no bundle is available (client falls back to legacy multi-request download)
 
 PageViewCoordinates:
   type: object

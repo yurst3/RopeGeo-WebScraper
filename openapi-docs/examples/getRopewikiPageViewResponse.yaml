@@ -58,7 +58,6 @@ value:
       - id: bbbbbbbb-bbbb-bbbb-bbbb-bbbbbbbbbbbb
         name: United States
     latestRevisionDate: "2025-01-01T00:00:00.000Z"
-    mapDataId: 38f5c3fa-7248-41ed-815e-8b9e6aae5d61
     miniMap:
       miniMapType: page
       fetchType: online
@@ -71,6 +70,7 @@ value:
         south: 38.1
         east: -108.2
         west: -110.0
+      mapDataId: 38f5c3fa-7248-41ed-815e-8b9e6aae5d61
       tileCount: 42
       tileTotalBytes: 8192
       legend:

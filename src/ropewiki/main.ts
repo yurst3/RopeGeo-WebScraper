@@ -6,6 +6,7 @@ import getRegionCountsUnderLimit from './util/getRegionsUnderLimit';
 import getDatabaseConnection, { resetDatabaseConnectionPool } from '../helpers/getDatabaseConnection';
 import processRoutes from "./processors/processRoutes";
 import updateRegionTrueCounts from "./database/updateRegionTrueCounts";
+import { invalidateDownloadFolderForPages } from "./database/invalidateDownloadFolderForPage";
 import { nodeProcessPagesChunk } from "./hook-functions/processPagesChunk";
 import { nodeProcessRopewikiRoutes } from "./hook-functions/processRopewikiRoutes";
 import RopewikiPage from "./types/page";
@@ -47,9 +48,14 @@ export const main = async (
             updatedPages.push(...parsedPages);
         }
 
-        // Update region true counts and optionally process routes (in parallel when both run)
+        // Update region true counts, invalidate stale download bundles, and optionally process routes (in parallel)
+        const updatedPageIds = updatedPages
+            .map((page) => page.id)
+            .filter((id): id is string => id != null);
+
         await Promise.all([
             updateRegionTrueCounts(pool),
+            invalidateDownloadFolderForPages(pool, updatedPageIds),
             event.processRoutes ? processRoutes(pool, updatedPages, processRopewikiRoutesHookFn) : Promise.resolve(),
         ]);
 

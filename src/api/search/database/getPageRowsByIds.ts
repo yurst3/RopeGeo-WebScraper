@@ -4,9 +4,10 @@ import type { GetRopewikiPagePreviewRow } from 'ropegeo-common/models';
 export type PageRow = GetRopewikiPagePreviewRow & {
     mapData: string | null;
     aka: string[];
+    downloadFolder: string | null;
 };
 
-type SqlRow = PageRow & { pageId: string; aka?: string[] };
+type SqlRow = PageRow & { pageId: string; aka?: string[]; downloadFolder?: string | null };
 
 /**
  * Fetches full page preview rows (for PagePreview) for the given page ids.
@@ -50,6 +51,7 @@ async function getPageRowsByIds(
             ) AS "bannerFileUrl",
             p.url,
             p.permits,
+            p."downloadFolder",
             rr."mapData",
             (
                 SELECT COALESCE(array_agg(a.name ORDER BY a.name), '{}')
@@ -71,6 +73,7 @@ async function getPageRowsByIds(
             bannerFileUrl: row.bannerFileUrl ?? null,
             mapData: row.mapData ?? null,
             aka: row.aka ?? [],
+            downloadFolder: row.downloadFolder ?? null,
         });
     }
     return map;

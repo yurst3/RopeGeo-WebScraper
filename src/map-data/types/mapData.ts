@@ -1,4 +1,5 @@
 import type * as s from 'zapatos/schema';
+import * as db from 'zapatos/db';
 import {
     Bounds,
     LegendItem,
@@ -74,8 +75,8 @@ export class MapData {
             kml: this.kml ?? null,
             geoJson: this.geoJson ?? null,
             tilesTemplate: this.tilesTemplate ?? null,
-            bounds: this.bounds ?? null,
-            legend: legendJson,
+            bounds: (this.bounds ?? null) as db.JSONValue | null,
+            legend: legendJson as db.JSONValue | null,
             tileCount: this.tileCount,
             tileTotalBytes: this.tileTotalBytes,
             sourceFileUrl: this.sourceFileUrl,

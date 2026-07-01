@@ -1933,6 +1933,18 @@ declare module 'zapatos/schema' {
       */
       descentLength: db.NumericString | null;
       /**
+      * **RopewikiPage.downloadFolder**
+      * - `text` in database
+      * - Nullable, no default
+      */
+      downloadFolder: string | null;
+      /**
+      * **RopewikiPage.downloadFolderBuiltAt**
+      * - `timestamp` in database
+      * - Nullable, no default
+      */
+      downloadFolderBuiltAt: Date | null;
+      /**
       * **RopewikiPage.exitElevGain**
       * - `numeric` in database
       * - Nullable, no default
@@ -2180,6 +2192,18 @@ declare module 'zapatos/schema' {
       * - Nullable, no default
       */
       descentLength: number | null;
+      /**
+      * **RopewikiPage.downloadFolder**
+      * - `text` in database
+      * - Nullable, no default
+      */
+      downloadFolder: string | null;
+      /**
+      * **RopewikiPage.downloadFolderBuiltAt**
+      * - `timestamp` in database
+      * - Nullable, no default
+      */
+      downloadFolderBuiltAt: db.TimestampString | null;
       /**
       * **RopewikiPage.exitElevGain**
       * - `numeric` in database
@@ -2429,6 +2453,18 @@ declare module 'zapatos/schema' {
       */
       descentLength?: (number | db.NumericString) | db.Parameter<(number | db.NumericString)> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, (number | db.NumericString) | db.Parameter<(number | db.NumericString)> | db.SQLFragment | db.ParentColumn>;
       /**
+      * **RopewikiPage.downloadFolder**
+      * - `text` in database
+      * - Nullable, no default
+      */
+      downloadFolder?: string | db.Parameter<string> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, string | db.Parameter<string> | db.SQLFragment | db.ParentColumn>;
+      /**
+      * **RopewikiPage.downloadFolderBuiltAt**
+      * - `timestamp` in database
+      * - Nullable, no default
+      */
+      downloadFolderBuiltAt?: (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.SQLFragment | db.ParentColumn>;
+      /**
       * **RopewikiPage.exitElevGain**
       * - `numeric` in database
       * - Nullable, no default
@@ -2677,6 +2713,18 @@ declare module 'zapatos/schema' {
       */
       descentLength?: (number | db.NumericString) | db.Parameter<(number | db.NumericString)> | null | db.DefaultType | db.SQLFragment;
       /**
+      * **RopewikiPage.downloadFolder**
+      * - `text` in database
+      * - Nullable, no default
+      */
+      downloadFolder?: string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment;
+      /**
+      * **RopewikiPage.downloadFolderBuiltAt**
+      * - `timestamp` in database
+      * - Nullable, no default
+      */
+      downloadFolderBuiltAt?: (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | null | db.DefaultType | db.SQLFragment;
+      /**
       * **RopewikiPage.exitElevGain**
       * - `numeric` in database
       * - Nullable, no default
@@ -2924,6 +2972,18 @@ declare module 'zapatos/schema' {
       * - Nullable, no default
       */
       descentLength?: (number | db.NumericString) | db.Parameter<(number | db.NumericString)> | null | db.DefaultType | db.SQLFragment | db.SQLFragment<any, (number | db.NumericString) | db.Parameter<(number | db.NumericString)> | null | db.DefaultType | db.SQLFragment>;
+      /**
+      * **RopewikiPage.downloadFolder**
+      * - `text` in database
+      * - Nullable, no default
+      */
+      downloadFolder?: string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment | db.SQLFragment<any, string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment>;
+      /**
+      * **RopewikiPage.downloadFolderBuiltAt**
+      * - `timestamp` in database
+      * - Nullable, no default
+      */
+      downloadFolderBuiltAt?: (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | null | db.DefaultType | db.SQLFragment | db.SQLFragment<any, (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | null | db.DefaultType | db.SQLFragment>;
       /**
       * **RopewikiPage.exitElevGain**
       * - `numeric` in database

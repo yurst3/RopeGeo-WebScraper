@@ -6,7 +6,7 @@ import getRopewikiRegionLineage from '../../../ropewiki/database/getRopewikiRegi
 
 export type { GetRopewikiPagePreviewRow };
 
-type Row = GetRopewikiPagePreviewRow & { aka?: string[] };
+type Row = GetRopewikiPagePreviewRow & { aka?: string[]; downloadFolder?: string | null };
 
 /**
  * Returns a single PagePreview for the given RopewikiRoute (uses its ropewikiPage id).
@@ -32,6 +32,7 @@ const getRopewikiPagePreview = async (
             r.name AS "regionName",
             p.url,
             p.permits,
+            p."downloadFolder",
             (
                 SELECT d."previewUrl"
                 FROM "RopewikiImage" i
@@ -64,12 +65,14 @@ const getRopewikiPagePreview = async (
     const regions =
         regionLineage.length > 0 ? regionLineage.map((r) => r.name) : [row.regionName];
     const aka = row.aka ?? [];
-    return PagePreview.fromDbRow(
+    const preview = PagePreview.fromDbRow(
         { ...row, bannerFileUrl: row.bannerFileUrl ?? null },
         ropewikiRoute.mapData ?? null,
         regions,
         aka,
     ) as OnlinePagePreview;
+    preview.downloadFolder = row.downloadFolder ?? null;
+    return preview;
 };
 
 export default getRopewikiPagePreview;

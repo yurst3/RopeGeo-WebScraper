@@ -35,7 +35,7 @@ export const nodeProcessRopewikiRoutes: ProcessRopewikiRoutesHookFn = async (
                 if (!ropewikiRoute.page) {
                     throw new Error('RopewikiRoute must have a page id to process');
                 }
-                
+
                 const mapDataEvent = ropewikiRoute.toMapDataEvent();
                 await processPageRouteAndMapData(mapDataEvent, nodeSaveMapData, logger, client);
                 // Note: The hook function (nodeSaveMapData) will log progress/errors for map data processing

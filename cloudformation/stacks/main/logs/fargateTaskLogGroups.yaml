@@ -8,3 +8,9 @@ Resources:
       LogGroupName:
         'Fn::Sub': '/ecs/${devEnvironment}-generate-trail-tiles'
       RetentionInDays: 30
+  BuildDownloadFoldersLogGroup:
+    Type: 'AWS::Logs::LogGroup'
+    Properties:
+      LogGroupName:
+        'Fn::Sub': '/ecs/${devEnvironment}-build-download-folders'
+      RetentionInDays: 30

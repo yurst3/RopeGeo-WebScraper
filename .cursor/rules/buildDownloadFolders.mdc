@@ -1,0 +1,129 @@
+---
+description: buildDownloadFolders Fargate task — purpose, consumers, generic processors, and how to extend for new sources or bundle content.
+alwaysApply: false
+globs: src/fargate-tasks/buildDownloadFolders/**/*,test/fargate-tasks/buildDownloadFolders/**/*
+---
+
+# buildDownloadFolders
+
+Use this rule when changing **`src/fargate-tasks/buildDownloadFolders/`**. For ECS/CloudFormation/Dockerfile setup, see **fargate-tasks.mdc**. For test layout and scripts, see **tests.mdc**.
+
+## What it does
+
+Daily Fargate job (12:00 UTC) that builds **offline page download ZIP bundles** for pages missing a bundle URL. For each eligible page it:
+
+1. Checks readiness (all required assets processed and present in S3/DB).
+2. Assembles a ZIP: online page JSON + bundled files (images, map tiles, region routes, …).
+3. Uploads `{pageId}.zip` to the page-zip bucket (or `.savedDownloadFolders/` locally).
+4. Writes the public URL to the page row’s **`downloadFolder`** column (and `downloadFolderBuiltAt`).
+
+Entry: **`main.ts`** → **`processAllFolders`** → one **`processSourceFolders`** loop per **`PageDataSource`** (in parallel).
+
+## Why it exists
+
+Mobile offline downloads used to fetch many assets individually (JSON, images, tiles, routes). Pre-built bundles let the client **download one ZIP** and extract locally, which is faster and more reliable on poor networks. Bundles are built **server-side** only when assets are complete, so the client never receives half-ready packages.
+
+## Who uses the folders
+
+| Consumer | How |
+| --- | --- |
+| **Mobile app** | When a page has `downloadFolder`, `ropegeo-common` **`FetchDownloadFolderTask`** downloads the ZIP, extracts to the page root, and converts wire JSON to offline paths via **`OnlinePageView.toOfflineFromExtractedBundle`**. |
+| **Page API / previews** | Online page views expose **`downloadFolder`** so clients know a bundle is available. |
+| **Ropewiki scraper** | **`invalidateDownloadFolderForPages`** clears `downloadFolder` when page content changes, forcing a rebuild on the next daily run. |
+
+Keep ZIP layout compatible with **`DownloadPlatformHarness.paths`** and helpers in **`ropegeo-common`** (e.g. `page-response.json`, image/tile relative paths).
+
+## Layout (keep processors generic)
+
+```
+processors/     Orchestration only — no source-specific table names
+  processAllFolders.ts      Registers FolderSourceLoop[]; merges results
+  processSourceFolders.ts   FolderSourceLoop type + per-source loop
+  processFolderForPage.ts   Uses loop hooks only
+  persistFolderZip.ts       ZIP write + upload + updateFolderForPage hook
+readiness/        Source-specific readiness (e.g. isRopewikiPageReadyForFolder)
+database/         Source/table-specific queries (e.g. getRopewikiPageIdsNeedingFolder)
+zip/              Generic archive assembly (append*ToArchive, createZipEntryWriter)
+s3/ util/         Shared I/O helpers
+```
+
+**Processors must stay generic.** They work with any page type that may or may not have images or map data. Source-specific behavior belongs in **`FolderSourceLoop` hooks** or **`readiness/`** / **`database/`** modules wired from **`processAllFolders.ts`**.
+
+## FolderSourceLoop hooks
+
+Each page data source registers one loop in **`folderSourceLoops`**:
+
+| Hook | Role |
+| --- | --- |
+| `getPageIdsNeedingFolder` | Page IDs eligible for build (not deleted, `downloadFolder IS NULL`) |
+| `getOnlinePageView` | Wire-format **`OnlinePageView`** for `page-response.json` |
+| `getPageForFolder` | Minimal page row (e.g. `region`) for ZIP assembly |
+| `getImageBundleRows` | Processed images to bundle (empty array if source has no images) |
+| `updateFolderForPage` | Persist bundle URL after successful upload |
+| `isPageReadyForFolder` | Source-specific readiness gate |
+
+Shared types live on **`FolderSourceLoop`** in **`processSourceFolders.ts`** (`PageForFolder`, `ImageBundleRow`, …).
+
+## Database naming
+
+Name functions after the **tables they touch**, not generic “folder” names in implementation code:
+
+- ✅ `getRopewikiPageIdsNeedingFolder`, `getRopewikiImageBundleRows`, `updateRopewikiFolderForPage`
+- ✅ `getMapDataForFolderReadiness` (queries **`MapData`**, shared across sources)
+- ❌ `getPageIdsNeedingFolder` as a **function** name in `database/` (use as **hook property** on the loop only)
+
+Wire Ropewiki implementations into **`ropewikiFolderSourceLoop`** in **`processAllFolders.ts`**. Do not import Ropewiki database modules from generic processors.
+
+## Adding a new page data source
+
+Example: add **`PageDataSource.Example`**:
+
+1. **`database/`** — `getExamplePageIdsNeedingFolder`, `getExamplePageForFolder`, `getExampleImageBundleRows`, `updateExampleFolderForPage` (each hits that source’s tables).
+2. **`readiness/`** — `isExamplePageReadyForFolder` (checks that source’s assets; may reuse shared helpers like **`isOnlineMiniMapReady`**).
+3. Reuse or add an API **`getExamplePageView`** for wire JSON.
+4. Register in **`processAllFolders.ts`**:
+
+```typescript
+const exampleFolderSourceLoop: FolderSourceLoop = {
+    pageDataSource: PageDataSource.Example,
+    getPageIdsNeedingFolder: getExamplePageIdsNeedingFolder,
+    getOnlinePageView: getExamplePageView,
+    getPageForFolder: getExamplePageForFolder,
+    getImageBundleRows: getExampleImageBundleRows,
+    updateFolderForPage: updateExampleFolderForPage,
+    isPageReadyForFolder: isExamplePageReadyForFolder,
+};
+const folderSourceLoops: FolderSourceLoop[] = [
+    ropewikiFolderSourceLoop,
+    exampleFolderSourceLoop,
+];
+```
+
+5. Add **`database/*.test.ts`** (real DB) and unit tests for readiness; processors usually need no changes.
+
+Sources without images: implement **`getImageBundleRows`** to return `[]`. Sources without map data: readiness returns true for minimap checks; **`appendOnlineMiniMapEntriesToArchive`** no-ops when minimap is null/offline.
+
+## Adding new bundle content (files / object types)
+
+Extend **`zip/`**, not processors:
+
+1. Add **`zip/appendFooEntriesToArchive.ts`** (or extend an existing append helper).
+2. Call it from **`createZipEntryWriter`** (or a dedicated writer if the new content needs new loop data).
+3. If new DB/S3 inputs are required, add a **hook** on **`FolderSourceLoop`** rather than hardcoding a source in **`processFolderForPage`**.
+4. Update **`is*PageReadyForFolder`** for that source so bundles are not built until the new assets exist.
+5. Coordinate with **`ropegeo-common`** / Mobile if new paths or offline conversion are needed (`toOfflineFromExtractedBundle`, harness paths).
+
+Constants for ZIP entry names: **`zip/folderZipPaths.ts`**.
+
+## Testing
+
+Mirror source under **`test/fargate-tasks/buildDownloadFolders/`**:
+
+- **Unit**: mock DB/S3/API in `processors/`, `zip/`, `s3/`, `util/`, `readiness/`.
+- **Database**: one **`database/*.test.ts`** per query module (`TEST_*` env; included in **`test:database`**).
+
+Every exported function should have unit or database coverage before merge.
+
+## Naming note
+
+Task/directory/npm script stay **`buildDownloadFolders`**. DB columns stay **`downloadFolder`** / **`downloadFolderBuiltAt`**. Processor/file symbols use **`Folder`** (not `DownloadFolder`) where they denote the generic bundle concept.

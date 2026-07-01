@@ -1,0 +1,54 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: S3 bucket for page download ZIP bundles and CloudFront policy
+
+Resources:
+  PageZipBucket:
+    Type: 'AWS::S3::Bucket'
+    Properties:
+      BucketName:
+        'Fn::Sub': '${devEnvironment}-page-zip-bucket'
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        BlockPublicPolicy: true
+        IgnorePublicAcls: true
+        RestrictPublicBuckets: true
+  PageZipBucketCloudFrontPolicy:
+    Type: 'AWS::S3::BucketPolicy'
+    Condition: HasCloudFrontDistribution
+    Properties:
+      Bucket:
+        Ref: PageZipBucket
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Sid: AllowCloudFrontOACGetObject
+            Effect: Allow
+            Principal:
+              Service: cloudfront.amazonaws.com
+            Action: 's3:GetObject'
+            Resource:
+              'Fn::Sub': '${PageZipBucket.Arn}/*'
+            Condition:
+              StringEquals:
+                'AWS:SourceArn':
+                  Ref: CloudFrontDistributionArn
+          - Sid: AllowCloudFrontOACListBucket
+            Effect: Allow
+            Principal:
+              Service: cloudfront.amazonaws.com
+            Action: 's3:ListBucket'
+            Resource:
+              'Fn::GetAtt': PageZipBucket.Arn
+            Condition:
+              StringEquals:
+                'AWS:SourceArn':
+                  Ref: CloudFrontDistributionArn
+Outputs:
+  PageZipBucketName:
+    Description: 'S3 bucket for page download ZIP bundles; pass to API stack for CloudFront'
+    Value:
+      Ref: PageZipBucket
+  PageZipBucketArn:
+    Description: ARN of the page zip S3 bucket
+    Value:
+      'Fn::GetAtt': PageZipBucket.Arn

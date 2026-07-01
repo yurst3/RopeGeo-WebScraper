@@ -50,6 +50,26 @@ Resources:
             Resource:
               - 'Fn::Sub': '${MapDataBucket.Arn}/geojson/*'
               - 'Fn::Sub': '${MapDataBucket.Arn}/source/*'
+              - 'Fn::Sub': '${MapDataBucket.Arn}/tiles/*'
+  S3PageZipBucketPolicy:
+    Type: 'AWS::IAM::ManagedPolicy'
+    Properties:
+      ManagedPolicyName:
+        'Fn::Sub': '${AWS::StackName}-s3-pagezip-readwrite'
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Action: 's3:ListBucket'
+            Resource:
+              'Fn::GetAtt': PageZipBucket.Arn
+          - Effect: Allow
+            Action:
+              - 's3:GetObject'
+              - 's3:PutObject'
+              - 's3:PutObjectAcl'
+            Resource:
+              'Fn::Sub': '${PageZipBucket.Arn}/*'
   SQSRopewikiPageProcessingQueuePolicy:
     Type: 'AWS::IAM::ManagedPolicy'
     Properties:

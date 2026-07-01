@@ -69,7 +69,7 @@ const processPage = async (
 
         // Release the savepoint on success
         await poolClient.query(`RELEASE SAVEPOINT ${savepointName}`);
-        
+
         logger.logProgress(`${page.pageid} ${page.name}`);
     } catch (error) {
         // Rollback to the savepoint on error (this doesn't rollback the entire transaction)

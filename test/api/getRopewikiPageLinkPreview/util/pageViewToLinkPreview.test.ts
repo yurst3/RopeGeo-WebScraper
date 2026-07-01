@@ -38,7 +38,6 @@ function baseView(overrides: Partial<RopewikiPageView> = {}): RopewikiPageView {
         bannerImage: null,
         betaSections: [],
         miniMap: null,
-        mapDataId: null,
         ...overrides,
     } as RopewikiPageView;
 }

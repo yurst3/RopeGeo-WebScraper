@@ -86,6 +86,11 @@ PagePreview:
       format: uri
       nullable: true
       description: External link to the page (e.g. Ropewiki page URL)
+    downloadFolder:
+      type: string
+      format: uri
+      nullable: true
+      description: Public HTTPS URL to a pre-built offline page ZIP bundle, or null when no bundle is available
     previewType:
       type: string
       description: Discriminator for the preview type; always "page" for PagePreview
