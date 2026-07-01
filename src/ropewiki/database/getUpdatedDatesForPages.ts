@@ -2,27 +2,26 @@ import * as db from 'zapatos/db';
 
 const getUpdatedDatesForPages = async (
     conn: db.Queryable,
-    pageIds: string[],
-): Promise<{ [pageId: string]: Date | null }> => {
-    if (pageIds.length === 0) return {};
+    externalPageIds: string[],
+): Promise<{ [externalPageId: string]: Date | null }> => {
+    if (externalPageIds.length === 0) return {};
 
-    const rows: db.JSONOnlyColsForTable<"RopewikiPage", ("updatedAt" | "pageId")[]>[] = await db.select(
+    const rows: db.JSONOnlyColsForTable<"RopewikiPage", ("updatedAt" | "externalPageId")[]>[] = await db.select(
         'RopewikiPage',
-        { pageId: db.conditions.isIn(pageIds) },
-        { columns: ['pageId', 'updatedAt'] }
+        { externalPageId: db.conditions.isIn(externalPageIds) },
+        { columns: ['externalPageId', 'updatedAt'] }
     ).run(conn);
 
-    const foundPages: { [pageId: string]: Date | null } = Object.fromEntries(rows.map(row => [
-        row.pageId as string,
+    const foundPages: { [externalPageId: string]: Date | null } = Object.fromEntries(rows.map(row => [
+        row.externalPageId as string,
         new Date(row.updatedAt)
     ]));
 
-    pageIds.forEach(pageId => {
-        if (!foundPages[pageId]) foundPages[pageId] = null;
+    externalPageIds.forEach(externalPageId => {
+        if (!foundPages[externalPageId]) foundPages[externalPageId] = null;
     });
 
     return foundPages;
 };
 
 export default getUpdatedDatesForPages;
-

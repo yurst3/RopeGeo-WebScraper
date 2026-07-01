@@ -58,7 +58,7 @@ describe('getRopewikiImageBundleRows (database)', () => {
         await db
             .insert('RopewikiPage', {
                 id: pageId,
-                pageId: 'image-bundle-page',
+                externalPageId: 'image-bundle-page',
                 name: 'Image Bundle Page',
                 region: regionId,
                 url: 'https://ropewiki.com/Image_Bundle_Page',

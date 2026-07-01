@@ -67,7 +67,7 @@ describe('sendProcessPageSQSMessage', () => {
         const bodyArg = sendSQSMessage.mock.calls[0]![0];
         expect(() => JSON.parse(bodyArg)).not.toThrow();
         const parsed = JSON.parse(bodyArg);
-        expect(parsed.pageid).toBe('12345');
+        expect(parsed.externalPageId).toBe('12345');
         expect(parsed.name).toBe('Test Page');
         expect(parsed.id).toBe('page-uuid-456');
     });

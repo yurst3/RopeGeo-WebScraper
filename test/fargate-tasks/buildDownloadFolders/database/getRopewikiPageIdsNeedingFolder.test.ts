@@ -47,7 +47,7 @@ describe('getRopewikiPageIdsNeedingFolder (database)', () => {
         await db
             .insert('RopewikiPage', {
                 id: needingPageId,
-                pageId: 'needing-folder-page',
+                externalPageId: 'needing-folder-page',
                 name: 'Needing Folder Page',
                 region: regionId,
                 url: 'https://ropewiki.com/Needing_Folder_Page',
@@ -59,7 +59,7 @@ describe('getRopewikiPageIdsNeedingFolder (database)', () => {
         await db
             .insert('RopewikiPage', {
                 id: builtPageId,
-                pageId: 'built-folder-page',
+                externalPageId: 'built-folder-page',
                 name: 'Built Folder Page',
                 region: regionId,
                 url: 'https://ropewiki.com/Built_Folder_Page',
@@ -72,7 +72,7 @@ describe('getRopewikiPageIdsNeedingFolder (database)', () => {
         await db
             .insert('RopewikiPage', {
                 id: deletedPageId,
-                pageId: 'deleted-folder-page',
+                externalPageId: 'deleted-folder-page',
                 name: 'Deleted Folder Page',
                 region: regionId,
                 url: 'https://ropewiki.com/Deleted_Folder_Page',

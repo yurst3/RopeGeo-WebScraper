@@ -42,7 +42,7 @@ describe('processPageHandler', () => {
     const createPageData = (pageid: string, name: string) => {
         return JSON.stringify({
             id: 'page-uuid-1',
-            pageid,
+            externalPageId: pageid,
             name,
             region: 'region-uuid',
             url: `https://ropewiki.com/${name}`,

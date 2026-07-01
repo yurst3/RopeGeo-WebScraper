@@ -59,7 +59,7 @@ describe('countUnprocessedRopewikiImagesForPage (database)', () => {
         await db
             .insert('RopewikiPage', {
                 id: pageId,
-                pageId: 'unprocessed-images-page',
+                externalPageId: 'unprocessed-images-page',
                 name: 'Unprocessed Images Page',
                 region: regionId,
                 url: 'https://ropewiki.com/Unprocessed_Images_Page',

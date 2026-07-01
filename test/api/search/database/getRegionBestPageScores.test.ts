@@ -49,7 +49,7 @@ describe('getRegionBestPageScores (integration)', () => {
         await db
             .insert('RopewikiPage', {
                 id: pageInParentId,
-                pageId: 'score-parent-1',
+                externalPageId: 'score-parent-1',
                 name: 'Page In Parent',
                 region: parentRegionId,
                 url: 'https://ropewiki.com/Page_In_Parent',
@@ -62,7 +62,7 @@ describe('getRegionBestPageScores (integration)', () => {
         await db
             .insert('RopewikiPage', {
                 id: pageInChildId,
-                pageId: 'score-child-1',
+                externalPageId: 'score-child-1',
                 name: 'Page In Child',
                 region: childRegionId,
                 url: 'https://ropewiki.com/Page_In_Child',
@@ -148,7 +148,7 @@ describe('getRegionBestPageScores (integration)', () => {
         await db
             .insert('RopewikiPage', {
                 id: pageId,
-                pageId: 'score-null-votes-1',
+                externalPageId: 'score-null-votes-1',
                 name: 'Page With Null Votes',
                 region: regionId,
                 url: 'https://ropewiki.com/Page_With_Null_Votes',
@@ -222,7 +222,7 @@ describe('getRegionBestPageScores (integration)', () => {
         await db
             .insert('RopewikiPage', {
                 id: pageInGrandparentId,
-                pageId: 'score-gp-1',
+                externalPageId: 'score-gp-1',
                 name: 'Page In Grandparent',
                 region: grandparentId,
                 url: 'https://ropewiki.com/Page_In_Grandparent',
@@ -235,7 +235,7 @@ describe('getRegionBestPageScores (integration)', () => {
         await db
             .insert('RopewikiPage', {
                 id: pageInParentId,
-                pageId: 'score-mid-1',
+                externalPageId: 'score-mid-1',
                 name: 'Page In Parent',
                 region: parentId,
                 url: 'https://ropewiki.com/Page_In_Mid',
@@ -248,7 +248,7 @@ describe('getRegionBestPageScores (integration)', () => {
         await db
             .insert('RopewikiPage', {
                 id: pageInChildId,
-                pageId: 'score-deep-1',
+                externalPageId: 'score-deep-1',
                 name: 'Page In Deep Child',
                 region: childId,
                 url: 'https://ropewiki.com/Page_In_Deep',

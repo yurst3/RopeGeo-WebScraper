@@ -34,7 +34,7 @@ const processPage = async (
     const poolClient = client as PoolClient;
 
     // HTTP errors will propagate up the stack (not caught here). httpRequest has its own timeout.
-    const pageHTML: string = await getRopewikiPageHtml(page.pageid);
+    const pageHTML: string = await getRopewikiPageHtml(page.externalPageId);
 
     // Create a savepoint
     await poolClient.query(`SAVEPOINT ${savepointName}`);
@@ -42,7 +42,7 @@ const processPage = async (
     try {
         // Upsert beta sections and images, overriding the deletedAt date if any were set
         if (!page.id) {
-            throw new Error(`Page must have an id to process: ${page.pageid}`);
+            throw new Error(`Page must have an id to process: ${page.externalPageId}`);
         }
 
         // Parse the page into its beta sections and images (parseRopewikiPage uses timeoutAfter internally)
@@ -70,12 +70,12 @@ const processPage = async (
         // Release the savepoint on success
         await poolClient.query(`RELEASE SAVEPOINT ${savepointName}`);
 
-        logger.logProgress(`${page.pageid} ${page.name}`);
+        logger.logProgress(`${page.externalPageId} ${page.name}`);
     } catch (error) {
         // Rollback to the savepoint on error (this doesn't rollback the entire transaction)
         await poolClient.query(`ROLLBACK TO SAVEPOINT ${savepointName}`);
         const errorMessage = error instanceof Error ? error.message : String(error);
-        logger.logError(`Error processing page ${page.pageid} ${page.name}, rolled back to savepoint: ${errorMessage}`);
+        logger.logError(`Error processing page ${page.externalPageId} ${page.name}, rolled back to savepoint: ${errorMessage}`);
     }
 };
 

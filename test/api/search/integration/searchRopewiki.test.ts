@@ -64,7 +64,7 @@ describe('searchRopewiki (integration)', () => {
         await db
             .insert('RopewikiPage', {
                 id: pageId,
-                pageId: 'search-test-1',
+                externalPageId: 'search-test-1',
                 name: 'SearchTestPageImlay',
                 region: childRegionId,
                 url: 'https://ropewiki.com/SearchTestPageImlay',
@@ -78,7 +78,7 @@ describe('searchRopewiki (integration)', () => {
         await db
             .insert('RopewikiPage', {
                 id: pageInParentId,
-                pageId: 'search-test-2',
+                externalPageId: 'search-test-2',
                 name: 'SearchTestParentPage',
                 region: parentRegionId,
                 url: 'https://ropewiki.com/SearchTestParentPage',
@@ -92,7 +92,7 @@ describe('searchRopewiki (integration)', () => {
         await db
             .insert('RopewikiPage', {
                 id: pageAkaOnlyId,
-                pageId: 'search-test-aka',
+                externalPageId: 'search-test-aka',
                 name: 'ZzzQqxUnrelatedName',
                 region: childRegionId,
                 url: 'https://ropewiki.com/SearchTestAkaOnly',

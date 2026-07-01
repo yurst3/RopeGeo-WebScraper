@@ -13,11 +13,11 @@ async function updateLengthsForPages(pages: RopewikiPage[]): Promise<void> {
     const pagesNeedingLengthUpdates = pages.filter((p) => p.needsLengthUpdates());
     if (pagesNeedingLengthUpdates.length === 0) return;
 
-    const pageids = pagesNeedingLengthUpdates.map((p) => p.pageid);
+    const pageids = pagesNeedingLengthUpdates.map((p) => p.externalPageId);
     const lengthMap = await getLengthAndElevGains(pageids);
 
     for (const page of pages) {
-        const data = lengthMap[page.pageid];
+        const data = lengthMap[page.externalPageId];
         if (data) page.setLengthsAndElevGains(data);
     }
 }

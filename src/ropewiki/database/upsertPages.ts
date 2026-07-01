@@ -8,7 +8,7 @@ import { makeUnnestPart } from '../../helpers/makeUnnestPart';
 const UPSERT_PAGE_CHUNK_SIZE = 100;
 
 // Insert or update RopewikiPages in batch using raw SQL.
-// ON CONFLICT (pageId) DO UPDATE SET ... WHERE allowUpdates = true.
+// ON CONFLICT (externalPageId) DO UPDATE SET ... WHERE allowUpdates = true.
 // Returns only pages that were actually inserted or updated (locked rows are not returned). Upsert aka names only for those pages.
 const upsertPages = async (
     tx: db.Queryable,
@@ -17,9 +17,9 @@ const upsertPages = async (
     if (pages.length === 0) return [];
 
     const rows = pages.map((p) => p.toDbRow());
-    const pageIds = pages.map((p) => p.pageid);
-    const updatedPageIds = new Set<string>();
-    const byPageId = new Map<string, s.RopewikiPage.JSONSelectable>();
+    const externalPageIds = pages.map((p) => p.externalPageId);
+    const updatedExternalPageIds = new Set<string>();
+    const byExternalPageId = new Map<string, s.RopewikiPage.JSONSelectable>();
 
     const columns = RopewikiPage.getDbInsertColumns();
 
@@ -29,7 +29,7 @@ const upsertPages = async (
         const returned = await db.sql<db.SQL, (s.RopewikiPage.JSONSelectable)[]>`
             INSERT INTO "RopewikiPage" ( ${db.cols(columns)} )
             SELECT * FROM unnest( ${unnestPart} ) AS t( ${db.cols(columns)} )
-            ON CONFLICT ("pageId") DO UPDATE SET
+            ON CONFLICT ("externalPageId") DO UPDATE SET
                 "name" = EXCLUDED."name",
                 "region" = EXCLUDED."region",
                 "url" = EXCLUDED."url",
@@ -72,24 +72,24 @@ const upsertPages = async (
         `.run(tx);
 
         for (const row of returned) {
-            byPageId.set(row.pageId, row);
-            updatedPageIds.add(row.pageId);
+            byExternalPageId.set(row.externalPageId, row);
+            updatedExternalPageIds.add(row.externalPageId);
         }
     }
 
     const results = pages
-        .filter((p) => byPageId.has(p.pageid))
+        .filter((p) => byExternalPageId.has(p.externalPageId))
         .map((p) => {
-            const row = byPageId.get(p.pageid)!;
+            const row = byExternalPageId.get(p.externalPageId)!;
             const page = RopewikiPage.fromDbRow(row);
             page.aka = p.aka;
             return page;
         });
 
     await Promise.all(
-        [...updatedPageIds].map((pageId) => {
-            const row = byPageId.get(pageId)!;
-            const page = pages[pageIds.indexOf(pageId)]!;
+        [...updatedExternalPageIds].map((externalPageId) => {
+            const row = byExternalPageId.get(externalPageId)!;
+            const page = pages[externalPageIds.indexOf(externalPageId)]!;
             return upsertAkaNames(tx, row.id, page.aka);
         }),
     );

@@ -20,7 +20,7 @@ describe('RopewikiPage', () => {
         const pageInfo = RopewikiPage.fromResponseBody(invalidRawData, regionNameIds);
 
         expect(pageInfo.isValid).toBe(false);
-        expect(pageInfo.pageid).toBe('');
+        expect(pageInfo.externalPageId).toBe('');
         expect(pageInfo.name).toBe('Invalid Page');
         expect(pageInfo.region).toBe('00000000-0000-0000-0000-000000000000'); // Default UUID when region is missing
         expect(pageInfo.url).toBe('');
@@ -40,7 +40,7 @@ describe('RopewikiPage', () => {
         const pageInfo = RopewikiPage.fromResponseBody(invalidRawData, regionNameIds);
 
         expect(pageInfo.isValid).toBe(false);
-        expect(pageInfo.pageid).toBe('12345');
+        expect(pageInfo.externalPageId).toBe('12345');
         expect(pageInfo.name).toBe('');
     });
 
@@ -110,7 +110,7 @@ describe('RopewikiPage', () => {
         const pageInfo = RopewikiPage.fromResponseBody(validRawData, regionNameIds);
 
         expect(pageInfo.isValid).toBe(true);
-        expect(pageInfo.pageid).toBe('12345');
+        expect(pageInfo.externalPageId).toBe('12345');
         expect(pageInfo.name).toBe('Test Page');
         expect(pageInfo.region).toBe(testRegionId); // Region is now the ID, not the name
         expect(pageInfo.url).toBe('https://ropewiki.com/test');
@@ -374,7 +374,7 @@ describe('RopewikiPage', () => {
             const pageInfo = RopewikiPage.fromResponseBody(rawData, regionNameIds);
             const dbRow = pageInfo.toDbRow();
 
-            expect(dbRow.pageId).toBe('12345');
+            expect(dbRow.externalPageId).toBe('12345');
             expect(dbRow.name).toBe('Test Page');
             expect(dbRow.region).toBe(testRegionId);
             expect(dbRow.url).toBe('https://ropewiki.com/test');

@@ -58,7 +58,7 @@ describe('getUpdatedDatesForPages (integration)', () => {
             .insert('RopewikiPage', [
                 {
                     id: '11111111-1111-1111-1111-111111111111',
-                    pageId: pageId1,
+                    externalPageId: pageId1,
                     name: 'Page 1',
                     region: testRegionId,
                     url: 'https://example.com/page1',
@@ -66,7 +66,7 @@ describe('getUpdatedDatesForPages (integration)', () => {
                 },
                 {
                     id: '22222222-2222-2222-2222-222222222222',
-                    pageId: pageId2,
+                    externalPageId: pageId2,
                     name: 'Page 2',
                     region: testRegionId,
                     url: 'https://example.com/page2',
@@ -74,7 +74,7 @@ describe('getUpdatedDatesForPages (integration)', () => {
                 },
                 {
                     id: '33333333-3333-3333-3333-333333333333',
-                    pageId: pageId3,
+                    externalPageId: pageId3,
                     name: 'Page 3',
                     region: testRegionId,
                     url: 'https://example.com/page3',
@@ -125,7 +125,7 @@ describe('getUpdatedDatesForPages (integration)', () => {
         await db
             .insert('RopewikiPage', {
                 id: '44444444-4444-4444-4444-444444444444',
-                pageId: foundPageId,
+                externalPageId: foundPageId,
                 name: 'Found Page',
                 region: testRegionId,
                 url: 'https://example.com/found',

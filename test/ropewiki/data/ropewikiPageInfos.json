@@ -1,6 +1,6 @@
 [
     {
-        "pageid": "59104",
+        "externalPageId": "59104",
         "name": "...must be on dope",
         "coordinates": {
             "lat": 37.623,
@@ -20,7 +20,7 @@
         "isValid": true
     },
     {
-        "pageid": "25739",
+        "externalPageId": "25739",
         "name": "12 Mile Delta",
         "coordinates": {
             "lat": -45.0684,
@@ -57,7 +57,7 @@
         "isValid": true
     },
     {
-        "pageid": "784",
+        "externalPageId": "784",
         "name": "12.2-Mile Wash",
         "coordinates": {
             "lat": 36.7202,
@@ -105,7 +105,7 @@
         "isValid": true
     },
     {
-        "pageid": "13957",
+        "externalPageId": "13957",
         "name": "14 Juillet",
         "coordinates": {
             "lat": 43.1774,
@@ -148,7 +148,7 @@
         "isValid": true
     },
     {
-        "pageid": "100979",
+        "externalPageId": "100979",
         "name": "140 Mile",
         "coordinates": {
             "lat": 36.3671,
@@ -173,7 +173,7 @@
         "isValid": true
     },
     {
-        "pageid": "791",
+        "externalPageId": "791",
         "name": "150 Mile Canyon",
         "coordinates": {
             "lat": 36.3784,
@@ -224,7 +224,7 @@
         "isValid": true
     },
     {
-        "pageid": "11460",
+        "externalPageId": "11460",
         "name": "1601 SE Canyon",
         "coordinates": {
             "lat": -44.4866,
@@ -244,7 +244,7 @@
         "isValid": true
     },
     {
-        "pageid": "779",
+        "externalPageId": "779",
         "name": "2.8-Mile Wash",
         "coordinates": {
             "lat": 36.8442,
@@ -299,7 +299,7 @@
         "isValid": true
     },
     {
-        "pageid": "40726",
+        "externalPageId": "40726",
         "name": "20000 Steps",
         "coordinates": {
             "lat": 35.7884,
@@ -355,7 +355,7 @@
         "isValid": true
     },
     {
-        "pageid": "792",
+        "externalPageId": "792",
         "name": "209 Mile Canyon",
         "coordinates": {
             "lat": 35.9597,
@@ -383,7 +383,7 @@
         "isValid": true
     },
     {
-        "pageid": "785",
+        "externalPageId": "785",
         "name": "22-Mile Wash",
         "coordinates": {
             "lat": 36.6154,
@@ -403,7 +403,7 @@
         "isValid": true
     },
     {
-        "pageid": "11461",
+        "externalPageId": "11461",
         "name": "25 Mile Creek",
         "coordinates": {
             "lat": -44.6379,
@@ -423,7 +423,7 @@
         "isValid": true
     },
     {
-        "pageid": "737",
+        "externalPageId": "737",
         "name": "25 Mile Wash",
         "coordinates": {
             "lat": 37.5578,
@@ -442,7 +442,7 @@
         "isValid": true
     },
     {
-        "pageid": "51217",
+        "externalPageId": "51217",
         "name": "28 Canyon",
         "coordinates": {
             "lat": 9.9597,
@@ -480,7 +480,7 @@
         "isValid": true
     },
     {
-        "pageid": "13958",
+        "externalPageId": "13958",
         "name": "3 Fontaines",
         "coordinates": {
             "lat": 45.3258,
@@ -541,7 +541,7 @@
         "isValid": true
     },
     {
-        "pageid": "780",
+        "externalPageId": "780",
         "name": "3.7-Mile Wash",
         "coordinates": {
             "lat": 36.8298,
@@ -589,7 +589,7 @@
         "isValid": true
     },
     {
-        "pageid": "786",
+        "externalPageId": "786",
         "name": "35 Mile Wash",
         "coordinates": {
             "lat": 36.4665,
@@ -636,7 +636,7 @@
         "isValid": true
     },
     {
-        "pageid": "787",
+        "externalPageId": "787",
         "name": "36 Mile Canyon",
         "coordinates": {
             "lat": 36.4515,
@@ -683,7 +683,7 @@
         "isValid": true
     },
     {
-        "pageid": "788",
+        "externalPageId": "788",
         "name": "36.7 Mile Canyon",
         "coordinates": {
             "lat": 36.4516,
@@ -730,7 +730,7 @@
         "isValid": true
     },
     {
-        "pageid": "781",
+        "externalPageId": "781",
         "name": "4.4-Mile Wash",
         "coordinates": {
             "lat": 36.8221,

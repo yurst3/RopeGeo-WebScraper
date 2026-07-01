@@ -1957,6 +1957,12 @@ declare module 'zapatos/schema' {
       */
       exitLength: db.NumericString | null;
       /**
+      * **RopewikiPage.externalPageId**
+      * - `text` in database
+      * - `NOT NULL`, no default
+      */
+      externalPageId: string;
+      /**
       * **RopewikiPage.id**
       * - `uuid` in database
       * - `NOT NULL`, default: `gen_random_uuid()`
@@ -2040,12 +2046,6 @@ declare module 'zapatos/schema' {
       * - Nullable, no default
       */
       overallLength: db.NumericString | null;
-      /**
-      * **RopewikiPage.pageId**
-      * - `text` in database
-      * - `NOT NULL`, no default
-      */
-      pageId: string;
       /**
       * **RopewikiPage.permits**
       * - `text` in database
@@ -2217,6 +2217,12 @@ declare module 'zapatos/schema' {
       */
       exitLength: number | null;
       /**
+      * **RopewikiPage.externalPageId**
+      * - `text` in database
+      * - `NOT NULL`, no default
+      */
+      externalPageId: string;
+      /**
       * **RopewikiPage.id**
       * - `uuid` in database
       * - `NOT NULL`, default: `gen_random_uuid()`
@@ -2300,12 +2306,6 @@ declare module 'zapatos/schema' {
       * - Nullable, no default
       */
       overallLength: number | null;
-      /**
-      * **RopewikiPage.pageId**
-      * - `text` in database
-      * - `NOT NULL`, no default
-      */
-      pageId: string;
       /**
       * **RopewikiPage.permits**
       * - `text` in database
@@ -2477,6 +2477,12 @@ declare module 'zapatos/schema' {
       */
       exitLength?: (number | db.NumericString) | db.Parameter<(number | db.NumericString)> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, (number | db.NumericString) | db.Parameter<(number | db.NumericString)> | db.SQLFragment | db.ParentColumn>;
       /**
+      * **RopewikiPage.externalPageId**
+      * - `text` in database
+      * - `NOT NULL`, no default
+      */
+      externalPageId?: string | db.Parameter<string> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, string | db.Parameter<string> | db.SQLFragment | db.ParentColumn>;
+      /**
       * **RopewikiPage.id**
       * - `uuid` in database
       * - `NOT NULL`, default: `gen_random_uuid()`
@@ -2560,12 +2566,6 @@ declare module 'zapatos/schema' {
       * - Nullable, no default
       */
       overallLength?: (number | db.NumericString) | db.Parameter<(number | db.NumericString)> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, (number | db.NumericString) | db.Parameter<(number | db.NumericString)> | db.SQLFragment | db.ParentColumn>;
-      /**
-      * **RopewikiPage.pageId**
-      * - `text` in database
-      * - `NOT NULL`, no default
-      */
-      pageId?: string | db.Parameter<string> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, string | db.Parameter<string> | db.SQLFragment | db.ParentColumn>;
       /**
       * **RopewikiPage.permits**
       * - `text` in database
@@ -2737,6 +2737,12 @@ declare module 'zapatos/schema' {
       */
       exitLength?: (number | db.NumericString) | db.Parameter<(number | db.NumericString)> | null | db.DefaultType | db.SQLFragment;
       /**
+      * **RopewikiPage.externalPageId**
+      * - `text` in database
+      * - `NOT NULL`, no default
+      */
+      externalPageId: string | db.Parameter<string> | db.SQLFragment;
+      /**
       * **RopewikiPage.id**
       * - `uuid` in database
       * - `NOT NULL`, default: `gen_random_uuid()`
@@ -2820,12 +2826,6 @@ declare module 'zapatos/schema' {
       * - Nullable, no default
       */
       overallLength?: (number | db.NumericString) | db.Parameter<(number | db.NumericString)> | null | db.DefaultType | db.SQLFragment;
-      /**
-      * **RopewikiPage.pageId**
-      * - `text` in database
-      * - `NOT NULL`, no default
-      */
-      pageId: string | db.Parameter<string> | db.SQLFragment;
       /**
       * **RopewikiPage.permits**
       * - `text` in database
@@ -2997,6 +2997,12 @@ declare module 'zapatos/schema' {
       */
       exitLength?: (number | db.NumericString) | db.Parameter<(number | db.NumericString)> | null | db.DefaultType | db.SQLFragment | db.SQLFragment<any, (number | db.NumericString) | db.Parameter<(number | db.NumericString)> | null | db.DefaultType | db.SQLFragment>;
       /**
+      * **RopewikiPage.externalPageId**
+      * - `text` in database
+      * - `NOT NULL`, no default
+      */
+      externalPageId?: string | db.Parameter<string> | db.SQLFragment | db.SQLFragment<any, string | db.Parameter<string> | db.SQLFragment>;
+      /**
       * **RopewikiPage.id**
       * - `uuid` in database
       * - `NOT NULL`, default: `gen_random_uuid()`
@@ -3080,12 +3086,6 @@ declare module 'zapatos/schema' {
       * - Nullable, no default
       */
       overallLength?: (number | db.NumericString) | db.Parameter<(number | db.NumericString)> | null | db.DefaultType | db.SQLFragment | db.SQLFragment<any, (number | db.NumericString) | db.Parameter<(number | db.NumericString)> | null | db.DefaultType | db.SQLFragment>;
-      /**
-      * **RopewikiPage.pageId**
-      * - `text` in database
-      * - `NOT NULL`, no default
-      */
-      pageId?: string | db.Parameter<string> | db.SQLFragment | db.SQLFragment<any, string | db.Parameter<string> | db.SQLFragment>;
       /**
       * **RopewikiPage.permits**
       * - `text` in database
@@ -3183,7 +3183,7 @@ declare module 'zapatos/schema' {
       */
       waterRating?: string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment | db.SQLFragment<any, string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment>;
     }
-    export type UniqueIndex = 'RopewikiPage_pkey' | 'uk_ropewikiPage_pageId';
+    export type UniqueIndex = 'RopewikiPage_pkey' | 'uk_ropewikiPage_externalPageId';
     export type Column = keyof Selectable;
     export type OnlyCols<T extends readonly Column[]> = Pick<Selectable, T[number]>;
     export type SQLExpression = Table | db.ColumnNames<Updatable | (keyof Updatable)[]> | db.ColumnValues<Updatable> | Whereable | Column | db.ParentColumn | db.GenericSQLExpression;

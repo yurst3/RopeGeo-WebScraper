@@ -68,7 +68,7 @@ describe('getRopewikiImagesToProcess (integration)', () => {
         await db
             .insert('RopewikiPage', {
                 id: testPageId,
-                pageId: 'get-images-to-process-page-1',
+                externalPageId: 'get-images-to-process-page-1',
                 name: 'Get Images To Process Page',
                 region: testRegionId,
                 url: 'https://ropewiki.com/Get_Images_To_Process_Page',

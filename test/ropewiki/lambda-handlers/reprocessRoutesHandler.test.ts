@@ -50,7 +50,7 @@ describe('reprocessRoutesHandler', () => {
     });
 
     it('gets connection, fetches all pages, calls processRoutes with lambda hook, and returns 200', async () => {
-        const mockPages = [{ id: 'page-1', pageid: '1', name: 'Page 1' }] as unknown as RopewikiPage[];
+        const mockPages = [{ id: 'page-1', externalPageId: '1', name: 'Page 1' }] as unknown as RopewikiPage[];
         mockGetAllPages.mockResolvedValue(mockPages);
 
         const result = await reprocessRoutesHandler();

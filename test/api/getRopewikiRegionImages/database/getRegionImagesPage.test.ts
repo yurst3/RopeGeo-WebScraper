@@ -60,7 +60,7 @@ describe('getRegionImagesPage (integration)', () => {
         await db
             .insert('RopewikiPage', {
                 id: page1Id,
-                pageId: 'region-images-page-1',
+                externalPageId: 'region-images-page-1',
                 name: 'RegionImagesPage1',
                 region: regionId,
                 url: 'https://ropewiki.com/RegionImagesPage1',
@@ -72,7 +72,7 @@ describe('getRegionImagesPage (integration)', () => {
         await db
             .insert('RopewikiPage', {
                 id: page2Id,
-                pageId: 'region-images-page-2',
+                externalPageId: 'region-images-page-2',
                 name: 'RegionImagesPage2',
                 region: regionId,
                 url: 'https://ropewiki.com/RegionImagesPage2',
@@ -150,7 +150,7 @@ describe('getRegionImagesPage (integration)', () => {
         await db
             .insert('RopewikiPage', {
                 id: pageId,
-                pageId: 'region-images-limit-page',
+                externalPageId: 'region-images-limit-page',
                 name: 'RegionImagesLimitPage',
                 region: regionId,
                 url: 'https://ropewiki.com/RegionImagesLimitPage',
@@ -211,7 +211,7 @@ describe('getRegionImagesPage (integration)', () => {
         await db
             .insert('RopewikiPage', {
                 id: pageId,
-                pageId: 'region-images-null-page',
+                externalPageId: 'region-images-null-page',
                 name: 'RegionImagesNullPage',
                 region: regionId,
                 url: 'https://ropewiki.com/RegionImagesNullPage',

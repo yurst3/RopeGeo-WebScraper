@@ -1,4 +1,4 @@
-\restrict DmMZ7olDUEsDDAZ2hfjpLU4ZPRd7iA97VsxoJ6anf1J0cFzIeIEQrgTSLKma8wf
+\restrict Vl6ILNgs2f2dZ6ykVGh4mwzQKDkMwEnCXxhhmABVgspopwC8goTsVSH8hRFKu7X
 
 -- Dumped from database version 18.1 (Debian 18.1-1.pgdg13+2)
 -- Dumped by pg_dump version 18.1 (Homebrew)
@@ -139,7 +139,7 @@ CREATE TABLE public."RopewikiImage" (
 
 CREATE TABLE public."RopewikiPage" (
     id uuid DEFAULT gen_random_uuid() NOT NULL,
-    "pageId" text NOT NULL,
+    "externalPageId" text CONSTRAINT "RopewikiPage_pageId_not_null" NOT NULL,
     name text NOT NULL,
     region uuid NOT NULL,
     url text NOT NULL,
@@ -399,11 +399,11 @@ ALTER TABLE ONLY public."RopewikiPageSiteLink"
 
 
 --
--- Name: RopewikiPage uk_ropewikiPage_pageId; Type: CONSTRAINT; Schema: public; Owner: -
+-- Name: RopewikiPage uk_ropewikiPage_externalPageId; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
 ALTER TABLE ONLY public."RopewikiPage"
-    ADD CONSTRAINT "uk_ropewikiPage_pageId" UNIQUE ("pageId");
+    ADD CONSTRAINT "uk_ropewikiPage_externalPageId" UNIQUE ("externalPageId");
 
 
 --
@@ -446,17 +446,17 @@ CREATE INDEX "RopewikiAkaName_name_trgm" ON public."RopewikiAkaName" USING gin (
 
 
 --
+-- Name: RopewikiPage_externalPageId_index; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "RopewikiPage_externalPageId_index" ON public."RopewikiPage" USING btree ("externalPageId");
+
+
+--
 -- Name: RopewikiPage_name_trgm; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE INDEX "RopewikiPage_name_trgm" ON public."RopewikiPage" USING gin (name public.gin_trgm_ops);
-
-
---
--- Name: RopewikiPage_pageId_index; Type: INDEX; Schema: public; Owner: -
---
-
-CREATE INDEX "RopewikiPage_pageId_index" ON public."RopewikiPage" USING btree ("pageId");
 
 
 --
@@ -565,7 +565,7 @@ ALTER TABLE ONLY public."RopewikiRoute"
 -- PostgreSQL database dump complete
 --
 
-\unrestrict DmMZ7olDUEsDDAZ2hfjpLU4ZPRd7iA97VsxoJ6anf1J0cFzIeIEQrgTSLKma8wf
+\unrestrict Vl6ILNgs2f2dZ6ykVGh4mwzQKDkMwEnCXxhhmABVgspopwC8goTsVSH8hRFKu7X
 
 
 --
@@ -611,4 +611,5 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20260329120000'),
     ('20260430103000'),
     ('20260529120000'),
-    ('20260624120000');
+    ('20260624120000'),
+    ('20260624130000');

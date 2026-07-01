@@ -26,7 +26,7 @@ async function processUpdatedPages(
     parsedPages: RopewikiPage[],
 ): Promise<void> {
     const validPagesToParse = upsertedPages.filter(upsertPage => {
-        const updatedDate = pageUpdateDates[upsertPage.pageid];
+        const updatedDate = pageUpdateDates[upsertPage.externalPageId];
 
         if (!updatedDate) return true; // Always parse and save when we don't have an updated date
         return updatedDate < upsertPage.latestRevisionDate; // Otherwise only parse if there has been a revision since the last update
@@ -99,7 +99,7 @@ export const getProcessPagesForRegionFn = (
                 await updateLengthsForPages(validPages);
 
                 // Get updated dates BEFORE we upsert the new pages
-                const pageUpdateDates: {[pageId: string]: Date | null} = await getUpdatedDatesForPages(conn, validPages.map(page => page.pageid));
+                const pageUpdateDates: {[pageId: string]: Date | null} = await getUpdatedDatesForPages(conn, validPages.map(page => page.externalPageId));
 
                 const upsertedPages = await upsertPages(client, validPages);
 

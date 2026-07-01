@@ -48,6 +48,6 @@ export const lambdaProcessPagesChunk: ProcessPagesChunkHookFn = async (
 
     for (const page of upsertedPages) {
         await sendProcessPageSQSMessage(page);
-        logger.logProgress(`Sent page ${page.pageid} ${page.name} to queue`);
+        logger.logProgress(`Sent page ${page.externalPageId} ${page.name} to queue`);
     }
 };

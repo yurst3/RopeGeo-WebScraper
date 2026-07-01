@@ -33,7 +33,7 @@ describe('getRopewikiPageForFolderReadiness (database)', () => {
         await db
             .insert('RopewikiPage', {
                 id: pageId,
-                pageId: 'folder-readiness-page',
+                externalPageId: 'folder-readiness-page',
                 name: 'Folder Readiness Page',
                 region: regionId,
                 url: 'https://ropewiki.com/Folder_Readiness_Page',

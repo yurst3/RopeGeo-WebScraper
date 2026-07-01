@@ -7,7 +7,7 @@ export { RopewikiImage } from './image';
 
 class RopewikiPage {
     id: string | undefined
-    pageid: string
+    externalPageId: string
     name: string
     coordinates: { lat: number, lon: number } | undefined
     region: string
@@ -48,7 +48,7 @@ class RopewikiPage {
     isValid: boolean
 
     constructor(
-        pageid: string,
+        externalPageId: string,
         name: string,
         region: string,
         url: string,
@@ -88,7 +88,7 @@ class RopewikiPage {
         userVotes?: number,
         id?: string,
     ) {
-        this.pageid = pageid;
+        this.externalPageId = externalPageId;
         this.name = name;
         this.region = region;
         this.url = url;
@@ -129,11 +129,11 @@ class RopewikiPage {
         this.id = id;
 
         // Calculate isValid based on required fields
-        // Must have: pageid, name, valid region (not default UUID), url, and valid latestRevisionDate (not epoch)
+        // Must have: externalPageId, name, valid region (not default UUID), url, and valid latestRevisionDate (not epoch)
         const defaultRegionId = '00000000-0000-0000-0000-000000000000';
         const hasValidRegion = region && region !== defaultRegionId;
         const hasValidRevisionDate = latestRevisionDate && latestRevisionDate.getTime() !== 0;
-        this.isValid = !!(pageid && name && hasValidRegion && url && hasValidRevisionDate);
+        this.isValid = !!(externalPageId && name && hasValidRegion && url && hasValidRevisionDate);
     }
 
     /**
@@ -309,7 +309,7 @@ class RopewikiPage {
     /** Column keys for batch INSERT in order; use with toDbRow() to build column arrays for unnest(). */
     static getDbInsertColumns(): readonly (keyof s.RopewikiPage.Insertable)[] {
         return [
-            'pageId', 'name', 'region', 'url', 'rating', 'timeRating', 'kmlUrl',
+            'externalPageId', 'name', 'region', 'url', 'rating', 'timeRating', 'kmlUrl',
             'technicalRating', 'waterRating', 'riskRating', 'permits', 'rappelInfo', 'rappelCount',
             'vehicle', 'quality', 'coordinates', 'rappelLongest', 'shuttleTime',
             'minOverallTime', 'maxOverallTime', 'overallLength', 'approachLength', 'approachElevGain',
@@ -334,7 +334,7 @@ class RopewikiPage {
     toDbRow(): s.RopewikiPage.Insertable {
         const now = new Date();
         return {
-            pageId: this.pageid,
+            externalPageId: this.externalPageId,
             name: this.name,
             region: this.region,
             url: this.url,
@@ -396,7 +396,7 @@ class RopewikiPage {
 
         // Create instance using constructor (betaSites no longer in DB; kept on class for use elsewhere)
         return new RopewikiPage(
-            row.pageId,
+            row.externalPageId,
             row.name,
             row.region,
             row.url,
@@ -442,8 +442,10 @@ class RopewikiPage {
         // Parse the body JSON string
         const pageData = JSON.parse(record.body) as { [key: string]: unknown };
 
-        if (!pageData || !pageData.pageid) {
-            throw new Error('Invalid SQS record body: missing page data or pageid');
+        const externalPageId = (pageData.externalPageId ?? pageData.pageid) as string | undefined;
+
+        if (!pageData || !externalPageId) {
+            throw new Error('Invalid SQS record body: missing page data or externalPageId');
         }
 
         // Parse JSON fields back to their original format
@@ -471,7 +473,7 @@ class RopewikiPage {
 
         // Create instance using constructor
         return new RopewikiPage(
-            pageData.pageid as string,
+            externalPageId,
             pageData.name as string,
             (pageData.region as string) || '',
             (pageData.url as string) || '',

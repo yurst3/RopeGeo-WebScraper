@@ -52,7 +52,7 @@ describe('getAllPages (integration)', () => {
             .insert('RopewikiPage', [
                 {
                     id: id1,
-                    pageId: 'page-1',
+                    externalPageId: 'page-1',
                     name: 'Page One',
                     region: testRegionId,
                     url: 'https://example.com/page1',
@@ -60,7 +60,7 @@ describe('getAllPages (integration)', () => {
                 },
                 {
                     id: id2,
-                    pageId: 'page-2',
+                    externalPageId: 'page-2',
                     name: 'Page Two',
                     region: testRegionId,
                     url: 'https://example.com/page2',
@@ -78,12 +78,12 @@ describe('getAllPages (integration)', () => {
         const page2 = result.find((p) => p.id === id2);
 
         expect(page1).toBeDefined();
-        expect(page1?.pageid).toBe('page-1');
+        expect(page1?.externalPageId).toBe('page-1');
         expect(page1?.name).toBe('Page One');
         expect(page1?.url).toBe('https://example.com/page1');
 
         expect(page2).toBeDefined();
-        expect(page2?.pageid).toBe('page-2');
+        expect(page2?.externalPageId).toBe('page-2');
         expect(page2?.name).toBe('Page Two');
     });
 
@@ -103,7 +103,7 @@ describe('getAllPages (integration)', () => {
             .insert('RopewikiPage', [
                 {
                     id: idActive,
-                    pageId: 'page-active',
+                    externalPageId: 'page-active',
                     name: 'Active Page',
                     region: testRegionId,
                     url: 'https://example.com/active',
@@ -112,7 +112,7 @@ describe('getAllPages (integration)', () => {
                 },
                 {
                     id: idDeleted,
-                    pageId: 'page-deleted',
+                    externalPageId: 'page-deleted',
                     name: 'Deleted Page',
                     region: testRegionId,
                     url: 'https://example.com/deleted',
@@ -126,7 +126,7 @@ describe('getAllPages (integration)', () => {
 
         expect(result).toHaveLength(1);
         expect(result[0]?.id).toBe(idActive);
-        expect(result[0]?.pageid).toBe('page-active');
+        expect(result[0]?.externalPageId).toBe('page-active');
     });
 
     it('propagates database errors', async () => {

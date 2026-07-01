@@ -46,7 +46,7 @@ describe('handleProcessPageSQSMessages', () => {
     const createPageData = (pageid: string, name: string) => {
         return JSON.stringify({
             id: 'page-uuid-1',
-            pageid,
+            externalPageId: pageid,
             name,
             region: 'region-uuid',
             url: `https://ropewiki.com/${name}`,
@@ -82,7 +82,7 @@ describe('handleProcessPageSQSMessages', () => {
         RopewikiPage.fromSQSEventRecord = jest.fn().mockImplementation((record: any) => {
             const pageData = JSON.parse(record.body);
             return {
-                pageid: pageData.pageid,
+                externalPageId: pageData.externalPageId,
                 name: pageData.name,
                 id: pageData.id,
             };
@@ -155,7 +155,7 @@ describe('handleProcessPageSQSMessages', () => {
             .mockImplementationOnce((record: any) => {
                 const pageData = JSON.parse(record.body);
                 return {
-                    pageid: pageData.pageid,
+                    externalPageId: pageData.externalPageId,
                     name: pageData.name,
                     id: pageData.id,
                 };

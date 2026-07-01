@@ -67,7 +67,7 @@ describe('getRopewikiRegionImages (integration)', () => {
         await db
             .insert('RopewikiPage', {
                 id: pageInParentId,
-                pageId: 'region-images-int-parent-page',
+                externalPageId: 'region-images-int-parent-page',
                 name: 'ParentPage',
                 region: parentRegionId,
                 url: 'https://ropewiki.com/ParentPage',
@@ -79,7 +79,7 @@ describe('getRopewikiRegionImages (integration)', () => {
         await db
             .insert('RopewikiPage', {
                 id: pageInChildId,
-                pageId: 'region-images-int-child-page',
+                externalPageId: 'region-images-int-child-page',
                 name: 'ChildPage',
                 region: childRegionId,
                 url: 'https://ropewiki.com/ChildPage',
@@ -250,7 +250,7 @@ describe('getRopewikiRegionImages (integration)', () => {
             await db
                 .insert('RopewikiPage', {
                     id: paginationPageId,
-                    pageId: 'region-images-pagination-page',
+                    externalPageId: 'region-images-pagination-page',
                     name: 'PaginationPage',
                     region: paginationRegionId,
                     url: 'https://ropewiki.com/PaginationPage',

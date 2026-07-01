@@ -41,7 +41,7 @@ describe('setBetaSectionsDeletedAt (integration)', () => {
         await db
             .insert('RopewikiPage', {
                 id: testPageUuid,
-                pageId: '9999',
+                externalPageId: '9999',
                 name: 'Test Page',
                 region: testRegionId,
                 url: 'https://ropewiki.com/Test_Page',
@@ -127,7 +127,7 @@ describe('setBetaSectionsDeletedAt (integration)', () => {
         await db
             .insert('RopewikiPage', {
                 id: testPageUuid2,
-                pageId: '8888',
+                externalPageId: '8888',
                 name: 'Test Page 2',
                 region: testRegionId,
                 url: 'https://ropewiki.com/Test_Page_2',

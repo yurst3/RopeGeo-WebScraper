@@ -78,7 +78,7 @@ describe('getRopewikiPageView (integration)', () => {
         await db
             .insert('RopewikiPage', {
                 id: pageId,
-                pageId: '728',
+                externalPageId: '728',
                 name: 'Bear Creek Canyon',
                 region: testRegionId,
                 url: 'https://ropewiki.com/Bear_Creek_Canyon',
@@ -141,7 +141,7 @@ describe('getRopewikiPageView (integration)', () => {
         await db
             .insert('RopewikiPage', {
                 id: pageId,
-                pageId: '800',
+                externalPageId: '800',
                 name: 'Geo Page',
                 region: testRegionId,
                 url: 'https://ropewiki.com/Geo_Page',
@@ -160,7 +160,7 @@ describe('getRopewikiPageView (integration)', () => {
         await db
             .insert('RopewikiPage', {
                 id: pageId,
-                pageId: '801',
+                externalPageId: '801',
                 name: 'Bad Coords Page',
                 region: testRegionId,
                 url: 'https://ropewiki.com/Bad',
@@ -188,7 +188,7 @@ describe('getRopewikiPageView (integration)', () => {
         await db
             .insert('RopewikiPage', {
                 id: pageId,
-                pageId: '999',
+                externalPageId: '999',
                 name: 'Deleted Page',
                 region: testRegionId,
                 url: 'https://ropewiki.com/Deleted',
@@ -207,7 +207,7 @@ describe('getRopewikiPageView (integration)', () => {
         await db
             .insert('RopewikiPage', {
                 id: pageId,
-                pageId: '100',
+                externalPageId: '100',
                 name: 'Page With Banner',
                 region: testRegionId,
                 url: 'https://ropewiki.com/Page_With_Banner',
@@ -255,7 +255,7 @@ describe('getRopewikiPageView (integration)', () => {
         await db
             .insert('RopewikiPage', {
                 id: pageId,
-                pageId: 'bytes-meta',
+                externalPageId: 'bytes-meta',
                 name: 'Page Bytes Meta',
                 region: testRegionId,
                 url: 'https://ropewiki.com/Page_Bytes_Meta',
@@ -333,7 +333,7 @@ describe('getRopewikiPageView (integration)', () => {
         await db
             .insert('RopewikiPage', {
                 id: pageId,
-                pageId: 'beta-img-filter',
+                externalPageId: 'beta-img-filter',
                 name: 'Page Beta Images',
                 region: testRegionId,
                 url: 'https://ropewiki.com/Page_Beta_Images',
@@ -414,7 +414,7 @@ describe('getRopewikiPageView (integration)', () => {
         await db
             .insert('RopewikiPage', {
                 id: pageId,
-                pageId: 'beta-only-null',
+                externalPageId: 'beta-only-null',
                 name: 'Page No Processed Beta Imgs',
                 region: testRegionId,
                 url: 'https://ropewiki.com/Page_No_Processed_Beta',
@@ -462,7 +462,7 @@ describe('getRopewikiPageView (integration)', () => {
         await db
             .insert('RopewikiPage', {
                 id: pageId,
-                pageId: 'beta-img-err',
+                externalPageId: 'beta-img-err',
                 name: 'Page Beta Image Error',
                 region: testRegionId,
                 url: 'https://ropewiki.com/Page_Beta_Err',
@@ -514,7 +514,7 @@ describe('getRopewikiPageView (integration)', () => {
         await db
             .insert('RopewikiPage', {
                 id: pageId,
-                pageId: '101',
+                externalPageId: '101',
                 name: 'Page With RappelInfo',
                 region: testRegionId,
                 url: 'https://ropewiki.com/Page_With_RappelInfo',
@@ -535,7 +535,7 @@ describe('getRopewikiPageView (integration)', () => {
         await db
             .insert('RopewikiPage', {
                 id: pageId,
-                pageId: '102',
+                externalPageId: '102',
                 name: 'Page Single Rappel',
                 region: testRegionId,
                 url: 'https://ropewiki.com/Page_Single_Rappel',
@@ -556,7 +556,7 @@ describe('getRopewikiPageView (integration)', () => {
         await db
             .insert('RopewikiPage', {
                 id: pageId,
-                pageId: '103',
+                externalPageId: '103',
                 name: 'Page Db RappelCount',
                 region: testRegionId,
                 url: 'https://ropewiki.com/Page_Db_RappelCount',
@@ -577,7 +577,7 @@ describe('getRopewikiPageView (integration)', () => {
         await db
             .insert('RopewikiPage', {
                 id: pageId,
-                pageId: '104',
+                externalPageId: '104',
                 name: 'Page With Lengths',
                 region: testRegionId,
                 url: 'https://ropewiki.com/Page_With_Lengths',
@@ -615,7 +615,7 @@ describe('getRopewikiPageView (integration)', () => {
         await db
             .insert('RopewikiPage', {
                 id: pageId,
-                pageId: 'tiles-page',
+                externalPageId: 'tiles-page',
                 name: 'Page With Tiles',
                 region: testRegionId,
                 url: 'https://ropewiki.com/Page_With_Tiles',
@@ -690,7 +690,7 @@ describe('getRopewikiPageView (integration)', () => {
         await db
             .insert('RopewikiPage', {
                 id: pageId,
-                pageId: 'no-tiles-page',
+                externalPageId: 'no-tiles-page',
                 name: 'Page No Tiles',
                 region: testRegionId,
                 url: 'https://ropewiki.com/Page_No_Tiles',
@@ -743,7 +743,7 @@ describe('getRopewikiPageView (integration)', () => {
         await db
             .insert('RopewikiPage', {
                 id: pageId,
-                pageId: '728',
+                externalPageId: '728',
                 name: 'Bear Creek Canyon',
                 region: testRegionId,
                 url: 'https://ropewiki.com/Bear_Creek_Canyon',
@@ -774,7 +774,7 @@ describe('getRopewikiPageView (integration)', () => {
         await db
             .insert('RopewikiPage', {
                 id: pageId,
-                pageId: 'page-no-bounds',
+                externalPageId: 'page-no-bounds',
                 name: 'Page No Bounds',
                 region: testRegionId,
                 url: 'https://ropewiki.com/Page_No_Bounds',

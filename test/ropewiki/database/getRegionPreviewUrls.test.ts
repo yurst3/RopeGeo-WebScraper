@@ -49,7 +49,7 @@ describe('getRegionPreviewUrls (integration)', () => {
         await db
             .insert('RopewikiPage', {
                 id: pageInParentId,
-                pageId: 'banner-parent-1',
+                externalPageId: 'banner-parent-1',
                 name: 'Page In Parent',
                 region: parentRegionId,
                 url: 'https://ropewiki.com/Page_In_Parent',
@@ -62,7 +62,7 @@ describe('getRegionPreviewUrls (integration)', () => {
         await db
             .insert('RopewikiPage', {
                 id: pageInChildId,
-                pageId: 'banner-child-1',
+                externalPageId: 'banner-child-1',
                 name: 'Page In Child',
                 region: childRegionId,
                 url: 'https://ropewiki.com/Page_In_Child',
@@ -138,7 +138,7 @@ describe('getRegionPreviewUrls (integration)', () => {
         await db
             .insert('RopewikiPage', {
                 id: pageId,
-                pageId: 'banner-order-1',
+                externalPageId: 'banner-order-1',
                 name: 'Page Order Test',
                 region: regionId,
                 url: 'https://ropewiki.com/Page_Order_Test',
@@ -262,7 +262,7 @@ describe('getRegionPreviewUrls (integration)', () => {
         await db
             .insert('RopewikiPage', {
                 id: pageInGrandparentId,
-                pageId: 'banner-gp-1',
+                externalPageId: 'banner-gp-1',
                 name: 'Page In Grandparent',
                 region: grandparentId,
                 url: 'https://ropewiki.com/Page_In_Grandparent',
@@ -275,7 +275,7 @@ describe('getRegionPreviewUrls (integration)', () => {
         await db
             .insert('RopewikiPage', {
                 id: pageInParentId,
-                pageId: 'banner-mid-1',
+                externalPageId: 'banner-mid-1',
                 name: 'Page In Parent',
                 region: parentId,
                 url: 'https://ropewiki.com/Page_In_Mid',
@@ -288,7 +288,7 @@ describe('getRegionPreviewUrls (integration)', () => {
         await db
             .insert('RopewikiPage', {
                 id: pageInChildId,
-                pageId: 'banner-deep-1',
+                externalPageId: 'banner-deep-1',
                 name: 'Page In Deep Child',
                 region: childId,
                 url: 'https://ropewiki.com/Page_In_Deep',

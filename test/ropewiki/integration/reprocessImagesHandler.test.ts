@@ -70,7 +70,7 @@ describe('reprocessImagesHandler (integration)', () => {
         await db
             .insert('RopewikiPage', {
                 id: pageId,
-                pageId: 'reprocess-int-page',
+                externalPageId: 'reprocess-int-page',
                 name: 'Reprocess Int Page',
                 region: regionId,
                 url: 'https://ropewiki.com/Reprocess_Int_Page',

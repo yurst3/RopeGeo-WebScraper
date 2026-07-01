@@ -70,7 +70,7 @@ describe('getBannerImageMetadataForPage (integration)', () => {
         await db
             .insert('RopewikiPage', {
                 id: pageId,
-                pageId: 'lp-1',
+                externalPageId: 'lp-1',
                 name: 'No Banner',
                 region: testRegionId,
                 url: 'https://ropewiki.com/No_Banner',
@@ -87,7 +87,7 @@ describe('getBannerImageMetadataForPage (integration)', () => {
         await db
             .insert('RopewikiPage', {
                 id: pageId,
-                pageId: 'lp-2',
+                externalPageId: 'lp-2',
                 name: 'Banner No Data',
                 region: testRegionId,
                 url: 'https://ropewiki.com/Banner_No_Data',
@@ -121,7 +121,7 @@ describe('getBannerImageMetadataForPage (integration)', () => {
         await db
             .insert('RopewikiPage', {
                 id: pageId,
-                pageId: 'lp-3',
+                externalPageId: 'lp-3',
                 name: 'Order Test',
                 region: testRegionId,
                 url: 'https://ropewiki.com/Order_Test',

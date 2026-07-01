@@ -77,16 +77,16 @@ describe('upsertPages (integration)', () => {
         expect(results).toHaveLength(1);
         const result = results[0]!;
         expect(result.id).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i);
-        expect(result.pageid).toBe('728');
+        expect(result.externalPageId).toBe('728');
         expect(result.name).toBe('Bear Creek Canyon');
         expect(result.latestRevisionDate).toEqual(latestRevisionDate);
 
-        const rows = await db.select('RopewikiPage', { pageId: '728' }).run(conn);
+        const rows = await db.select('RopewikiPage', { externalPageId: '728' }).run(conn);
         expect(rows).toHaveLength(1);
 
         const page = rows[0] as s.RopewikiPage.JSONSelectable;
         expect(page.id).toBe(result.id);
-        expect(page.pageId).toBe('728');
+        expect(page.externalPageId).toBe('728');
         expect(page.name).toBe('Bear Creek Canyon');
         expect(page.region).toBe(testRegionId);
         expect(page.url).toBe('https://ropewiki.com/Bear_Creek_Canyon');
@@ -187,7 +187,7 @@ describe('upsertPages (integration)', () => {
         expect(initialId).toMatch(/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i);
 
         // Verify the page was inserted with the expected ID
-        const initialRows = await db.select('RopewikiPage', { pageId: '5597' }).run(conn);
+        const initialRows = await db.select('RopewikiPage', { externalPageId: '5597' }).run(conn);
         expect(initialRows).toHaveLength(1);
         expect(initialRows[0]?.id).toBe(initialId);
 
@@ -212,12 +212,12 @@ describe('upsertPages (integration)', () => {
         const resultId = updatedResults[0]!.id;
         expect(resultId).toBe(initialId);
 
-        const rows = await db.select('RopewikiPage', { pageId: '5597' }).run(conn);
+        const rows = await db.select('RopewikiPage', { externalPageId: '5597' }).run(conn);
         expect(rows).toHaveLength(1);
 
         const page = rows[0] as s.RopewikiPage.JSONSelectable;
         expect(page.id).toBe(initialId);
-        expect(page.pageId).toBe('5597');
+        expect(page.externalPageId).toBe('5597');
         expect(page.name).toBe('Regions Updated');
         expect(page.url).toBe('https://ropewiki.com/Regions_Updated');
         expect(page.rating).toBe('4.0');
@@ -299,11 +299,11 @@ describe('upsertPages (integration)', () => {
         const countResult = await pool.query('SELECT COUNT(*)::int AS count FROM "RopewikiPage"');
         expect(countResult.rows[0]?.count).toBe(2000);
 
-        const first = await db.select('RopewikiPage', { pageId: '1' }).run(conn);
+        const first = await db.select('RopewikiPage', { externalPageId: '1' }).run(conn);
         expect(first).toHaveLength(1);
         expect((first[0] as s.RopewikiPage.JSONSelectable).name).toBe('Page 1');
 
-        const last = await db.select('RopewikiPage', { pageId: '2000' }).run(conn);
+        const last = await db.select('RopewikiPage', { externalPageId: '2000' }).run(conn);
         expect(last).toHaveLength(1);
         expect((last[0] as s.RopewikiPage.JSONSelectable).name).toBe('Page 2000');
     });

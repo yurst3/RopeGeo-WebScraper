@@ -94,7 +94,7 @@ describe('processPagesForRegion (integration)', () => {
         await db
             .insert('RopewikiPage', [
                 {
-                    pageId: '1001',
+                    externalPageId: '1001',
                     name: 'Page A',
                     region: testRegionId,
                     url: 'https://ropewiki.com/Page_A',
@@ -102,7 +102,7 @@ describe('processPagesForRegion (integration)', () => {
                     latestRevisionDate: pageARevision.toISOString() as db.TimestampString,
                 },
                 {
-                    pageId: '1002',
+                    externalPageId: '1002',
                     name: 'Page B',
                     region: testRegionId,
                     url: 'https://ropewiki.com/Page_B',
@@ -119,8 +119,8 @@ describe('processPagesForRegion (integration)', () => {
         const processPagesForRegion = getProcessPagesForRegionFn(pool, mockProcessPagesChunkHookFn, true);
         await processPagesForRegion(regionName, 1, regionNameIds);
 
-        const pageARows = await db.select('RopewikiPage', { pageId: '1001' }).run(conn);
-        const pageBRows = await db.select('RopewikiPage', { pageId: '1002' }).run(conn);
+        const pageARows = await db.select('RopewikiPage', { externalPageId: '1001' }).run(conn);
+        const pageBRows = await db.select('RopewikiPage', { externalPageId: '1002' }).run(conn);
 
         expect(pageARows).toHaveLength(1);
         expect(pageARows[0]?.deletedAt).not.toBeNull();
@@ -144,14 +144,14 @@ describe('processPagesForRegion (integration)', () => {
             .update(
                 'RopewikiPage',
                 { updatedAt: new Date('2025-01-01T00:00:00Z').toISOString() as db.TimestampString },
-                { pageId: '2002' }
+                { externalPageId: '2002' }
             )
             .run(conn);
         await db
             .update(
                 'RopewikiPage',
                 { updatedAt: new Date('2025-01-02T12:00:00Z').toISOString() as db.TimestampString },
-                { pageId: '2003' }
+                { externalPageId: '2003' }
             )
             .run(conn);
 
@@ -167,7 +167,7 @@ describe('processPagesForRegion (integration)', () => {
         expect(mockProcessPagesChunkHookFn).toHaveBeenCalledTimes(1);
         const [client, parsedPages] = mockProcessPagesChunkHookFn.mock.calls[0]!;
         expect(client).toBeDefined();
-        const pageIds = parsedPages.map((p: RopewikiPage) => p.pageid);
+        const pageIds = parsedPages.map((p: RopewikiPage) => p.externalPageId);
         expect(pageIds).toContain('2001');
         expect(pageIds).toContain('2002');
         expect(pageIds).not.toContain('2003');

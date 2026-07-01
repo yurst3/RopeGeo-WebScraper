@@ -77,7 +77,7 @@ describe('updateRegionTrueCounts (integration)', () => {
             .insert('RopewikiPage', [
                 {
                     id: parentPageId,
-                    pageId: 'p1',
+                    externalPageId: 'p1',
                     name: 'Parent Page',
                     region: parentRegionId,
                     url: 'https://ropewiki.com/Parent_Page',
@@ -86,7 +86,7 @@ describe('updateRegionTrueCounts (integration)', () => {
                 },
                 {
                     id: childPage1Id,
-                    pageId: 'p2',
+                    externalPageId: 'p2',
                     name: 'Child Page 1',
                     region: childRegionId,
                     url: 'https://ropewiki.com/Child_Page_1',
@@ -95,7 +95,7 @@ describe('updateRegionTrueCounts (integration)', () => {
                 },
                 {
                     id: childPage2Id,
-                    pageId: 'p3',
+                    externalPageId: 'p3',
                     name: 'Child Page 2',
                     region: childRegionId,
                     url: 'https://ropewiki.com/Child_Page_2',
@@ -131,7 +131,7 @@ describe('updateRegionTrueCounts (integration)', () => {
             .insert('RopewikiPage', [
                 {
                     id: parentPageId,
-                    pageId: 'p4',
+                    externalPageId: 'p4',
                     name: 'Parent Page 2',
                     region: parentRegionId,
                     url: 'https://ropewiki.com/Parent_Page_2',
@@ -140,7 +140,7 @@ describe('updateRegionTrueCounts (integration)', () => {
                 },
                 {
                     id: otherPageId,
-                    pageId: 'p5',
+                    externalPageId: 'p5',
                     name: 'Other Page',
                     region: otherRegionId,
                     url: 'https://ropewiki.com/Other_Page',
@@ -166,7 +166,7 @@ describe('updateRegionTrueCounts (integration)', () => {
         await db
             .insert('RopewikiPage', {
                 id: pageId,
-                pageId: 'p6',
+                externalPageId: 'p6',
                 name: 'Deleted Page',
                 region: parentRegionId,
                 url: 'https://ropewiki.com/Deleted_Page',

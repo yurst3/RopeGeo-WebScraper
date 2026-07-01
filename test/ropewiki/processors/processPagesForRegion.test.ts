@@ -163,8 +163,8 @@ describe('processPagesForRegion', () => {
         expect(mockProcessPagesChunkHookFn).toHaveBeenCalledWith(
             mockClient as unknown as PoolClient,
             expect.arrayContaining([
-                expect.objectContaining({ id: expect.any(String), pageid: '728', name: 'Page 1', latestRevisionDate: expect.any(Date) }),
-                expect.objectContaining({ id: expect.any(String), pageid: '5597', name: 'Page 2', latestRevisionDate: expect.any(Date) }),
+                expect.objectContaining({ id: expect.any(String), externalPageId: '728', name: 'Page 1', latestRevisionDate: expect.any(Date) }),
+                expect.objectContaining({ id: expect.any(String), externalPageId: '5597', name: 'Page 2', latestRevisionDate: expect.any(Date) }),
             ]),
             mockLoggerInstance
         );
@@ -182,8 +182,8 @@ describe('processPagesForRegion', () => {
             .mockResolvedValueOnce(chunk1Pages)
             .mockResolvedValueOnce(chunk2Pages);
 
-        const chunk1PageIds = chunk1Pages.map(p => p.pageid);
-        const chunk2PageIds = chunk2Pages.map(p => p.pageid);
+        const chunk1PageIds = chunk1Pages.map(p => p.externalPageId);
+        const chunk2PageIds = chunk2Pages.map(p => p.externalPageId);
 
         const chunk1UpdateDates = Object.fromEntries(chunk1PageIds.map(id => [id, null]));
         const chunk2UpdateDates = Object.fromEntries(chunk2PageIds.map(id => [id, null]));
@@ -197,14 +197,14 @@ describe('processPagesForRegion', () => {
             Promise.resolve(pages.map(pageInfo => {
                 const upserted = RopewikiPage.fromResponseBody({
                     printouts: {
-                        pageid: [pageInfo.pageid],
+                        pageid: [pageInfo.externalPageId],
                         name: [pageInfo.name],
                         region: [{ fulltext: regionName }],
                         url: [pageInfo.url],
                         latestRevisionDate: [{ timestamp: String(Math.floor(pageInfo.latestRevisionDate.getTime() / 1000)), raw: pageInfo.latestRevisionDate.toISOString() }],
                     },
                 }, regionNameIds);
-                upserted.id = `uuid-${pageInfo.pageid}`;
+                upserted.id = `uuid-${pageInfo.externalPageId}`;
                 return upserted;
             }))
         );
@@ -267,7 +267,7 @@ describe('processPagesForRegion', () => {
         expect(mockProcessPagesChunkHookFn).toHaveBeenCalledWith(
             mockClient as unknown as PoolClient,
             expect.arrayContaining([
-                expect.objectContaining({ id: expect.any(String), pageid: '728', name: expect.any(String), latestRevisionDate: expect.any(Date) }),
+                expect.objectContaining({ id: expect.any(String), externalPageId: '728', name: expect.any(String), latestRevisionDate: expect.any(Date) }),
             ]),
             mockLoggerInstance
         );
@@ -342,8 +342,8 @@ describe('processPagesForRegion', () => {
         expect(mockProcessPagesChunkHookFn).toHaveBeenCalledWith(
             mockClient as unknown as PoolClient,
             expect.arrayContaining([
-                expect.objectContaining({ id: expect.any(String), pageid: '728', name: 'Page 1', latestRevisionDate: expect.any(Date) }),
-                expect.objectContaining({ id: expect.any(String), pageid: '5597', name: 'Page 2', latestRevisionDate: expect.any(Date) }),
+                expect.objectContaining({ id: expect.any(String), externalPageId: '728', name: 'Page 1', latestRevisionDate: expect.any(Date) }),
+                expect.objectContaining({ id: expect.any(String), externalPageId: '5597', name: 'Page 2', latestRevisionDate: expect.any(Date) }),
             ]),
             mockLoggerInstance
         );
@@ -375,7 +375,7 @@ describe('processPagesForRegion', () => {
         expect(mockProcessPagesChunkHookFn).toHaveBeenCalledWith(
             mockClient as unknown as PoolClient,
             expect.arrayContaining([
-                expect.objectContaining({ id: expect.any(String), pageid: '728', name: expect.any(String), latestRevisionDate: expect.any(Date) }),
+                expect.objectContaining({ id: expect.any(String), externalPageId: '728', name: expect.any(String), latestRevisionDate: expect.any(Date) }),
             ]),
             mockLoggerInstance
         );
@@ -410,7 +410,7 @@ describe('processPagesForRegion', () => {
         expect(mockProcessPagesChunkHookFn).toHaveBeenCalledWith(
             mockClient as unknown as PoolClient,
             expect.arrayContaining([
-                expect.objectContaining({ id: expect.any(String), pageid: '5597', name: expect.any(String), latestRevisionDate: expect.any(Date) }),
+                expect.objectContaining({ id: expect.any(String), externalPageId: '5597', name: expect.any(String), latestRevisionDate: expect.any(Date) }),
             ]),
             mockLoggerInstance
         );
@@ -586,7 +586,7 @@ describe('processPagesForRegion', () => {
         expect(mockProcessPagesChunkHookFn).toHaveBeenCalledWith(
             mockClient as unknown as PoolClient,
             expect.arrayContaining([
-                expect.objectContaining({ id: expect.any(String), pageid: '728', name: expect.any(String), latestRevisionDate: expect.any(Date) }),
+                expect.objectContaining({ id: expect.any(String), externalPageId: '728', name: expect.any(String), latestRevisionDate: expect.any(Date) }),
             ]),
             mockLoggerInstance
         );
@@ -740,8 +740,8 @@ describe('processPagesForRegion', () => {
                 .mockResolvedValueOnce(chunk1Pages)
                 .mockResolvedValueOnce(chunk2Pages);
 
-            const chunk1PageIds = chunk1Pages.map(p => p.pageid);
-            const chunk2PageIds = chunk2Pages.map(p => p.pageid);
+            const chunk1PageIds = chunk1Pages.map(p => p.externalPageId);
+            const chunk2PageIds = chunk2Pages.map(p => p.externalPageId);
             (getUpdatedDatesForPages as jest.MockedFunction<any>)
                 .mockResolvedValueOnce(Object.fromEntries(chunk1PageIds.map(id => [id, null])))
                 .mockResolvedValueOnce(Object.fromEntries(chunk2PageIds.map(id => [id, null])));
@@ -750,14 +750,14 @@ describe('processPagesForRegion', () => {
                 Promise.resolve(pages.map(pageInfo => {
                     const upserted = RopewikiPage.fromResponseBody({
                         printouts: {
-                            pageid: [pageInfo.pageid],
+                            pageid: [pageInfo.externalPageId],
                             name: [pageInfo.name],
                             region: [{ fulltext: regionName }],
                             url: [pageInfo.url],
                             latestRevisionDate: [{ timestamp: String(Math.floor(pageInfo.latestRevisionDate.getTime() / 1000)), raw: pageInfo.latestRevisionDate.toISOString() }],
                         },
                     }, regionNameIds);
-                    upserted.id = `uuid-${pageInfo.pageid}`;
+                    upserted.id = `uuid-${pageInfo.externalPageId}`;
                     return upserted;
                 }))
             );

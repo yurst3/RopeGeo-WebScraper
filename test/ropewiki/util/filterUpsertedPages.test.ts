@@ -53,7 +53,7 @@ describe('filterUpsertedPages', () => {
 
         expect(result).toHaveLength(1);
         expect(result[0]).toBe(pageWithCoords);
-        expect(result[0]!.pageid).toBe('728');
+        expect(result[0]!.externalPageId).toBe('728');
     });
 
     it('returns empty array when no pages have coordinates', () => {

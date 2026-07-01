@@ -52,7 +52,7 @@ describe('getSearchPageIds (integration)', () => {
         await db
             .insert('RopewikiPage', {
                 id: pageId,
-                pageId: 'pageids-test-1',
+                externalPageId: 'pageids-test-1',
                 name: 'PageIdsTestPageImlay',
                 region: childRegionId,
                 url: 'https://ropewiki.com/PageIdsTestPageImlay',
@@ -66,7 +66,7 @@ describe('getSearchPageIds (integration)', () => {
         await db
             .insert('RopewikiPage', {
                 id: pageInParentId,
-                pageId: 'pageids-test-2',
+                externalPageId: 'pageids-test-2',
                 name: 'PageIdsTestParentPage',
                 region: parentRegionId,
                 url: 'https://ropewiki.com/PageIdsTestParentPage',
@@ -80,7 +80,7 @@ describe('getSearchPageIds (integration)', () => {
         await db
             .insert('RopewikiPage', {
                 id: pageAkaOnlyId,
-                pageId: 'pageids-test-aka',
+                externalPageId: 'pageids-test-aka',
                 name: 'ZzzQqxUnrelatedName',
                 region: childRegionId,
                 url: 'https://ropewiki.com/PageIdsTestAkaOnly',
@@ -522,7 +522,7 @@ describe('getSearchPageIds (integration)', () => {
         await db
             .insert('RopewikiPage', {
                 id: deepPageId,
-                pageId: 'pageids-name-deep-1',
+                externalPageId: 'pageids-name-deep-1',
                 name: 'NameBasedDeepPage',
                 region: childId,
                 url: 'https://ropewiki.com/NameBasedDeepPage',

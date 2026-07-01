@@ -68,7 +68,7 @@ describe('upsertRopewikiRoute (integration)', () => {
             .insert('RopewikiPage', [
                 {
                     id: pageId,
-                    pageId: '12345',
+                    externalPageId: '12345',
                     name: 'Test Page',
                     region: regionId,
                     url: 'https://ropewiki.com/Test_Page',
@@ -149,7 +149,7 @@ describe('upsertRopewikiRoute (integration)', () => {
             .insert('RopewikiPage', [
                 {
                     id: pageId,
-                    pageId: '12345',
+                    externalPageId: '12345',
                     name: 'Test Page',
                     region: regionId,
                     url: 'https://ropewiki.com/Test_Page',
@@ -219,7 +219,7 @@ describe('upsertRopewikiRoute (integration)', () => {
             .insert('RopewikiPage', [
                 {
                     id: pageId,
-                    pageId: '12345',
+                    externalPageId: '12345',
                     name: 'Test Page',
                     region: regionId,
                     url: 'https://ropewiki.com/Test_Page',
@@ -324,7 +324,7 @@ describe('upsertRopewikiRoute (integration)', () => {
             .insert('RopewikiPage', [
                 {
                     id: pageId,
-                    pageId: '12345',
+                    externalPageId: '12345',
                     name: 'Test Page',
                     region: regionId,
                     url: 'https://ropewiki.com/Test_Page',
@@ -416,7 +416,7 @@ describe('upsertRopewikiRoute (integration)', () => {
             .insert('RopewikiPage', [
                 {
                     id: pageId,
-                    pageId: '12345',
+                    externalPageId: '12345',
                     name: 'Test Page',
                     region: regionId,
                     url: 'https://ropewiki.com/Test_Page',

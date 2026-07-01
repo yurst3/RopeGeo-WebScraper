@@ -37,7 +37,7 @@ describe('getPageRowsByIds (integration)', () => {
         await db
             .insert('RopewikiPage', {
                 id: page1Id,
-                pageId: 'pagerows-1',
+                externalPageId: 'pagerows-1',
                 name: 'PageRowsTestMatching',
                 region: regionId,
                 url: 'https://ropewiki.com/PageRowsTestMatching',
@@ -50,7 +50,7 @@ describe('getPageRowsByIds (integration)', () => {
         await db
             .insert('RopewikiPage', {
                 id: page2Id,
-                pageId: 'pagerows-2',
+                externalPageId: 'pagerows-2',
                 name: 'PageRowsTestAlsoMatching',
                 region: regionId,
                 url: 'https://ropewiki.com/PageRowsTestAlsoMatching',
@@ -61,7 +61,7 @@ describe('getPageRowsByIds (integration)', () => {
         await db
             .insert('RopewikiPage', {
                 id: page3Id,
-                pageId: 'pagerows-3',
+                externalPageId: 'pagerows-3',
                 name: 'XyZzNoMatchQqWw',
                 region: regionId,
                 url: 'https://ropewiki.com/XyZzNoMatchQqWw',

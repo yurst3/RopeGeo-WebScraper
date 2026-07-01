@@ -56,7 +56,7 @@ describe('filterPagesWithKmlUrl (integration)', () => {
             .insert('RopewikiPage', [
                 {
                     id: id1,
-                    pageId: 'page-with-kml-1',
+                    externalPageId: 'page-with-kml-1',
                     name: 'Page 1',
                     region: testRegionId,
                     url: 'https://example.com/page1',
@@ -64,7 +64,7 @@ describe('filterPagesWithKmlUrl (integration)', () => {
                 },
                 {
                     id: id2,
-                    pageId: 'page-with-kml-2',
+                    externalPageId: 'page-with-kml-2',
                     name: 'Page 2',
                     region: testRegionId,
                     url: 'https://example.com/page2',
@@ -88,7 +88,7 @@ describe('filterPagesWithKmlUrl (integration)', () => {
             .insert('RopewikiPage', [
                 {
                     id: id1,
-                    pageId: 'page-without-kml-1',
+                    externalPageId: 'page-without-kml-1',
                     name: 'Page 1',
                     region: testRegionId,
                     url: 'https://example.com/page1',
@@ -96,7 +96,7 @@ describe('filterPagesWithKmlUrl (integration)', () => {
                 },
                 {
                     id: id2,
-                    pageId: 'page-without-kml-2',
+                    externalPageId: 'page-without-kml-2',
                     name: 'Page 2',
                     region: testRegionId,
                     url: 'https://example.com/page2',
@@ -130,7 +130,7 @@ describe('filterPagesWithKmlUrl (integration)', () => {
             .insert('RopewikiPage', [
                 {
                     id: idWithKml1,
-                    pageId: 'page-with-kml-1',
+                    externalPageId: 'page-with-kml-1',
                     name: 'Page With KML 1',
                     region: testRegionId,
                     url: 'https://example.com/page1',
@@ -138,7 +138,7 @@ describe('filterPagesWithKmlUrl (integration)', () => {
                 },
                 {
                     id: idWithKml2,
-                    pageId: 'page-with-kml-2',
+                    externalPageId: 'page-with-kml-2',
                     name: 'Page With KML 2',
                     region: testRegionId,
                     url: 'https://example.com/page2',
@@ -146,7 +146,7 @@ describe('filterPagesWithKmlUrl (integration)', () => {
                 },
                 {
                     id: idWithoutKml1,
-                    pageId: 'page-without-kml-1',
+                    externalPageId: 'page-without-kml-1',
                     name: 'Page Without KML 1',
                     region: testRegionId,
                     url: 'https://example.com/page3',
@@ -154,7 +154,7 @@ describe('filterPagesWithKmlUrl (integration)', () => {
                 },
                 {
                     id: idWithoutKml2,
-                    pageId: 'page-without-kml-2',
+                    externalPageId: 'page-without-kml-2',
                     name: 'Page Without KML 2',
                     region: testRegionId,
                     url: 'https://example.com/page4',
@@ -186,7 +186,7 @@ describe('filterPagesWithKmlUrl (integration)', () => {
         await db
             .insert('RopewikiPage', {
                 id: idWithKml,
-                pageId: 'page-with-kml',
+                externalPageId: 'page-with-kml',
                 name: 'Page With KML',
                 region: testRegionId,
                 url: 'https://example.com/page',
@@ -215,7 +215,7 @@ describe('filterPagesWithKmlUrl (integration)', () => {
             .insert('RopewikiPage', [
                 {
                     id: idWithNullKml,
-                    pageId: 'page-null-kml',
+                    externalPageId: 'page-null-kml',
                     name: 'Page With Null KML',
                     region: testRegionId,
                     url: 'https://example.com/page1',
@@ -223,7 +223,7 @@ describe('filterPagesWithKmlUrl (integration)', () => {
                 },
                 {
                     id: idWithKml,
-                    pageId: 'page-with-kml',
+                    externalPageId: 'page-with-kml',
                     name: 'Page With KML',
                     region: testRegionId,
                     url: 'https://example.com/page2',

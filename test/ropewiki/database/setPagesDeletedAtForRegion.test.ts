@@ -74,7 +74,7 @@ describe('setPagesDeletedAtForRegion (integration)', () => {
             .insert('RopewikiPage', [
                 {
                     id: parentPageId,
-                    pageId: '9999',
+                    externalPageId: '9999',
                     name: 'Parent Page',
                     region: parentRegionId,
                     url: 'https://ropewiki.com/Parent_Page',
@@ -83,7 +83,7 @@ describe('setPagesDeletedAtForRegion (integration)', () => {
                 },
                 {
                     id: childPageId,
-                    pageId: '8888',
+                    externalPageId: '8888',
                     name: 'Child Page',
                     region: childRegionId,
                     url: 'https://ropewiki.com/Child_Page',
@@ -117,7 +117,7 @@ describe('setPagesDeletedAtForRegion (integration)', () => {
             .insert('RopewikiPage', [
                 {
                     id: parentPageId,
-                    pageId: '7777',
+                    externalPageId: '7777',
                     name: 'Parent Region Page',
                     region: parentRegionId,
                     url: 'https://ropewiki.com/Parent_Page',
@@ -126,7 +126,7 @@ describe('setPagesDeletedAtForRegion (integration)', () => {
                 },
                 {
                     id: otherPageId,
-                    pageId: '6666',
+                    externalPageId: '6666',
                     name: 'Other Region Page',
                     region: otherRegionId,
                     url: 'https://ropewiki.com/Other_Page',
@@ -154,7 +154,7 @@ describe('setPagesDeletedAtForRegion (integration)', () => {
             .insert('RopewikiPage', [
                 {
                     id: page1Id,
-                    pageId: '5555',
+                    externalPageId: '5555',
                     name: 'Fresh Page',
                     region: parentRegionId,
                     url: 'https://ropewiki.com/Fresh_Page',
@@ -163,7 +163,7 @@ describe('setPagesDeletedAtForRegion (integration)', () => {
                 },
                 {
                     id: page2Id,
-                    pageId: '4444',
+                    externalPageId: '4444',
                     name: 'Already Deleted Page',
                     region: parentRegionId,
                     url: 'https://ropewiki.com/Already_Deleted_Page',
@@ -245,7 +245,7 @@ describe('setPagesDeletedAtForRegion (integration)', () => {
             .insert('RopewikiPage', [
                 {
                     id: pageGpId,
-                    pageId: 'name-gp-1',
+                    externalPageId: 'name-gp-1',
                     name: 'Grandparent Page',
                     region: grandparentId,
                     url: 'https://ropewiki.com/Grandparent_Page',
@@ -254,7 +254,7 @@ describe('setPagesDeletedAtForRegion (integration)', () => {
                 },
                 {
                     id: pageMidId,
-                    pageId: 'name-mid-1',
+                    externalPageId: 'name-mid-1',
                     name: 'Mid Page',
                     region: parentId,
                     url: 'https://ropewiki.com/Mid_Page',
@@ -263,7 +263,7 @@ describe('setPagesDeletedAtForRegion (integration)', () => {
                 },
                 {
                     id: pageLeafId,
-                    pageId: 'name-leaf-1',
+                    externalPageId: 'name-leaf-1',
                     name: 'Leaf Page',
                     region: childId,
                     url: 'https://ropewiki.com/Leaf_Page',

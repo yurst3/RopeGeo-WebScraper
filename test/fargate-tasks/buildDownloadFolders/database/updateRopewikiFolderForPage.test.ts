@@ -34,7 +34,7 @@ describe('updateRopewikiFolderForPage (database)', () => {
         await db
             .insert('RopewikiPage', {
                 id: pageId,
-                pageId: 'update-folder-page',
+                externalPageId: 'update-folder-page',
                 name: 'Update Folder Page',
                 region: regionId,
                 url: 'https://ropewiki.com/Update_Folder_Page',

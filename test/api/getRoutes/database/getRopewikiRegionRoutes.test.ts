@@ -67,7 +67,7 @@ describe('getRopewikiRegionRoutes (integration)', () => {
         await db
             .insert('RopewikiPage', {
                 id: pageId,
-                pageId: 'getroutes-filter-page',
+                externalPageId: 'getroutes-filter-page',
                 name: 'GetRoutesFilterPage',
                 region: regionId,
                 url: 'https://ropewiki.com/GetRoutesFilterPage',
@@ -77,7 +77,7 @@ describe('getRopewikiRegionRoutes (integration)', () => {
         await db
             .insert('RopewikiPage', {
                 id: otherPageId,
-                pageId: 'getroutes-filter-other-page',
+                externalPageId: 'getroutes-filter-other-page',
                 name: 'GetRoutesFilterOtherPage',
                 region: otherRegionId,
                 url: 'https://ropewiki.com/GetRoutesFilterOtherPage',
@@ -159,7 +159,7 @@ describe('getRopewikiRegionRoutes (integration)', () => {
         await db
             .insert('RopewikiPage', {
                 id: pageInChildId,
-                pageId: 'getroutes-page-in-child',
+                externalPageId: 'getroutes-page-in-child',
                 name: 'Page In Child Region',
                 region: childRegionId,
                 url: 'https://ropewiki.com/PageInChildRegion',

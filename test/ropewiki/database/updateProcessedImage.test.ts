@@ -42,7 +42,7 @@ describe('updateProcessedImage (integration)', () => {
         await db
             .insert('RopewikiPage', {
                 id: testPageId,
-                pageId: 'update-processed-image-page-1',
+                externalPageId: 'update-processed-image-page-1',
                 name: 'Update Processed Image Page',
                 region: testRegionId,
                 url: 'https://ropewiki.com/Update_Processed_Image_Page',

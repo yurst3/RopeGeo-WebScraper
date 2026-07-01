@@ -70,7 +70,7 @@ describe('getRopewikiPagePreview (integration)', () => {
         await db
             .insert('RopewikiPage', {
                 id: pageId,
-                pageId: '728',
+                externalPageId: '728',
                 name: 'Bear Creek Canyon',
                 region: testRegionId,
                 url: 'https://ropewiki.com/Bear_Creek_Canyon',
@@ -115,7 +115,7 @@ describe('getRopewikiPagePreview (integration)', () => {
         await db
             .insert('RopewikiPage', {
                 id: pageId,
-                pageId: 'aka-test',
+                externalPageId: 'aka-test',
                 name: 'AKA Test Page',
                 region: testRegionId,
                 url: 'https://ropewiki.com/AKA_Test_Page',
@@ -169,7 +169,7 @@ describe('getRopewikiPagePreview (integration)', () => {
         await db
             .insert('RopewikiPage', {
                 id: pageId,
-                pageId: '829',
+                externalPageId: '829',
                 name: 'Devil Gulch',
                 region: childRegionId,
                 url: 'https://ropewiki.com/Devil_Gulch',
@@ -197,7 +197,7 @@ describe('getRopewikiPagePreview (integration)', () => {
         await db
             .insert('RopewikiPage', {
                 id: pageId,
-                pageId: '100',
+                externalPageId: '100',
                 name: 'Page With Banner',
                 region: testRegionId,
                 url: 'https://ropewiki.com/Page_With_Banner',

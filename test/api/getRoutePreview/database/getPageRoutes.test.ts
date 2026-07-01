@@ -88,7 +88,7 @@ describe('getPageRoutes (integration)', () => {
         await db
             .insert('RopewikiPage', {
                 id: pageId,
-                pageId: '728',
+                externalPageId: '728',
                 name: 'Bear Creek Canyon',
                 region: 'ffebfa80-656e-4e48-99a6-81608cc0051d',
                 url: 'https://ropewiki.com/Bear_Creek_Canyon',
@@ -127,7 +127,7 @@ describe('getPageRoutes (integration)', () => {
         await db
             .insert('RopewikiPage', {
                 id: pageId,
-                pageId: '5597',
+                externalPageId: '5597',
                 name: 'Devil Gulch',
                 region: 'ffebfa80-656e-4e48-99a6-81608cc0051d',
                 url: 'https://ropewiki.com/Devil_Gulch',
