@@ -31,6 +31,15 @@ function parseTileKey(mapDataId: string, key: string): { z: number; x: number; y
     return { z, x, y };
 }
 
+/** Gzip magic bytes — S3 tiles are usually raw MVT; some sources may store gzip. */
+function isGzip(buffer: Buffer): boolean {
+    return buffer.length >= 2 && buffer[0] === 0x1f && buffer[1] === 0x8b;
+}
+
+function decodeTileBytes(body: Buffer): Buffer {
+    return isGzip(body) ? gunzipSync(body) : body;
+}
+
 export async function appendTileEntriesToArchive(
     archive: Archiver,
     mapDataBucket: string,
@@ -46,7 +55,7 @@ export async function appendTileEntriesToArchive(
 
         const entryPath = tileFileRelativePath(mapDataId, coords.z, coords.x, coords.y);
         const body = await fetchS3ObjectBytes(mapDataBucket, key);
-        const tileBuffer = gunzipSync(body);
+        const tileBuffer = decodeTileBytes(body);
         archive.append(tileBuffer, {
             name: entryPath,
             store: true,

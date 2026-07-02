@@ -20,7 +20,7 @@ describe('appendTileEntriesToArchive', () => {
         jest.clearAllMocks();
     });
 
-    it('appends gunzipped tile entries for valid S3 keys', async () => {
+    it('appends gunzipped tile entries when S3 objects are gzip-compressed', async () => {
         const tileBody = Buffer.from('tile-bytes');
         jest.mocked(listAllPbfKeysAndTotalBytes).mockResolvedValue({
             keys: [`tiles/${mapDataId}/0/0/0.pbf`, 'invalid/key'],
@@ -36,6 +36,26 @@ describe('appendTileEntriesToArchive', () => {
             `tiles/${mapDataId}/0/0/0.pbf`,
         );
         expect(archive.append).toHaveBeenCalledTimes(1);
+        expect(archive.append).toHaveBeenCalledWith(
+            tileBody,
+            expect.objectContaining({
+                name: expect.stringContaining(mapDataId),
+                store: true,
+            }),
+        );
+    });
+
+    it('appends raw tile bytes when S3 objects are not gzip-compressed', async () => {
+        const tileBody = Buffer.from('raw-mvt-bytes');
+        jest.mocked(listAllPbfKeysAndTotalBytes).mockResolvedValue({
+            keys: [`tiles/${mapDataId}/0/0/0.pbf`],
+            totalBytes: tileBody.length,
+        });
+        jest.mocked(fetchS3ObjectBytes).mockResolvedValue(tileBody);
+        const archive = { append: jest.fn() };
+
+        await appendTileEntriesToArchive(archive as never, 'map-data-bucket', mapDataId);
+
         expect(archive.append).toHaveBeenCalledWith(
             tileBody,
             expect.objectContaining({
