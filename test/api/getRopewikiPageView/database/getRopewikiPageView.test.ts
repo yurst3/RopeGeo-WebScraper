@@ -595,13 +595,20 @@ describe('getRopewikiPageView (integration)', () => {
         const result = await getRopewikiPageView(conn, pageId);
 
         expect(result).not.toBeNull();
-        expect(result!.overallLength).toBe(6.8);
-        expect(result!.approachLength).toBe(4);
-        expect(result!.approachElevGain).toBe(2700);
-        expect(result!.descentLength).toBe(1.8);
-        expect(result!.descentElevGain).toBe(-1800);
-        expect(result!.exitLength).toBe(0.9);
-        expect(result!.exitElevGain).toBe(-600);
+        expect(result!.overallLength?.value).toBe(6.8);
+        expect(result!.overallLength?.unit.name).toBe('miles');
+        expect(result!.approachLength?.value).toBe(4);
+        expect(result!.approachLength?.unit.name).toBe('miles');
+        expect(result!.approachElevGain?.value).toBe(2700);
+        expect(result!.approachElevGain?.unit.name).toBe('feet');
+        expect(result!.descentLength?.value).toBe(1.8);
+        expect(result!.descentLength?.unit.name).toBe('miles');
+        expect(result!.descentElevGain?.value).toBe(-1800);
+        expect(result!.descentElevGain?.unit.name).toBe('feet');
+        expect(result!.exitLength?.value).toBe(0.9);
+        expect(result!.exitLength?.unit.name).toBe('miles');
+        expect(result!.exitElevGain?.value).toBe(-600);
+        expect(result!.exitElevGain?.unit.name).toBe('feet');
     });
 
     it('returns PageMiniMap from MapData when page has a route with map data', async () => {

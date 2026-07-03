@@ -112,84 +112,73 @@ RopewikiPageView:
         - fourWdHighClearance
         - fourWdVeryHighClearance
     rappelLongest:
-      type: number
-      nullable: true
-      description: Longest rappel (numeric value)
-    shuttleTime:
-      type: number
-      nullable: true
-      description: Shuttle time (numeric value)
-    overallTime:
-      description: Overall time; either a single number, or min/max object
+      description: Longest rappel as a LengthMeasurement (source unit feet), or null
       oneOf:
-        - type: number
-        - type: object
-          properties:
-            min:
-              type: number
-            max:
-              type: number
+        - $ref: "#/LengthMeasurement"
+        - enum: [null]
+    shuttleTime:
+      description: Shuttle time as a TimeMeasurement (source unit minutes), or null
+      oneOf:
+        - $ref: "#/TimeMeasurement"
+        - enum: [null]
+    overallTime:
+      description: Overall time as a single TimeMeasurement, a min/max range of TimeMeasurements (source unit hours), or null
+      oneOf:
+        - $ref: "#/TimeMeasurement"
+        - $ref: "#/TimeMeasurementRange"
         - enum: [null]
     overallLength:
-      type: number
-      nullable: true
-      description: Total canyon/hike length (numeric value, e.g. miles)
-    approachLength:
-      type: number
-      nullable: true
-      description: Approach segment length (numeric value)
-    approachElevGain:
-      type: number
-      nullable: true
-      description: Approach elevation gain (numeric value)
-    descentLength:
-      type: number
-      nullable: true
-      description: Descent segment length (numeric value)
-    descentElevGain:
-      type: number
-      nullable: true
-      description: Descent elevation gain (numeric value, typically negative)
-    exitLength:
-      type: number
-      nullable: true
-      description: Exit segment length (numeric value)
-    exitElevGain:
-      type: number
-      nullable: true
-      description: Exit elevation gain (numeric value)
-    approachTime:
-      description: Approach time; either a single number, or min/max object
+      description: Total canyon/hike length as a LengthMeasurement (source unit miles), or null
       oneOf:
-        - type: number
-        - type: object
-          properties:
-            min:
-              type: number
-            max:
-              type: number
+        - $ref: "#/LengthMeasurement"
+        - enum: [null]
+    approachLength:
+      description: Approach segment length as a LengthMeasurement (source unit miles), or null
+      oneOf:
+        - $ref: "#/LengthMeasurement"
+        - enum: [null]
+    approachElevGain:
+      description: Approach elevation gain as a LengthMeasurement (source unit feet), or null
+      oneOf:
+        - $ref: "#/LengthMeasurement"
+        - enum: [null]
+    descentLength:
+      description: Descent segment length as a LengthMeasurement (source unit miles), or null
+      oneOf:
+        - $ref: "#/LengthMeasurement"
+        - enum: [null]
+    descentElevGain:
+      description: Descent elevation gain as a LengthMeasurement (source unit feet, typically negative), or null
+      oneOf:
+        - $ref: "#/LengthMeasurement"
+        - enum: [null]
+    exitLength:
+      description: Exit segment length as a LengthMeasurement (source unit miles), or null
+      oneOf:
+        - $ref: "#/LengthMeasurement"
+        - enum: [null]
+    exitElevGain:
+      description: Exit elevation gain as a LengthMeasurement (source unit feet), or null
+      oneOf:
+        - $ref: "#/LengthMeasurement"
+        - enum: [null]
+    approachTime:
+      description: Approach time as a single TimeMeasurement, a min/max range of TimeMeasurements (source unit hours), or null
+      oneOf:
+        - $ref: "#/TimeMeasurement"
+        - $ref: "#/TimeMeasurementRange"
         - enum: [null]
     descentTime:
-      description: Descent time; either a single number, or min/max object
+      description: Descent time as a single TimeMeasurement, a min/max range of TimeMeasurements (source unit hours), or null
       oneOf:
-        - type: number
-        - type: object
-          properties:
-            min:
-              type: number
-            max:
-              type: number
+        - $ref: "#/TimeMeasurement"
+        - $ref: "#/TimeMeasurementRange"
         - enum: [null]
     exitTime:
-      description: Exit time; either a single number, or min/max object
+      description: Exit time as a single TimeMeasurement, a min/max range of TimeMeasurements (source unit hours), or null
       oneOf:
-        - type: number
-        - type: object
-          properties:
-            min:
-              type: number
-            max:
-              type: number
+        - $ref: "#/TimeMeasurement"
+        - $ref: "#/TimeMeasurementRange"
         - enum: [null]
     months:
       type: array
@@ -258,6 +247,91 @@ PageViewCoordinates:
       type: number
       format: float
       description: Longitude in degrees
+
+LengthMeasurement:
+  type: object
+  description: A length value tagged with an explicit unit (ropegeo-common LengthMeasurement)
+  required:
+    - value
+    - measurementType
+    - unit
+  properties:
+    value:
+      type: number
+      description: Numeric magnitude of the length, expressed in the unit named by unit
+    measurementType:
+      type: string
+      description: Measurement discriminator (always "length" for a LengthMeasurement)
+      enum:
+        - length
+    unit:
+      $ref: "#/LengthMeasurementUnit"
+
+LengthMeasurementUnit:
+  type: object
+  description: Unit descriptor for a LengthMeasurement (measurement system plus the specific unit name)
+  required:
+    - measurementSystem
+    - name
+  properties:
+    measurementSystem:
+      type: string
+      description: Measurement system the unit belongs to
+      enum:
+        - Imperial
+        - Metric
+        - Freedom
+    name:
+      type: string
+      description: Unit name within the system (e.g. feet, miles, meters, kilometers, or a Freedom unit like "Football Fields")
+
+TimeMeasurement:
+  type: object
+  description: A duration value tagged with an explicit unit (ropegeo-common TimeMeasurement)
+  required:
+    - value
+    - measurementType
+    - unit
+  properties:
+    value:
+      type: number
+      description: Numeric magnitude of the duration, expressed in the unit named by unit
+    measurementType:
+      type: string
+      description: Measurement discriminator (always "time" for a TimeMeasurement)
+      enum:
+        - time
+    unit:
+      $ref: "#/TimeMeasurementUnit"
+
+TimeMeasurementUnit:
+  type: object
+  description: Unit descriptor for a TimeMeasurement (measurement system plus the specific unit name)
+  required:
+    - measurementSystem
+    - name
+  properties:
+    measurementSystem:
+      type: string
+      description: Measurement system the unit belongs to
+      enum:
+        - Standard
+        - Freedom
+    name:
+      type: string
+      description: Unit name within the system (e.g. minutes, hours, days, or a Freedom unit like "Scaramuccis")
+
+TimeMeasurementRange:
+  type: object
+  description: Inclusive min/max range of time measurements (ropegeo-common MinMax of TimeMeasurement)
+  required:
+    - min
+    - max
+  properties:
+    min:
+      $ref: "#/TimeMeasurement"
+    max:
+      $ref: "#/TimeMeasurement"
 
 BetaSectionImage:
   type: object

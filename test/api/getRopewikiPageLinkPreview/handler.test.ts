@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, jest } from '@jest/globals';
 import type { PoolClient } from 'pg';
 import { handler } from '../../../src/api/getRopewikiPageLinkPreview/handler';
 import type { RopewikiPageView } from 'ropegeo-common/models';
-import { AcaDifficultyRating, PermitStatus } from 'ropegeo-common/models';
+import { AcaDifficultyRating, FEET, LengthMeasurement, PermitStatus } from 'ropegeo-common/models';
 
 let mockGetDatabaseConnection: jest.MockedFunction<typeof import('../../../src/helpers/getDatabaseConnection').default>;
 let mockGetRopewikiPageView: jest.MockedFunction<
@@ -45,7 +45,7 @@ function minimalView(overrides: Partial<RopewikiPageView> = {}): RopewikiPageVie
         rappelCount: 5,
         jumps: null,
         vehicle: null,
-        rappelLongest: 135,
+        rappelLongest: new LengthMeasurement(135, FEET),
         shuttleTime: null,
         overallLength: null,
         descentLength: null,

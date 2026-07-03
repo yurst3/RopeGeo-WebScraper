@@ -23,27 +23,112 @@ value:
     rappelCount: 5
     jumps: null
     vehicle: passenger
-    rappelLongest: 195
-    shuttleTime: 0
+    rappelLongest:
+      value: 195
+      measurementType: length
+      unit:
+        measurementSystem: Imperial
+        name: feet
+    shuttleTime:
+      value: 0
+      measurementType: time
+      unit:
+        measurementSystem: Standard
+        name: minutes
     overallTime:
-      min: 3.75
-      max: 4.9
-    overallLength: 5.1
-    approachLength: 1.2
-    approachElevGain: 800
-    descentLength: 2.8
-    descentElevGain: -600
-    exitLength: 0.5
-    exitElevGain: 200
+      min:
+        value: 3.75
+        measurementType: time
+        unit:
+          measurementSystem: Standard
+          name: hours
+      max:
+        value: 4.9
+        measurementType: time
+        unit:
+          measurementSystem: Standard
+          name: hours
+    overallLength:
+      value: 5.1
+      measurementType: length
+      unit:
+        measurementSystem: Imperial
+        name: miles
+    approachLength:
+      value: 1.2
+      measurementType: length
+      unit:
+        measurementSystem: Imperial
+        name: miles
+    approachElevGain:
+      value: 800
+      measurementType: length
+      unit:
+        measurementSystem: Imperial
+        name: feet
+    descentLength:
+      value: 2.8
+      measurementType: length
+      unit:
+        measurementSystem: Imperial
+        name: miles
+    descentElevGain:
+      value: -600
+      measurementType: length
+      unit:
+        measurementSystem: Imperial
+        name: feet
+    exitLength:
+      value: 0.5
+      measurementType: length
+      unit:
+        measurementSystem: Imperial
+        name: miles
+    exitElevGain:
+      value: 200
+      measurementType: length
+      unit:
+        measurementSystem: Imperial
+        name: feet
     approachTime:
-      min: 1.5
-      max: 2
+      min:
+        value: 1.5
+        measurementType: time
+        unit:
+          measurementSystem: Standard
+          name: hours
+      max:
+        value: 2
+        measurementType: time
+        unit:
+          measurementSystem: Standard
+          name: hours
     descentTime:
-      min: 2
-      max: 2.5
+      min:
+        value: 2
+        measurementType: time
+        unit:
+          measurementSystem: Standard
+          name: hours
+      max:
+        value: 2.5
+        measurementType: time
+        unit:
+          measurementSystem: Standard
+          name: hours
     exitTime:
-      min: 0.25
-      max: 0.5
+      min:
+        value: 0.25
+        measurementType: time
+        unit:
+          measurementSystem: Standard
+          name: hours
+      max:
+        value: 0.5
+        measurementType: time
+        unit:
+          measurementSystem: Standard
+          name: hours
     months:
       - Jun
       - Jul

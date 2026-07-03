@@ -35,8 +35,8 @@ function formatRappelSegment(view: RopewikiPageView): string | null {
 
     const longest = view.rappelLongest;
     const longestPart =
-        longest != null && Number.isFinite(longest)
-            ? ` (${Math.round(longest)}ft max)`
+        longest != null && Number.isFinite(longest.value)
+            ? ` (${Math.round(longest.value)}ft max)`
             : '';
 
     if (countLabel != null && longestPart !== '') {
