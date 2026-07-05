@@ -35,6 +35,7 @@ describe('getRopewikiPageView (integration)', () => {
         await db.sql`DELETE FROM "ImageData"`.run(conn);
         await db.sql`DELETE FROM "RopewikiBetaSection"`.run(conn);
         await db.sql`DELETE FROM "RopewikiRoute"`.run(conn);
+        await db.sql`DELETE FROM "Route"`.run(conn);
         await db.sql`DELETE FROM "RopewikiPage"`.run(conn);
         await db.sql`DELETE FROM "MapData"`.run(conn);
         await db.sql`DELETE FROM "RopewikiRegion"`.run(conn);
@@ -58,6 +59,7 @@ describe('getRopewikiPageView (integration)', () => {
         await db.sql`DELETE FROM "ImageData"`.run(conn);
         await db.sql`DELETE FROM "RopewikiBetaSection"`.run(conn);
         await db.sql`DELETE FROM "RopewikiRoute"`.run(conn);
+        await db.sql`DELETE FROM "Route"`.run(conn);
         await db.sql`DELETE FROM "RopewikiPage"`.run(conn);
         await db.sql`DELETE FROM "MapData"`.run(conn);
     });
@@ -67,6 +69,7 @@ describe('getRopewikiPageView (integration)', () => {
         await db.sql`DELETE FROM "ImageData"`.run(conn);
         await db.sql`DELETE FROM "RopewikiBetaSection"`.run(conn);
         await db.sql`DELETE FROM "RopewikiRoute"`.run(conn);
+        await db.sql`DELETE FROM "Route"`.run(conn);
         await db.sql`DELETE FROM "RopewikiPage"`.run(conn);
         await db.sql`DELETE FROM "MapData"`.run(conn);
         await db.sql`DELETE FROM "RopewikiRegion"`.run(conn);
@@ -637,25 +640,23 @@ describe('getRopewikiPageView (integration)', () => {
                 coordinates: { lat: 40.1, lon: -111.5 },
             })
             .run(conn);
-        const legend = {
-            trail: {
-                featureType: 'line',
-                id: 'trail',
-                name: 'Main trail',
-                bounds,
-            },
+        const legendItem = {
+            id: 'trail',
+            mapData: mapDataId,
+            name: 'Main trail',
+            bounds,
         };
         await db
             .insert('MapData', {
                 id: mapDataId,
                 tilesTemplate,
                 bounds,
-                legend,
                 tileCount: 12,
                 tileTotalBytes: 4096,
                 sourceFileUrl: '',
             })
             .run(conn);
+        await db.insert('MapDataSegmentLegendItem', legendItem).run(conn);
         await db
             .insert('RopewikiRoute', {
                 route: routeId,

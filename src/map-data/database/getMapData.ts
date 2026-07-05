@@ -1,5 +1,6 @@
 import * as db from 'zapatos/db';
 import MapData from '../types/mapData';
+import getMapDataLegendItems from './getMapDataLegendItems';
 
 /**
  * Fetches a MapData record by id.
@@ -20,7 +21,8 @@ const getMapData = async (
         return undefined;
     }
 
-    return MapData.fromDbRow(row);
+    const legendRows = await getMapDataLegendItems(conn, mapDataId);
+    return MapData.fromDbRow(row, legendRows);
 };
 
 export default getMapData;

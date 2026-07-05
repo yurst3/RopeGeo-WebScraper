@@ -1,6 +1,7 @@
 import { describe, it, expect } from '@jest/globals';
 import { Bounds, LineLegendItem } from 'ropegeo-common/models';
 import MapData from '../../../src/map-data/types/mapData';
+import { legendInsertRowsFromLegend } from '../../../src/map-data/types/mapDataLegendItem';
 
 // Type definitions matching zapatos schema for testing
 type MapDataJSONSelectable = {
@@ -10,7 +11,6 @@ type MapDataJSONSelectable = {
     geoJson: string | null;
     tilesTemplate: string | null;
     bounds: object | null;
-    legend?: object | null;
     sourceFileUrl?: string;
     errorMessage?: string | null;
     allowUpdates?: boolean;
@@ -127,7 +127,6 @@ describe('MapData', () => {
             expect(dbRow.geoJson).toBeNull();
             expect(dbRow.tilesTemplate).toBeNull();
             expect(dbRow.bounds).toBeNull();
-            expect(dbRow.legend).toBeNull();
             expect(dbRow.deletedAt).toBeNull(); // Always null
             expect(dbRow.updatedAt).toBeInstanceOf(Date);
         });
@@ -275,7 +274,6 @@ describe('MapData', () => {
                 geoJson: dbRow.geoJson ?? null,
                 tilesTemplate: dbRow.tilesTemplate ?? null,
                 bounds: dbRow.bounds ?? null,
-                legend: dbRow.legend ?? null,
                 deletedAt: null, // Always null
                 createdAt: new Date().toISOString(),
                 updatedAt: (dbRow.updatedAt as Date).toISOString(),
@@ -306,7 +304,6 @@ describe('MapData', () => {
                 geoJson: dbRow.geoJson ?? null,
                 tilesTemplate: dbRow.tilesTemplate ?? null,
                 bounds: dbRow.bounds ?? null,
-                legend: dbRow.legend ?? null,
                 deletedAt: null, // Always null
                 createdAt: new Date().toISOString(),
                 updatedAt: (dbRow.updatedAt as Date).toISOString(),
@@ -333,7 +330,6 @@ describe('MapData', () => {
                 geoJson: dbRow.geoJson ?? null,
                 tilesTemplate: dbRow.tilesTemplate ?? null,
                 bounds: dbRow.bounds ?? null,
-                legend: dbRow.legend ?? null,
                 deletedAt: null,
                 createdAt: new Date().toISOString(),
                 updatedAt: (dbRow.updatedAt as Date).toISOString(),
@@ -346,14 +342,14 @@ describe('MapData', () => {
             expect(restored.bounds!.west).toBe(-123);
         });
 
-        it('round-trips legend via setLegend, toDbRow, and fromDbRow', () => {
+        it('round-trips legend via setLegend, legend rows, and fromDbRow', () => {
             const id = '99999999-9999-9999-9999-999999999999';
             const original = new MapData(undefined, undefined, undefined, undefined, id, '', undefined);
             const b = new Bounds(40, 39, -110, -111);
-            original.setLegend({
-                seg: new LineLegendItem('seg', 'Segment', b, '#00f', '2'),
-            });
+            const segItem = new LineLegendItem('seg', 'Segment', b, '#00f', '2');
+            original.setLegend({ seg: segItem });
             const dbRow = original.toDbRow();
+            const legendRows = legendInsertRowsFromLegend(id, { seg: segItem });
             const jsonRow: MapDataJSONSelectable = {
                 id: dbRow.id ?? id,
                 gpx: dbRow.gpx ?? null,
@@ -361,7 +357,6 @@ describe('MapData', () => {
                 geoJson: dbRow.geoJson ?? null,
                 tilesTemplate: dbRow.tilesTemplate ?? null,
                 bounds: dbRow.bounds ?? null,
-                legend: dbRow.legend ?? null,
                 sourceFileUrl: '',
                 errorMessage: null,
                 allowUpdates: true,
@@ -369,7 +364,7 @@ describe('MapData', () => {
                 createdAt: new Date().toISOString(),
                 updatedAt: (dbRow.updatedAt as Date).toISOString(),
             };
-            const restored = MapData.fromDbRow(jsonRow);
+            const restored = MapData.fromDbRow(jsonRow, legendRows);
             expect(restored.legend?.seg).toBeInstanceOf(LineLegendItem);
             expect(restored.legend?.seg.name).toBe('Segment');
         });

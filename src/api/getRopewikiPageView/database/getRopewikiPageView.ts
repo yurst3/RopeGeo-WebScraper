@@ -1,5 +1,7 @@
 import * as db from 'zapatos/db';
 import type * as s from 'zapatos/schema';
+import getMapDataLegendItems from '../../../map-data/database/getMapDataLegendItems';
+import { legendRecordFromRows } from '../../../map-data/types/mapDataLegendItem';
 import {
     AcaDifficultyRating,
     Bounds,
@@ -115,7 +117,6 @@ const getRopewikiPageView = async (
         tileCount: number;
         tileTotalBytes: string | number;
         bounds: { north: number; south: number; east: number; west: number } | null;
-        legend: db.JSONValue | null;
     };
 
     const [imageRows, betaSections, akaRows, routeMapRows] = await Promise.all([
@@ -159,8 +160,7 @@ const getRopewikiPageView = async (
                 m."tilesTemplate",
                 m."tileCount",
                 m."tileTotalBytes",
-                m."bounds",
-                m."legend"
+                m."bounds"
             FROM "RopewikiRoute" rr
             INNER JOIN "Route" r ON r.id = rr.route AND r."deletedAt" IS NULL
             LEFT JOIN "MapData" m ON m.id = rr."mapData"
@@ -206,21 +206,14 @@ const getRopewikiPageView = async (
                 : null;
 
         let pageLegend: Record<string, LegendItem> | undefined;
-        const rawLegend = routeRow.legend ?? null;
-        if (
-            rawLegend != null &&
-            typeof rawLegend === 'object' &&
-            !Array.isArray(rawLegend)
-        ) {
+        if (routeMapDataId != null) {
             try {
-                const parsed = LegendItem.legendRecordFromResult(
-                    rawLegend,
-                    'getRopewikiPageView.MapData.legend',
-                );
+                const legendRows = await getMapDataLegendItems(conn, routeMapDataId);
+                const parsed = legendRecordFromRows(legendRows);
                 pageLegend = Object.keys(parsed).length > 0 ? parsed : undefined;
             } catch (e) {
                 console.warn(
-                    'getRopewikiPageView: invalid MapData.legend, omitting from miniMap:',
+                    'getRopewikiPageView: invalid MapData legend items, omitting from miniMap:',
                     e instanceof Error ? e.message : e,
                 );
             }

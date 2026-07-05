@@ -7,6 +7,7 @@ import {
     PointLegendItem,
     PolygonLegendItem,
 } from 'ropegeo-common/models';
+import { legendRecordFromRows, hasLegendRows, type MapDataLegendRows } from './mapDataLegendItem';
 
 /** Ensures ropegeo-common registers LegendItem.fromResult parsers before legendRecordFromResult. */
 export const _legendParserSideEffect: unknown[] = [PointLegendItem, LineLegendItem, PolygonLegendItem];
@@ -64,19 +65,12 @@ export class MapData {
 
     toDbRow(): s.MapData.Insertable {
         const now = new Date();
-        const legendJson =
-            this.legend != null
-                ? Object.fromEntries(
-                      Object.entries(this.legend).map(([key, item]) => [key, item.toPlain()]),
-                  )
-                : null;
         const row: s.MapData.Insertable = {
             gpx: this.gpx ?? null,
             kml: this.kml ?? null,
             geoJson: this.geoJson ?? null,
             tilesTemplate: this.tilesTemplate ?? null,
             bounds: (this.bounds ?? null) as db.JSONValue | null,
-            legend: legendJson as db.JSONValue | null,
             tileCount: this.tileCount,
             tileTotalBytes: this.tileTotalBytes,
             sourceFileUrl: this.sourceFileUrl,
@@ -93,7 +87,10 @@ export class MapData {
         return row;
     }
 
-    static fromDbRow(row: s.MapData.JSONSelectable): MapData {
+    static fromDbRow(
+        row: s.MapData.JSONSelectable,
+        legendRows?: MapDataLegendRows,
+    ): MapData {
         const mapData = new MapData(
             row.gpx ?? undefined,
             row.kml ?? undefined,
@@ -108,15 +105,15 @@ export class MapData {
         mapData.tileCount = row.tileCount ?? 0;
         mapData.tileTotalBytes =
             row.tileTotalBytes == null ? 0 : Number(row.tileTotalBytes);
-        if (row.legend != null && typeof row.legend === 'object' && !Array.isArray(row.legend)) {
+        if (legendRows != null && hasLegendRows(legendRows)) {
             try {
-                const parsed = LegendItem.legendRecordFromResult(row.legend, 'MapData.legend');
+                const parsed = legendRecordFromRows(legendRows);
                 if (Object.keys(parsed).length > 0) {
                     mapData.legend = parsed;
                 }
             } catch (e) {
                 console.warn(
-                    `MapData ${row.id}: invalid legend json, omitting:`,
+                    `MapData ${row.id}: invalid legend rows, omitting:`,
                     e instanceof Error ? e.message : e,
                 );
             }

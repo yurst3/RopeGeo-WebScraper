@@ -4,6 +4,7 @@ import * as db from 'zapatos/db';
 import getMapData from '../../../src/map-data/database/getMapData';
 import upsertMapData from '../../../src/map-data/database/upsertMapData';
 import MapData from '../../../src/map-data/types/mapData';
+import { Bounds, LineLegendItem } from 'ropegeo-common/models';
 
 describe('getMapData (integration)', () => {
     const pool = new Pool({
@@ -97,5 +98,19 @@ describe('getMapData (integration)', () => {
         const result = await getMapData(conn, otherId);
 
         expect(result).toBeUndefined();
+    });
+
+    it('returns MapData with legend items loaded from legend tables', async () => {
+        const mapDataId = '55555555-5555-5555-5555-555555555555';
+        const bounds = new Bounds(40, 39, -110, -111);
+        const inserted = new MapData(undefined, undefined, undefined, undefined, mapDataId);
+        inserted.setLegend({ seg: new LineLegendItem('seg', 'Segment', bounds, '#00f', '2') });
+        await upsertMapData(conn, inserted);
+
+        const result = await getMapData(conn, mapDataId);
+
+        expect(result).not.toBeUndefined();
+        expect(result!.legend?.seg).toBeInstanceOf(LineLegendItem);
+        expect(result!.legend?.seg.name).toBe('Segment');
     });
 });

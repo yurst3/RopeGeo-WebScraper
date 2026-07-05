@@ -1,6 +1,8 @@
 import * as db from 'zapatos/db';
 import type * as s from 'zapatos/schema';
 import MapData from '../types/mapData';
+import getMapDataLegendItems from './getMapDataLegendItems';
+import replaceMapDataLegendItems from './replaceMapDataLegendItems';
 
 // Insert or update a MapData record. Single upsert: INSERT ... ON CONFLICT (id) DO UPDATE.
 // When allowUpdates = false on conflict, the update is skipped; we log a warning and return the existing row.
@@ -12,7 +14,7 @@ const upsertMapData = async (
     const row = mapData.toDbRow();
 
     const returned = await db.sql<db.SQL, (s.MapData.JSONSelectable)[]>`
-        INSERT INTO "MapData" ("id", "gpx", "kml", "geoJson", "tilesTemplate", "bounds", "legend", "tileCount", "tileTotalBytes", "sourceFileUrl", "errorMessage", "updatedAt", "deletedAt")
+        INSERT INTO "MapData" ("id", "gpx", "kml", "geoJson", "tilesTemplate", "bounds", "tileCount", "tileTotalBytes", "sourceFileUrl", "errorMessage", "updatedAt", "deletedAt")
         VALUES (
             COALESCE(${db.param(row.id)}::uuid, gen_random_uuid()),
             ${db.param(row.gpx)},
@@ -20,7 +22,6 @@ const upsertMapData = async (
             ${db.param(row.geoJson)},
             ${db.param(row.tilesTemplate)},
             ${db.param(row.bounds)},
-            ${db.param(row.legend)},
             ${db.param(row.tileCount)},
             ${db.param(row.tileTotalBytes)},
             ${db.param(row.sourceFileUrl)},
@@ -34,7 +35,6 @@ const upsertMapData = async (
             "geoJson" = EXCLUDED."geoJson",
             "tilesTemplate" = EXCLUDED."tilesTemplate",
             "bounds" = EXCLUDED."bounds",
-            "legend" = EXCLUDED."legend",
             "tileCount" = EXCLUDED."tileCount",
             "tileTotalBytes" = EXCLUDED."tileTotalBytes",
             "updatedAt" = EXCLUDED."updatedAt",
@@ -45,7 +45,12 @@ const upsertMapData = async (
         RETURNING *
     `.run(conn);
 
-    if (returned.length > 0) return MapData.fromDbRow(returned[0]!);
+    if (returned.length > 0) {
+        const upserted = returned[0]!;
+        await replaceMapDataLegendItems(conn, upserted.id, mapData.legend);
+        const legendRows = await getMapDataLegendItems(conn, upserted.id);
+        return MapData.fromDbRow(upserted, legendRows);
+    }
 
     const id = row.id as string | undefined;
     if (id) {
@@ -56,7 +61,8 @@ const upsertMapData = async (
             } else if (!existing.errorMessage && mapData.errorMessage) {
                 console.log(`Skipping upsert for map data ${id} to avoid overwriting existing successful data with an error`);
             }
-            return MapData.fromDbRow(existing);
+            const legendRows = await getMapDataLegendItems(conn, existing.id);
+            return MapData.fromDbRow(existing, legendRows);
         }
     }
     throw new Error('MapData insert returned no row');

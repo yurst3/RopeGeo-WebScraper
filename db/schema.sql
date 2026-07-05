@@ -1,4 +1,4 @@
-\restrict UjzL6V1LhciAntd55YOxFGaxQlHs0kSLSBvYGUw9iaAzPk8DAbEywNDD3Qm7Rrr
+\restrict 8MjaYaiqUdLfzk5SZiVsuPejKyiYkc7VK165YVOnZPJZc6zyYbQN6bkSJay3McT
 
 -- Dumped from database version 18.1 (Debian 18.1-1.pgdg13+2)
 -- Dumped by pg_dump version 18.1 (Homebrew)
@@ -71,9 +71,55 @@ CREATE TABLE public."MapData" (
     "errorMessage" text,
     "allowUpdates" boolean DEFAULT true NOT NULL,
     bounds jsonb,
-    legend jsonb,
     "tileCount" integer DEFAULT 0 NOT NULL,
     "tileTotalBytes" bigint DEFAULT 0 NOT NULL
+);
+
+
+--
+-- Name: MapDataMarkerLegendItem; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public."MapDataMarkerLegendItem" (
+    id text NOT NULL,
+    "mapData" uuid NOT NULL,
+    name text NOT NULL,
+    coordinates jsonb NOT NULL,
+    icon text,
+    "createdAt" timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    "updatedAt" timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL
+);
+
+
+--
+-- Name: MapDataPolygonLegendItem; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public."MapDataPolygonLegendItem" (
+    id text NOT NULL,
+    "mapData" uuid NOT NULL,
+    name text NOT NULL,
+    bounds jsonb NOT NULL,
+    "borderColor" text,
+    "fillColor" text,
+    "createdAt" timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    "updatedAt" timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL
+);
+
+
+--
+-- Name: MapDataSegmentLegendItem; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public."MapDataSegmentLegendItem" (
+    id text NOT NULL,
+    "mapData" uuid NOT NULL,
+    name text NOT NULL,
+    bounds jsonb NOT NULL,
+    "strokeColor" text,
+    "strokeWidth" text,
+    "createdAt" timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    "updatedAt" timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL
 );
 
 
@@ -287,6 +333,30 @@ ALTER TABLE ONLY public."ImageData"
 
 
 --
+-- Name: MapDataMarkerLegendItem MapDataMarkerLegendItem_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public."MapDataMarkerLegendItem"
+    ADD CONSTRAINT "MapDataMarkerLegendItem_pkey" PRIMARY KEY (id);
+
+
+--
+-- Name: MapDataPolygonLegendItem MapDataPolygonLegendItem_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public."MapDataPolygonLegendItem"
+    ADD CONSTRAINT "MapDataPolygonLegendItem_pkey" PRIMARY KEY (id);
+
+
+--
+-- Name: MapDataSegmentLegendItem MapDataSegmentLegendItem_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public."MapDataSegmentLegendItem"
+    ADD CONSTRAINT "MapDataSegmentLegendItem_pkey" PRIMARY KEY (id);
+
+
+--
 -- Name: MapData MapData_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -467,10 +537,55 @@ CREATE INDEX "RopewikiRegion_name_trgm" ON public."RopewikiRegion" USING gin (na
 
 
 --
+-- Name: idx_mapDataMarkerLegendItem_mapData; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "idx_mapDataMarkerLegendItem_mapData" ON public."MapDataMarkerLegendItem" USING btree ("mapData");
+
+
+--
+-- Name: idx_mapDataPolygonLegendItem_mapData; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "idx_mapDataPolygonLegendItem_mapData" ON public."MapDataPolygonLegendItem" USING btree ("mapData");
+
+
+--
+-- Name: idx_mapDataSegmentLegendItem_mapData; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "idx_mapDataSegmentLegendItem_mapData" ON public."MapDataSegmentLegendItem" USING btree ("mapData");
+
+
+--
 -- Name: uk_ropewikiImage_ropewikiPage_betaSection_order; Type: INDEX; Schema: public; Owner: -
 --
 
 CREATE UNIQUE INDEX "uk_ropewikiImage_ropewikiPage_betaSection_order" ON public."RopewikiImage" USING btree ("ropewikiPage", "betaSection", "order") NULLS NOT DISTINCT WHERE ("order" IS NOT NULL);
+
+
+--
+-- Name: MapDataMarkerLegendItem fk_mapDataMarkerLegendItem_mapData; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public."MapDataMarkerLegendItem"
+    ADD CONSTRAINT "fk_mapDataMarkerLegendItem_mapData" FOREIGN KEY ("mapData") REFERENCES public."MapData"(id) ON DELETE CASCADE;
+
+
+--
+-- Name: MapDataPolygonLegendItem fk_mapDataPolygonLegendItem_mapData; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public."MapDataPolygonLegendItem"
+    ADD CONSTRAINT "fk_mapDataPolygonLegendItem_mapData" FOREIGN KEY ("mapData") REFERENCES public."MapData"(id) ON DELETE CASCADE;
+
+
+--
+-- Name: MapDataSegmentLegendItem fk_mapDataSegmentLegendItem_mapData; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public."MapDataSegmentLegendItem"
+    ADD CONSTRAINT "fk_mapDataSegmentLegendItem_mapData" FOREIGN KEY ("mapData") REFERENCES public."MapData"(id) ON DELETE CASCADE;
 
 
 --
@@ -565,7 +680,7 @@ ALTER TABLE ONLY public."RopewikiRoute"
 -- PostgreSQL database dump complete
 --
 
-\unrestrict UjzL6V1LhciAntd55YOxFGaxQlHs0kSLSBvYGUw9iaAzPk8DAbEywNDD3Qm7Rrr
+\unrestrict 8MjaYaiqUdLfzk5SZiVsuPejKyiYkc7VK165YVOnZPJZc6zyYbQN6bkSJay3McT
 
 
 --
@@ -612,4 +727,5 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20260430103000'),
     ('20260529120000'),
     ('20260624120000'),
-    ('20260624130000');
+    ('20260624130000'),
+    ('20260705120000');

@@ -497,12 +497,6 @@ declare module 'zapatos/schema' {
       */
       kml: string | null;
       /**
-      * **MapData.legend**
-      * - `jsonb` in database
-      * - Nullable, no default
-      */
-      legend: db.JSONValue | null;
-      /**
       * **MapData.sourceFileUrl**
       * - `text` in database
       * - `NOT NULL`, default: `''::text`
@@ -588,12 +582,6 @@ declare module 'zapatos/schema' {
       * - Nullable, no default
       */
       kml: string | null;
-      /**
-      * **MapData.legend**
-      * - `jsonb` in database
-      * - Nullable, no default
-      */
-      legend: db.JSONValue | null;
       /**
       * **MapData.sourceFileUrl**
       * - `text` in database
@@ -681,12 +669,6 @@ declare module 'zapatos/schema' {
       */
       kml?: string | db.Parameter<string> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, string | db.Parameter<string> | db.SQLFragment | db.ParentColumn>;
       /**
-      * **MapData.legend**
-      * - `jsonb` in database
-      * - Nullable, no default
-      */
-      legend?: db.JSONValue | db.Parameter<db.JSONValue> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, db.JSONValue | db.Parameter<db.JSONValue> | db.SQLFragment | db.ParentColumn>;
-      /**
       * **MapData.sourceFileUrl**
       * - `text` in database
       * - `NOT NULL`, default: `''::text`
@@ -772,12 +754,6 @@ declare module 'zapatos/schema' {
       * - Nullable, no default
       */
       kml?: string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment;
-      /**
-      * **MapData.legend**
-      * - `jsonb` in database
-      * - Nullable, no default
-      */
-      legend?: db.JSONValue | db.Parameter<db.JSONValue> | null | db.DefaultType | db.SQLFragment;
       /**
       * **MapData.sourceFileUrl**
       * - `text` in database
@@ -865,12 +841,6 @@ declare module 'zapatos/schema' {
       */
       kml?: string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment | db.SQLFragment<any, string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment>;
       /**
-      * **MapData.legend**
-      * - `jsonb` in database
-      * - Nullable, no default
-      */
-      legend?: db.JSONValue | db.Parameter<db.JSONValue> | null | db.DefaultType | db.SQLFragment | db.SQLFragment<any, db.JSONValue | db.Parameter<db.JSONValue> | null | db.DefaultType | db.SQLFragment>;
-      /**
       * **MapData.sourceFileUrl**
       * - `text` in database
       * - `NOT NULL`, default: `''::text`
@@ -902,6 +872,765 @@ declare module 'zapatos/schema' {
       updatedAt?: (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.DefaultType | db.SQLFragment | db.SQLFragment<any, (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.DefaultType | db.SQLFragment>;
     }
     export type UniqueIndex = 'MapData_pkey';
+    export type Column = keyof Selectable;
+    export type OnlyCols<T extends readonly Column[]> = Pick<Selectable, T[number]>;
+    export type SQLExpression = Table | db.ColumnNames<Updatable | (keyof Updatable)[]> | db.ColumnValues<Updatable> | Whereable | Column | db.ParentColumn | db.GenericSQLExpression;
+    export type SQL = SQLExpression | SQLExpression[];
+  }
+
+  /**
+   * **MapDataMarkerLegendItem**
+   * - Table in database
+   */
+  export namespace MapDataMarkerLegendItem {
+    export type Table = 'MapDataMarkerLegendItem';
+    export interface Selectable {
+      /**
+      * **MapDataMarkerLegendItem.coordinates**
+      * - `jsonb` in database
+      * - `NOT NULL`, no default
+      */
+      coordinates: db.JSONValue;
+      /**
+      * **MapDataMarkerLegendItem.createdAt**
+      * - `timestamp` in database
+      * - `NOT NULL`, default: `CURRENT_TIMESTAMP`
+      */
+      createdAt: Date;
+      /**
+      * **MapDataMarkerLegendItem.icon**
+      * - `text` in database
+      * - Nullable, no default
+      */
+      icon: string | null;
+      /**
+      * **MapDataMarkerLegendItem.id**
+      * - `text` in database
+      * - `NOT NULL`, no default
+      */
+      id: string;
+      /**
+      * **MapDataMarkerLegendItem.mapData**
+      * - `uuid` in database
+      * - `NOT NULL`, no default
+      */
+      mapData: string;
+      /**
+      * **MapDataMarkerLegendItem.name**
+      * - `text` in database
+      * - `NOT NULL`, no default
+      */
+      name: string;
+      /**
+      * **MapDataMarkerLegendItem.updatedAt**
+      * - `timestamp` in database
+      * - `NOT NULL`, default: `CURRENT_TIMESTAMP`
+      */
+      updatedAt: Date;
+    }
+    export interface JSONSelectable {
+      /**
+      * **MapDataMarkerLegendItem.coordinates**
+      * - `jsonb` in database
+      * - `NOT NULL`, no default
+      */
+      coordinates: db.JSONValue;
+      /**
+      * **MapDataMarkerLegendItem.createdAt**
+      * - `timestamp` in database
+      * - `NOT NULL`, default: `CURRENT_TIMESTAMP`
+      */
+      createdAt: db.TimestampString;
+      /**
+      * **MapDataMarkerLegendItem.icon**
+      * - `text` in database
+      * - Nullable, no default
+      */
+      icon: string | null;
+      /**
+      * **MapDataMarkerLegendItem.id**
+      * - `text` in database
+      * - `NOT NULL`, no default
+      */
+      id: string;
+      /**
+      * **MapDataMarkerLegendItem.mapData**
+      * - `uuid` in database
+      * - `NOT NULL`, no default
+      */
+      mapData: string;
+      /**
+      * **MapDataMarkerLegendItem.name**
+      * - `text` in database
+      * - `NOT NULL`, no default
+      */
+      name: string;
+      /**
+      * **MapDataMarkerLegendItem.updatedAt**
+      * - `timestamp` in database
+      * - `NOT NULL`, default: `CURRENT_TIMESTAMP`
+      */
+      updatedAt: db.TimestampString;
+    }
+    export interface Whereable {
+      /**
+      * **MapDataMarkerLegendItem.coordinates**
+      * - `jsonb` in database
+      * - `NOT NULL`, no default
+      */
+      coordinates?: db.JSONValue | db.Parameter<db.JSONValue> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, db.JSONValue | db.Parameter<db.JSONValue> | db.SQLFragment | db.ParentColumn>;
+      /**
+      * **MapDataMarkerLegendItem.createdAt**
+      * - `timestamp` in database
+      * - `NOT NULL`, default: `CURRENT_TIMESTAMP`
+      */
+      createdAt?: (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.SQLFragment | db.ParentColumn>;
+      /**
+      * **MapDataMarkerLegendItem.icon**
+      * - `text` in database
+      * - Nullable, no default
+      */
+      icon?: string | db.Parameter<string> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, string | db.Parameter<string> | db.SQLFragment | db.ParentColumn>;
+      /**
+      * **MapDataMarkerLegendItem.id**
+      * - `text` in database
+      * - `NOT NULL`, no default
+      */
+      id?: string | db.Parameter<string> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, string | db.Parameter<string> | db.SQLFragment | db.ParentColumn>;
+      /**
+      * **MapDataMarkerLegendItem.mapData**
+      * - `uuid` in database
+      * - `NOT NULL`, no default
+      */
+      mapData?: string | db.Parameter<string> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, string | db.Parameter<string> | db.SQLFragment | db.ParentColumn>;
+      /**
+      * **MapDataMarkerLegendItem.name**
+      * - `text` in database
+      * - `NOT NULL`, no default
+      */
+      name?: string | db.Parameter<string> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, string | db.Parameter<string> | db.SQLFragment | db.ParentColumn>;
+      /**
+      * **MapDataMarkerLegendItem.updatedAt**
+      * - `timestamp` in database
+      * - `NOT NULL`, default: `CURRENT_TIMESTAMP`
+      */
+      updatedAt?: (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.SQLFragment | db.ParentColumn>;
+    }
+    export interface Insertable {
+      /**
+      * **MapDataMarkerLegendItem.coordinates**
+      * - `jsonb` in database
+      * - `NOT NULL`, no default
+      */
+      coordinates: db.JSONValue | db.Parameter<db.JSONValue> | db.SQLFragment;
+      /**
+      * **MapDataMarkerLegendItem.createdAt**
+      * - `timestamp` in database
+      * - `NOT NULL`, default: `CURRENT_TIMESTAMP`
+      */
+      createdAt?: (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.DefaultType | db.SQLFragment;
+      /**
+      * **MapDataMarkerLegendItem.icon**
+      * - `text` in database
+      * - Nullable, no default
+      */
+      icon?: string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment;
+      /**
+      * **MapDataMarkerLegendItem.id**
+      * - `text` in database
+      * - `NOT NULL`, no default
+      */
+      id: string | db.Parameter<string> | db.SQLFragment;
+      /**
+      * **MapDataMarkerLegendItem.mapData**
+      * - `uuid` in database
+      * - `NOT NULL`, no default
+      */
+      mapData: string | db.Parameter<string> | db.SQLFragment;
+      /**
+      * **MapDataMarkerLegendItem.name**
+      * - `text` in database
+      * - `NOT NULL`, no default
+      */
+      name: string | db.Parameter<string> | db.SQLFragment;
+      /**
+      * **MapDataMarkerLegendItem.updatedAt**
+      * - `timestamp` in database
+      * - `NOT NULL`, default: `CURRENT_TIMESTAMP`
+      */
+      updatedAt?: (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.DefaultType | db.SQLFragment;
+    }
+    export interface Updatable {
+      /**
+      * **MapDataMarkerLegendItem.coordinates**
+      * - `jsonb` in database
+      * - `NOT NULL`, no default
+      */
+      coordinates?: db.JSONValue | db.Parameter<db.JSONValue> | db.SQLFragment | db.SQLFragment<any, db.JSONValue | db.Parameter<db.JSONValue> | db.SQLFragment>;
+      /**
+      * **MapDataMarkerLegendItem.createdAt**
+      * - `timestamp` in database
+      * - `NOT NULL`, default: `CURRENT_TIMESTAMP`
+      */
+      createdAt?: (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.DefaultType | db.SQLFragment | db.SQLFragment<any, (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.DefaultType | db.SQLFragment>;
+      /**
+      * **MapDataMarkerLegendItem.icon**
+      * - `text` in database
+      * - Nullable, no default
+      */
+      icon?: string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment | db.SQLFragment<any, string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment>;
+      /**
+      * **MapDataMarkerLegendItem.id**
+      * - `text` in database
+      * - `NOT NULL`, no default
+      */
+      id?: string | db.Parameter<string> | db.SQLFragment | db.SQLFragment<any, string | db.Parameter<string> | db.SQLFragment>;
+      /**
+      * **MapDataMarkerLegendItem.mapData**
+      * - `uuid` in database
+      * - `NOT NULL`, no default
+      */
+      mapData?: string | db.Parameter<string> | db.SQLFragment | db.SQLFragment<any, string | db.Parameter<string> | db.SQLFragment>;
+      /**
+      * **MapDataMarkerLegendItem.name**
+      * - `text` in database
+      * - `NOT NULL`, no default
+      */
+      name?: string | db.Parameter<string> | db.SQLFragment | db.SQLFragment<any, string | db.Parameter<string> | db.SQLFragment>;
+      /**
+      * **MapDataMarkerLegendItem.updatedAt**
+      * - `timestamp` in database
+      * - `NOT NULL`, default: `CURRENT_TIMESTAMP`
+      */
+      updatedAt?: (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.DefaultType | db.SQLFragment | db.SQLFragment<any, (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.DefaultType | db.SQLFragment>;
+    }
+    export type UniqueIndex = 'MapDataMarkerLegendItem_pkey';
+    export type Column = keyof Selectable;
+    export type OnlyCols<T extends readonly Column[]> = Pick<Selectable, T[number]>;
+    export type SQLExpression = Table | db.ColumnNames<Updatable | (keyof Updatable)[]> | db.ColumnValues<Updatable> | Whereable | Column | db.ParentColumn | db.GenericSQLExpression;
+    export type SQL = SQLExpression | SQLExpression[];
+  }
+
+  /**
+   * **MapDataPolygonLegendItem**
+   * - Table in database
+   */
+  export namespace MapDataPolygonLegendItem {
+    export type Table = 'MapDataPolygonLegendItem';
+    export interface Selectable {
+      /**
+      * **MapDataPolygonLegendItem.borderColor**
+      * - `text` in database
+      * - Nullable, no default
+      */
+      borderColor: string | null;
+      /**
+      * **MapDataPolygonLegendItem.bounds**
+      * - `jsonb` in database
+      * - `NOT NULL`, no default
+      */
+      bounds: db.JSONValue;
+      /**
+      * **MapDataPolygonLegendItem.createdAt**
+      * - `timestamp` in database
+      * - `NOT NULL`, default: `CURRENT_TIMESTAMP`
+      */
+      createdAt: Date;
+      /**
+      * **MapDataPolygonLegendItem.fillColor**
+      * - `text` in database
+      * - Nullable, no default
+      */
+      fillColor: string | null;
+      /**
+      * **MapDataPolygonLegendItem.id**
+      * - `text` in database
+      * - `NOT NULL`, no default
+      */
+      id: string;
+      /**
+      * **MapDataPolygonLegendItem.mapData**
+      * - `uuid` in database
+      * - `NOT NULL`, no default
+      */
+      mapData: string;
+      /**
+      * **MapDataPolygonLegendItem.name**
+      * - `text` in database
+      * - `NOT NULL`, no default
+      */
+      name: string;
+      /**
+      * **MapDataPolygonLegendItem.updatedAt**
+      * - `timestamp` in database
+      * - `NOT NULL`, default: `CURRENT_TIMESTAMP`
+      */
+      updatedAt: Date;
+    }
+    export interface JSONSelectable {
+      /**
+      * **MapDataPolygonLegendItem.borderColor**
+      * - `text` in database
+      * - Nullable, no default
+      */
+      borderColor: string | null;
+      /**
+      * **MapDataPolygonLegendItem.bounds**
+      * - `jsonb` in database
+      * - `NOT NULL`, no default
+      */
+      bounds: db.JSONValue;
+      /**
+      * **MapDataPolygonLegendItem.createdAt**
+      * - `timestamp` in database
+      * - `NOT NULL`, default: `CURRENT_TIMESTAMP`
+      */
+      createdAt: db.TimestampString;
+      /**
+      * **MapDataPolygonLegendItem.fillColor**
+      * - `text` in database
+      * - Nullable, no default
+      */
+      fillColor: string | null;
+      /**
+      * **MapDataPolygonLegendItem.id**
+      * - `text` in database
+      * - `NOT NULL`, no default
+      */
+      id: string;
+      /**
+      * **MapDataPolygonLegendItem.mapData**
+      * - `uuid` in database
+      * - `NOT NULL`, no default
+      */
+      mapData: string;
+      /**
+      * **MapDataPolygonLegendItem.name**
+      * - `text` in database
+      * - `NOT NULL`, no default
+      */
+      name: string;
+      /**
+      * **MapDataPolygonLegendItem.updatedAt**
+      * - `timestamp` in database
+      * - `NOT NULL`, default: `CURRENT_TIMESTAMP`
+      */
+      updatedAt: db.TimestampString;
+    }
+    export interface Whereable {
+      /**
+      * **MapDataPolygonLegendItem.borderColor**
+      * - `text` in database
+      * - Nullable, no default
+      */
+      borderColor?: string | db.Parameter<string> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, string | db.Parameter<string> | db.SQLFragment | db.ParentColumn>;
+      /**
+      * **MapDataPolygonLegendItem.bounds**
+      * - `jsonb` in database
+      * - `NOT NULL`, no default
+      */
+      bounds?: db.JSONValue | db.Parameter<db.JSONValue> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, db.JSONValue | db.Parameter<db.JSONValue> | db.SQLFragment | db.ParentColumn>;
+      /**
+      * **MapDataPolygonLegendItem.createdAt**
+      * - `timestamp` in database
+      * - `NOT NULL`, default: `CURRENT_TIMESTAMP`
+      */
+      createdAt?: (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.SQLFragment | db.ParentColumn>;
+      /**
+      * **MapDataPolygonLegendItem.fillColor**
+      * - `text` in database
+      * - Nullable, no default
+      */
+      fillColor?: string | db.Parameter<string> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, string | db.Parameter<string> | db.SQLFragment | db.ParentColumn>;
+      /**
+      * **MapDataPolygonLegendItem.id**
+      * - `text` in database
+      * - `NOT NULL`, no default
+      */
+      id?: string | db.Parameter<string> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, string | db.Parameter<string> | db.SQLFragment | db.ParentColumn>;
+      /**
+      * **MapDataPolygonLegendItem.mapData**
+      * - `uuid` in database
+      * - `NOT NULL`, no default
+      */
+      mapData?: string | db.Parameter<string> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, string | db.Parameter<string> | db.SQLFragment | db.ParentColumn>;
+      /**
+      * **MapDataPolygonLegendItem.name**
+      * - `text` in database
+      * - `NOT NULL`, no default
+      */
+      name?: string | db.Parameter<string> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, string | db.Parameter<string> | db.SQLFragment | db.ParentColumn>;
+      /**
+      * **MapDataPolygonLegendItem.updatedAt**
+      * - `timestamp` in database
+      * - `NOT NULL`, default: `CURRENT_TIMESTAMP`
+      */
+      updatedAt?: (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.SQLFragment | db.ParentColumn>;
+    }
+    export interface Insertable {
+      /**
+      * **MapDataPolygonLegendItem.borderColor**
+      * - `text` in database
+      * - Nullable, no default
+      */
+      borderColor?: string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment;
+      /**
+      * **MapDataPolygonLegendItem.bounds**
+      * - `jsonb` in database
+      * - `NOT NULL`, no default
+      */
+      bounds: db.JSONValue | db.Parameter<db.JSONValue> | db.SQLFragment;
+      /**
+      * **MapDataPolygonLegendItem.createdAt**
+      * - `timestamp` in database
+      * - `NOT NULL`, default: `CURRENT_TIMESTAMP`
+      */
+      createdAt?: (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.DefaultType | db.SQLFragment;
+      /**
+      * **MapDataPolygonLegendItem.fillColor**
+      * - `text` in database
+      * - Nullable, no default
+      */
+      fillColor?: string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment;
+      /**
+      * **MapDataPolygonLegendItem.id**
+      * - `text` in database
+      * - `NOT NULL`, no default
+      */
+      id: string | db.Parameter<string> | db.SQLFragment;
+      /**
+      * **MapDataPolygonLegendItem.mapData**
+      * - `uuid` in database
+      * - `NOT NULL`, no default
+      */
+      mapData: string | db.Parameter<string> | db.SQLFragment;
+      /**
+      * **MapDataPolygonLegendItem.name**
+      * - `text` in database
+      * - `NOT NULL`, no default
+      */
+      name: string | db.Parameter<string> | db.SQLFragment;
+      /**
+      * **MapDataPolygonLegendItem.updatedAt**
+      * - `timestamp` in database
+      * - `NOT NULL`, default: `CURRENT_TIMESTAMP`
+      */
+      updatedAt?: (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.DefaultType | db.SQLFragment;
+    }
+    export interface Updatable {
+      /**
+      * **MapDataPolygonLegendItem.borderColor**
+      * - `text` in database
+      * - Nullable, no default
+      */
+      borderColor?: string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment | db.SQLFragment<any, string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment>;
+      /**
+      * **MapDataPolygonLegendItem.bounds**
+      * - `jsonb` in database
+      * - `NOT NULL`, no default
+      */
+      bounds?: db.JSONValue | db.Parameter<db.JSONValue> | db.SQLFragment | db.SQLFragment<any, db.JSONValue | db.Parameter<db.JSONValue> | db.SQLFragment>;
+      /**
+      * **MapDataPolygonLegendItem.createdAt**
+      * - `timestamp` in database
+      * - `NOT NULL`, default: `CURRENT_TIMESTAMP`
+      */
+      createdAt?: (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.DefaultType | db.SQLFragment | db.SQLFragment<any, (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.DefaultType | db.SQLFragment>;
+      /**
+      * **MapDataPolygonLegendItem.fillColor**
+      * - `text` in database
+      * - Nullable, no default
+      */
+      fillColor?: string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment | db.SQLFragment<any, string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment>;
+      /**
+      * **MapDataPolygonLegendItem.id**
+      * - `text` in database
+      * - `NOT NULL`, no default
+      */
+      id?: string | db.Parameter<string> | db.SQLFragment | db.SQLFragment<any, string | db.Parameter<string> | db.SQLFragment>;
+      /**
+      * **MapDataPolygonLegendItem.mapData**
+      * - `uuid` in database
+      * - `NOT NULL`, no default
+      */
+      mapData?: string | db.Parameter<string> | db.SQLFragment | db.SQLFragment<any, string | db.Parameter<string> | db.SQLFragment>;
+      /**
+      * **MapDataPolygonLegendItem.name**
+      * - `text` in database
+      * - `NOT NULL`, no default
+      */
+      name?: string | db.Parameter<string> | db.SQLFragment | db.SQLFragment<any, string | db.Parameter<string> | db.SQLFragment>;
+      /**
+      * **MapDataPolygonLegendItem.updatedAt**
+      * - `timestamp` in database
+      * - `NOT NULL`, default: `CURRENT_TIMESTAMP`
+      */
+      updatedAt?: (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.DefaultType | db.SQLFragment | db.SQLFragment<any, (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.DefaultType | db.SQLFragment>;
+    }
+    export type UniqueIndex = 'MapDataPolygonLegendItem_pkey';
+    export type Column = keyof Selectable;
+    export type OnlyCols<T extends readonly Column[]> = Pick<Selectable, T[number]>;
+    export type SQLExpression = Table | db.ColumnNames<Updatable | (keyof Updatable)[]> | db.ColumnValues<Updatable> | Whereable | Column | db.ParentColumn | db.GenericSQLExpression;
+    export type SQL = SQLExpression | SQLExpression[];
+  }
+
+  /**
+   * **MapDataSegmentLegendItem**
+   * - Table in database
+   */
+  export namespace MapDataSegmentLegendItem {
+    export type Table = 'MapDataSegmentLegendItem';
+    export interface Selectable {
+      /**
+      * **MapDataSegmentLegendItem.bounds**
+      * - `jsonb` in database
+      * - `NOT NULL`, no default
+      */
+      bounds: db.JSONValue;
+      /**
+      * **MapDataSegmentLegendItem.createdAt**
+      * - `timestamp` in database
+      * - `NOT NULL`, default: `CURRENT_TIMESTAMP`
+      */
+      createdAt: Date;
+      /**
+      * **MapDataSegmentLegendItem.id**
+      * - `text` in database
+      * - `NOT NULL`, no default
+      */
+      id: string;
+      /**
+      * **MapDataSegmentLegendItem.mapData**
+      * - `uuid` in database
+      * - `NOT NULL`, no default
+      */
+      mapData: string;
+      /**
+      * **MapDataSegmentLegendItem.name**
+      * - `text` in database
+      * - `NOT NULL`, no default
+      */
+      name: string;
+      /**
+      * **MapDataSegmentLegendItem.strokeColor**
+      * - `text` in database
+      * - Nullable, no default
+      */
+      strokeColor: string | null;
+      /**
+      * **MapDataSegmentLegendItem.strokeWidth**
+      * - `text` in database
+      * - Nullable, no default
+      */
+      strokeWidth: string | null;
+      /**
+      * **MapDataSegmentLegendItem.updatedAt**
+      * - `timestamp` in database
+      * - `NOT NULL`, default: `CURRENT_TIMESTAMP`
+      */
+      updatedAt: Date;
+    }
+    export interface JSONSelectable {
+      /**
+      * **MapDataSegmentLegendItem.bounds**
+      * - `jsonb` in database
+      * - `NOT NULL`, no default
+      */
+      bounds: db.JSONValue;
+      /**
+      * **MapDataSegmentLegendItem.createdAt**
+      * - `timestamp` in database
+      * - `NOT NULL`, default: `CURRENT_TIMESTAMP`
+      */
+      createdAt: db.TimestampString;
+      /**
+      * **MapDataSegmentLegendItem.id**
+      * - `text` in database
+      * - `NOT NULL`, no default
+      */
+      id: string;
+      /**
+      * **MapDataSegmentLegendItem.mapData**
+      * - `uuid` in database
+      * - `NOT NULL`, no default
+      */
+      mapData: string;
+      /**
+      * **MapDataSegmentLegendItem.name**
+      * - `text` in database
+      * - `NOT NULL`, no default
+      */
+      name: string;
+      /**
+      * **MapDataSegmentLegendItem.strokeColor**
+      * - `text` in database
+      * - Nullable, no default
+      */
+      strokeColor: string | null;
+      /**
+      * **MapDataSegmentLegendItem.strokeWidth**
+      * - `text` in database
+      * - Nullable, no default
+      */
+      strokeWidth: string | null;
+      /**
+      * **MapDataSegmentLegendItem.updatedAt**
+      * - `timestamp` in database
+      * - `NOT NULL`, default: `CURRENT_TIMESTAMP`
+      */
+      updatedAt: db.TimestampString;
+    }
+    export interface Whereable {
+      /**
+      * **MapDataSegmentLegendItem.bounds**
+      * - `jsonb` in database
+      * - `NOT NULL`, no default
+      */
+      bounds?: db.JSONValue | db.Parameter<db.JSONValue> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, db.JSONValue | db.Parameter<db.JSONValue> | db.SQLFragment | db.ParentColumn>;
+      /**
+      * **MapDataSegmentLegendItem.createdAt**
+      * - `timestamp` in database
+      * - `NOT NULL`, default: `CURRENT_TIMESTAMP`
+      */
+      createdAt?: (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.SQLFragment | db.ParentColumn>;
+      /**
+      * **MapDataSegmentLegendItem.id**
+      * - `text` in database
+      * - `NOT NULL`, no default
+      */
+      id?: string | db.Parameter<string> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, string | db.Parameter<string> | db.SQLFragment | db.ParentColumn>;
+      /**
+      * **MapDataSegmentLegendItem.mapData**
+      * - `uuid` in database
+      * - `NOT NULL`, no default
+      */
+      mapData?: string | db.Parameter<string> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, string | db.Parameter<string> | db.SQLFragment | db.ParentColumn>;
+      /**
+      * **MapDataSegmentLegendItem.name**
+      * - `text` in database
+      * - `NOT NULL`, no default
+      */
+      name?: string | db.Parameter<string> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, string | db.Parameter<string> | db.SQLFragment | db.ParentColumn>;
+      /**
+      * **MapDataSegmentLegendItem.strokeColor**
+      * - `text` in database
+      * - Nullable, no default
+      */
+      strokeColor?: string | db.Parameter<string> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, string | db.Parameter<string> | db.SQLFragment | db.ParentColumn>;
+      /**
+      * **MapDataSegmentLegendItem.strokeWidth**
+      * - `text` in database
+      * - Nullable, no default
+      */
+      strokeWidth?: string | db.Parameter<string> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, string | db.Parameter<string> | db.SQLFragment | db.ParentColumn>;
+      /**
+      * **MapDataSegmentLegendItem.updatedAt**
+      * - `timestamp` in database
+      * - `NOT NULL`, default: `CURRENT_TIMESTAMP`
+      */
+      updatedAt?: (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.SQLFragment | db.ParentColumn>;
+    }
+    export interface Insertable {
+      /**
+      * **MapDataSegmentLegendItem.bounds**
+      * - `jsonb` in database
+      * - `NOT NULL`, no default
+      */
+      bounds: db.JSONValue | db.Parameter<db.JSONValue> | db.SQLFragment;
+      /**
+      * **MapDataSegmentLegendItem.createdAt**
+      * - `timestamp` in database
+      * - `NOT NULL`, default: `CURRENT_TIMESTAMP`
+      */
+      createdAt?: (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.DefaultType | db.SQLFragment;
+      /**
+      * **MapDataSegmentLegendItem.id**
+      * - `text` in database
+      * - `NOT NULL`, no default
+      */
+      id: string | db.Parameter<string> | db.SQLFragment;
+      /**
+      * **MapDataSegmentLegendItem.mapData**
+      * - `uuid` in database
+      * - `NOT NULL`, no default
+      */
+      mapData: string | db.Parameter<string> | db.SQLFragment;
+      /**
+      * **MapDataSegmentLegendItem.name**
+      * - `text` in database
+      * - `NOT NULL`, no default
+      */
+      name: string | db.Parameter<string> | db.SQLFragment;
+      /**
+      * **MapDataSegmentLegendItem.strokeColor**
+      * - `text` in database
+      * - Nullable, no default
+      */
+      strokeColor?: string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment;
+      /**
+      * **MapDataSegmentLegendItem.strokeWidth**
+      * - `text` in database
+      * - Nullable, no default
+      */
+      strokeWidth?: string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment;
+      /**
+      * **MapDataSegmentLegendItem.updatedAt**
+      * - `timestamp` in database
+      * - `NOT NULL`, default: `CURRENT_TIMESTAMP`
+      */
+      updatedAt?: (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.DefaultType | db.SQLFragment;
+    }
+    export interface Updatable {
+      /**
+      * **MapDataSegmentLegendItem.bounds**
+      * - `jsonb` in database
+      * - `NOT NULL`, no default
+      */
+      bounds?: db.JSONValue | db.Parameter<db.JSONValue> | db.SQLFragment | db.SQLFragment<any, db.JSONValue | db.Parameter<db.JSONValue> | db.SQLFragment>;
+      /**
+      * **MapDataSegmentLegendItem.createdAt**
+      * - `timestamp` in database
+      * - `NOT NULL`, default: `CURRENT_TIMESTAMP`
+      */
+      createdAt?: (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.DefaultType | db.SQLFragment | db.SQLFragment<any, (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.DefaultType | db.SQLFragment>;
+      /**
+      * **MapDataSegmentLegendItem.id**
+      * - `text` in database
+      * - `NOT NULL`, no default
+      */
+      id?: string | db.Parameter<string> | db.SQLFragment | db.SQLFragment<any, string | db.Parameter<string> | db.SQLFragment>;
+      /**
+      * **MapDataSegmentLegendItem.mapData**
+      * - `uuid` in database
+      * - `NOT NULL`, no default
+      */
+      mapData?: string | db.Parameter<string> | db.SQLFragment | db.SQLFragment<any, string | db.Parameter<string> | db.SQLFragment>;
+      /**
+      * **MapDataSegmentLegendItem.name**
+      * - `text` in database
+      * - `NOT NULL`, no default
+      */
+      name?: string | db.Parameter<string> | db.SQLFragment | db.SQLFragment<any, string | db.Parameter<string> | db.SQLFragment>;
+      /**
+      * **MapDataSegmentLegendItem.strokeColor**
+      * - `text` in database
+      * - Nullable, no default
+      */
+      strokeColor?: string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment | db.SQLFragment<any, string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment>;
+      /**
+      * **MapDataSegmentLegendItem.strokeWidth**
+      * - `text` in database
+      * - Nullable, no default
+      */
+      strokeWidth?: string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment | db.SQLFragment<any, string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment>;
+      /**
+      * **MapDataSegmentLegendItem.updatedAt**
+      * - `timestamp` in database
+      * - `NOT NULL`, default: `CURRENT_TIMESTAMP`
+      */
+      updatedAt?: (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.DefaultType | db.SQLFragment | db.SQLFragment<any, (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.DefaultType | db.SQLFragment>;
+    }
+    export type UniqueIndex = 'MapDataSegmentLegendItem_pkey';
     export type Column = keyof Selectable;
     export type OnlyCols<T extends readonly Column[]> = Pick<Selectable, T[number]>;
     export type SQLExpression = Table | db.ColumnNames<Updatable | (keyof Updatable)[]> | db.ColumnValues<Updatable> | Whereable | Column | db.ParentColumn | db.GenericSQLExpression;
@@ -4711,20 +5440,20 @@ declare module 'zapatos/schema' {
   /* --- aggregate types --- */
 
   export namespace public {  
-    export type Table = ImageData.Table | MapData.Table | RopewikiAkaName.Table | RopewikiBetaSection.Table | RopewikiImage.Table | RopewikiPage.Table | RopewikiPageSiteLink.Table | RopewikiRegion.Table | RopewikiRoute.Table | RopewikiSiteLink.Table | Route.Table | schema_migrations.Table;
-    export type Selectable = ImageData.Selectable | MapData.Selectable | RopewikiAkaName.Selectable | RopewikiBetaSection.Selectable | RopewikiImage.Selectable | RopewikiPage.Selectable | RopewikiPageSiteLink.Selectable | RopewikiRegion.Selectable | RopewikiRoute.Selectable | RopewikiSiteLink.Selectable | Route.Selectable | schema_migrations.Selectable;
-    export type JSONSelectable = ImageData.JSONSelectable | MapData.JSONSelectable | RopewikiAkaName.JSONSelectable | RopewikiBetaSection.JSONSelectable | RopewikiImage.JSONSelectable | RopewikiPage.JSONSelectable | RopewikiPageSiteLink.JSONSelectable | RopewikiRegion.JSONSelectable | RopewikiRoute.JSONSelectable | RopewikiSiteLink.JSONSelectable | Route.JSONSelectable | schema_migrations.JSONSelectable;
-    export type Whereable = ImageData.Whereable | MapData.Whereable | RopewikiAkaName.Whereable | RopewikiBetaSection.Whereable | RopewikiImage.Whereable | RopewikiPage.Whereable | RopewikiPageSiteLink.Whereable | RopewikiRegion.Whereable | RopewikiRoute.Whereable | RopewikiSiteLink.Whereable | Route.Whereable | schema_migrations.Whereable;
-    export type Insertable = ImageData.Insertable | MapData.Insertable | RopewikiAkaName.Insertable | RopewikiBetaSection.Insertable | RopewikiImage.Insertable | RopewikiPage.Insertable | RopewikiPageSiteLink.Insertable | RopewikiRegion.Insertable | RopewikiRoute.Insertable | RopewikiSiteLink.Insertable | Route.Insertable | schema_migrations.Insertable;
-    export type Updatable = ImageData.Updatable | MapData.Updatable | RopewikiAkaName.Updatable | RopewikiBetaSection.Updatable | RopewikiImage.Updatable | RopewikiPage.Updatable | RopewikiPageSiteLink.Updatable | RopewikiRegion.Updatable | RopewikiRoute.Updatable | RopewikiSiteLink.Updatable | Route.Updatable | schema_migrations.Updatable;
-    export type UniqueIndex = ImageData.UniqueIndex | MapData.UniqueIndex | RopewikiAkaName.UniqueIndex | RopewikiBetaSection.UniqueIndex | RopewikiImage.UniqueIndex | RopewikiPage.UniqueIndex | RopewikiPageSiteLink.UniqueIndex | RopewikiRegion.UniqueIndex | RopewikiRoute.UniqueIndex | RopewikiSiteLink.UniqueIndex | Route.UniqueIndex | schema_migrations.UniqueIndex;
-    export type Column = ImageData.Column | MapData.Column | RopewikiAkaName.Column | RopewikiBetaSection.Column | RopewikiImage.Column | RopewikiPage.Column | RopewikiPageSiteLink.Column | RopewikiRegion.Column | RopewikiRoute.Column | RopewikiSiteLink.Column | Route.Column | schema_migrations.Column;
+    export type Table = ImageData.Table | MapData.Table | MapDataMarkerLegendItem.Table | MapDataPolygonLegendItem.Table | MapDataSegmentLegendItem.Table | RopewikiAkaName.Table | RopewikiBetaSection.Table | RopewikiImage.Table | RopewikiPage.Table | RopewikiPageSiteLink.Table | RopewikiRegion.Table | RopewikiRoute.Table | RopewikiSiteLink.Table | Route.Table | schema_migrations.Table;
+    export type Selectable = ImageData.Selectable | MapData.Selectable | MapDataMarkerLegendItem.Selectable | MapDataPolygonLegendItem.Selectable | MapDataSegmentLegendItem.Selectable | RopewikiAkaName.Selectable | RopewikiBetaSection.Selectable | RopewikiImage.Selectable | RopewikiPage.Selectable | RopewikiPageSiteLink.Selectable | RopewikiRegion.Selectable | RopewikiRoute.Selectable | RopewikiSiteLink.Selectable | Route.Selectable | schema_migrations.Selectable;
+    export type JSONSelectable = ImageData.JSONSelectable | MapData.JSONSelectable | MapDataMarkerLegendItem.JSONSelectable | MapDataPolygonLegendItem.JSONSelectable | MapDataSegmentLegendItem.JSONSelectable | RopewikiAkaName.JSONSelectable | RopewikiBetaSection.JSONSelectable | RopewikiImage.JSONSelectable | RopewikiPage.JSONSelectable | RopewikiPageSiteLink.JSONSelectable | RopewikiRegion.JSONSelectable | RopewikiRoute.JSONSelectable | RopewikiSiteLink.JSONSelectable | Route.JSONSelectable | schema_migrations.JSONSelectable;
+    export type Whereable = ImageData.Whereable | MapData.Whereable | MapDataMarkerLegendItem.Whereable | MapDataPolygonLegendItem.Whereable | MapDataSegmentLegendItem.Whereable | RopewikiAkaName.Whereable | RopewikiBetaSection.Whereable | RopewikiImage.Whereable | RopewikiPage.Whereable | RopewikiPageSiteLink.Whereable | RopewikiRegion.Whereable | RopewikiRoute.Whereable | RopewikiSiteLink.Whereable | Route.Whereable | schema_migrations.Whereable;
+    export type Insertable = ImageData.Insertable | MapData.Insertable | MapDataMarkerLegendItem.Insertable | MapDataPolygonLegendItem.Insertable | MapDataSegmentLegendItem.Insertable | RopewikiAkaName.Insertable | RopewikiBetaSection.Insertable | RopewikiImage.Insertable | RopewikiPage.Insertable | RopewikiPageSiteLink.Insertable | RopewikiRegion.Insertable | RopewikiRoute.Insertable | RopewikiSiteLink.Insertable | Route.Insertable | schema_migrations.Insertable;
+    export type Updatable = ImageData.Updatable | MapData.Updatable | MapDataMarkerLegendItem.Updatable | MapDataPolygonLegendItem.Updatable | MapDataSegmentLegendItem.Updatable | RopewikiAkaName.Updatable | RopewikiBetaSection.Updatable | RopewikiImage.Updatable | RopewikiPage.Updatable | RopewikiPageSiteLink.Updatable | RopewikiRegion.Updatable | RopewikiRoute.Updatable | RopewikiSiteLink.Updatable | Route.Updatable | schema_migrations.Updatable;
+    export type UniqueIndex = ImageData.UniqueIndex | MapData.UniqueIndex | MapDataMarkerLegendItem.UniqueIndex | MapDataPolygonLegendItem.UniqueIndex | MapDataSegmentLegendItem.UniqueIndex | RopewikiAkaName.UniqueIndex | RopewikiBetaSection.UniqueIndex | RopewikiImage.UniqueIndex | RopewikiPage.UniqueIndex | RopewikiPageSiteLink.UniqueIndex | RopewikiRegion.UniqueIndex | RopewikiRoute.UniqueIndex | RopewikiSiteLink.UniqueIndex | Route.UniqueIndex | schema_migrations.UniqueIndex;
+    export type Column = ImageData.Column | MapData.Column | MapDataMarkerLegendItem.Column | MapDataPolygonLegendItem.Column | MapDataSegmentLegendItem.Column | RopewikiAkaName.Column | RopewikiBetaSection.Column | RopewikiImage.Column | RopewikiPage.Column | RopewikiPageSiteLink.Column | RopewikiRegion.Column | RopewikiRoute.Column | RopewikiSiteLink.Column | Route.Column | schema_migrations.Column;
   
-    export type AllBaseTables = [ImageData.Table, MapData.Table, RopewikiAkaName.Table, RopewikiBetaSection.Table, RopewikiImage.Table, RopewikiPage.Table, RopewikiPageSiteLink.Table, RopewikiRegion.Table, RopewikiRoute.Table, RopewikiSiteLink.Table, Route.Table, schema_migrations.Table];
+    export type AllBaseTables = [ImageData.Table, MapData.Table, MapDataMarkerLegendItem.Table, MapDataPolygonLegendItem.Table, MapDataSegmentLegendItem.Table, RopewikiAkaName.Table, RopewikiBetaSection.Table, RopewikiImage.Table, RopewikiPage.Table, RopewikiPageSiteLink.Table, RopewikiRegion.Table, RopewikiRoute.Table, RopewikiSiteLink.Table, Route.Table, schema_migrations.Table];
     export type AllForeignTables = [];
     export type AllViews = [];
     export type AllMaterializedViews = [];
-    export type AllTablesAndViews = [ImageData.Table, MapData.Table, RopewikiAkaName.Table, RopewikiBetaSection.Table, RopewikiImage.Table, RopewikiPage.Table, RopewikiPageSiteLink.Table, RopewikiRegion.Table, RopewikiRoute.Table, RopewikiSiteLink.Table, Route.Table, schema_migrations.Table];
+    export type AllTablesAndViews = [ImageData.Table, MapData.Table, MapDataMarkerLegendItem.Table, MapDataPolygonLegendItem.Table, MapDataSegmentLegendItem.Table, RopewikiAkaName.Table, RopewikiBetaSection.Table, RopewikiImage.Table, RopewikiPage.Table, RopewikiPageSiteLink.Table, RopewikiRegion.Table, RopewikiRoute.Table, RopewikiSiteLink.Table, Route.Table, schema_migrations.Table];
   }
 
 
@@ -4754,6 +5483,9 @@ declare module 'zapatos/schema' {
   export type SelectableForTable<T extends Table> = {
     "ImageData": ImageData.Selectable;
     "MapData": MapData.Selectable;
+    "MapDataMarkerLegendItem": MapDataMarkerLegendItem.Selectable;
+    "MapDataPolygonLegendItem": MapDataPolygonLegendItem.Selectable;
+    "MapDataSegmentLegendItem": MapDataSegmentLegendItem.Selectable;
     "RopewikiAkaName": RopewikiAkaName.Selectable;
     "RopewikiBetaSection": RopewikiBetaSection.Selectable;
     "RopewikiImage": RopewikiImage.Selectable;
@@ -4769,6 +5501,9 @@ declare module 'zapatos/schema' {
   export type JSONSelectableForTable<T extends Table> = {
     "ImageData": ImageData.JSONSelectable;
     "MapData": MapData.JSONSelectable;
+    "MapDataMarkerLegendItem": MapDataMarkerLegendItem.JSONSelectable;
+    "MapDataPolygonLegendItem": MapDataPolygonLegendItem.JSONSelectable;
+    "MapDataSegmentLegendItem": MapDataSegmentLegendItem.JSONSelectable;
     "RopewikiAkaName": RopewikiAkaName.JSONSelectable;
     "RopewikiBetaSection": RopewikiBetaSection.JSONSelectable;
     "RopewikiImage": RopewikiImage.JSONSelectable;
@@ -4784,6 +5519,9 @@ declare module 'zapatos/schema' {
   export type WhereableForTable<T extends Table> = {
     "ImageData": ImageData.Whereable;
     "MapData": MapData.Whereable;
+    "MapDataMarkerLegendItem": MapDataMarkerLegendItem.Whereable;
+    "MapDataPolygonLegendItem": MapDataPolygonLegendItem.Whereable;
+    "MapDataSegmentLegendItem": MapDataSegmentLegendItem.Whereable;
     "RopewikiAkaName": RopewikiAkaName.Whereable;
     "RopewikiBetaSection": RopewikiBetaSection.Whereable;
     "RopewikiImage": RopewikiImage.Whereable;
@@ -4799,6 +5537,9 @@ declare module 'zapatos/schema' {
   export type InsertableForTable<T extends Table> = {
     "ImageData": ImageData.Insertable;
     "MapData": MapData.Insertable;
+    "MapDataMarkerLegendItem": MapDataMarkerLegendItem.Insertable;
+    "MapDataPolygonLegendItem": MapDataPolygonLegendItem.Insertable;
+    "MapDataSegmentLegendItem": MapDataSegmentLegendItem.Insertable;
     "RopewikiAkaName": RopewikiAkaName.Insertable;
     "RopewikiBetaSection": RopewikiBetaSection.Insertable;
     "RopewikiImage": RopewikiImage.Insertable;
@@ -4814,6 +5555,9 @@ declare module 'zapatos/schema' {
   export type UpdatableForTable<T extends Table> = {
     "ImageData": ImageData.Updatable;
     "MapData": MapData.Updatable;
+    "MapDataMarkerLegendItem": MapDataMarkerLegendItem.Updatable;
+    "MapDataPolygonLegendItem": MapDataPolygonLegendItem.Updatable;
+    "MapDataSegmentLegendItem": MapDataSegmentLegendItem.Updatable;
     "RopewikiAkaName": RopewikiAkaName.Updatable;
     "RopewikiBetaSection": RopewikiBetaSection.Updatable;
     "RopewikiImage": RopewikiImage.Updatable;
@@ -4829,6 +5573,9 @@ declare module 'zapatos/schema' {
   export type UniqueIndexForTable<T extends Table> = {
     "ImageData": ImageData.UniqueIndex;
     "MapData": MapData.UniqueIndex;
+    "MapDataMarkerLegendItem": MapDataMarkerLegendItem.UniqueIndex;
+    "MapDataPolygonLegendItem": MapDataPolygonLegendItem.UniqueIndex;
+    "MapDataSegmentLegendItem": MapDataSegmentLegendItem.UniqueIndex;
     "RopewikiAkaName": RopewikiAkaName.UniqueIndex;
     "RopewikiBetaSection": RopewikiBetaSection.UniqueIndex;
     "RopewikiImage": RopewikiImage.UniqueIndex;
@@ -4844,6 +5591,9 @@ declare module 'zapatos/schema' {
   export type ColumnForTable<T extends Table> = {
     "ImageData": ImageData.Column;
     "MapData": MapData.Column;
+    "MapDataMarkerLegendItem": MapDataMarkerLegendItem.Column;
+    "MapDataPolygonLegendItem": MapDataPolygonLegendItem.Column;
+    "MapDataSegmentLegendItem": MapDataSegmentLegendItem.Column;
     "RopewikiAkaName": RopewikiAkaName.Column;
     "RopewikiBetaSection": RopewikiBetaSection.Column;
     "RopewikiImage": RopewikiImage.Column;
@@ -4859,6 +5609,9 @@ declare module 'zapatos/schema' {
   export type SQLForTable<T extends Table> = {
     "ImageData": ImageData.SQL;
     "MapData": MapData.SQL;
+    "MapDataMarkerLegendItem": MapDataMarkerLegendItem.SQL;
+    "MapDataPolygonLegendItem": MapDataPolygonLegendItem.SQL;
+    "MapDataSegmentLegendItem": MapDataSegmentLegendItem.SQL;
     "RopewikiAkaName": RopewikiAkaName.SQL;
     "RopewikiBetaSection": RopewikiBetaSection.SQL;
     "RopewikiImage": RopewikiImage.SQL;
