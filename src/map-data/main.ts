@@ -2,6 +2,7 @@ import { PoolClient } from 'pg';
 import getSourceFileUrl from './util/getSourceFileUrl';
 import { processMapData } from './processors/processMapData';
 import upsertMapData from './database/upsertMapData';
+import replaceMapDataLegendItems from './database/replaceMapDataLegendItems';
 import upsertPageRoute from './util/upsertPageRoute';
 import { PageRoute } from '../types/pageRoute';
 import type { SaveMapDataHookFn } from './hook-functions/saveMapData';
@@ -26,10 +27,8 @@ export const main = async (
     client: PoolClient,
     abortSignal?: AbortSignal,
 ): Promise<void> => {
-    // Create pageRoute from the event
     const pageRoute: PageRoute = PageRoute.fromMapDataEvent(mapDataEvent);
 
-    // Get the source file URL (page's URL; used for record-keeping and when downloadSource is true)
     const sourceFileUrl = await getSourceFileUrl(client, mapDataEvent.source, mapDataEvent.pageId);
 
     if (!sourceFileUrl) {
@@ -37,7 +36,7 @@ export const main = async (
         return;
     }
 
-    const mapData = await processMapData(
+    const { mapData, legend } = await processMapData(
         sourceFileUrl,
         saveMapDataHookFn,
         pageRoute.mapData,
@@ -46,7 +45,11 @@ export const main = async (
         mapDataEvent.downloadSource,
     );
 
-    const upsertedMapData = await upsertMapData(client, mapData);
+    const { mapData: upsertedMapData, applied } = await upsertMapData(client, mapData);
+
+    if (applied && upsertedMapData.id != null) {
+        await replaceMapDataLegendItems(client, upsertedMapData.id, legend);
+    }
 
     pageRoute.mapData = upsertedMapData.id;
     await upsertPageRoute(client, mapDataEvent.source, pageRoute);

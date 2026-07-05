@@ -37,7 +37,7 @@ describe('upsertMapData (integration)', () => {
             'https://example.com/file.mbtiles',
         );
 
-        const result = await upsertMapData(conn, mapData);
+        const { mapData: result, applied } = await upsertMapData(conn, mapData);
 
         expect(result).toBeInstanceOf(MapData);
         expect(result.id).toBeDefined();
@@ -69,7 +69,7 @@ describe('upsertMapData (integration)', () => {
             mapDataId,
         );
 
-        const result = await upsertMapData(conn, mapData);
+        const { mapData: result, applied } = await upsertMapData(conn, mapData);
 
         expect(result).toBeInstanceOf(MapData);
         expect(result.id).toBe(mapDataId);
@@ -103,7 +103,7 @@ describe('upsertMapData (integration)', () => {
             'https://example.com/new.mbtiles',
             mapDataId,
         );
-        const result = await upsertMapData(conn, updatedMapData);
+        const { mapData: result, applied } = await upsertMapData(conn, updatedMapData);
 
         expect(result).toBeInstanceOf(MapData);
         expect(result.id).toBe(mapDataId);
@@ -128,7 +128,7 @@ describe('upsertMapData (integration)', () => {
             undefined,
         );
 
-        const result = await upsertMapData(conn, mapData);
+        const { mapData: result, applied } = await upsertMapData(conn, mapData);
 
         expect(result).toBeInstanceOf(MapData);
         expect(result.id).toBeDefined();
@@ -161,7 +161,7 @@ describe('upsertMapData (integration)', () => {
             'https://example.com/file.mbtiles',
             mapDataId,
         );
-        const initialResult = await upsertMapData(conn, initialMapData);
+        const { mapData: initialResult } = await upsertMapData(conn, initialMapData);
         
         // Get initial updatedAt
         const initialDbRow = await db.selectOne('MapData', { id: mapDataId }).run(conn);
@@ -207,7 +207,7 @@ describe('upsertMapData (integration)', () => {
             undefined, // Keep tiles as is
             mapDataId,
         );
-        const result = await upsertMapData(conn, partialMapData);
+        const { mapData: result, applied } = await upsertMapData(conn, partialMapData);
 
         expect(result.gpx).toBe('https://example.com/new.gpx');
         expect(result.geoJson).toBe('https://example.com/new.geojson');
@@ -241,7 +241,7 @@ describe('upsertMapData (integration)', () => {
             'https://example.com/should-not-apply.mbtiles',
             mapDataId,
         );
-        const result = await upsertMapData(conn, updatedMapData);
+        const { mapData: result, applied } = await upsertMapData(conn, updatedMapData);
 
         expect(result.id).toBe(mapDataId);
         expect(result.gpx).toBe('https://example.com/original.gpx');
@@ -267,7 +267,7 @@ describe('upsertMapData (integration)', () => {
             mapDataId,
             'https://example.com/source.kml',
         );
-        const initialResult = await upsertMapData(conn, initialMapData);
+        const { mapData: initialResult } = await upsertMapData(conn, initialMapData);
         expect(initialResult.errorMessage).toBeUndefined();
 
         // Wait a bit to ensure updatedAt would change if we updated
@@ -283,7 +283,7 @@ describe('upsertMapData (integration)', () => {
             'https://example.com/source.kml',
             'Processing failed',
         );
-        const result = await upsertMapData(conn, errorMapData);
+        const { mapData: result, applied } = await upsertMapData(conn, errorMapData);
 
         // Should return the existing successful data, not the error data
         expect(result.id).toBe(mapDataId);
@@ -330,7 +330,7 @@ describe('upsertMapData (integration)', () => {
             mapDataId,
             'https://example.com/source.kml',
         );
-        const result = await upsertMapData(conn, successMapData);
+        const { mapData: result, applied } = await upsertMapData(conn, successMapData);
 
         // Should have the new successful data
         expect(result.id).toBe(mapDataId);
@@ -369,7 +369,7 @@ describe('upsertMapData (integration)', () => {
             mapDataId,
             'https://example.com/source.kml',
         );
-        const result = await upsertMapData(conn, updatedMapData);
+        const { mapData: result, applied } = await upsertMapData(conn, updatedMapData);
 
         // Should have the updated data
         expect(result.gpx).toBe('https://example.com/new.gpx');
@@ -402,7 +402,7 @@ describe('upsertMapData (integration)', () => {
             'https://example.com/source.kml',
             'New error',
         );
-        const result = await upsertMapData(conn, updatedMapData);
+        const { mapData: result, applied } = await upsertMapData(conn, updatedMapData);
 
         // Should have the new error
         expect(result.id).toBe(mapDataId);
@@ -426,7 +426,7 @@ describe('upsertMapData (integration)', () => {
             'https://example.com/source.kml',
             'Processing failed',
         );
-        const result = await upsertMapData(conn, errorMapData);
+        const { mapData: result, applied } = await upsertMapData(conn, errorMapData);
 
         // Should insert the data with error
         expect(result.id).toBe(mapDataId);
@@ -436,6 +436,31 @@ describe('upsertMapData (integration)', () => {
         const dbRow = await db.selectOne('MapData', { id: mapDataId }).run(conn);
         expect(dbRow).toBeDefined();
         expect(dbRow!.errorMessage).toBe('Processing failed');
+    });
+
+    it('returns applied true on insert and false when allowUpdates is false', async () => {
+        const mapDataId = '33333333-3333-3333-3333-333333333333';
+        const initialMapData = new MapData(
+            'https://example.com/file.gpx',
+            undefined,
+            undefined,
+            undefined,
+            mapDataId,
+        );
+        const { applied: firstApplied } = await upsertMapData(conn, initialMapData);
+        expect(firstApplied).toBe(true);
+
+        await db.sql`
+            UPDATE "MapData"
+            SET "allowUpdates" = false
+            WHERE id = ${db.param(mapDataId)}::uuid
+        `.run(conn);
+
+        const { applied: secondApplied } = await upsertMapData(
+            conn,
+            new MapData('https://example.com/other.gpx', undefined, undefined, undefined, mapDataId),
+        );
+        expect(secondApplied).toBe(false);
     });
 
     it('propagates errors from the database layer', async () => {

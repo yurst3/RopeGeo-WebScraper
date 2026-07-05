@@ -9,8 +9,6 @@ import {
 } from 'ropegeo-common/models';
 import getMapDataLegendItems from '../../../src/map-data/database/getMapDataLegendItems';
 import replaceMapDataLegendItems from '../../../src/map-data/database/replaceMapDataLegendItems';
-import upsertMapData from '../../../src/map-data/database/upsertMapData';
-import MapData from '../../../src/map-data/types/mapData';
 import { legendRecordFromRows } from '../../../src/map-data/types/mapDataLegendItem';
 
 describe('mapData legend item database helpers (integration)', () => {
@@ -114,50 +112,5 @@ describe('mapData legend item database helpers (integration)', () => {
         expect(record.s1).toBeInstanceOf(LineLegendItem);
         expect(record.s1.name).toBe('Segment');
         expect((record.s1 as LineLegendItem).strokeColor).toBe('#abc');
-    });
-
-    it('upsertMapData persists legend items and skips legend replacement when allowUpdates is false', async () => {
-        const mapData = new MapData(undefined, undefined, undefined, undefined, mapDataId);
-        mapData.setLegend({
-            s1: new LineLegendItem('s1', 'Original', bounds),
-        });
-        await upsertMapData(conn, mapData);
-
-        await db.sql`
-            UPDATE "MapData"
-            SET "allowUpdates" = false
-            WHERE id = ${db.param(mapDataId)}::uuid
-        `.run(conn);
-
-        const blocked = new MapData(undefined, undefined, undefined, undefined, mapDataId);
-        blocked.setLegend({
-            s2: new LineLegendItem('s2', 'Should not apply', bounds),
-        });
-        await upsertMapData(conn, blocked);
-
-        const segments = await db
-            .select('MapDataSegmentLegendItem', { mapData: mapDataId })
-            .run(conn);
-        expect(segments).toHaveLength(1);
-        expect(segments[0]!.id).toBe('s1');
-    });
-
-    it('upsertMapData replaces legend items on successful update', async () => {
-        const initial = new MapData(undefined, undefined, undefined, undefined, mapDataId);
-        initial.setLegend({ s1: new LineLegendItem('s1', 'First', bounds) });
-        await upsertMapData(conn, initial);
-
-        const updated = new MapData(undefined, undefined, undefined, undefined, mapDataId);
-        updated.setLegend({ s2: new LineLegendItem('s2', 'Second', bounds) });
-        const result = await upsertMapData(conn, updated);
-
-        expect(result.legend?.s2.name).toBe('Second');
-        expect(result.legend?.s1).toBeUndefined();
-
-        const segments = await db
-            .select('MapDataSegmentLegendItem', { mapData: mapDataId })
-            .run(conn);
-        expect(segments).toHaveLength(1);
-        expect(segments[0]!.id).toBe('s2');
     });
 });

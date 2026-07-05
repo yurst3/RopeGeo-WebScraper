@@ -1,12 +1,22 @@
 import { describe, it, expect, beforeEach, jest } from '@jest/globals';
 import { main } from '../../src/map-data/main';
-import { PageDataSource } from 'ropegeo-common/models';
+import { Bounds, LineLegendItem, PageDataSource } from 'ropegeo-common/models';
 import { PageRoute, RopewikiRoute } from '../../src/types/pageRoute';
 import MapData from '../../src/map-data/types/mapData';
 import type { SaveMapDataHookFn } from '../../src/map-data/hook-functions/saveMapData';
 import { MapDataEvent } from '../../src/map-data/types/lambdaEvent';
 import { ProgressLogger } from 'ropegeo-common/helpers';
+import type { ProcessMapDataResult } from '../../src/map-data/types/processMapDataResult';
+import type { UpsertMapDataResult } from '../../src/map-data/types/upsertMapDataResult';
 import * as db from 'zapatos/db';
+
+function processResult(mapData: MapData, legend?: ProcessMapDataResult['legend']): ProcessMapDataResult {
+    return { mapData, legend };
+}
+
+function upsertResult(mapData: MapData, applied = true): UpsertMapDataResult {
+    return { mapData, applied };
+}
 
 jest.mock('ropegeo-common/helpers', () => ({
     __esModule: true,
@@ -25,6 +35,7 @@ const mockClient = {} as any;
 let mockGetSourceFileUrl: jest.MockedFunction<typeof import('../../src/map-data/util/getSourceFileUrl').default>;
 let mockProcessMapData: jest.MockedFunction<typeof import('../../src/map-data/processors/processMapData').processMapData>;
 let mockUpsertMapData: jest.MockedFunction<typeof import('../../src/map-data/database/upsertMapData').default>;
+let mockReplaceMapDataLegendItems: jest.MockedFunction<typeof import('../../src/map-data/database/replaceMapDataLegendItems').default>;
 let mockUpsertPageRoute: jest.MockedFunction<typeof import('../../src/map-data/util/upsertPageRoute').default>;
 
 jest.mock('../../src/map-data/util/getSourceFileUrl', () => ({
@@ -37,6 +48,11 @@ jest.mock('../../src/map-data/processors/processMapData', () => ({
 }));
 
 jest.mock('../../src/map-data/database/upsertMapData', () => ({
+    __esModule: true,
+    default: jest.fn(),
+}));
+
+jest.mock('../../src/map-data/database/replaceMapDataLegendItems', () => ({
     __esModule: true,
     default: jest.fn(),
 }));
@@ -69,14 +85,18 @@ describe('main', () => {
         
         const upsertMapDataModule = require('../../src/map-data/database/upsertMapData');
         mockUpsertMapData = upsertMapDataModule.default;
+
+        const replaceMapDataLegendItemsModule = require('../../src/map-data/database/replaceMapDataLegendItems');
+        mockReplaceMapDataLegendItems = replaceMapDataLegendItemsModule.default;
         
         const upsertPageRouteModule = require('../../src/map-data/util/upsertPageRoute');
         mockUpsertPageRoute = upsertPageRouteModule.default;
 
         // Setup default mock implementations
         mockGetSourceFileUrl.mockResolvedValue(undefined);
-        mockProcessMapData.mockResolvedValue(new MapData());
-        mockUpsertMapData.mockResolvedValue(new MapData('', '', '', '', 'test-id'));
+        mockProcessMapData.mockResolvedValue(processResult(new MapData()));
+        mockUpsertMapData.mockResolvedValue(upsertResult(new MapData('', '', '', '', 'test-id')));
+        mockReplaceMapDataLegendItems.mockResolvedValue(undefined);
         mockUpsertPageRoute.mockResolvedValue(undefined);
 
         mockSaveMapDataHookFn = jest.fn<SaveMapDataHookFn>().mockResolvedValue(
@@ -116,7 +136,7 @@ describe('main', () => {
         );
 
         mockGetSourceFileUrl.mockResolvedValue(sourceFileUrl);
-        mockUpsertMapData.mockResolvedValue(upsertedMapData);
+        mockUpsertMapData.mockResolvedValue(upsertResult(upsertedMapData));
 
         await main(mapDataEvent, mockSaveMapDataHookFn, mockLogger, mockClient);
 
@@ -151,8 +171,8 @@ describe('main', () => {
         );
 
         mockGetSourceFileUrl.mockResolvedValue(sourceFileUrl);
-        mockProcessMapData.mockResolvedValue(processedMapData);
-        mockUpsertMapData.mockResolvedValue(upsertedMapData);
+        mockProcessMapData.mockResolvedValue(processResult(processedMapData));
+        mockUpsertMapData.mockResolvedValue(upsertResult(upsertedMapData));
 
         await main(mapDataEvent, mockSaveMapDataHookFn, mockLogger, mockClient);
 
@@ -189,6 +209,7 @@ describe('main', () => {
         );
         expect(mockProcessMapData).not.toHaveBeenCalled();
         expect(mockUpsertMapData).not.toHaveBeenCalled();
+        expect(mockReplaceMapDataLegendItems).not.toHaveBeenCalled();
         expect(mockUpsertPageRoute).not.toHaveBeenCalled();
     });
 
@@ -241,7 +262,7 @@ describe('main', () => {
         );
 
         mockGetSourceFileUrl.mockResolvedValue(sourceFileUrl);
-        mockUpsertMapData.mockResolvedValue(upsertedMapData);
+        mockUpsertMapData.mockResolvedValue(upsertResult(upsertedMapData));
 
         await main(mapDataEvent, mockSaveMapDataHookFn, mockLogger, mockClient);
 
@@ -266,6 +287,55 @@ describe('main', () => {
             `No source file URL for route ${routeId} / page ${pageId}`,
         );
         expect(mockUpsertPageRoute).not.toHaveBeenCalled();
+        expect(mockReplaceMapDataLegendItems).not.toHaveBeenCalled();
+    });
+
+    it('calls replaceMapDataLegendItems when upsert applies and legend is present', async () => {
+        const sourceFileUrl = 'https://example.com/file.kml';
+        const mapDataEvent = createMapDataEvent();
+        const bounds = new Bounds(40, 39, -110, -111);
+        const legend = { s1: new LineLegendItem('s1', 'Segment', bounds) };
+        const processedMapData = new MapData(undefined, undefined, undefined, undefined, 'map-id');
+        const upsertedMapData = new MapData(undefined, undefined, undefined, undefined, 'map-id');
+
+        mockGetSourceFileUrl.mockResolvedValue(sourceFileUrl);
+        mockProcessMapData.mockResolvedValue(processResult(processedMapData, legend));
+        mockUpsertMapData.mockResolvedValue(upsertResult(upsertedMapData, true));
+
+        await main(mapDataEvent, mockSaveMapDataHookFn, mockLogger, mockClient);
+
+        expect(mockReplaceMapDataLegendItems).toHaveBeenCalledWith(mockClient, 'map-id', legend);
+    });
+
+    it('does not call replaceMapDataLegendItems when upsert was skipped', async () => {
+        const sourceFileUrl = 'https://example.com/file.kml';
+        const mapDataEvent = createMapDataEvent();
+        const bounds = new Bounds(40, 39, -110, -111);
+        const legend = { s1: new LineLegendItem('s1', 'Segment', bounds) };
+        const processedMapData = new MapData(undefined, undefined, undefined, undefined, 'map-id');
+        const existingMapData = new MapData('https://example.com/old.gpx', undefined, undefined, undefined, 'map-id');
+
+        mockGetSourceFileUrl.mockResolvedValue(sourceFileUrl);
+        mockProcessMapData.mockResolvedValue(processResult(processedMapData, legend));
+        mockUpsertMapData.mockResolvedValue(upsertResult(existingMapData, false));
+
+        await main(mapDataEvent, mockSaveMapDataHookFn, mockLogger, mockClient);
+
+        expect(mockReplaceMapDataLegendItems).not.toHaveBeenCalled();
+    });
+
+    it('propagates errors from replaceMapDataLegendItems', async () => {
+        const sourceFileUrl = 'https://example.com/file.kml';
+        const mapDataEvent = createMapDataEvent();
+        const error = new Error('Failed to replace legend items');
+
+        mockGetSourceFileUrl.mockResolvedValue(sourceFileUrl);
+        mockUpsertMapData.mockResolvedValue(upsertResult(new MapData(undefined, undefined, undefined, undefined, 'map-id')));
+        mockReplaceMapDataLegendItems.mockRejectedValue(error);
+
+        await expect(
+            main(mapDataEvent, mockSaveMapDataHookFn, mockLogger, mockClient),
+        ).rejects.toThrow('Failed to replace legend items');
     });
 
     it('propagates errors from getSourceFileUrl', async () => {
@@ -329,7 +399,7 @@ describe('main', () => {
         );
 
         mockGetSourceFileUrl.mockResolvedValue(sourceFileUrl);
-        mockUpsertMapData.mockResolvedValue(upsertedMapData);
+        mockUpsertMapData.mockResolvedValue(upsertResult(upsertedMapData));
 
         const controller = new AbortController();
         await main(mapDataEvent, mockSaveMapDataHookFn, mockLogger, mockClient, controller.signal);
@@ -360,14 +430,14 @@ describe('main', () => {
         mockGetSourceFileUrl.mockResolvedValue(sourceFileUrl);
         mockProcessMapData.mockImplementation(async () => {
             controller.abort(new Error('Timed out'));
-            return new MapData(
+            return processResult(new MapData(
                 undefined,
                 'https://s3.amazonaws.com/bucket/source/file.kml',
                 'https://s3.amazonaws.com/bucket/geojson/file.geojson',
                 'https://s3.amazonaws.com/bucket/vector-tiles/file.mbtiles',
-            );
+            ));
         });
-        mockUpsertMapData.mockResolvedValue(upsertedMapData);
+        mockUpsertMapData.mockResolvedValue(upsertResult(upsertedMapData));
 
         await main(mapDataEvent, mockSaveMapDataHookFn, mockLogger, mockClient, controller.signal);
 
@@ -387,7 +457,7 @@ describe('main', () => {
         );
 
         mockGetSourceFileUrl.mockResolvedValue(sourceFileUrl);
-        mockUpsertMapData.mockResolvedValue(upsertedMapData);
+        mockUpsertMapData.mockResolvedValue(upsertResult(upsertedMapData));
 
         await main(mapDataEvent, mockSaveMapDataHookFn, mockLogger, mockClient);
 

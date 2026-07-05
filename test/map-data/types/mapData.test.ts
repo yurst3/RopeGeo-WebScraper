@@ -1,7 +1,6 @@
 import { describe, it, expect } from '@jest/globals';
-import { Bounds, LineLegendItem } from 'ropegeo-common/models';
+import { Bounds } from 'ropegeo-common/models';
 import MapData from '../../../src/map-data/types/mapData';
-import { legendInsertRowsFromLegend } from '../../../src/map-data/types/mapDataLegendItem';
 
 // Type definitions matching zapatos schema for testing
 type MapDataJSONSelectable = {
@@ -340,33 +339,6 @@ describe('MapData', () => {
             expect(restored.bounds!.south).toBe(49);
             expect(restored.bounds!.east).toBe(-122);
             expect(restored.bounds!.west).toBe(-123);
-        });
-
-        it('round-trips legend via setLegend, legend rows, and fromDbRow', () => {
-            const id = '99999999-9999-9999-9999-999999999999';
-            const original = new MapData(undefined, undefined, undefined, undefined, id, '', undefined);
-            const b = new Bounds(40, 39, -110, -111);
-            const segItem = new LineLegendItem('seg', 'Segment', b, '#00f', '2');
-            original.setLegend({ seg: segItem });
-            const dbRow = original.toDbRow();
-            const legendRows = legendInsertRowsFromLegend(id, { seg: segItem });
-            const jsonRow: MapDataJSONSelectable = {
-                id: dbRow.id ?? id,
-                gpx: dbRow.gpx ?? null,
-                kml: dbRow.kml ?? null,
-                geoJson: dbRow.geoJson ?? null,
-                tilesTemplate: dbRow.tilesTemplate ?? null,
-                bounds: dbRow.bounds ?? null,
-                sourceFileUrl: '',
-                errorMessage: null,
-                allowUpdates: true,
-                deletedAt: null,
-                createdAt: new Date().toISOString(),
-                updatedAt: (dbRow.updatedAt as Date).toISOString(),
-            };
-            const restored = MapData.fromDbRow(jsonRow, legendRows);
-            expect(restored.legend?.seg).toBeInstanceOf(LineLegendItem);
-            expect(restored.legend?.seg.name).toBe('Segment');
         });
     });
 });

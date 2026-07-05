@@ -1,13 +1,12 @@
 import * as db from 'zapatos/db';
 import MapData from '../types/mapData';
-import getMapDataLegendItems from './getMapDataLegendItems';
 
 /**
  * Fetches a MapData record by id.
  *
  * @param conn - Database connection (e.g. Pool or transaction client)
  * @param mapDataId - UUID of the MapData record
- * @returns The MapData instance if found, or null if no record exists
+ * @returns The MapData instance if found, or undefined if no record exists
  */
 const getMapData = async (
     conn: db.Queryable,
@@ -21,8 +20,7 @@ const getMapData = async (
         return undefined;
     }
 
-    const legendRows = await getMapDataLegendItems(conn, mapDataId);
-    return MapData.fromDbRow(row, legendRows);
+    return MapData.fromDbRow(row);
 };
 
 export default getMapData;

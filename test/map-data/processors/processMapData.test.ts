@@ -200,14 +200,24 @@ describe('processMapData', () => {
 
             const result = await processMapData(sourceFileUrl, mockSaveMapDataHookFn, undefined, mockLogger);
 
-            expect(result).toBeInstanceOf(MapData);
-            expect(result.id).toBe(mockMapDataId);
-            expect(result.kml).toBe(`https://s3.amazonaws.com/bucket/source/${mockMapDataId}.kml`);
-            expect(result.gpx).toBeUndefined();
-            expect(result.geoJson).toBe(`https://s3.amazonaws.com/bucket/geojson/${mockMapDataId}.geojson`);
-            expect(result.tilesTemplate).toBe(mockTilesUrl);
-            expect(result.sourceFileUrl).toBe(sourceFileUrl);
-            expect(result.errorMessage).toBeUndefined();
+            expect(result.mapData).toBeInstanceOf(MapData);
+            expect(result.mapData.id).toBe(mockMapDataId);
+            expect(result.mapData.kml).toBe(`https://s3.amazonaws.com/bucket/source/${mockMapDataId}.kml`);
+            expect(result.mapData.gpx).toBeUndefined();
+            expect(result.mapData.geoJson).toBe(`https://s3.amazonaws.com/bucket/geojson/${mockMapDataId}.geojson`);
+            expect(result.mapData.tilesTemplate).toBe(mockTilesUrl);
+            expect(result.mapData.sourceFileUrl).toBe(sourceFileUrl);
+            expect(result.mapData.errorMessage).toBeUndefined();
+        });
+
+        it('returns legend separately from mapData when GeoJSON enrichment succeeds', async () => {
+            const sourceFileUrl = 'https://example.com/test.kml';
+
+            const result = await processMapData(sourceFileUrl, mockSaveMapDataHookFn, undefined, mockLogger);
+
+            expect(result.legend).toBeDefined();
+            expect(Object.keys(result.legend!).length).toBeGreaterThan(0);
+            expect((result.mapData as MapData & { legend?: unknown }).legend).toBeUndefined();
         });
 
         it('calls saveMapDataHookFn with correct parameters for KML', async () => {
@@ -307,12 +317,12 @@ describe('processMapData', () => {
 
             const result = await processMapData(sourceFileUrl, mockSaveMapDataHookFn, undefined, mockLogger);
 
-            expect(result).toBeInstanceOf(MapData);
-            expect(result.id).toBe(mockMapDataId);
-            expect(result.gpx).toBe(`https://s3.amazonaws.com/bucket/source/${mockMapDataId}.gpx`);
-            expect(result.kml).toBeUndefined();
-            expect(result.geoJson).toBe(`https://s3.amazonaws.com/bucket/geojson/${mockMapDataId}.geojson`);
-            expect(result.tilesTemplate).toBe(mockTilesUrl);
+            expect(result.mapData).toBeInstanceOf(MapData);
+            expect(result.mapData.id).toBe(mockMapDataId);
+            expect(result.mapData.gpx).toBe(`https://s3.amazonaws.com/bucket/source/${mockMapDataId}.gpx`);
+            expect(result.mapData.kml).toBeUndefined();
+            expect(result.mapData.geoJson).toBe(`https://s3.amazonaws.com/bucket/geojson/${mockMapDataId}.geojson`);
+            expect(result.mapData.tilesTemplate).toBe(mockTilesUrl);
         });
 
         it('calls saveMapDataHookFn with correct parameters for GPX', async () => {
@@ -368,7 +378,7 @@ describe('processMapData', () => {
 
             const result = await processMapData(sourceFileUrl, mockSaveMapDataHookFn, undefined, mockLogger);
 
-            expect(result.id).toBe(generatedId);
+            expect(result.mapData.id).toBe(generatedId);
             expect(mockRandomUUID).toHaveBeenCalled();
             expect(mockSaveMapDataHookFn).toHaveBeenCalledWith(
                 expect.stringContaining(generatedId),
@@ -388,7 +398,7 @@ describe('processMapData', () => {
 
             const result = await processMapData(sourceFileUrl, mockSaveMapDataHookFn, providedId, mockLogger);
 
-            expect(result.id).toBe(providedId);
+            expect(result.mapData.id).toBe(providedId);
             expect(mockSaveMapDataHookFn).toHaveBeenCalledWith(
                 expect.stringContaining(providedId),
                 expect.stringContaining(providedId),
@@ -408,7 +418,7 @@ describe('processMapData', () => {
 
             const result = await processMapData(sourceFileUrl, mockSaveMapDataHookFn, null, mockLogger);
 
-            expect(result.id).toBe(generatedId);
+            expect(result.mapData.id).toBe(generatedId);
             expect(mockRandomUUID).toHaveBeenCalled();
         });
     });
@@ -419,10 +429,10 @@ describe('processMapData', () => {
 
             const result = await processMapData(sourceFileUrl, mockSaveMapDataHookFn, undefined, mockLogger);
 
-            expect(result).toBeInstanceOf(MapData);
-            expect(result.id).toBe(mockMapDataId);
-            expect(result.errorMessage).toBe('Unsupported file type. Expected .kml or .gpx, got: https://example.com/test.xml');
-            expect(result.sourceFileUrl).toBe(sourceFileUrl);
+            expect(result.mapData).toBeInstanceOf(MapData);
+            expect(result.mapData.id).toBe(mockMapDataId);
+            expect(result.mapData.errorMessage).toBe('Unsupported file type. Expected .kml or .gpx, got: https://example.com/test.xml');
+            expect(result.mapData.sourceFileUrl).toBe(sourceFileUrl);
             expect(mockDownloadSourceFile).not.toHaveBeenCalled();
             expect(mockSaveMapDataHookFn).not.toHaveBeenCalled();
         });
@@ -451,8 +461,8 @@ describe('processMapData', () => {
 
             const result = await processMapData(sourceFileUrl, mockSaveMapDataHookFn, undefined, mockLogger);
 
-            expect(result).toBeInstanceOf(MapData);
-            expect(result.errorMessage).toBe(conversionError);
+            expect(result.mapData).toBeInstanceOf(MapData);
+            expect(result.mapData.errorMessage).toBe(conversionError);
             expect(mockConvertToTileDirectory).not.toHaveBeenCalled();
             expect(mockSaveMapDataHookFn).toHaveBeenCalledWith(
                 mockSourceFilePath,
@@ -473,8 +483,8 @@ describe('processMapData', () => {
 
             const result = await processMapData(sourceFileUrl, mockSaveMapDataHookFn, undefined, mockLogger);
 
-            expect(result).toBeInstanceOf(MapData);
-            expect(result.errorMessage).toBe(tileError);
+            expect(result.mapData).toBeInstanceOf(MapData);
+            expect(result.mapData.errorMessage).toBe(tileError);
             expect(mockSaveMapDataHookFn).toHaveBeenCalledWith(
                 mockSourceFilePath,
                 mockGeoJsonFilePath,
@@ -604,8 +614,8 @@ describe('processMapData', () => {
 
             const result = await processMapData(sourceFileUrl, mockSaveMapDataHookFn, undefined, mockLogger);
 
-            expect(result.kml).toBeDefined();
-            expect(result.gpx).toBeUndefined();
+            expect(result.mapData.kml).toBeDefined();
+            expect(result.mapData.gpx).toBeUndefined();
             expect(mockSaveMapDataHookFn).toHaveBeenCalledWith(
                 expect.any(String),
                 expect.any(String),
@@ -623,8 +633,8 @@ describe('processMapData', () => {
 
             const result = await processMapData(sourceFileUrl, mockSaveMapDataHookFn, undefined, mockLogger);
 
-            expect(result.gpx).toBeDefined();
-            expect(result.kml).toBeUndefined();
+            expect(result.mapData.gpx).toBeDefined();
+            expect(result.mapData.kml).toBeUndefined();
             expect(mockSaveMapDataHookFn).toHaveBeenCalledWith(
                 expect.any(String),
                 expect.any(String),
@@ -662,12 +672,12 @@ describe('processMapData', () => {
 
             expect(mockDownloadSourceFile).not.toHaveBeenCalled();
             expect(mockGetSourceFile).toHaveBeenCalledWith(mockMapDataId, 'kml');
-            expect(result).toBe(errorMapData);
-            expect(result.errorMessage).toBe('No existing source file');
-            expect(result.gpx).toBeUndefined();
-            expect(result.kml).toBeUndefined();
-            expect(result.geoJson).toBeUndefined();
-            expect(result.tilesTemplate).toBeUndefined();
+            expect(result.mapData).toBe(errorMapData);
+            expect(result.mapData.errorMessage).toBe('No existing source file');
+            expect(result.mapData.gpx).toBeUndefined();
+            expect(result.mapData.kml).toBeUndefined();
+            expect(result.mapData.geoJson).toBeUndefined();
+            expect(result.mapData.tilesTemplate).toBeUndefined();
             expect(mockSaveMapDataHookFn).toHaveBeenCalledWith(
                 undefined,
                 undefined,

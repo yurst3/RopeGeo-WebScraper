@@ -2,8 +2,11 @@ import { Pool } from 'pg';
 import { describe, it, expect, beforeAll, afterAll, afterEach } from '@jest/globals';
 import * as db from 'zapatos/db';
 import getMapData from '../../../src/map-data/database/getMapData';
+import getMapDataLegendItems from '../../../src/map-data/database/getMapDataLegendItems';
+import replaceMapDataLegendItems from '../../../src/map-data/database/replaceMapDataLegendItems';
 import upsertMapData from '../../../src/map-data/database/upsertMapData';
 import MapData from '../../../src/map-data/types/mapData';
+import { legendRecordFromRows } from '../../../src/map-data/types/mapDataLegendItem';
 import { Bounds, LineLegendItem } from 'ropegeo-common/models';
 
 describe('getMapData (integration)', () => {
@@ -100,17 +103,20 @@ describe('getMapData (integration)', () => {
         expect(result).toBeUndefined();
     });
 
-    it('returns MapData with legend items loaded from legend tables', async () => {
+    it('does not embed legend; legend is loaded separately', async () => {
         const mapDataId = '55555555-5555-5555-5555-555555555555';
         const bounds = new Bounds(40, 39, -110, -111);
-        const inserted = new MapData(undefined, undefined, undefined, undefined, mapDataId);
-        inserted.setLegend({ seg: new LineLegendItem('seg', 'Segment', bounds, '#00f', '2') });
-        await upsertMapData(conn, inserted);
+        await upsertMapData(conn, new MapData(undefined, undefined, undefined, undefined, mapDataId));
+        await replaceMapDataLegendItems(conn, mapDataId, {
+            seg: new LineLegendItem('seg', 'Segment', bounds, '#00f', '2'),
+        });
 
         const result = await getMapData(conn, mapDataId);
+        const legend = legendRecordFromRows(await getMapDataLegendItems(conn, mapDataId));
 
         expect(result).not.toBeUndefined();
-        expect(result!.legend?.seg).toBeInstanceOf(LineLegendItem);
-        expect(result!.legend?.seg.name).toBe('Segment');
+        expect((result as MapData & { legend?: unknown }).legend).toBeUndefined();
+        expect(legend.seg).toBeInstanceOf(LineLegendItem);
+        expect(legend.seg.name).toBe('Segment');
     });
 });

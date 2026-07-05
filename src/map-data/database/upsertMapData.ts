@@ -1,8 +1,7 @@
 import * as db from 'zapatos/db';
 import type * as s from 'zapatos/schema';
 import MapData from '../types/mapData';
-import getMapDataLegendItems from './getMapDataLegendItems';
-import replaceMapDataLegendItems from './replaceMapDataLegendItems';
+import type { UpsertMapDataResult } from '../types/upsertMapDataResult';
 
 // Insert or update a MapData record. Single upsert: INSERT ... ON CONFLICT (id) DO UPDATE.
 // When allowUpdates = false on conflict, the update is skipped; we log a warning and return the existing row.
@@ -10,7 +9,7 @@ import replaceMapDataLegendItems from './replaceMapDataLegendItems';
 const upsertMapData = async (
     conn: db.Queryable,
     mapData: MapData,
-): Promise<MapData> => {
+): Promise<UpsertMapDataResult> => {
     const row = mapData.toDbRow();
 
     const returned = await db.sql<db.SQL, (s.MapData.JSONSelectable)[]>`
@@ -46,10 +45,7 @@ const upsertMapData = async (
     `.run(conn);
 
     if (returned.length > 0) {
-        const upserted = returned[0]!;
-        await replaceMapDataLegendItems(conn, upserted.id, mapData.legend);
-        const legendRows = await getMapDataLegendItems(conn, upserted.id);
-        return MapData.fromDbRow(upserted, legendRows);
+        return { mapData: MapData.fromDbRow(returned[0]!), applied: true };
     }
 
     const id = row.id as string | undefined;
@@ -61,8 +57,7 @@ const upsertMapData = async (
             } else if (!existing.errorMessage && mapData.errorMessage) {
                 console.log(`Skipping upsert for map data ${id} to avoid overwriting existing successful data with an error`);
             }
-            const legendRows = await getMapDataLegendItems(conn, existing.id);
-            return MapData.fromDbRow(existing, legendRows);
+            return { mapData: MapData.fromDbRow(existing), applied: false };
         }
     }
     throw new Error('MapData insert returned no row');

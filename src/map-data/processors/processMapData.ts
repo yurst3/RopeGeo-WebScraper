@@ -4,6 +4,7 @@ import { tmpdir } from 'os';
 import { randomUUID } from 'crypto';
 import type { LegendItem } from 'ropegeo-common/models';
 import MapData from '../types/mapData';
+import type { ProcessMapDataResult } from '../types/processMapDataResult';
 import type { SaveMapDataHookFn } from '../hook-functions/saveMapData';
 import { downloadSourceFile } from '../http/downloadSourceFile';
 import getSourceFile from '../s3/getSourceFile';
@@ -23,7 +24,7 @@ import { ProgressLogger } from 'ropegeo-common/helpers';
  * @param logger - Progress logger for tracking processing progress
  * @param abortSignal - Optional AbortSignal; when aborted, the download is cancelled
  * @param downloadSource - If true (default), download from sourceFileUrl; if false, fetch existing source from S3 by mapDataId
- * @returns Promise that resolves to a MapData object with URLs/paths (including tiles)
+ * @returns Processed MapData and optional legend keyed by legend item id
  */
 export const processMapData = async (
     sourceFileUrl: string,
@@ -32,7 +33,7 @@ export const processMapData = async (
     logger: ProgressLogger,
     abortSignal?: AbortSignal,
     downloadSource: boolean = true,
-): Promise<MapData> => {
+): Promise<ProcessMapDataResult> => {
     const tempDir = await mkdtemp(join(tmpdir(), 'map-data-'));
     const finalMapDataId = mapDataId ?? randomUUID();
 
@@ -44,7 +45,7 @@ export const processMapData = async (
         if (!isKmlFromUrl && !isGpxFromUrl) {
             const errorMessage = `Unsupported file type. Expected .kml or .gpx, got: ${sourceFileUrl}`;
             console.error(errorMessage);
-            return new MapData(
+            return { mapData: new MapData(
                 undefined,
                 undefined,
                 undefined,
@@ -52,7 +53,7 @@ export const processMapData = async (
                 finalMapDataId,
                 sourceFileUrl,
                 errorMessage,
-            );
+            ) };
         }
 
         let errorMessage: string | undefined;
@@ -86,7 +87,7 @@ export const processMapData = async (
                     noSourceMessage,
                     logger,
                 );
-                return mapData;
+                return { mapData };
             }
             isKml = isKmlFromUrl;
             sourceFilePath = join(tempDir, `${finalMapDataId}.${fileExtension}`);
@@ -160,16 +161,15 @@ export const processMapData = async (
         if (postEnrichGeo != null && !errorMessage) {
             try {
                 mapData.setBounds(getBoundsFromGeoJson(postEnrichGeo));
-                mapData.setLegend(postEnrichLegend);
             } catch {
                 mapData.setBounds(null);
-                mapData.setLegend(undefined);
+                postEnrichLegend = undefined;
             }
         } else {
-            mapData.setLegend(undefined);
+            postEnrichLegend = undefined;
         }
 
-        return mapData;
+        return { mapData, legend: postEnrichLegend };
     } finally {
         await rm(tempDir, { recursive: true, force: true });
     }
