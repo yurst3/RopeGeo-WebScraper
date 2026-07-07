@@ -20,6 +20,8 @@ Resources:
             Queue:
               'Fn::GetAtt': RopewikiPageProcessingQueue.Arn
             BatchSize: 10
+            ScalingConfig:
+              MaximumConcurrency: 20
       MemorySize: 1024
       Timeout: 900
       VpcConfig:
