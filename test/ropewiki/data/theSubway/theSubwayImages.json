@@ -1,0 +1,28 @@
+[
+    {
+        "linkUrl": "https://ropewiki.com/File:The_Subway_Banner.jpg",
+        "fileUrl": "https://ropewiki.com/images/5/53/The_Subway_Banner.jpg",
+        "order": 1
+    },
+    {
+        "betaSectionTitle": "Reference photos",
+        "linkUrl": "https://ropewiki.com/File:The_Subway-20170327031115_pic.jpg",
+        "fileUrl": "https://ropewiki.com/images/1/18/The_Subway-20170327031115_pic.jpg",
+        "caption": "<b><a href=\"/References:The_Subway-20170327031115\" title=\"References:The Subway-20170327031115\">18 Mar 2017</a></b>: <b>Moderate</b>. Challenging but not dangerous for intermediate canyoneers (class C1 = a4).",
+        "order": 1
+    },
+    {
+        "betaSectionTitle": "Reference photos",
+        "linkUrl": "https://ropewiki.com/File:The_Subway-20170327030738_pic.jpg",
+        "fileUrl": "https://ropewiki.com/images/a/ad/The_Subway-20170327030738_pic.jpg",
+        "caption": "<b><a href=\"/References:The_Subway-20170327030738\" title=\"References:The Subway-20170327030738\">20 Mar 2017</a></b>: <b>Moderate</b>. Challenging but not dangerous for intermediate canyoneers (class C1 = a4).",
+        "order": 2
+    },
+    {
+        "betaSectionTitle": "Reference photos",
+        "linkUrl": "https://ropewiki.com/Special:Upload?wpDestFile=The_Subway-20170327030647_pic.jpg",
+        "fileUrl": "https://ropewiki.com/images/6/6a/UploadPicture.png",
+        "caption": "<b><a href=\"/References:The_Subway-20170327030647\" title=\"References:The Subway-20170327030647\">20 Mar 2017</a></b>: <b>High</b>. High water, only for experienced swift water canyoneers (class C2 = a5).",
+        "order": 3
+    }
+]

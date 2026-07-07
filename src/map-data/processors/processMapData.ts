@@ -169,7 +169,11 @@ export const processMapData = async (
             postEnrichLegend = undefined;
         }
 
-        return { mapData, legend: postEnrichLegend };
+        const result: ProcessMapDataResult = { mapData };
+        if (postEnrichLegend != null && Object.keys(postEnrichLegend).length > 0) {
+            result.legend = postEnrichLegend;
+        }
+        return result;
     } finally {
         await rm(tempDir, { recursive: true, force: true });
     }

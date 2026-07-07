@@ -28,7 +28,7 @@ async function getRopewikiPageHtmlByTitle(title: string): Promise<string> {
 }
 
 /**
- * Script to fetch a page by URL, parse it, and write beta/images to examples/<title>/.
+ * Script to fetch a page by URL, parse it, and write raw HTML, beta, and images to examples/<title>/.
  * Usage: ts-node scripts/testPageParse.ts <pageType> <url>
  * Example: ts-node scripts/testPageParse.ts ropewiki https://ropewiki.com/Bear_Creek_Canyon
  */
@@ -64,10 +64,13 @@ async function main() {
 
         const betaPath = path.join(examplesDir, 'beta.json');
         const imagesPath = path.join(examplesDir, 'images.json');
+        const htmlPath = path.join(examplesDir, 'page.html');
 
+        fs.writeFileSync(htmlPath, pageHtml, 'utf-8');
         fs.writeFileSync(betaPath, JSON.stringify(beta, null, 2), 'utf-8');
         fs.writeFileSync(imagesPath, JSON.stringify(images, null, 2), 'utf-8');
 
+        console.log(`Wrote ${htmlPath}`);
         console.log(`Wrote ${betaPath}`);
         console.log(`Wrote ${imagesPath}`);
     }

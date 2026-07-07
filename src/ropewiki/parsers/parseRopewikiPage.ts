@@ -16,6 +16,53 @@ const evalPage = (): { beta: BetaSectionParse[]; images: ImageParse[] } => {
         }
     }
 
+    const getVideoUrlFromEmbedSrc = (embedSrc: string): string | undefined => {
+        try {
+            const url = embedSrc.startsWith('//') ? `https:${embedSrc}` : embedSrc;
+            const parsed = new URL(url);
+
+            if (parsed.hostname.includes('youtube.com') || parsed.hostname.includes('youtube-nocookie.com')) {
+                const videoId = parsed.pathname.split('/').pop()?.split('?')[0];
+                if (videoId) return `https://www.youtube.com/watch?v=${videoId}`;
+            }
+
+            if (parsed.hostname.includes('player.vimeo.com')) {
+                const videoId = parsed.pathname.split('/').pop();
+                if (videoId) return `https://vimeo.com/${videoId}`;
+            }
+
+            return url;
+        } catch {
+            return undefined;
+        }
+    }
+
+    const getEmbedVideoSrc = (element: Element): string | undefined => {
+        const iframeConfig = element.getAttribute('data-mw-iframeconfig');
+        if (iframeConfig) {
+            try {
+                const config = JSON.parse(iframeConfig) as { src?: string };
+                if (config.src) return config.src;
+            } catch {
+                // Ignore malformed embed config JSON.
+            }
+        }
+
+        return element.querySelector('iframe')?.getAttribute('src') ?? undefined;
+    }
+
+    const getEmbedVideoLinkHtml = (element: Element): string | undefined => {
+        const embedSrc = getEmbedVideoSrc(element);
+        if (!embedSrc) return undefined;
+
+        const videoUrl = getVideoUrlFromEmbedSrc(embedSrc);
+        if (!videoUrl) return undefined;
+
+        return `<a rel="nofollow" class="external free" href="${videoUrl}">${videoUrl}</a>\n`;
+    }
+
+    const isEmbedVideoElement = (element: Element): boolean => element.className.includes('embedvideo');
+
     let currentBeta: BetaSectionParse | null = null;
     let betaOrder: number = 0;
     let imageOrder: number = 0;
@@ -40,6 +87,17 @@ const evalPage = (): { beta: BetaSectionParse[]; images: ImageParse[] } => {
                     if (!currentBeta) break;
                     currentBeta.text += (child as Element).outerHTML;
                     break;
+                case 'H3':
+                case 'H4':
+                case 'H5':
+                case 'H6':
+                    if (!currentBeta) break;
+                    const subHeaderTitle = getHeaderTitle(child.childNodes); // eslint-disable-line no-case-declarations
+                    if (subHeaderTitle) {
+                        const tagName = child.nodeName.toLowerCase();
+                        currentBeta.text += `<${tagName}>${subHeaderTitle}</${tagName}>\n`;
+                    }
+                    break;
                 case '#text':
                     if (!currentBeta) break;
                     if (child.nodeValue !== '\n') currentBeta.text += child.nodeValue;
@@ -60,8 +118,26 @@ const evalPage = (): { beta: BetaSectionParse[]; images: ImageParse[] } => {
                     parseChildNodes(child.childNodes);
                     if ((child as Element).className !== 'gallery') currentBeta.text += '</ul>\n';
                     break;
+                case 'OL':
+                    if (!currentBeta) break;
+                    if ((child as Element).className !== 'gallery') currentBeta.text += '<ol>';
+                    parseChildNodes(child.childNodes);
+                    if ((child as Element).className !== 'gallery') currentBeta.text += '</ol>\n';
+                    break;
                 case 'DIV':
                     if ((child as Element).id === 'referencepic') parseChildNodes(child.childNodes);
+                    else if (isEmbedVideoElement(child as Element)) {
+                        if (!currentBeta) break;
+                        const embedVideoLink = getEmbedVideoLinkHtml(child as Element); // eslint-disable-line no-case-declarations
+                        if (embedVideoLink) currentBeta.text += embedVideoLink;
+                    }
+                    break;
+                case 'FIGURE':
+                    if (!currentBeta) break;
+                    if (isEmbedVideoElement(child as Element)) {
+                        const embedVideoLink = getEmbedVideoLinkHtml(child as Element); // eslint-disable-line no-case-declarations
+                        if (embedVideoLink) currentBeta.text += embedVideoLink;
+                    }
                     break;
                 default:
                     break;
@@ -201,7 +277,7 @@ const removeEmptyBetaSectionsWithoutImages = (
     );
 
     const beta: BetaSectionParse[] = result.beta.filter(betaSection => {
-        const isEmpty: boolean = betaSection.text.length === 0;
+        const isEmpty: boolean = betaSection.text.trim().length === 0;
         const hasImage: boolean = imageBetaSectionTitles.has(betaSection.title);
         if (isEmpty && !hasImage) return false;
         return true;

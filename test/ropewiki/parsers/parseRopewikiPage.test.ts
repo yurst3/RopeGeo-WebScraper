@@ -76,6 +76,21 @@ describe('parseRopewikiPage', () => {
         expect(beta).toEqual(expectedBeta);
         expect(images).toEqual(expectedImages);
     }, 30000); // Increase timeout to 30 seconds for puppeteer
+
+    it('parses The Subway HTML and handles ordered lists, sub-headers, and embedded video links', async () => {
+        const htmlPath = path.join(__dirname, '..', 'data', 'theSubway', 'theSubway.html');
+        const expectedBetaPath = path.join(__dirname, '..', 'data', 'theSubway', 'theSubwayBeta.json');
+        const expectedImagesPath = path.join(__dirname, '..', 'data', 'theSubway', 'theSubwayImages.json');
+
+        const html = fs.readFileSync(htmlPath, 'utf-8');
+        const expectedBeta = JSON.parse(fs.readFileSync(expectedBetaPath, 'utf-8'));
+        const expectedImages = JSON.parse(fs.readFileSync(expectedImagesPath, 'utf-8'));
+
+        const { beta, images } = await parseRopewikiPage(html);
+
+        expect(beta).toEqual(expectedBeta);
+        expect(images).toEqual(expectedImages);
+    }, 30000); // Increase timeout to 30 seconds for puppeteer
 });
 
 
