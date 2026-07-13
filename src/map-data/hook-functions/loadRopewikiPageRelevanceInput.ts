@@ -1,6 +1,8 @@
-import * as db from 'zapatos/db';
+import type { Queryable } from 'zapatos/db';
 import type * as s from 'zapatos/schema';
-import getMapDataLegendItems from '../../src/map-data/database/getMapDataLegendItems';
+import getMapDataLegendItems from '../database/getMapDataLegendItems';
+import getMapDataIdForRopewikiPage from '../database/getMapDataIdForRopewikiPage';
+import getRopewikiPageRelevanceSourceData from '../../ropewiki/database/getRopewikiPageRelevanceSourceData';
 import {
     imageHasCaption,
     type BetaSectionInput,
@@ -8,33 +10,11 @@ import {
     type LegendItemInput,
     type PageRelevanceInput,
     type PageStatsInput,
-} from './types';
+} from '../types/relevanceTypes';
 
-type MapDataRouteRow = {
-    mapDataId: string;
-};
-
-async function resolveMapDataIdForPage(conn: db.Queryable, pageId: string): Promise<string | null> {
-    const routeRows = await db.sql<db.SQL, MapDataRouteRow[]>`
-        SELECT m.id AS "mapDataId"
-        FROM "RopewikiRoute" rr
-        INNER JOIN "Route" r ON r.id = rr.route AND r."deletedAt" IS NULL
-        INNER JOIN "MapData" m ON m.id = rr."mapData"
-        WHERE rr."ropewikiPage" = ${db.param(pageId)}::uuid
-          AND rr."deletedAt" IS NULL
-        ORDER BY (
-            (SELECT COUNT(*) FROM "MapDataMarkerLegendItem" WHERE "mapData" = m.id)
-            + (SELECT COUNT(*) FROM "MapDataSegmentLegendItem" WHERE "mapData" = m.id)
-            + (SELECT COUNT(*) FROM "MapDataPolygonLegendItem" WHERE "mapData" = m.id)
-        ) DESC,
-        rr."createdAt" ASC NULLS LAST
-        LIMIT 1
-    `.run(conn);
-
-    return routeRows[0]?.mapDataId ?? null;
-}
-
-function legendItemsFromRows(rows: Awaited<ReturnType<typeof getMapDataLegendItems>>): LegendItemInput[] {
+function legendItemsFromRows(
+    rows: Awaited<ReturnType<typeof getMapDataLegendItems>>,
+): LegendItemInput[] {
     const items: LegendItemInput[] = [];
     for (const row of rows.markerRows) {
         items.push({ id: row.id, featureType: 'point', name: row.name });
@@ -66,34 +46,16 @@ function pageStatsFromRow(page: s.RopewikiPage.JSONSelectable): PageStatsInput {
     };
 }
 
-export async function loadPageRelevanceInput(
-    conn: db.Queryable,
+/**
+ * Builds {@link PageRelevanceInput} for a Ropewiki page by loading source rows and legend items.
+ */
+export async function loadRopewikiPageRelevanceInput(
+    conn: Queryable,
     pageId: string,
 ): Promise<PageRelevanceInput> {
-    const page = await db.selectOne('RopewikiPage', { id: pageId }).run(conn);
-    if (page == null) {
-        throw new Error(`RopewikiPage not found: ${pageId}`);
-    }
-
-    const [betaSections, images, mapDataId] = await Promise.all([
-        db
-            .select(
-                'RopewikiBetaSection',
-                { ropewikiPage: pageId, deletedAt: db.conditions.isNull },
-                { columns: ['id', 'title', 'text', 'order'], order: { by: 'order', direction: 'ASC' } },
-            )
-            .run(conn),
-        db
-            .select(
-                'RopewikiImage',
-                { ropewikiPage: pageId, deletedAt: db.conditions.isNull },
-                {
-                    columns: ['id', 'betaSection', 'caption', 'order'],
-                    order: { by: 'order', direction: 'ASC' },
-                },
-            )
-            .run(conn),
-        resolveMapDataIdForPage(conn, pageId),
+    const [{ page, betaSections, images }, mapDataId] = await Promise.all([
+        getRopewikiPageRelevanceSourceData(conn, pageId),
+        getMapDataIdForRopewikiPage(conn, pageId),
     ]);
 
     let legendItems: LegendItemInput[] = [];

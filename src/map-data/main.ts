@@ -4,6 +4,7 @@ import { processMapData } from './processors/processMapData';
 import upsertMapData from './database/upsertMapData';
 import replaceMapDataLegendItems from './database/replaceMapDataLegendItems';
 import upsertPageRoute from './util/upsertPageRoute';
+import { upsertRelevanceContextJob } from './database/upsertRelevanceContextJob';
 import { PageRoute } from '../types/pageRoute';
 import type { SaveMapDataHookFn } from './hook-functions/saveMapData';
 import { MapDataEvent } from './types/lambdaEvent';
@@ -49,6 +50,11 @@ export const main = async (
 
     if (applied && upsertedMapData.id != null) {
         await replaceMapDataLegendItems(client, upsertedMapData.id, legend);
+        await upsertRelevanceContextJob(client, {
+            mapDataId: upsertedMapData.id,
+            pageId: mapDataEvent.pageId,
+            pageSource: mapDataEvent.source,
+        });
     }
 
     pageRoute.mapData = upsertedMapData.id;

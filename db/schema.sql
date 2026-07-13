@@ -1,4 +1,4 @@
-\restrict ihMHYzhjtC6YPaHV2YugLLoZB5ZXqrCrpzdmC8CToxCAIBvJMTWOkwfy7cbZt7Q
+\restrict Bfxt2LMALMbn7CEviQWrUPPPcjd5tAQIcnIdZfLvLPANTnWku0TaWRe28Mz8YQt
 
 -- Dumped from database version 18.1 (Debian 18.1-1.pgdg13+2)
 -- Dumped by pg_dump version 18.1 (Homebrew)
@@ -104,6 +104,42 @@ CREATE TABLE public."MapDataPolygonLegendItem" (
     "fillColor" text,
     "createdAt" timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
     "updatedAt" timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL
+);
+
+
+--
+-- Name: MapDataRelevantContext; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public."MapDataRelevantContext" (
+    "mapDataId" uuid NOT NULL,
+    "legendItemId" text NOT NULL,
+    measurements jsonb,
+    "betaSectionExcerpts" jsonb,
+    images jsonb,
+    "createdAt" timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    "updatedAt" timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    "deletedAt" timestamp without time zone,
+    "allowUpdates" boolean DEFAULT true NOT NULL,
+    "jobId" uuid
+);
+
+
+--
+-- Name: MapDataRelevantContextJob; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public."MapDataRelevantContextJob" (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    "mapDataId" uuid,
+    "pageId" uuid NOT NULL,
+    "pageSource" text NOT NULL,
+    "pageReady" boolean DEFAULT false NOT NULL,
+    "createdAt" timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    "updatedAt" timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    "deletedAt" timestamp without time zone,
+    "allowUpdates" boolean DEFAULT true NOT NULL,
+    "errorMessage" text
 );
 
 
@@ -349,6 +385,30 @@ ALTER TABLE ONLY public."MapDataPolygonLegendItem"
 
 
 --
+-- Name: MapDataRelevantContextJob MapDataRelevantContextJob_pageId_key; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public."MapDataRelevantContextJob"
+    ADD CONSTRAINT "MapDataRelevantContextJob_pageId_key" UNIQUE ("pageId");
+
+
+--
+-- Name: MapDataRelevantContextJob MapDataRelevantContextJob_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public."MapDataRelevantContextJob"
+    ADD CONSTRAINT "MapDataRelevantContextJob_pkey" PRIMARY KEY (id);
+
+
+--
+-- Name: MapDataRelevantContext MapDataRelevantContext_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public."MapDataRelevantContext"
+    ADD CONSTRAINT "MapDataRelevantContext_pkey" PRIMARY KEY ("mapDataId", "legendItemId");
+
+
+--
 -- Name: MapDataSegmentLegendItem MapDataSegmentLegendItem_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -551,6 +611,27 @@ CREATE INDEX "idx_mapDataPolygonLegendItem_mapData" ON public."MapDataPolygonLeg
 
 
 --
+-- Name: idx_mapDataRelevantContextJob_mapDataId; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "idx_mapDataRelevantContextJob_mapDataId" ON public."MapDataRelevantContextJob" USING btree ("mapDataId");
+
+
+--
+-- Name: idx_mapDataRelevantContext_mapDataId; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "idx_mapDataRelevantContext_mapDataId" ON public."MapDataRelevantContext" USING btree ("mapDataId");
+
+
+--
+-- Name: idx_mapDataRelevantContext_mapDataId_jobId; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "idx_mapDataRelevantContext_mapDataId_jobId" ON public."MapDataRelevantContext" USING btree ("mapDataId", "jobId");
+
+
+--
 -- Name: idx_mapDataSegmentLegendItem_mapData; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -578,6 +659,30 @@ ALTER TABLE ONLY public."MapDataMarkerLegendItem"
 
 ALTER TABLE ONLY public."MapDataPolygonLegendItem"
     ADD CONSTRAINT "fk_mapDataPolygonLegendItem_mapData" FOREIGN KEY ("mapData") REFERENCES public."MapData"(id) ON DELETE CASCADE;
+
+
+--
+-- Name: MapDataRelevantContextJob fk_mapDataRelevantContextJob_mapData; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public."MapDataRelevantContextJob"
+    ADD CONSTRAINT "fk_mapDataRelevantContextJob_mapData" FOREIGN KEY ("mapDataId") REFERENCES public."MapData"(id) ON DELETE SET NULL;
+
+
+--
+-- Name: MapDataRelevantContext fk_mapDataRelevantContext_job; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public."MapDataRelevantContext"
+    ADD CONSTRAINT "fk_mapDataRelevantContext_job" FOREIGN KEY ("jobId") REFERENCES public."MapDataRelevantContextJob"(id) ON DELETE SET NULL;
+
+
+--
+-- Name: MapDataRelevantContext fk_mapDataRelevantContext_mapData; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public."MapDataRelevantContext"
+    ADD CONSTRAINT "fk_mapDataRelevantContext_mapData" FOREIGN KEY ("mapDataId") REFERENCES public."MapData"(id) ON DELETE CASCADE;
 
 
 --
@@ -680,7 +785,7 @@ ALTER TABLE ONLY public."RopewikiRoute"
 -- PostgreSQL database dump complete
 --
 
-\unrestrict ihMHYzhjtC6YPaHV2YugLLoZB5ZXqrCrpzdmC8CToxCAIBvJMTWOkwfy7cbZt7Q
+\unrestrict Bfxt2LMALMbn7CEviQWrUPPPcjd5tAQIcnIdZfLvLPANTnWku0TaWRe28Mz8YQt
 
 
 --
@@ -728,4 +833,7 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20260529120000'),
     ('20260624120000'),
     ('20260624130000'),
-    ('20260705120000');
+    ('20260705120000'),
+    ('20260711172200'),
+    ('20260712151626'),
+    ('20260712153354');

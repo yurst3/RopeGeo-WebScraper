@@ -41,6 +41,11 @@ Parameters:
     AllowedValues:
       - 'true'
       - 'false'
+  AiGatewayApiKey:
+    Type: String
+    Description: Vercel AI Gateway API key for MapDataRelevanceProcessor
+    NoEcho: true
+    Default: ''
   RdsDbiResourceId:
     Type: String
     Description: |

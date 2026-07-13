@@ -1,15 +1,10 @@
-import type { Context } from './legendContextSchema';
+import type { Context } from '../util/legendContextSchema';
 import { DAYS, FEET, HOURS, MILES, MINUTES } from 'ropegeo-common/models';
 
 export type ModelConfig = {
     gatewayModel: string;
     inputPricePerMillion: number;
     outputPricePerMillion: number;
-};
-
-export type ModelConfigsFile = {
-    defaultModel: string;
-    models: Record<string, ModelConfig>;
 };
 
 export type PageMatch = {
@@ -107,3 +102,25 @@ export type LegendItemContextResult = {
     legendItem: LegendItemInput;
     context: Context;
 };
+
+export type RelevanceJobResult =
+    | {
+          status: 'complete';
+          processedCount: number;
+          skippedCount: number;
+      }
+    | {
+          status: 'partial';
+          processedCount: number;
+          skippedCount: number;
+          remainingCount: number;
+      }
+    | {
+          status: 'failed';
+          errorMessage: string;
+          processedCount: number;
+          skippedCount: number;
+      }
+    | {
+          status: 'missing_job';
+      };

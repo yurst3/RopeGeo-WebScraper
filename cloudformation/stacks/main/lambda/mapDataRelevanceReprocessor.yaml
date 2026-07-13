@@ -1,0 +1,55 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Lambda that recreates MapDataRelevantContextJobs and enqueues relevance processing
+
+Resources:
+  MapDataRelevanceReprocessor:
+    Type: 'AWS::Serverless::Function'
+    Properties:
+      Description: Creates fresh MapDataRelevantContextJobs for MapData with legend items and enqueues MapDataRelevanceProcessingQueue
+      Runtime: nodejs22.x
+      Architectures:
+        - arm64
+      CodeUri: ../../
+      Handler: src/map-data/lambda-handlers/reprocessMapDataRelevance.reprocessMapDataRelevance
+      MemorySize: 1024
+      Timeout: 900
+      VpcConfig:
+        SecurityGroupIds:
+          - Ref: LambdaSecurityGroup
+        SubnetIds:
+          - Ref: PrivateSubnet1
+      Role:
+        'Fn::GetAtt': MapDataRelevanceReprocessorRole.Arn
+      Environment:
+        Variables:
+          DEV_ENVIRONMENT:
+            Ref: devEnvironment
+          PROXY_URL:
+            Ref: ProxyUrl
+          DB_HOST:
+            'Fn::If':
+              - UseDatabaseProxyInProd
+              - 'Fn::GetAtt': RDSProxy.Endpoint
+              - 'Fn::GetAtt': Database.Endpoint.Address
+          DB_PORT:
+            'Fn::GetAtt': Database.Endpoint.Port
+          USE_DATABASE_PROXY:
+            Ref: UseDatabaseProxy
+          DB_NAME:
+            'Fn::Sub': '${devEnvironment}db'
+          DB_USER:
+            Ref: DatabaseUsername
+          DB_PASSWORD:
+            Ref: DatabasePassword
+          MAP_DATA_RELEVANCE_QUEUE_URL:
+            Ref: MapDataRelevanceProcessingQueue
+          MAP_DATA_RELEVANCE_DLQ_URL:
+            Ref: MapDataRelevanceProcessingDLQ
+    Metadata:
+      BuildMethod: esbuild
+      BuildProperties:
+        Minify: true
+        Target: esnext
+        Sourcemap: true
+        EntryPoints:
+          - src/map-data/lambda-handlers/reprocessMapDataRelevance.ts

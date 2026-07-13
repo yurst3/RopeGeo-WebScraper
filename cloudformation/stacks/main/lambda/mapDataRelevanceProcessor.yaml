@@ -1,0 +1,71 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Lambda that processes map data relevance jobs (LLM legend context)
+
+Resources:
+  MapDataRelevanceProcessor:
+    Type: 'AWS::Serverless::Function'
+    Properties:
+      Description: Processes map data relevance jobs by inferring legend-item context via AI Gateway
+      Runtime: nodejs22.x
+      Architectures:
+        - arm64
+      CodeUri: ../../
+      Handler: src/map-data/lambda-handlers/processRelevanceHandler.mainHandler
+      Events:
+        SQSEvent:
+          Type: SQS
+          Properties:
+            Queue:
+              'Fn::GetAtt': MapDataRelevanceProcessingQueue.Arn
+            BatchSize: 1
+            ScalingConfig:
+              MaximumConcurrency: 10
+      MemorySize: 1024
+      Timeout: 900
+      VpcConfig:
+        SecurityGroupIds:
+          - Ref: LambdaSecurityGroup
+        SubnetIds:
+          - Ref: PrivateSubnet1
+      Role:
+        'Fn::GetAtt': MapDataRelevanceProcessorRole.Arn
+      Environment:
+        Variables:
+          DEV_ENVIRONMENT:
+            Ref: devEnvironment
+          PROXY_URL:
+            Ref: ProxyUrl
+          DB_HOST:
+            'Fn::If':
+              - UseDatabaseProxyInProd
+              - 'Fn::GetAtt': RDSProxy.Endpoint
+              - 'Fn::GetAtt': Database.Endpoint.Address
+          DB_PORT:
+            'Fn::GetAtt': Database.Endpoint.Port
+          USE_DATABASE_PROXY:
+            Ref: UseDatabaseProxy
+          DB_NAME:
+            'Fn::Sub': '${devEnvironment}db'
+          DB_USER:
+            Ref: DatabaseUsername
+          DB_PASSWORD:
+            Ref: DatabasePassword
+          MAP_DATA_RELEVANCE_QUEUE_URL:
+            Ref: MapDataRelevanceProcessingQueue
+          MAP_DATA_RELEVANCE_DLQ_URL:
+            Ref: MapDataRelevanceProcessingDLQ
+          MAP_DATA_RELEVANCE_PROCESSOR_TIMEOUT_SECONDS: '900'
+          MAP_DATA_RELEVANCE_ERROR_RETRY_VISIBILITY_TIMEOUT_SECONDS: '21600'
+          MAP_DATA_RELEVANCE_GATEWAY_MODEL: deepseek/deepseek-v4-flash
+          MAP_DATA_RELEVANCE_INPUT_PRICE_PER_MILLION: '0.14'
+          MAP_DATA_RELEVANCE_OUTPUT_PRICE_PER_MILLION: '0.28'
+          AI_GATEWAY_API_KEY:
+            Ref: AiGatewayApiKey
+    Metadata:
+      BuildMethod: esbuild
+      BuildProperties:
+        Minify: true
+        Target: esnext
+        Sourcemap: true
+        EntryPoints:
+          - src/map-data/lambda-handlers/processRelevanceHandler.ts

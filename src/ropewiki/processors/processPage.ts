@@ -11,6 +11,7 @@ import setImagesDeletedAt from "../database/setImagesDeletedAt";
 import setPageSiteLinksDeletedAt from "../database/setPageSiteLinksDeletedAt";
 import { ProgressLogger } from 'ropegeo-common/helpers';
 import sendImageProcessorSQSMessage from "../../image-data/sqs/sendImageProcessorSQSMessage";
+import upsertRelevanceContextJob from "../database/upsertRelevanceContextJob";
 
 import RopewikiPage from "../types/page";
 
@@ -70,12 +71,15 @@ const processPage = async (
         // Release the savepoint on success
         await poolClient.query(`RELEASE SAVEPOINT ${savepointName}`);
 
+        await upsertRelevanceContextJob(poolClient, page.id);
+
         logger.logProgress(`${page.externalPageId} ${page.name}`);
     } catch (error) {
         // Rollback to the savepoint on error (this doesn't rollback the entire transaction)
         await poolClient.query(`ROLLBACK TO SAVEPOINT ${savepointName}`);
         const errorMessage = error instanceof Error ? error.message : String(error);
         logger.logError(`Error processing page ${page.externalPageId} ${page.name}, rolled back to savepoint: ${errorMessage}`);
+        throw error;
     }
 };
 

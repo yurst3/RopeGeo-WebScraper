@@ -1,0 +1,44 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: FIFO SQS queues for map data relevance processing
+
+Resources:
+  MapDataRelevanceProcessingDLQ:
+    Type: 'AWS::SQS::Queue'
+    Properties:
+      QueueName:
+        'Fn::Sub': '${devEnvironment}-map-data-relevance-processing-dlq.fifo'
+      FifoQueue: true
+      ContentBasedDeduplication: false
+      MessageRetentionPeriod: 1209600
+  MapDataRelevanceProcessingDLQPolicy:
+    Type: 'AWS::SQS::QueuePolicy'
+    Properties:
+      Queues:
+        - Ref: MapDataRelevanceProcessingDLQ
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: sqs.amazonaws.com
+            Action: 'sqs:SendMessage'
+            Resource:
+              'Fn::GetAtt': MapDataRelevanceProcessingDLQ.Arn
+            Condition:
+              ArnEquals:
+                'aws:SourceArn':
+                  'Fn::GetAtt': MapDataRelevanceProcessingQueue.Arn
+  MapDataRelevanceProcessingQueue:
+    Type: 'AWS::SQS::Queue'
+    Properties:
+      QueueName:
+        'Fn::Sub': '${devEnvironment}-map-data-relevance-processing-queue.fifo'
+      FifoQueue: true
+      ContentBasedDeduplication: false
+      VisibilityTimeout: 960
+      MessageRetentionPeriod: 345600
+      ReceiveMessageWaitTimeSeconds: 5
+      RedrivePolicy:
+        deadLetterTargetArn:
+          'Fn::GetAtt': MapDataRelevanceProcessingDLQ.Arn
+        maxReceiveCount: 5

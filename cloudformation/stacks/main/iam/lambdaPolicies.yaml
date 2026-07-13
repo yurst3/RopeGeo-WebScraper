@@ -104,6 +104,30 @@ Resources:
               - 'sqs:GetQueueAttributes'
             Resource:
               'Fn::GetAtt': MapDataProcessingQueue.Arn
+  SQSMapDataRelevanceQueuePolicy:
+    Type: 'AWS::IAM::ManagedPolicy'
+    Properties:
+      ManagedPolicyName:
+        'Fn::Sub': '${AWS::StackName}-sqs-mapdata-relevance-queue-readwrite'
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Action:
+              - 'sqs:SendMessage'
+              - 'sqs:ReceiveMessage'
+              - 'sqs:ChangeMessageVisibility'
+              - 'sqs:DeleteMessage'
+              - 'sqs:GetQueueAttributes'
+            Resource:
+              'Fn::GetAtt': MapDataRelevanceProcessingQueue.Arn
+          - Effect: Allow
+            Action:
+              - 'sqs:ReceiveMessage'
+              - 'sqs:ChangeMessageVisibility'
+              - 'sqs:GetQueueAttributes'
+            Resource:
+              'Fn::GetAtt': MapDataRelevanceProcessingDLQ.Arn
   S3ImageDataBucketPolicy:
     Type: 'AWS::IAM::ManagedPolicy'
     Properties:
@@ -161,12 +185,14 @@ Resources:
               - 'Fn::GetAtt': ImageProcessorDLQ.Arn
               - 'Fn::GetAtt': MapDataProcessingDLQ.Arn
               - 'Fn::GetAtt': RopewikiPageProcessingDLQ.Arn
+              - 'Fn::GetAtt': MapDataRelevanceProcessingDLQ.Arn
           - Effect: Allow
             Action: 'sqs:SendMessage'
             Resource:
               - 'Fn::GetAtt': ImageProcessorQueue.Arn
               - 'Fn::GetAtt': MapDataProcessingQueue.Arn
               - 'Fn::GetAtt': RopewikiPageProcessingQueue.Arn
+              - 'Fn::GetAtt': MapDataRelevanceProcessingQueue.Arn
   CloudFrontInvalidationPolicy:
     Type: 'AWS::IAM::ManagedPolicy'
     Condition: HasCloudFrontDistribution

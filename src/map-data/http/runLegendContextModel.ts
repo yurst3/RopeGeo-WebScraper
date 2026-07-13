@@ -1,7 +1,7 @@
 import { createGateway, generateObject, type LanguageModel } from 'ai';
-import { legendContextSchema } from './legendContextSchema';
-import { estimateCostUsd } from './loadConfig';
-import type { ModelConfig, ModelRunResult, TokenUsage } from './types';
+import { legendContextSchema } from '../util/legendContextSchema';
+import { estimateCostUsd } from '../util/loadRelevanceConfig';
+import type { ModelConfig, ModelRunResult, TokenUsage } from '../types/relevanceTypes';
 
 let gateway: ReturnType<typeof createGateway> | null = null;
 

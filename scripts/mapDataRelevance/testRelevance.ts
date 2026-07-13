@@ -1,22 +1,25 @@
 import getDatabaseConnection, { resetDatabaseConnectionPool } from '../../src/helpers/getDatabaseConnection';
 import { findPageBySimilarName } from './findPageBySimilarName';
-import { formatPageRelevanceUserPrompt } from './formatPageRelevancePayload';
-import { loadModelConfigs, loadSystemPrompt, resolveModelConfig } from './loadConfig';
-import { loadPageRelevanceInput } from './loadPageRelevanceInput';
-import { runLegendContextModel } from './runLegendContextModel';
-import type { LegendItemContextResult, LegendItemInput, ModelConfig, PageRelevanceInput, TokenUsage } from './types';
+import { formatPageRelevanceUserPrompt } from '../../src/map-data/util/formatPageRelevancePayload';
+import { loadModelConfigFromEnv, loadSystemPrompt } from '../../src/map-data/util/loadRelevanceConfig';
+import { loadRopewikiPageRelevanceInput } from '../../src/map-data/hook-functions/loadRopewikiPageRelevanceInput';
+import { runLegendContextModel } from '../../src/map-data/http/runLegendContextModel';
+import type {
+    LegendItemContextResult,
+    LegendItemInput,
+    ModelConfig,
+    PageRelevanceInput,
+    TokenUsage,
+} from '../../src/map-data/types/relevanceTypes';
 import {
     formatLegendContextResultsForLog,
     validateLegendContext,
-} from './validateLegendContextResponse';
+} from '../../src/map-data/util/validateLegendContextResponse';
 
 const LEGEND_ITEM_BATCH_SIZE = 5;
 
 type CliArgs = {
     name: string;
-    modelKey?: string;
-    listModels: boolean;
-    configPath?: string;
     promptPath?: string;
 };
 
@@ -24,50 +27,35 @@ function printUsage(): void {
     console.log(`Usage: ts-node --files scripts/mapDataRelevance/testRelevance.ts <page name> [options]
 
 Options:
-  --model <key>       Model key from modelConfigs.json (default: defaultModel)
-  --config <path>     Path to modelConfigs.json
   --prompt <path>     Path to system prompt .txt file
-  --list-models       Print configured model keys and exit
 
 Environment:
-  AI_GATEWAY_API_KEY  Vercel AI Gateway API key
-  DB_HOST, DB_PORT, DB_NAME, DB_USER, DB_PASSWORD  Local database connection
+  AI_GATEWAY_API_KEY                              Vercel AI Gateway API key
+  MAP_DATA_RELEVANCE_GATEWAY_MODEL                e.g. deepseek/deepseek-v4-flash
+  MAP_DATA_RELEVANCE_INPUT_PRICE_PER_MILLION      e.g. 0.14
+  MAP_DATA_RELEVANCE_OUTPUT_PRICE_PER_MILLION     e.g. 0.28
+  DB_HOST, DB_PORT, DB_NAME, DB_USER, DB_PASSWORD Local database connection
 
 Example:
-  AI_GATEWAY_API_KEY=... DB_HOST=127.0.0.1 DB_PORT=8081 DB_NAME=local DB_USER=localUser DB_PASSWORD=localPass \\
+  AI_GATEWAY_API_KEY=... \\
+  MAP_DATA_RELEVANCE_GATEWAY_MODEL=deepseek/deepseek-v4-flash \\
+  MAP_DATA_RELEVANCE_INPUT_PRICE_PER_MILLION=0.14 \\
+  MAP_DATA_RELEVANCE_OUTPUT_PRICE_PER_MILLION=0.28 \\
+  DB_HOST=127.0.0.1 DB_PORT=8081 DB_NAME=local DB_USER=localUser DB_PASSWORD=localPass \\
     npx ts-node --files scripts/mapDataRelevance/testRelevance.ts "The Subway"`);
 }
 
 function parseCliArgs(argv: string[]): CliArgs {
     const args = [...argv];
-    let modelKey: string | undefined;
-    let listModels = false;
-    let configPath: string | undefined;
     let promptPath: string | undefined;
     const nameParts: string[] = [];
 
     for (let i = 0; i < args.length; i += 1) {
         const arg = args[i]!;
-        if (arg === '--model') {
-            modelKey = args[i + 1];
-            if (modelKey == null) throw new Error('--model requires a value');
-            i += 1;
-            continue;
-        }
-        if (arg === '--config') {
-            configPath = args[i + 1];
-            if (configPath == null) throw new Error('--config requires a path');
-            i += 1;
-            continue;
-        }
         if (arg === '--prompt') {
             promptPath = args[i + 1];
             if (promptPath == null) throw new Error('--prompt requires a path');
             i += 1;
-            continue;
-        }
-        if (arg === '--list-models') {
-            listModels = true;
             continue;
         }
         if (arg === '--help' || arg === '-h') {
@@ -77,23 +65,13 @@ function parseCliArgs(argv: string[]): CliArgs {
         nameParts.push(arg);
     }
 
-    if (listModels) {
-        const result: CliArgs = { name: '', listModels: true };
-        if (modelKey != null) result.modelKey = modelKey;
-        if (configPath != null) result.configPath = configPath;
-        if (promptPath != null) result.promptPath = promptPath;
-        return result;
-    }
-
     const name = nameParts.join(' ').trim();
     if (name.length === 0) {
         printUsage();
         throw new Error('Page name is required');
     }
 
-    const result: CliArgs = { name, listModels: false };
-    if (modelKey != null) result.modelKey = modelKey;
-    if (configPath != null) result.configPath = configPath;
+    const result: CliArgs = { name };
     if (promptPath != null) result.promptPath = promptPath;
     return result;
 }
@@ -136,20 +114,7 @@ async function runLegendItemBatch(
 
 async function main(): Promise<void> {
     const cli = parseCliArgs(process.argv.slice(2));
-    const configs = loadModelConfigs(cli.configPath);
-
-    if (cli.listModels) {
-        console.log('Configured models:');
-        for (const [key, model] of Object.entries(configs.models)) {
-            const isDefault = key === configs.defaultModel ? ' (default)' : '';
-            console.log(
-                `  ${key}${isDefault}: ${model.gatewayModel} — $${model.inputPricePerMillion}/M in, $${model.outputPricePerMillion}/M out`,
-            );
-        }
-        return;
-    }
-
-    const { key: modelKey, config: modelConfig } = resolveModelConfig(configs, cli.modelKey);
+    const modelConfig = loadModelConfigFromEnv();
     const systemPrompt = loadSystemPrompt(cli.promptPath);
 
     const pool = await getDatabaseConnection();
@@ -166,9 +131,9 @@ async function main(): Promise<void> {
             `Matched page: "${match.name}" (id: ${match.id}, similarity: ${match.similarityScore.toFixed(4)})`,
         );
 
-        const input = await loadPageRelevanceInput(client, match.id);
+        const input = await loadRopewikiPageRelevanceInput(client, match.id);
 
-        console.log(`\nModel: ${modelKey} (${modelConfig.gatewayModel})`);
+        console.log(`\nModel: ${modelConfig.gatewayModel}`);
         console.log(`MapData: ${input.mapDataId ?? '(none)'}`);
         console.log(`Legend items: ${input.legendItems.length}`);
         console.log(`Beta sections: ${input.betaSections.length}`);

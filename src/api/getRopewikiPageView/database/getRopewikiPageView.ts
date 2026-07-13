@@ -1,36 +1,18 @@
 import * as db from 'zapatos/db';
 import type * as s from 'zapatos/schema';
-import getMapDataLegendItems from '../../../map-data/database/getMapDataLegendItems';
-import { legendRecordFromRows } from '../../../map-data/types/mapDataLegendItem';
 import {
     AcaDifficultyRating,
-    Bounds,
-    LegendItem,
-    OnlineBetaSection,
-    OnlineBetaSectionImage,
-    OnlineCenteredRegionMiniMap,
-    OnlinePageMiniMap,
     OnlineRopewikiPageView,
-    PageDataSource,
     RouteType,
-    RoutesParams,
 } from 'ropegeo-common/models';
-import {
-    PAGE_MINIMAP_POINT_LAYER_ID,
-    PAGE_MINIMAP_POLYLINE_LAYER_ID,
-} from '../../../constants/pageMinimapMvtLayerIds';
-import '../../../map-data/types/mapData';
-import { getRopewikiRegionRouteStats } from '../../getRoutes/database/getRopewikiRegionRoutes';
 import getRopewikiRegionLineage from '../../../ropewiki/database/getRopewikiRegionLineage';
-import {
-    downloadBytesForBannerImage,
-    downloadBytesForBetaSectionImage,
-} from '../util/downloadBytesFromImageMetadata';
 import numericValue from '../util/numericValue';
 import parsePermit from '../util/parsePermit';
 import parseVehicle from '../util/parseVehicle';
 import parseRappelInfo from '../util/parseRappelInfo';
 import stringArray from '../util/stringArray';
+import { buildBannerImage, buildBetaSectionsView, type PageViewImageRow } from '../util/buildBetaSectionImages';
+import { buildPageMiniMap, type RouteMapRow } from '../util/buildPageMiniMap';
 
 /** Builds combined min/max time or single number from two DB jsonb columns. */
 function parseLatLonComponent(value: unknown): number | null {
@@ -70,6 +52,13 @@ function minMaxOrNumber(
     return { min: Math.min(minVal, maxVal), max: Math.max(minVal, maxVal) };
 }
 
+function normalizeRouteType(routeType: string | undefined): RouteType {
+    if (routeType != null && Object.values(RouteType).includes(routeType as RouteType)) {
+        return routeType as RouteType;
+    }
+    return RouteType.Unknown;
+}
+
 const ROPEWIKI_PAGE_VIEW_COLUMNS: (keyof s.RopewikiPage.Selectable)[] = [
     'id', 'name', 'url', 'quality', 'userVotes', 'technicalRating', 'waterRating', 'timeRating', 'riskRating', 'permits', 'rappelInfo', 'rappelCount', 'rappelLongest', 'vehicle',
     'shuttleTime', 'minOverallTime', 'maxOverallTime', 'overallLength', 'approachLength', 'approachElevGain', 'descentLength', 'descentElevGain', 'exitLength', 'exitElevGain',
@@ -94,33 +83,8 @@ const getRopewikiPageView = async (
 
     if (!page || page.deletedAt != null) return null;
 
-    type ImageRow = {
-        id: string;
-        order: number | null;
-        linkUrl: string;
-        caption: string | null;
-        betaSection: string | null;
-        latestRevisionDate: db.TimestampString;
-        previewUrl: string | null;
-        bannerUrl: string | null;
-        fullUrl: string | null;
-        linkPreviewUrl: string | null;
-        metadata: db.JSONValue | null;
-    };
-
-    type RouteMapRow = {
-        routeId: string;
-        routeName: string;
-        routeType: string;
-        mapDataId: string | null;
-        tilesTemplate: string | null;
-        tileCount: number;
-        tileTotalBytes: string | number;
-        bounds: { north: number; south: number; east: number; west: number } | null;
-    };
-
     const [imageRows, betaSections, akaRows, routeMapRows] = await Promise.all([
-        db.sql<db.SQL, ImageRow[]>`
+        db.sql<db.SQL, PageViewImageRow[]>`
             SELECT
                 i.id,
                 i."order",
@@ -172,149 +136,25 @@ const getRopewikiPageView = async (
     ]);
 
     const routeRow = routeMapRows[0];
-    const minimapTitle = (() => {
-        const n = routeRow?.routeName?.trim() ?? '';
-        if (n.length > 0) return n;
-        return page.name;
-    })();
+    const [miniMap, regions] = await Promise.all([
+        buildPageMiniMap(conn, page, routeRow, betaSections),
+        getRopewikiRegionLineage(conn, page.region),
+    ]);
 
-    let miniMap: OnlinePageMiniMap | OnlineCenteredRegionMiniMap | null = null;
-    if (routeRow != null) {
-        let tilesTemplate = routeRow.tilesTemplate ?? null;
-        const rawBounds = routeRow.bounds ?? null;
-        let bounds =
-            rawBounds != null &&
-            typeof rawBounds === 'object' &&
-            typeof (rawBounds as Record<string, unknown>).north === 'number' &&
-            typeof (rawBounds as Record<string, unknown>).south === 'number' &&
-            typeof (rawBounds as Record<string, unknown>).east === 'number' &&
-            typeof (rawBounds as Record<string, unknown>).west === 'number'
-                ? (rawBounds as { north: number; south: number; east: number; west: number })
-                : null;
-
-        if (tilesTemplate == null) {
-            bounds = null;
-        } else if (bounds == null) {
-            tilesTemplate = null;
-        }
-
-        const routeMapDataId =
-            routeRow.mapDataId != null &&
-            typeof routeRow.mapDataId === 'string' &&
-            routeRow.mapDataId.length > 0
-                ? routeRow.mapDataId
-                : null;
-
-        let pageLegend: Record<string, LegendItem> | undefined;
-        if (routeMapDataId != null) {
-            try {
-                const legendRows = await getMapDataLegendItems(conn, routeMapDataId);
-                const parsed = legendRecordFromRows(legendRows);
-                pageLegend = Object.keys(parsed).length > 0 ? parsed : undefined;
-            } catch (e) {
-                console.warn(
-                    'getRopewikiPageView: invalid MapData legend items, omitting from miniMap:',
-                    e instanceof Error ? e.message : e,
-                );
-            }
-        }
-
-        if (routeMapDataId != null && tilesTemplate != null && bounds != null) {
-            miniMap = new OnlinePageMiniMap(
-                PAGE_MINIMAP_POLYLINE_LAYER_ID,
-                PAGE_MINIMAP_POINT_LAYER_ID,
-                tilesTemplate,
-                new Bounds(bounds.north, bounds.south, bounds.east, bounds.west),
-                minimapTitle,
-                routeRow.tileCount ?? 0,
-                Number(routeRow.tileTotalBytes ?? 0),
-                routeMapDataId,
-                pageLegend,
-            );
-        } else {
-            const centeredRoutesParams = new RoutesParams({
-                region: { id: page.region, source: PageDataSource.Ropewiki },
-            });
-            const centeredRouteStats = await getRopewikiRegionRouteStats(
-                conn,
-                page.region,
-                centeredRoutesParams,
-            );
-            miniMap = new OnlineCenteredRegionMiniMap(
-                centeredRoutesParams,
-                routeRow.routeId,
-                minimapTitle,
-                centeredRouteStats.routeCount,
-                centeredRouteStats.totalBytes,
-            );
-        }
-    }
-
-    const bannerImageRow = imageRows.find((i) => i.betaSection == null);
-    const bannerImage = bannerImageRow
-        ? new OnlineBetaSectionImage(
-              bannerImageRow.order ?? 0,
-              bannerImageRow.id,
-              bannerImageRow.bannerUrl ?? null,
-              bannerImageRow.fullUrl ?? null,
-              bannerImageRow.linkUrl,
-              bannerImageRow.caption,
-              new Date(bannerImageRow.latestRevisionDate),
-              downloadBytesForBannerImage(bannerImageRow.metadata),
-          )
-        : null;
-
-    const imagesBySection = new Map<string | null, ImageRow[]>();
-    for (const img of imageRows) {
-        const key = img.betaSection ?? null;
-        if (!imagesBySection.has(key)) imagesBySection.set(key, []);
-        imagesBySection.get(key)!.push(img);
-    }
-
-    const betaSectionsView = betaSections.map((sec) => {
-        const secImages = (imagesBySection.get(sec.id) ?? []).map(
-            (i) =>
-                new OnlineBetaSectionImage(
-                    i.order ?? 0,
-                    i.id,
-                    i.bannerUrl ?? null,
-                    i.fullUrl ?? null,
-                    i.linkUrl,
-                    i.caption,
-                    new Date(i.latestRevisionDate),
-                    downloadBytesForBetaSectionImage(i.metadata),
-                ),
-        );
-        return new OnlineBetaSection(
-            sec.order ?? 0,
-            sec.title,
-            sec.text,
-            new Date(sec.latestRevisionDate),
-            secImages,
-        );
-    });
-
+    const bannerImage = buildBannerImage(imageRows);
+    const betaSectionsView = buildBetaSectionsView(betaSections, imageRows);
     const difficultyRating = new AcaDifficultyRating(
         page.technicalRating,
         page.waterRating,
         page.timeRating,
         page.riskRating,
     );
-
     const { rappelCount, jumps } = parseRappelInfo(page.rappelInfo, page.rappelCount);
-
-    const regions = await getRopewikiRegionLineage(conn, page.region);
     const coordinates = normalizePageCoordinates(page.coordinates);
-
-    const routeType = routeRow?.routeType;
-    const normalizedRouteType =
-        routeType != null && Object.values(RouteType).includes(routeType as RouteType)
-            ? (routeType as RouteType)
-            : RouteType.Unknown;
 
     return new OnlineRopewikiPageView(
         page.id,
-        normalizedRouteType,
+        normalizeRouteType(routeRow?.routeType),
         page.name,
         akaRows,
         page.url,

@@ -1,5 +1,9 @@
 import type { Context } from './legendContextSchema';
-import { imageHasCaption, type LegendItemContextResult, type PageRelevanceInput } from './types';
+import {
+    imageHasCaption,
+    type LegendItemContextResult,
+    type PageRelevanceInput,
+} from '../types/relevanceTypes';
 
 function captionedImageIds(input: PageRelevanceInput): Set<string> {
     return new Set(

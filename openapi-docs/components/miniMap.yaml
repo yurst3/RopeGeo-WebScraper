@@ -181,6 +181,100 @@ LegendItem:
       type: string
       nullable: true
       description: Polygon fill color when featureType is polygon
+    relevantContext:
+      $ref: '#/RelevantContext'
+      nullable: true
+      description: Optional AI-inferred context linking this legend item to page measurements, beta excerpts, and images
+
+RelevantContext:
+  type: object
+  description: Relevant page content for a legend item (ropegeo-common RelevantContext)
+  properties:
+    measurements:
+      type: array
+      nullable: true
+      description: Relevant page stat measurements for this legend item
+      items:
+        $ref: '#/MeasurementContext'
+    betaSectionExcerpts:
+      type: object
+      nullable: true
+      description: Beta section excerpts keyed by beta section id
+      additionalProperties:
+        type: array
+        items:
+          $ref: '#/BetaSectionExcerpt'
+    images:
+      type: object
+      nullable: true
+      description: Relevant captioned images keyed by beta section id (empty string for page-level images)
+      additionalProperties:
+        type: array
+        items:
+          $ref: '#/ImageContext'
+
+MeasurementContext:
+  type: object
+  description: A labeled measurement with confidence (ropegeo-common MeasurementContext)
+  required:
+    - label
+    - measurement
+    - confidence
+  properties:
+    label:
+      type: string
+      description: Page stat key (e.g. exitElevGain, shuttleTime)
+    measurement:
+      type: object
+      description: Length or time measurement wire shape
+    confidence:
+      type: number
+      minimum: 0
+      maximum: 1
+      description: Model confidence from 0 to 1
+
+BetaSectionExcerpt:
+  type: object
+  description: Verbatim beta excerpt with optional offsets (ropegeo-common BetaSectionExcerpt)
+  required:
+    - confidence
+  properties:
+    text:
+      type: string
+      nullable: true
+      description: Verbatim excerpt text from the beta section
+    start:
+      type: integer
+      nullable: true
+      minimum: 0
+      description: Character offset in beta section text where excerpt starts
+    end:
+      type: integer
+      nullable: true
+      minimum: 0
+      description: Character offset in beta section text where excerpt ends (exclusive)
+    confidence:
+      type: number
+      minimum: 0
+      maximum: 1
+      description: Model confidence from 0 to 1
+
+ImageContext:
+  type: object
+  description: Relevant captioned image reference (ropegeo-common ImageContext)
+  required:
+    - id
+    - confidence
+  properties:
+    id:
+      type: string
+      format: uuid
+      description: RopewikiImage id
+    confidence:
+      type: number
+      minimum: 0
+      maximum: 1
+      description: Model confidence from 0 to 1
 
 OnlineRegionMiniMap:
   type: object

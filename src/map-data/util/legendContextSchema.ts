@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { MEASUREMENT_UNIT_NAMES, PAGE_STAT_KEYS } from './types';
+import { MEASUREMENT_UNIT_NAMES, PAGE_STAT_KEYS } from '../types/relevanceTypes';
 
 const pageStatKeySchema = z.enum(PAGE_STAT_KEYS);
 const measurementUnitNameSchema = z.enum(MEASUREMENT_UNIT_NAMES);

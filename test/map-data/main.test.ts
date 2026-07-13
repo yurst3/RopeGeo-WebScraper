@@ -37,6 +37,7 @@ let mockProcessMapData: jest.MockedFunction<typeof import('../../src/map-data/pr
 let mockUpsertMapData: jest.MockedFunction<typeof import('../../src/map-data/database/upsertMapData').default>;
 let mockReplaceMapDataLegendItems: jest.MockedFunction<typeof import('../../src/map-data/database/replaceMapDataLegendItems').default>;
 let mockUpsertPageRoute: jest.MockedFunction<typeof import('../../src/map-data/util/upsertPageRoute').default>;
+let mockUpsertRelevanceContextJob: jest.MockedFunction<typeof import('../../src/map-data/database/upsertRelevanceContextJob').upsertRelevanceContextJob>;
 
 jest.mock('../../src/map-data/util/getSourceFileUrl', () => ({
     __esModule: true,
@@ -60,6 +61,11 @@ jest.mock('../../src/map-data/database/replaceMapDataLegendItems', () => ({
 jest.mock('../../src/map-data/util/upsertPageRoute', () => ({
     __esModule: true,
     default: jest.fn(),
+}));
+
+jest.mock('../../src/map-data/database/upsertRelevanceContextJob', () => ({
+    __esModule: true,
+    upsertRelevanceContextJob: jest.fn(),
 }));
 
 describe('main', () => {
@@ -92,12 +98,16 @@ describe('main', () => {
         const upsertPageRouteModule = require('../../src/map-data/util/upsertPageRoute');
         mockUpsertPageRoute = upsertPageRouteModule.default;
 
+        const upsertRelevanceContextJobModule = require('../../src/map-data/database/upsertRelevanceContextJob');
+        mockUpsertRelevanceContextJob = upsertRelevanceContextJobModule.upsertRelevanceContextJob;
+
         // Setup default mock implementations
         mockGetSourceFileUrl.mockResolvedValue(undefined);
         mockProcessMapData.mockResolvedValue(processResult(new MapData()));
         mockUpsertMapData.mockResolvedValue(upsertResult(new MapData('', '', '', '', 'test-id')));
         mockReplaceMapDataLegendItems.mockResolvedValue(undefined);
         mockUpsertPageRoute.mockResolvedValue(undefined);
+        mockUpsertRelevanceContextJob.mockResolvedValue(undefined);
 
         mockSaveMapDataHookFn = jest.fn<SaveMapDataHookFn>().mockResolvedValue(
             new MapData(
@@ -305,6 +315,11 @@ describe('main', () => {
         await main(mapDataEvent, mockSaveMapDataHookFn, mockLogger, mockClient);
 
         expect(mockReplaceMapDataLegendItems).toHaveBeenCalledWith(mockClient, 'map-id', legend);
+        expect(mockUpsertRelevanceContextJob).toHaveBeenCalledWith(mockClient, {
+            mapDataId: 'map-id',
+            pageId,
+            pageSource: pageDataSource,
+        });
     });
 
     it('does not call replaceMapDataLegendItems when upsert was skipped', async () => {
@@ -322,6 +337,7 @@ describe('main', () => {
         await main(mapDataEvent, mockSaveMapDataHookFn, mockLogger, mockClient);
 
         expect(mockReplaceMapDataLegendItems).not.toHaveBeenCalled();
+        expect(mockUpsertRelevanceContextJob).not.toHaveBeenCalled();
     });
 
     it('propagates errors from replaceMapDataLegendItems', async () => {

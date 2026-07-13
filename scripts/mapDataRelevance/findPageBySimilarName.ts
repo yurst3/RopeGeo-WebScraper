@@ -1,5 +1,5 @@
 import * as db from 'zapatos/db';
-import type { PageMatch } from './types';
+import type { PageMatch } from '../../src/map-data/types/relevanceTypes';
 
 type SimilarPageRow = {
     id: string;

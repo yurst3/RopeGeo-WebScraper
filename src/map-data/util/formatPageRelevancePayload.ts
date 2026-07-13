@@ -1,4 +1,8 @@
-import { imageHasCaption, type LegendItemInput, type PageRelevanceInput } from './types';
+import {
+    imageHasCaption,
+    type LegendItemInput,
+    type PageRelevanceInput,
+} from '../types/relevanceTypes';
 
 function pruneNullStats(stats: Record<string, unknown>): Record<string, unknown> {
     const out: Record<string, unknown> = {};

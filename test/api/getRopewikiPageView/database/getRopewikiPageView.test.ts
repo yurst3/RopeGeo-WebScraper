@@ -55,6 +55,8 @@ describe('getRopewikiPageView (integration)', () => {
     });
 
     afterEach(async () => {
+        await db.sql`DELETE FROM "MapDataRelevantContext"`.run(conn);
+        await db.sql`DELETE FROM "MapDataRelevantContextJob"`.run(conn);
         await db.sql`DELETE FROM "RopewikiImage"`.run(conn);
         await db.sql`DELETE FROM "ImageData"`.run(conn);
         await db.sql`DELETE FROM "RopewikiBetaSection"`.run(conn);
@@ -687,6 +689,94 @@ describe('getRopewikiPageView (integration)', () => {
         expect(mm.legend?.trail.name).toBe('Main trail');
         expect(mm.tileCount).toBe(12);
         expect(mm.tileTotalBytes).toBe(4096);
+    });
+
+    it('attaches relevantContext to legend items with API-time excerpt offsets', async () => {
+        const pageId = 'f1f2f3f4-e5f6-7890-abcd-ef1234567890';
+        const mapDataId = '48f6d4fb-8359-52fe-926f-9c0f7bbf6e73';
+        const routeId = 'f2f3f3f4-e5f6-7890-abcd-ef1234567890';
+        const betaSectionId = 'a1a2a3a4-b5b6-4c7d-8e9f-000000000001';
+        const tilesTemplate =
+            'https://api.webscraper.ropegeo.com/mapdata/tiles/48f6d4fb-8359-52fe-926f-9c0f7bbf6e73/{z}/{x}/{y}.pbf';
+        const bounds = { north: 39.5, south: 38.1, east: -108.2, west: -110.0 };
+        const betaText = 'Before <b>R1</b>: 25 feet - After';
+
+        await db
+            .insert('RopewikiPage', {
+                id: pageId,
+                externalPageId: 'relevance-page',
+                name: 'Page With Relevance',
+                region: testRegionId,
+                url: 'https://ropewiki.com/Page_With_Relevance',
+                latestRevisionDate: '2025-01-01T00:00:00' as db.TimestampString,
+            })
+            .run(conn);
+        await db
+            .insert('RopewikiBetaSection', {
+                id: betaSectionId,
+                ropewikiPage: pageId,
+                title: 'Descent',
+                text: betaText,
+                order: 0,
+                latestRevisionDate: '2025-01-01T00:00:00' as db.TimestampString,
+            })
+            .run(conn);
+        await db
+            .insert('Route', {
+                id: routeId,
+                name: 'Relevance Route',
+                type: 'Canyon',
+                coordinates: { lat: 40.1, lon: -111.5 },
+            })
+            .run(conn);
+        await db
+            .insert('MapData', {
+                id: mapDataId,
+                tilesTemplate,
+                bounds,
+                tileCount: 4,
+                tileTotalBytes: 1024,
+                sourceFileUrl: '',
+            })
+            .run(conn);
+        await db
+            .insert('MapDataSegmentLegendItem', {
+                id: 'r1',
+                mapData: mapDataId,
+                name: 'R1',
+                bounds,
+            })
+            .run(conn);
+        await db
+            .insert('RopewikiRoute', {
+                route: routeId,
+                ropewikiPage: pageId,
+                mapData: mapDataId,
+            })
+            .run(conn);
+        await db
+            .insert('MapDataRelevantContext', {
+                mapDataId,
+                legendItemId: 'r1',
+                measurements: null,
+                betaSectionExcerpts: {
+                    [betaSectionId]: [{ text: '<b>R1</b>: 25 feet -', confidence: 0.98 }],
+                },
+                images: null,
+            })
+            .run(conn);
+
+        const result = await getRopewikiPageView(conn, pageId);
+
+        expect(result).not.toBeNull();
+        const mm = result!.miniMap as OnlinePageMiniMap;
+        expect(mm.legend?.r1.relevantContext).not.toBeNull();
+        const excerpts = mm.legend!.r1.relevantContext!.betaSectionExcerpts[betaSectionId];
+        expect(excerpts).toHaveLength(1);
+        expect(excerpts![0]!.text).toBe('<b>R1</b>: 25 feet -');
+        expect(excerpts![0]!.start).toBe(7);
+        expect(excerpts![0]!.end).toBe(7 + '<b>R1</b>: 25 feet -'.length);
+        expect(excerpts![0]!.confidence).toBe(0.98);
     });
 
     it('returns CenteredRegionMiniMap when page has route but MapData has null tilesTemplate', async () => {
