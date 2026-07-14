@@ -375,6 +375,9 @@ jobs:
       - name: Check out repository code
         uses: actions/checkout@v4
 
+      - name: Install dependencies
+        run: npm ci
+
       - name: Build OpenAPI docs with Scalar
         run: npm run build:openapi
 
@@ -473,7 +476,7 @@ jobs:
           GET_MAPDATA_TILES_LAMBDA_ARN=${{ steps.stack-outputs.outputs.get_mapdata_tiles_arn }} \
           APIGATEWAY_INVOKE_LAMBDA_ROLE_ARN=${{ steps.stack-outputs.outputs.invoke_lambda_role }} \
           DOCS_BUCKET_NAME=${{ steps.stack-outputs.outputs.bucket }} \
-          npx ts-node --files scripts/resolveYamlEnvs.ts docs-build/openapi.yaml docs-build/openapiResolved.yaml
+          ./node_modules/.bin/ts-node --files scripts/resolveYamlEnvs.ts docs-build/openapi.yaml docs-build/openapiResolved.yaml
 
       - name: Upload docs to S3
         run: |
