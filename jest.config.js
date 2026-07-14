@@ -1,4 +1,4 @@
-/* global module */
+/* global module, require */
 module.exports = {
     preset: 'ts-jest',
     testEnvironment: 'node',
@@ -6,8 +6,9 @@ module.exports = {
     testMatch: ['**/*.test.ts'],
     transform: {
         '^.+\\.ts$': 'ts-jest',
+        '^.+\\.txt$': '<rootDir>/test/txtTransform.js',
     },
-    moduleFileExtensions: ['ts', 'js', 'json'],
+    moduleFileExtensions: ['ts', 'js', 'json', 'txt'],
     collectCoverageFrom: [
         'src/**/*.ts',
         '!src/**/*.test.ts',
@@ -20,4 +21,3 @@ module.exports = {
     },
     setupFilesAfterEnv: ['<rootDir>/test/setupTests.ts'],
 };
-

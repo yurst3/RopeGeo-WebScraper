@@ -49,6 +49,13 @@ describe('loadRelevanceConfig', () => {
         });
     });
 
+    it('loads the default system prompt', () => {
+        const { loadSystemPrompt } = require('../../../src/map-data/util/loadRelevanceConfig') as typeof import('../../../src/map-data/util/loadRelevanceConfig');
+        const prompt = loadSystemPrompt();
+        expect(prompt.length).toBeGreaterThan(100);
+        expect(prompt).toContain('legend item');
+    });
+
     it('estimates cost from token usage', () => {
         const cost = estimateCostUsd(
             { inputTokens: 1_000_000, outputTokens: 1_000_000 },

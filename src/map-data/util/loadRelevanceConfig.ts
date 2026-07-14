@@ -1,8 +1,6 @@
 import { readFileSync } from 'fs';
-import { join } from 'path';
 import type { ModelConfig } from '../types/relevanceTypes';
-
-const CONFIG_DIR = join(__dirname, '..', 'configs');
+import defaultSystemPrompt from '../configs/legendContextModelSystemPrompt.txt';
 
 function requireEnv(name: string): string {
     const value = process.env[name];
@@ -34,9 +32,16 @@ export function loadModelConfigFromEnv(): ModelConfig {
     };
 }
 
+/**
+ * Loads the legend-context system prompt.
+ * Default content comes from legendContextModelSystemPrompt.txt (inlined by SAM esbuild Loader).
+ * Optional `promptPath` overrides from disk (local scripts).
+ */
 export function loadSystemPrompt(promptPath?: string): string {
-    const path = promptPath ?? join(CONFIG_DIR, 'legendContextModelSystemPrompt.txt');
-    return readFileSync(path, 'utf-8').trim();
+    if (promptPath != null && promptPath.trim() !== '') {
+        return readFileSync(promptPath, 'utf-8').trim();
+    }
+    return defaultSystemPrompt.trim();
 }
 
 export function estimateCostUsd(

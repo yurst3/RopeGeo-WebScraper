@@ -67,5 +67,7 @@ Resources:
         Minify: true
         Target: esnext
         Sourcemap: true
+        Loader:
+          - .txt=text
         EntryPoints:
           - src/map-data/lambda-handlers/processRelevanceHandler.ts
