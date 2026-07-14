@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach, jest } from '@jest/globals';
 import { nodeProcessRopewikiRoutes, lambdaProcessRopewikiRoutes } from '../../../src/ropewiki/hook-functions/processRopewikiRoutes';
 import { RopewikiRoute } from '../../../src/types/pageRoute';
-import { MapDataEvent } from '../../../src/map-data/types/lambdaEvent';
+import { MapDataEvent } from '../../../src/map-data/types/mapDataEvent';
 import { Route, RouteType } from 'ropegeo-common/models';
 import RopewikiPage from '../../../src/ropewiki/types/page';
 

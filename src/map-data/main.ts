@@ -7,14 +7,14 @@ import upsertPageRoute from './util/upsertPageRoute';
 import { upsertRelevanceContextJob } from './database/upsertRelevanceContextJob';
 import { PageRoute } from '../types/pageRoute';
 import type { SaveMapDataHookFn } from './hook-functions/saveMapData';
-import { MapDataEvent } from './types/lambdaEvent';
+import { MapDataEvent } from './types/mapDataEvent';
 import { ProgressLogger } from 'ropegeo-common/helpers';
 
 /**
  * Processes map data by reading source file URL from the database, downloading it (or fetching from S3 when downloadSource is false),
  * converting to GeoJSON, then to MBTiles, and saving via the provided hook function.
  *
- * @param mapDataEvent - The map data event containing source, routeId, pageId, optional mapDataId, and downloadSource
+ * @param mapDataEvent - The map data event containing source, routeId, pageId, optional mapDataId, downloadSource, cleanOutlierPoints, and processRelevantContext
  * @param saveMapDataHookFn - Hook function to persist produced files and return URLs
  * @param logger - Progress logger for tracking processing progress
  * @param client - Database client to use (must be provided)
@@ -44,17 +44,20 @@ export const main = async (
         logger,
         abortSignal,
         mapDataEvent.downloadSource,
+        mapDataEvent.cleanOutlierPoints,
     );
 
     const { mapData: upsertedMapData, applied } = await upsertMapData(client, mapData);
 
     if (applied && upsertedMapData.id != null) {
         await replaceMapDataLegendItems(client, upsertedMapData.id, legend);
-        await upsertRelevanceContextJob(client, {
-            mapDataId: upsertedMapData.id,
-            pageId: mapDataEvent.pageId,
-            pageSource: mapDataEvent.source,
-        });
+        if (mapDataEvent.processRelevantContext) {
+            await upsertRelevanceContextJob(client, {
+                mapDataId: upsertedMapData.id,
+                pageId: mapDataEvent.pageId,
+                pageSource: mapDataEvent.source,
+            });
+        }
     }
 
     pageRoute.mapData = upsertedMapData.id;

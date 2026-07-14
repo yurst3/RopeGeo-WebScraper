@@ -1,7 +1,7 @@
 import { describe, it, expect, beforeEach, jest } from '@jest/globals';
 import { mainHandler } from '../../../src/map-data/lambda-handlers/mainHandler';
 import { PageDataSource } from 'ropegeo-common/models';
-import { MapDataEvent } from '../../../src/map-data/types/lambdaEvent';
+import { MapDataEvent } from '../../../src/map-data/types/mapDataEvent';
 import type { SqsEvent, SqsRecord } from '@aws-lambda-powertools/parser/types';
 
 // Mock handleMapDataSQSMessages and setMapDataSQSMessageVisibilityTimeout
@@ -42,7 +42,7 @@ jest.mock('ropegeo-common/helpers', () => ({
 }));
 
 // Mock MapDataEvent (still needed for creating test instances)
-jest.mock('../../../src/map-data/types/lambdaEvent', () => {
+jest.mock('../../../src/map-data/types/mapDataEvent', () => {
     // Create a mock class that matches the MapDataEvent interface
     class MockedMapDataEvent {
         source: any;

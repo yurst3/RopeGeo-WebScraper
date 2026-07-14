@@ -12,6 +12,7 @@ import { convertToGeoJson } from '../util/convertToGeoJson';
 import { convertToTileDirectory } from '../util/convertToTileDirectory';
 import { enrichGeoJsonWithLegendIds } from '../util/enrichGeoJsonWithLegendIds';
 import { getBoundsFromGeoJson } from '../util/getBoundsFromGeoJson';
+import { identifyAndCleanOutlierPoints } from '../util/identifyAndCleanOutlierPoints';
 import { ProgressLogger } from 'ropegeo-common/helpers';
 
 /**
@@ -24,6 +25,7 @@ import { ProgressLogger } from 'ropegeo-common/helpers';
  * @param logger - Progress logger for tracking processing progress
  * @param abortSignal - Optional AbortSignal; when aborted, the download is cancelled
  * @param downloadSource - If true (default), download from sourceFileUrl; if false, fetch existing source from S3 by mapDataId
+ * @param cleanOutlierPoints - If true, identify GPS track-sample outlier GeoJSONs and strip non-semantic points before enrich
  * @returns Processed MapData and optional legend keyed by legend item id
  */
 export const processMapData = async (
@@ -33,6 +35,7 @@ export const processMapData = async (
     logger: ProgressLogger,
     abortSignal?: AbortSignal,
     downloadSource: boolean = true,
+    cleanOutlierPoints: boolean = false,
 ): Promise<ProcessMapDataResult> => {
     const tempDir = await mkdtemp(join(tmpdir(), 'map-data-'));
     const finalMapDataId = mapDataId ?? randomUUID();
@@ -111,7 +114,17 @@ export const processMapData = async (
         if (geoJsonFilePath && !errorMessage) {
             try {
                 const geoJsonContent = await readFile(geoJsonFilePath, 'utf-8');
-                const parsed = JSON.parse(geoJsonContent) as GeoJSON.FeatureCollection;
+                let parsed = JSON.parse(geoJsonContent) as GeoJSON.FeatureCollection;
+
+                if (cleanOutlierPoints) {
+                    parsed = await identifyAndCleanOutlierPoints(
+                        parsed,
+                        geoJsonFilePath,
+                        finalMapDataId,
+                        logger,
+                    );
+                }
+
                 const { geoJson: enriched, legend } = enrichGeoJsonWithLegendIds(parsed);
                 postEnrichLegend = legend;
                 postEnrichGeo = enriched;

@@ -30,6 +30,8 @@ jest.mock('../../../src/ropewiki/sqs/sendMapDataSQSMessage', () => ({
 let consoleLogSpy: ReturnType<typeof jest.spyOn>;
 let consoleErrorSpy: ReturnType<typeof jest.spyOn>;
 
+const SAMPLE_ID = '0827ba8b-27b3-40dc-8385-06f823dbf535';
+
 describe('reprocessMapData', () => {
     beforeEach(() => {
         jest.clearAllMocks();
@@ -61,18 +63,27 @@ describe('reprocessMapData', () => {
 
         const result = await reprocessMapData();
 
-        expect(mockListRopewikiMapDataReprocessTargets).toHaveBeenCalledWith(mockClient, true);
+        expect(mockListRopewikiMapDataReprocessTargets).toHaveBeenCalledWith(
+            mockClient,
+            true,
+            undefined,
+        );
         expect(mockSendMapDataSQSMessage).toHaveBeenCalledTimes(2);
         const first = mockSendMapDataSQSMessage.mock.calls[0]![0] as RopewikiRoute;
         const second = mockSendMapDataSQSMessage.mock.calls[1]![0] as RopewikiRoute;
         expect(first).toEqual(new RopewikiRoute('r1', 'p1', 'm1'));
         expect(second).toEqual(new RopewikiRoute('r2', 'p2', 'm2'));
         expect(mockSendMapDataSQSMessage.mock.calls[0]![1]).toBe(false);
+        expect(mockSendMapDataSQSMessage.mock.calls[0]![2]).toBe(false);
         expect(mockSendMapDataSQSMessage.mock.calls[1]![1]).toBe(false);
+        expect(mockSendMapDataSQSMessage.mock.calls[1]![2]).toBe(false);
+        expect(mockSendMapDataSQSMessage.mock.calls[0]![3]).toBe(true);
         expect(result.statusCode).toBe(200);
         const body = JSON.parse(result.body);
         expect(body.enqueuedCount).toBe(2);
         expect(body.downloadSource).toBe(false);
+        expect(body.cleanOutlierPoints).toBe(false);
+        expect(body.processRelevantContext).toBe(true);
     });
 
     it('passes onlyStored false when downloadSource true', async () => {
@@ -82,10 +93,44 @@ describe('reprocessMapData', () => {
 
         await reprocessMapData({ body: JSON.stringify({ downloadSource: true }) });
 
-        expect(mockListRopewikiMapDataReprocessTargets).toHaveBeenCalledWith(mockClient, false);
+        expect(mockListRopewikiMapDataReprocessTargets).toHaveBeenCalledWith(
+            mockClient,
+            false,
+            undefined,
+        );
         expect(mockSendMapDataSQSMessage).toHaveBeenCalledTimes(1);
         expect(mockSendMapDataSQSMessage.mock.calls[0]![0]).toEqual(new RopewikiRoute('r1', 'p1', 'm1'));
         expect(mockSendMapDataSQSMessage.mock.calls[0]![1]).toBe(true);
+        expect(mockSendMapDataSQSMessage.mock.calls[0]![2]).toBe(false);
+    });
+
+    it('passes includeMapDataIds and cleanOutlierPoints through to list/send', async () => {
+        mockListRopewikiMapDataReprocessTargets.mockResolvedValue([
+            { routeId: 'r1', pageId: 'p1', mapDataId: SAMPLE_ID },
+        ]);
+
+        const result = await reprocessMapData({
+            body: JSON.stringify({
+                downloadSource: false,
+                cleanOutlierPoints: true,
+                processRelevantContext: false,
+                includeMapDataIds: [SAMPLE_ID],
+            }),
+        });
+
+        expect(mockListRopewikiMapDataReprocessTargets).toHaveBeenCalledWith(
+            mockClient,
+            true,
+            [SAMPLE_ID],
+        );
+        expect(mockSendMapDataSQSMessage.mock.calls[0]![1]).toBe(false);
+        expect(mockSendMapDataSQSMessage.mock.calls[0]![2]).toBe(true);
+        expect(mockSendMapDataSQSMessage.mock.calls[0]![3]).toBe(false);
+        const body = JSON.parse(result.body);
+        expect(body.cleanOutlierPoints).toBe(true);
+        expect(body.processRelevantContext).toBe(false);
+        expect(body.includeMapDataIds).toEqual([SAMPLE_ID]);
+        expect(body.enqueuedCount).toBe(1);
     });
 
     it('returns 400 on invalid event body', async () => {

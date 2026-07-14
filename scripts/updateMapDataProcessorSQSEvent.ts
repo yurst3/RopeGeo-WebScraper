@@ -67,7 +67,7 @@ async function main() {
         const pageRoutes = rows.map((row) => RopewikiRoute.fromDbRow(row));
 
         // Convert each page route to a MapDataEvent
-        const mapDataEvents = pageRoutes.map((route) => route.toMapDataEvent());
+        const mapDataEvents = pageRoutes.map((route) => route.toMapDataEvent(true, true));
 
         // Log the selected routes
         pageRoutes.forEach((route, index) => {

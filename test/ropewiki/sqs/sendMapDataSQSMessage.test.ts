@@ -64,6 +64,8 @@ describe('sendMapDataSQSMessage', () => {
         expect(parsed.source).toBe('ropewiki');
         expect(parsed.routeId).toBe('route-123');
         expect(parsed.pageId).toBe('page-456');
+        expect(parsed.cleanOutlierPoints).toBe(true);
+        expect(parsed.processRelevantContext).toBe(true);
     });
 
     it('throws when route has no route and not local', async () => {

@@ -7,6 +7,13 @@ export class MapDataEvent {
     pageId: string;
     mapDataId: string | undefined;
     downloadSource: boolean;
+    /** When true, identify and clean GPS track-sample outlier points before enrich/upload. */
+    cleanOutlierPoints: boolean;
+    /**
+     * When true (default), after a successful MapData upsert the processor upserts and may enqueue
+     * a MapDataRelevantContextJob. When false, that step is skipped.
+     */
+    processRelevantContext: boolean;
 
     constructor(
         source: PageDataSource,
@@ -14,12 +21,16 @@ export class MapDataEvent {
         pageId: string,
         mapDataId?: string,
         downloadSource: boolean = true,
+        cleanOutlierPoints: boolean = false,
+        processRelevantContext: boolean = true,
     ) {
         this.source = source;
         this.routeId = routeId;
         this.pageId = pageId;
         this.mapDataId = mapDataId;
         this.downloadSource = downloadSource;
+        this.cleanOutlierPoints = cleanOutlierPoints;
+        this.processRelevantContext = processRelevantContext;
     }
 
     /**
@@ -37,6 +48,8 @@ export class MapDataEvent {
                 pageId?: string;
                 mapDataId?: string;
                 downloadSource?: boolean;
+                cleanOutlierPoints?: boolean;
+                processRelevantContext?: boolean;
             };
 
             if (!parsed.source || !parsed.routeId || !parsed.pageId) {
@@ -51,6 +64,22 @@ export class MapDataEvent {
                 throw new Error('Invalid MapDataEvent: mapDataId is required when downloadSource is false');
             }
 
+            if (
+                parsed.cleanOutlierPoints !== undefined &&
+                typeof parsed.cleanOutlierPoints !== 'boolean'
+            ) {
+                throw new Error('Invalid MapDataEvent: cleanOutlierPoints must be a boolean when provided');
+            }
+
+            if (
+                parsed.processRelevantContext !== undefined &&
+                typeof parsed.processRelevantContext !== 'boolean'
+            ) {
+                throw new Error(
+                    'Invalid MapDataEvent: processRelevantContext must be a boolean when provided',
+                );
+            }
+
             // Validate that source is a valid PageDataSource enum value
             if (!Object.values(PageDataSource).includes(parsed.source)) {
                 throw new Error(`Invalid MapDataEvent: source must be one of ${Object.values(PageDataSource).join(', ')}, got: ${parsed.source}`);
@@ -62,6 +91,8 @@ export class MapDataEvent {
                 parsed.pageId,
                 parsed.mapDataId,
                 parsed.downloadSource,
+                parsed.cleanOutlierPoints ?? false,
+                parsed.processRelevantContext ?? true,
             );
         } catch (error) {
             if (error instanceof SyntaxError) {

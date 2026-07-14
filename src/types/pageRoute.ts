@@ -2,7 +2,7 @@ import type * as s from 'zapatos/schema';
 import { PageDataSource } from 'ropegeo-common/models';
 import { Route } from 'ropegeo-common/models';
 import RopewikiPage from '../ropewiki/types/page';
-import { MapDataEvent } from '../map-data/types/lambdaEvent';
+import { MapDataEvent } from '../map-data/types/mapDataEvent';
 
 export class PageRoute {
     route: string;
@@ -67,13 +67,19 @@ export class RopewikiRoute extends PageRoute {
         return new RopewikiRoute(route.id, page.id);
     }
 
-    toMapDataEvent(downloadSource: boolean = true): MapDataEvent {
+    toMapDataEvent(
+        downloadSource: boolean = true,
+        cleanOutlierPoints: boolean = false,
+        processRelevantContext: boolean = true,
+    ): MapDataEvent {
         return new MapDataEvent(
             PageDataSource.Ropewiki,
             this.route,
             this.page,
             this.mapData,
             downloadSource,
+            cleanOutlierPoints,
+            processRelevantContext,
         );
     }
 }

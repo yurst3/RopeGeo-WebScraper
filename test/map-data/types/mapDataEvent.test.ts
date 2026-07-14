@@ -1,5 +1,5 @@
 import { describe, it, expect } from '@jest/globals';
-import { MapDataEvent } from '../../../src/map-data/types/lambdaEvent';
+import { MapDataEvent } from '../../../src/map-data/types/mapDataEvent';
 import { PageDataSource } from 'ropegeo-common/models';
 import type { SqsRecord } from '@aws-lambda-powertools/parser/types';
 
@@ -16,6 +16,8 @@ describe('MapDataEvent', () => {
             expect(event.routeId).toBe(routeId);
             expect(event.pageId).toBe(pageId);
             expect(event.downloadSource).toBe(true);
+            expect(event.cleanOutlierPoints).toBe(false);
+            expect(event.processRelevantContext).toBe(true);
         });
 
         it('creates MapDataEvent with downloadSource false when mapDataId is provided', () => {
@@ -28,6 +30,32 @@ describe('MapDataEvent', () => {
             );
             expect(event.downloadSource).toBe(false);
             expect(event.mapDataId).toBe('map-data-uuid');
+            expect(event.cleanOutlierPoints).toBe(false);
+        });
+
+        it('creates MapDataEvent with cleanOutlierPoints true', () => {
+            const event = new MapDataEvent(
+                PageDataSource.Ropewiki,
+                'route-id',
+                'page-id',
+                'map-data-uuid',
+                true,
+                true,
+            );
+            expect(event.cleanOutlierPoints).toBe(true);
+        });
+
+        it('creates MapDataEvent with processRelevantContext false', () => {
+            const event = new MapDataEvent(
+                PageDataSource.Ropewiki,
+                'route-id',
+                'page-id',
+                'map-data-uuid',
+                true,
+                false,
+                false,
+            );
+            expect(event.processRelevantContext).toBe(false);
         });
 
         it('creates MapDataEvent with downloadSource false without mapDataId (validation is in fromSQSEventRecord)', () => {
@@ -353,6 +381,83 @@ describe('MapDataEvent', () => {
             expect(event.pageId).toBe(pageId);
             expect(event.downloadSource).toBe(false);
             expect(event.mapDataId).toBe(mapDataId);
+        });
+
+        it('defaults cleanOutlierPoints to false when omitted from SQS body', () => {
+            const record: SqsRecord = {
+                body: JSON.stringify({
+                    source: PageDataSource.Ropewiki,
+                    routeId: 'route-id',
+                    pageId: 'page-id',
+                    downloadSource: true,
+                }),
+            } as SqsRecord;
+
+            const event = MapDataEvent.fromSQSEventRecord(record);
+            expect(event.cleanOutlierPoints).toBe(false);
+            expect(event.processRelevantContext).toBe(true);
+        });
+
+        it('parses cleanOutlierPoints true from SQS body', () => {
+            const record: SqsRecord = {
+                body: JSON.stringify({
+                    source: PageDataSource.Ropewiki,
+                    routeId: 'route-id',
+                    pageId: 'page-id',
+                    downloadSource: true,
+                    cleanOutlierPoints: true,
+                }),
+            } as SqsRecord;
+
+            const event = MapDataEvent.fromSQSEventRecord(record);
+            expect(event.cleanOutlierPoints).toBe(true);
+        });
+
+        it('parses processRelevantContext false from SQS body', () => {
+            const record: SqsRecord = {
+                body: JSON.stringify({
+                    source: PageDataSource.Ropewiki,
+                    routeId: 'route-id',
+                    pageId: 'page-id',
+                    downloadSource: true,
+                    processRelevantContext: false,
+                }),
+            } as SqsRecord;
+
+            const event = MapDataEvent.fromSQSEventRecord(record);
+            expect(event.processRelevantContext).toBe(false);
+        });
+
+        it('throws when cleanOutlierPoints is present but not a boolean', () => {
+            const record: SqsRecord = {
+                body: JSON.stringify({
+                    source: PageDataSource.Ropewiki,
+                    routeId: 'route-id',
+                    pageId: 'page-id',
+                    downloadSource: true,
+                    cleanOutlierPoints: 'yes',
+                }),
+            } as SqsRecord;
+
+            expect(() => MapDataEvent.fromSQSEventRecord(record)).toThrow(
+                'Invalid MapDataEvent: cleanOutlierPoints must be a boolean when provided',
+            );
+        });
+
+        it('throws when processRelevantContext is present but not a boolean', () => {
+            const record: SqsRecord = {
+                body: JSON.stringify({
+                    source: PageDataSource.Ropewiki,
+                    routeId: 'route-id',
+                    pageId: 'page-id',
+                    downloadSource: true,
+                    processRelevantContext: 'yes',
+                }),
+            } as SqsRecord;
+
+            expect(() => MapDataEvent.fromSQSEventRecord(record)).toThrow(
+                'Invalid MapDataEvent: processRelevantContext must be a boolean when provided',
+            );
         });
 
         it('throws when downloadSource is false and mapDataId is missing', () => {

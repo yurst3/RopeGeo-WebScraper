@@ -4,7 +4,7 @@ import type { SqsRecord } from '@aws-lambda-powertools/parser/types';
 
 // Mock dependencies
 jest.mock('../../../src/map-data/main');
-jest.mock('../../../src/map-data/types/lambdaEvent');
+jest.mock('../../../src/map-data/types/mapDataEvent');
 jest.mock('ropegeo-common/helpers', () => ({
     __esModule: true,
     ProgressLogger: jest.fn(),
@@ -14,7 +14,7 @@ jest.mock('ropegeo-common/helpers', () => ({
 jest.mock('../../../src/map-data/sqs/deleteMapDataSQSMessage');
 
 const mockMain = require('../../../src/map-data/main').main as jest.MockedFunction<typeof import('../../../src/map-data/main').main>;
-const MapDataEvent = require('../../../src/map-data/types/lambdaEvent').MapDataEvent;
+const MapDataEvent = require('../../../src/map-data/types/mapDataEvent').MapDataEvent;
 const ProgressLogger = require('ropegeo-common/helpers').ProgressLogger;
 const mockDeleteMapDataSQSMessage = require('../../../src/map-data/sqs/deleteMapDataSQSMessage').default as jest.MockedFunction<typeof import('../../../src/map-data/sqs/deleteMapDataSQSMessage').default>;
 

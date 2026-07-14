@@ -33,15 +33,24 @@ export const reprocessMapData = async (
         client = await pool.connect();
 
         const onlyStored = !reprocessorEvent.downloadSource;
-        const targets = await listRopewikiMapDataReprocessTargets(client, onlyStored);
+        const targets = await listRopewikiMapDataReprocessTargets(
+            client,
+            onlyStored,
+            reprocessorEvent.includeMapDataIds,
+        );
 
         console.log(
-            `MapDataReprocessor: enqueueing ${targets.length} map-data job(s) (downloadSource=${reprocessorEvent.downloadSource})...`,
+            `MapDataReprocessor: enqueueing ${targets.length} map-data job(s) (downloadSource=${reprocessorEvent.downloadSource}, cleanOutlierPoints=${reprocessorEvent.cleanOutlierPoints}, processRelevantContext=${reprocessorEvent.processRelevantContext}${reprocessorEvent.includeMapDataIds != null ? `, includeMapDataIds=${reprocessorEvent.includeMapDataIds.length}` : ''})...`,
         );
 
         for (const row of targets) {
             const ropewikiRoute = new RopewikiRoute(row.routeId, row.pageId, row.mapDataId);
-            await sendMapDataSQSMessage(ropewikiRoute, reprocessorEvent.downloadSource);
+            await sendMapDataSQSMessage(
+                ropewikiRoute,
+                reprocessorEvent.downloadSource,
+                reprocessorEvent.cleanOutlierPoints,
+                reprocessorEvent.processRelevantContext,
+            );
         }
 
         return {
@@ -50,6 +59,11 @@ export const reprocessMapData = async (
                 message: 'MapData reprocessor completed successfully',
                 enqueuedCount: targets.length,
                 downloadSource: reprocessorEvent.downloadSource,
+                cleanOutlierPoints: reprocessorEvent.cleanOutlierPoints,
+                processRelevantContext: reprocessorEvent.processRelevantContext,
+                ...(reprocessorEvent.includeMapDataIds != null
+                    ? { includeMapDataIds: reprocessorEvent.includeMapDataIds }
+                    : {}),
             }),
         };
     } catch (error) {

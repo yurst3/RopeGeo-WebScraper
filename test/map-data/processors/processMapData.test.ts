@@ -40,6 +40,12 @@ jest.mock('../../../src/map-data/util/convertToTileDirectory', () => ({
     convertToTileDirectory: jest.fn(),
 }));
 
+jest.mock('../../../src/map-data/util/identifyAndCleanOutlierPoints', () => ({
+    identifyAndCleanOutlierPoints: jest.fn(
+        async (geojson: GeoJSON.FeatureCollection) => geojson,
+    ),
+}));
+
 jest.mock('ropegeo-common/helpers', () => ({
     __esModule: true,
     ProgressLogger: jest.fn().mockImplementation(() => ({
@@ -75,6 +81,7 @@ describe('processMapData', () => {
     let mockGetSourceFile: jest.MockedFunction<any>;
     let mockConvertToGeoJson: jest.MockedFunction<any>;
     let mockConvertToTileDirectory: jest.MockedFunction<any>;
+    let mockIdentifyAndCleanOutlierPoints: jest.MockedFunction<any>;
 
     beforeEach(() => {
         jest.clearAllMocks();
@@ -95,17 +102,22 @@ describe('processMapData', () => {
         const getSourceFileModule = require('../../../src/map-data/s3/getSourceFile');
         const convertToGeoJsonModule = require('../../../src/map-data/util/convertToGeoJson');
         const convertToTileDirectoryModule = require('../../../src/map-data/util/convertToTileDirectory');
+        const identifyAndCleanModule = require('../../../src/map-data/util/identifyAndCleanOutlierPoints');
 
         mockDownloadSourceFile = downloadSourceFileModule.downloadSourceFile;
         mockGetSourceFile = getSourceFileModule.default;
         mockConvertToGeoJson = convertToGeoJsonModule.convertToGeoJson;
         mockConvertToTileDirectory = convertToTileDirectoryModule.convertToTileDirectory;
+        mockIdentifyAndCleanOutlierPoints = identifyAndCleanModule.identifyAndCleanOutlierPoints;
 
         mockDownloadSourceFile.mockReset();
         mockGetSourceFile.mockReset();
         mockConvertToGeoJson.mockReset();
         mockConvertToTileDirectory.mockReset();
-        
+        mockIdentifyAndCleanOutlierPoints.mockReset();
+        mockIdentifyAndCleanOutlierPoints.mockImplementation(
+            async (geojson: GeoJSON.FeatureCollection) => geojson,
+        ); 
         // Mock utility functions with successful responses
         // Use mockImplementation to construct file path based on isKml parameter
         mockDownloadSourceFile.mockImplementation(
@@ -686,6 +698,53 @@ describe('processMapData', () => {
                 true, // isKml from URL
                 sourceFileUrl,
                 'No existing source file',
+                mockLogger,
+            );
+        });
+
+        it('does not call identifyAndCleanOutlierPoints when cleanOutlierPoints is false', async () => {
+            const sourceFileUrl = 'https://example.com/file.kml';
+            await processMapData(
+                sourceFileUrl,
+                mockSaveMapDataHookFn,
+                undefined,
+                mockLogger,
+                undefined,
+                true,
+                false,
+            );
+            expect(mockIdentifyAndCleanOutlierPoints).not.toHaveBeenCalled();
+        });
+
+        it('cleans outlier GeoJSON before enrich when cleanOutlierPoints is true', async () => {
+            const sourceFileUrl = 'https://example.com/file.kml';
+            const cleanedGeo: GeoJSON.FeatureCollection = {
+                type: 'FeatureCollection',
+                features: [
+                    {
+                        type: 'Feature',
+                        geometry: { type: 'Point', coordinates: [-105, 40] },
+                        properties: { name: 'Start' },
+                    },
+                ],
+            };
+            mockIdentifyAndCleanOutlierPoints.mockResolvedValue(cleanedGeo);
+
+            await processMapData(
+                sourceFileUrl,
+                mockSaveMapDataHookFn,
+                undefined,
+                mockLogger,
+                undefined,
+                true,
+                true,
+            );
+
+            expect(mockIdentifyAndCleanOutlierPoints).toHaveBeenCalledTimes(1);
+            expect(mockIdentifyAndCleanOutlierPoints).toHaveBeenCalledWith(
+                expect.objectContaining({ type: 'FeatureCollection' }),
+                mockGeoJsonFilePath,
+                mockMapDataId,
                 mockLogger,
             );
         });

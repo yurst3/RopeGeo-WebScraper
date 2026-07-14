@@ -2,7 +2,7 @@ import { PoolClient } from 'pg';
 import type { SqsRecord } from '@aws-lambda-powertools/parser/types';
 import { main } from '../main';
 import { lambdaSaveMapData } from '../hook-functions/saveMapData';
-import { MapDataEvent } from '../types/lambdaEvent';
+import { MapDataEvent } from '../types/mapDataEvent';
 import { ProgressLogger, timeoutAfter } from 'ropegeo-common/helpers';
 import deleteMapDataSQSMessage from './deleteMapDataSQSMessage';
 

@@ -62,5 +62,11 @@ Resources:
             Ref: MapDataBucket
           MAP_DATA_PUBLIC_BASE_URL:
             Ref: MapDataPublicBaseUrl
+          # Outlier GeoJSON identification thresholds (tunable without code redeploy)
+          MAP_DATA_OUTLIER_MIN_POINT_COUNT: '100'
+          MAP_DATA_OUTLIER_MIN_POINTS_PER_LINE: '20'
+          MAP_DATA_OUTLIER_MIN_PCT_WITHIN_LINE_M: '90'
+          MAP_DATA_OUTLIER_ON_LINE_DISTANCE_M: '5'
+          MAP_DATA_OUTLIER_MIN_NON_SEMANTIC_PCT: '50'
     Metadata:
       BuildMethod: makefile

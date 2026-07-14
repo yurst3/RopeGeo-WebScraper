@@ -4,7 +4,7 @@ import { Bounds, LineLegendItem, PageDataSource } from 'ropegeo-common/models';
 import { PageRoute, RopewikiRoute } from '../../src/types/pageRoute';
 import MapData from '../../src/map-data/types/mapData';
 import type { SaveMapDataHookFn } from '../../src/map-data/hook-functions/saveMapData';
-import { MapDataEvent } from '../../src/map-data/types/lambdaEvent';
+import { MapDataEvent } from '../../src/map-data/types/mapDataEvent';
 import { ProgressLogger } from 'ropegeo-common/helpers';
 import type { ProcessMapDataResult } from '../../src/map-data/types/processMapDataResult';
 import type { UpsertMapDataResult } from '../../src/map-data/types/upsertMapDataResult';
@@ -194,6 +194,7 @@ describe('main', () => {
             mockLogger,
             undefined,
             true,
+            false,
         );
         expect(mockUpsertMapData).toHaveBeenCalledWith(mockClient, processedMapData);
         expect(mockUpsertPageRoute).toHaveBeenCalledWith(
@@ -239,6 +240,7 @@ describe('main', () => {
             mockLogger,
             undefined,
             true,
+            false,
         );
     });
 
@@ -257,6 +259,7 @@ describe('main', () => {
             mockLogger,
             undefined,
             true,
+            false,
         );
     });
 
@@ -320,6 +323,33 @@ describe('main', () => {
             pageId,
             pageSource: pageDataSource,
         });
+    });
+
+    it('skips upsertRelevanceContextJob when processRelevantContext is false', async () => {
+        const sourceFileUrl = 'https://example.com/file.kml';
+        const mapDataEvent = new MapDataEvent(
+            pageDataSource,
+            routeId,
+            pageId,
+            undefined,
+            true,
+            false,
+            false,
+        );
+        const bounds = new Bounds(40, 39, -110, -111);
+        const legend = { s1: new LineLegendItem('s1', 'Segment', bounds) };
+        const processedMapData = new MapData(undefined, undefined, undefined, undefined, 'map-id');
+        const upsertedMapData = new MapData(undefined, undefined, undefined, undefined, 'map-id');
+
+        mockGetSourceFileUrl.mockResolvedValue(sourceFileUrl);
+        mockProcessMapData.mockResolvedValue(processResult(processedMapData, legend));
+        mockUpsertMapData.mockResolvedValue(upsertResult(upsertedMapData, true));
+
+        await main(mapDataEvent, mockSaveMapDataHookFn, mockLogger, mockClient);
+
+        expect(mockReplaceMapDataLegendItems).toHaveBeenCalledWith(mockClient, 'map-id', legend);
+        expect(mockUpsertRelevanceContextJob).not.toHaveBeenCalled();
+        expect(mockUpsertPageRoute).toHaveBeenCalled();
     });
 
     it('does not call replaceMapDataLegendItems when upsert was skipped', async () => {
@@ -427,6 +457,7 @@ describe('main', () => {
             mockLogger,
             controller.signal,
             true,
+            false,
         );
         expect(mockUpsertMapData).toHaveBeenCalled();
         expect(mockUpsertPageRoute).toHaveBeenCalled();
@@ -484,6 +515,7 @@ describe('main', () => {
             mockLogger,
             undefined,
             true,
+            false,
         );
         expect(mockUpsertPageRoute).toHaveBeenCalledWith(
             mockClient,
