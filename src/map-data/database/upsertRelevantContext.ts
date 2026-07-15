@@ -12,6 +12,11 @@ const upsertRelevantContext = async (
     context: RelevantContextDbJson,
 ): Promise<void> => {
     const now = new Date();
+    // node-pg treats top-level JS arrays as Postgres arrays; cast measurements for jsonb.
+    const measurements =
+        context.measurements == null
+            ? null
+            : db.param(context.measurements as db.JSONValue, true);
     await db
         .upsert(
             'MapDataRelevantContext',
@@ -19,7 +24,7 @@ const upsertRelevantContext = async (
                 mapDataId,
                 legendItemId,
                 jobId,
-                measurements: context.measurements as db.JSONValue | null,
+                measurements,
                 betaSectionExcerpts: context.betaSectionExcerpts as db.JSONValue | null,
                 images: context.images as db.JSONValue | null,
                 updatedAt: now,
