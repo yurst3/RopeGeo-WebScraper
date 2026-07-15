@@ -53,6 +53,15 @@ function measurementWireJson(value: number, unitName: MeasurementUnitName): Reco
     return new TimeMeasurement(value, timeUnitForName(unitName)).toJSON();
 }
 
+/** True when the model response has at least one measurements, beta excerpt, or image. */
+export function hasRelevantContextContent(context: Context): boolean {
+    const hasMeasurements = context.measurements != null && context.measurements.length > 0;
+    const hasBeta =
+        context.betaSectionExcerpts != null && context.betaSectionExcerpts.length > 0;
+    const hasImages = context.images != null && context.images.length > 0;
+    return hasMeasurements || hasBeta || hasImages;
+}
+
 export function contextToDbJson(context: Context): RelevantContextDbJson {
     let measurements: RelevantContextDbJson['measurements'] = null;
     if (context.measurements != null && context.measurements.length > 0) {

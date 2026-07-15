@@ -24,12 +24,12 @@ const upsertRelevanceContextJobFromMap = async (
                 pageId: params.pageId,
                 pageSource: params.pageSource,
                 pageReady: false,
-                errorMessage: null,
+                errors: null,
                 updatedAt: now,
             },
             'pageId',
             {
-                updateColumns: ['mapDataId', 'pageSource', 'errorMessage', 'updatedAt'],
+                updateColumns: ['mapDataId', 'pageSource', 'errors', 'updatedAt'],
             },
         )
         .run(conn);
@@ -55,12 +55,12 @@ const upsertRelevanceContextJobFromPage = async (
                 pageId,
                 pageSource: PageDataSource.Ropewiki,
                 pageReady: true,
-                errorMessage: null,
+                errors: null,
                 updatedAt: now,
             },
             'pageId',
             {
-                updateColumns: ['pageSource', 'pageReady', 'errorMessage', 'updatedAt'],
+                updateColumns: ['pageSource', 'pageReady', 'errors', 'updatedAt'],
             },
         )
         .run(conn);

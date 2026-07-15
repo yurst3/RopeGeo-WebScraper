@@ -63,7 +63,7 @@ const handleRelevanceSQSMessages = async (
                     retryVisibilitySeconds,
                 );
                 console.log(
-                    `Deferred relevance job ${job.id} for ${retryVisibilitySeconds}s after failure: ${result.errorMessage}`,
+                    `Deferred relevance job ${job.id} for ${retryVisibilitySeconds}s after ${result.errors.length} error(s)`,
                 );
             } else {
                 // complete | missing_job

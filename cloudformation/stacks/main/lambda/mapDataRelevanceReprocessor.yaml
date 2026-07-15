@@ -5,7 +5,7 @@ Resources:
   MapDataRelevanceReprocessor:
     Type: 'AWS::Serverless::Function'
     Properties:
-      Description: Creates fresh MapDataRelevantContextJobs for MapData with legend items and enqueues MapDataRelevanceProcessingQueue
+      Description: Creates fresh MapDataRelevantContextJobs for MapData with legend items and enqueues MapDataRelevanceProcessingQueue. Supports clearMessagesAndJobs and includeMapDataIds event options.
       Runtime: nodejs22.x
       Architectures:
         - arm64

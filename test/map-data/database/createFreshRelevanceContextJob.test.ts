@@ -80,7 +80,7 @@ describe('createFreshRelevanceContextJob (database)', () => {
         expect(fresh.id).not.toBe(first.id);
         expect(fresh.mapDataId).toBe(mapDataId2);
         expect(fresh.pageReady).toBe(true);
-        expect(fresh.errorMessage).toBeNull();
+        expect(fresh.errors).toBeNull();
         expect(mockTryEnqueue).toHaveBeenCalledTimes(1);
         expect(mockTryEnqueue.mock.calls[0]![0]!.id).toBe(fresh.id);
 

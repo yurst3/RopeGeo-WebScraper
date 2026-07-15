@@ -6,7 +6,7 @@ import upsertRelevantContext from '../../../src/map-data/database/upsertRelevant
 import getLegendItemIdsCompletedForJob from '../../../src/map-data/database/getLegendItemIdsCompletedForJob';
 import softDeleteRelevantContextNotInLegend from '../../../src/map-data/database/softDeleteRelevantContextNotInLegend';
 import getRelevantContextJobById from '../../../src/map-data/database/getRelevantContextJobById';
-import setRelevantContextJobError from '../../../src/map-data/database/setRelevantContextJobError';
+import setRelevantContextJobErrors from '../../../src/map-data/database/setRelevantContextJobErrors';
 import deleteRelevantContextJob from '../../../src/map-data/database/deleteRelevantContextJob';
 
 describe('relevant context jobId checkpointing (database)', () => {
@@ -140,9 +140,23 @@ describe('relevant context jobId checkpointing (database)', () => {
         const loaded = await getRelevantContextJobById(conn, jobId);
         expect(loaded?.id).toBe(jobId);
 
-        await setRelevantContextJobError(conn, jobId, 'gateway timeout');
+        await setRelevantContextJobErrors(conn, jobId, [
+            {
+                pageName: 'Test Page',
+                legendItemId: 'li-1',
+                legendItemName: 'Point A',
+                message: 'gateway timeout',
+            },
+        ]);
         const errored = await getRelevantContextJobById(conn, jobId);
-        expect(errored?.errorMessage).toBe('gateway timeout');
+        expect(errored?.errors).toEqual([
+            {
+                pageName: 'Test Page',
+                legendItemId: 'li-1',
+                legendItemName: 'Point A',
+                message: 'gateway timeout',
+            },
+        ]);
 
         await deleteRelevantContextJob(conn, jobId);
         expect(await getRelevantContextJobById(conn, jobId)).toBeUndefined();

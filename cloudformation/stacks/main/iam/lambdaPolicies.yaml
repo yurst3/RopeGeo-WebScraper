@@ -119,6 +119,7 @@ Resources:
               - 'sqs:ChangeMessageVisibility'
               - 'sqs:DeleteMessage'
               - 'sqs:GetQueueAttributes'
+              - 'sqs:PurgeQueue'
             Resource:
               'Fn::GetAtt': MapDataRelevanceProcessingQueue.Arn
           - Effect: Allow
@@ -126,6 +127,7 @@ Resources:
               - 'sqs:ReceiveMessage'
               - 'sqs:ChangeMessageVisibility'
               - 'sqs:GetQueueAttributes'
+              - 'sqs:PurgeQueue'
             Resource:
               'Fn::GetAtt': MapDataRelevanceProcessingDLQ.Arn
   S3ImageDataBucketPolicy:

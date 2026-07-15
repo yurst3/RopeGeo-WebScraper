@@ -1,7 +1,10 @@
+// Must run before loadRelevanceConfig imports the .txt system prompt.
+import '../registerTxtRequire.js';
 import getDatabaseConnection, { resetDatabaseConnectionPool } from '../../src/helpers/getDatabaseConnection';
 import { findPageBySimilarName } from './findPageBySimilarName';
 import { formatPageRelevanceUserPrompt } from '../../src/map-data/util/formatPageRelevancePayload';
 import { loadModelConfigFromEnv, loadSystemPrompt } from '../../src/map-data/util/loadRelevanceConfig';
+import { addUsage } from '../../src/map-data/util/addUsage';
 import { loadRopewikiPageRelevanceInput } from '../../src/map-data/hook-functions/loadRopewikiPageRelevanceInput';
 import { runLegendContextModel } from '../../src/map-data/http/runLegendContextModel';
 import type {
@@ -42,7 +45,9 @@ Example:
   MAP_DATA_RELEVANCE_INPUT_PRICE_PER_MILLION=0.14 \\
   MAP_DATA_RELEVANCE_OUTPUT_PRICE_PER_MILLION=0.28 \\
   DB_HOST=127.0.0.1 DB_PORT=8081 DB_NAME=local DB_USER=localUser DB_PASSWORD=localPass \\
-    npx ts-node --files scripts/mapDataRelevance/testRelevance.ts "The Subway"`);
+    npx ts-node --files scripts/mapDataRelevance/testRelevance.ts "The Subway"
+
+Or: npm run test:map-data-relevance -- "The Subway"`);
 }
 
 function parseCliArgs(argv: string[]): CliArgs {
@@ -76,14 +81,6 @@ function parseCliArgs(argv: string[]): CliArgs {
     return result;
 }
 
-function addUsage(total: TokenUsage, next: TokenUsage): TokenUsage {
-    return {
-        inputTokens: total.inputTokens + next.inputTokens,
-        outputTokens: total.outputTokens + next.outputTokens,
-        totalTokens: total.totalTokens + next.totalTokens,
-    };
-}
-
 type LegendItemRunOutcome = LegendItemContextResult & {
     usage: TokenUsage;
     estimatedCostUsd: number;
@@ -99,7 +96,17 @@ async function runLegendItemBatch(
     return Promise.all(
         legendItems.map(async (legendItem) => {
             const userPrompt = formatPageRelevanceUserPrompt(input, legendItem);
-            const result = await runLegendContextModel(modelConfig, systemPrompt, userPrompt);
+            let result;
+            try {
+                result = await runLegendContextModel(modelConfig, systemPrompt, userPrompt);
+            } catch (error) {
+                const errorMessage = error instanceof Error ? error.message : String(error);
+                console.error(
+                    `Error from runLegendContextModel for legend item "${legendItem.name}" (${legendItem.id}): ${errorMessage}`,
+                );
+                console.error('userPrompt that caused the error:\n' + userPrompt);
+                throw error;
+            }
             const validatedContext = validateLegendContext(result.response, input);
             return {
                 legendItem,

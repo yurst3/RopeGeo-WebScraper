@@ -1,4 +1,4 @@
-\restrict hYEydfz1oFoDiCeHS69DVnFF9uOgBRAWP2O40mwI5dgW4YNehCzlvcBBnxuAadS
+\restrict M6Ceq4M3D9RQV16vmG158LctZvIpxhyAoqMpTcmGTfkxY1nARrpb68GGgWbgg2b
 
 -- Dumped from database version 18.1 (Debian 18.1-1.pgdg13+2)
 -- Dumped by pg_dump version 18.1 (Homebrew)
@@ -139,7 +139,7 @@ CREATE TABLE public."MapDataRelevantContextJob" (
     "updatedAt" timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
     "deletedAt" timestamp without time zone,
     "allowUpdates" boolean DEFAULT true NOT NULL,
-    "errorMessage" text
+    errors jsonb
 );
 
 
@@ -785,7 +785,7 @@ ALTER TABLE ONLY public."RopewikiRoute"
 -- PostgreSQL database dump complete
 --
 
-\unrestrict hYEydfz1oFoDiCeHS69DVnFF9uOgBRAWP2O40mwI5dgW4YNehCzlvcBBnxuAadS
+\unrestrict M6Ceq4M3D9RQV16vmG158LctZvIpxhyAoqMpTcmGTfkxY1nARrpb68GGgWbgg2b
 
 
 --
@@ -836,4 +836,5 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20260705120000'),
     ('20260711172200'),
     ('20260712151626'),
-    ('20260712153354');
+    ('20260712153354'),
+    ('20260715160000');

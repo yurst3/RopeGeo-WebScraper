@@ -152,7 +152,14 @@ describe('handleRelevanceSQSMessages', () => {
     it('defers the SQS message with a long visibility timeout when the job failed', async () => {
         processRelevanceJob.mockResolvedValue({
             status: 'failed',
-            errorMessage: 'gateway timeout',
+            errors: [
+                {
+                    pageName: 'Test Page',
+                    legendItemId: 'a',
+                    legendItemName: 'A',
+                    message: 'gateway timeout',
+                },
+            ],
             processedCount: 0,
             skippedCount: 0,
         });

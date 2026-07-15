@@ -1,5 +1,5 @@
 import { describe, it, expect } from '@jest/globals';
-import { contextToDbJson } from '../../../src/map-data/util/contextToDbJson';
+import { contextToDbJson, hasRelevantContextContent } from '../../../src/map-data/util/contextToDbJson';
 import type { Context } from '../../../src/map-data/util/legendContextSchema';
 
 describe('contextToDbJson', () => {
@@ -59,5 +59,27 @@ describe('contextToDbJson', () => {
             betaSectionExcerpts: null,
             images: null,
         });
+    });
+});
+
+describe('hasRelevantContextContent', () => {
+    it('is false when all collections are empty or null', () => {
+        expect(
+            hasRelevantContextContent({
+                measurements: null,
+                betaSectionExcerpts: [],
+                images: null,
+            }),
+        ).toBe(false);
+    });
+
+    it('is true when any collection has entries', () => {
+        expect(
+            hasRelevantContextContent({
+                measurements: null,
+                betaSectionExcerpts: null,
+                images: [{ id: 'img-1', betaSectionId: null, confidence: 0.5 }],
+            }),
+        ).toBe(true);
     });
 });

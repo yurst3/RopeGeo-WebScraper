@@ -103,6 +103,14 @@ export type LegendItemContextResult = {
     context: Context;
 };
 
+/** One per-legend-item failure stored on MapDataRelevantContextJob.errors. */
+export type RelevanceJobError = {
+    pageName: string;
+    legendItemId: string;
+    legendItemName: string;
+    message: string;
+};
+
 export type RelevanceJobResult =
     | {
           status: 'complete';
@@ -117,7 +125,7 @@ export type RelevanceJobResult =
       }
     | {
           status: 'failed';
-          errorMessage: string;
+          errors: RelevanceJobError[];
           processedCount: number;
           skippedCount: number;
       }

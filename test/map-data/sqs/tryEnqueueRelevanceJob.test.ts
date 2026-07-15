@@ -27,7 +27,7 @@ function job(overrides: Record<string, unknown> = {}) {
         pageId: 'page-1',
         pageSource: PageDataSource.Ropewiki,
         pageReady: true,
-        errorMessage: null,
+        errors: null,
         createdAt: new Date(),
         updatedAt: new Date(),
         deletedAt: null,

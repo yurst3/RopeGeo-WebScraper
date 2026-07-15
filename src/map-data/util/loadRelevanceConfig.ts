@@ -1,6 +1,6 @@
 import { readFileSync } from 'fs';
+import { join } from 'path';
 import type { ModelConfig } from '../types/relevanceTypes';
-import defaultSystemPrompt from '../configs/legendContextModelSystemPrompt.txt';
 
 function requireEnv(name: string): string {
     const value = process.env[name];
@@ -17,6 +17,31 @@ function requirePositiveNumberEnv(name: string): number {
         throw new Error(`${name} must be a non-negative number, got: ${JSON.stringify(raw)}`);
     }
     return value;
+}
+
+/**
+ * Default prompt from legendContextModelSystemPrompt.txt.
+ * SAM esbuild inlines this require when Loader includes `.txt=text`.
+ * Local ts-node without a .txt hook falls back to reading the file from disk.
+ */
+function loadDefaultSystemPrompt(): string {
+    try {
+        // eslint-disable-next-line @typescript-eslint/no-require-imports
+        const bundled = require('../configs/legendContextModelSystemPrompt.txt') as
+            | string
+            | { default: string };
+        const text = typeof bundled === 'string' ? bundled : bundled.default;
+        if (typeof text === 'string' && text.trim().length > 0) {
+            return text.trim();
+        }
+    } catch {
+        // Node/ts-node without a .txt require hook (or empty export)
+    }
+
+    return readFileSync(
+        join(__dirname, '..', 'configs', 'legendContextModelSystemPrompt.txt'),
+        'utf-8',
+    ).trim();
 }
 
 /**
@@ -41,7 +66,7 @@ export function loadSystemPrompt(promptPath?: string): string {
     if (promptPath != null && promptPath.trim() !== '') {
         return readFileSync(promptPath, 'utf-8').trim();
     }
-    return defaultSystemPrompt.trim();
+    return loadDefaultSystemPrompt();
 }
 
 export function estimateCostUsd(

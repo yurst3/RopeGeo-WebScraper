@@ -1723,11 +1723,11 @@ declare module 'zapatos/schema' {
       */
       deletedAt: Date | null;
       /**
-      * **MapDataRelevantContextJob.errorMessage**
-      * - `text` in database
+      * **MapDataRelevantContextJob.errors**
+      * - `jsonb` in database
       * - Nullable, no default
       */
-      errorMessage: string | null;
+      errors: db.JSONValue | null;
       /**
       * **MapDataRelevantContextJob.id**
       * - `uuid` in database
@@ -1785,11 +1785,11 @@ declare module 'zapatos/schema' {
       */
       deletedAt: db.TimestampString | null;
       /**
-      * **MapDataRelevantContextJob.errorMessage**
-      * - `text` in database
+      * **MapDataRelevantContextJob.errors**
+      * - `jsonb` in database
       * - Nullable, no default
       */
-      errorMessage: string | null;
+      errors: db.JSONValue | null;
       /**
       * **MapDataRelevantContextJob.id**
       * - `uuid` in database
@@ -1847,11 +1847,11 @@ declare module 'zapatos/schema' {
       */
       deletedAt?: (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.SQLFragment | db.ParentColumn>;
       /**
-      * **MapDataRelevantContextJob.errorMessage**
-      * - `text` in database
+      * **MapDataRelevantContextJob.errors**
+      * - `jsonb` in database
       * - Nullable, no default
       */
-      errorMessage?: string | db.Parameter<string> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, string | db.Parameter<string> | db.SQLFragment | db.ParentColumn>;
+      errors?: db.JSONValue | db.Parameter<db.JSONValue> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, db.JSONValue | db.Parameter<db.JSONValue> | db.SQLFragment | db.ParentColumn>;
       /**
       * **MapDataRelevantContextJob.id**
       * - `uuid` in database
@@ -1909,11 +1909,11 @@ declare module 'zapatos/schema' {
       */
       deletedAt?: (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | null | db.DefaultType | db.SQLFragment;
       /**
-      * **MapDataRelevantContextJob.errorMessage**
-      * - `text` in database
+      * **MapDataRelevantContextJob.errors**
+      * - `jsonb` in database
       * - Nullable, no default
       */
-      errorMessage?: string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment;
+      errors?: db.JSONValue | db.Parameter<db.JSONValue> | null | db.DefaultType | db.SQLFragment;
       /**
       * **MapDataRelevantContextJob.id**
       * - `uuid` in database
@@ -1971,11 +1971,11 @@ declare module 'zapatos/schema' {
       */
       deletedAt?: (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | null | db.DefaultType | db.SQLFragment | db.SQLFragment<any, (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | null | db.DefaultType | db.SQLFragment>;
       /**
-      * **MapDataRelevantContextJob.errorMessage**
-      * - `text` in database
+      * **MapDataRelevantContextJob.errors**
+      * - `jsonb` in database
       * - Nullable, no default
       */
-      errorMessage?: string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment | db.SQLFragment<any, string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment>;
+      errors?: db.JSONValue | db.Parameter<db.JSONValue> | null | db.DefaultType | db.SQLFragment | db.SQLFragment<any, db.JSONValue | db.Parameter<db.JSONValue> | null | db.DefaultType | db.SQLFragment>;
       /**
       * **MapDataRelevantContextJob.id**
       * - `uuid` in database

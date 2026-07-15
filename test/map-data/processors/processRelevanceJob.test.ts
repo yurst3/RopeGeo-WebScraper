@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, jest } from '@jest/globals';
+import { describe, it, expect, beforeEach, afterEach, jest } from '@jest/globals';
 import { PageDataSource } from 'ropegeo-common/models';
 import processRelevanceJob from '../../../src/map-data/processors/processRelevanceJob';
 import RelevanceJobEvent from '../../../src/map-data/types/relevanceJobEvent';
@@ -22,6 +22,7 @@ jest.mock('../../../src/map-data/util/validateLegendContextResponse', () => ({
 }));
 jest.mock('../../../src/map-data/util/contextToDbJson', () => ({
     contextToDbJson: jest.fn(),
+    hasRelevantContextContent: jest.fn(),
 }));
 jest.mock('../../../src/map-data/database/upsertRelevantContext', () => ({
     __esModule: true,
@@ -39,7 +40,11 @@ jest.mock('../../../src/map-data/database/getRelevantContextJobById', () => ({
     __esModule: true,
     default: jest.fn(),
 }));
-jest.mock('../../../src/map-data/database/setRelevantContextJobError', () => ({
+jest.mock('../../../src/map-data/database/getPageName', () => ({
+    __esModule: true,
+    default: jest.fn(),
+}));
+jest.mock('../../../src/map-data/database/setRelevantContextJobErrors', () => ({
     __esModule: true,
     default: jest.fn(),
 }));
@@ -76,6 +81,10 @@ const contextToDbJson = require('../../../src/map-data/util/contextToDbJson')
     .contextToDbJson as jest.MockedFunction<
     typeof import('../../../src/map-data/util/contextToDbJson').contextToDbJson
 >;
+const hasRelevantContextContent = require('../../../src/map-data/util/contextToDbJson')
+    .hasRelevantContextContent as jest.MockedFunction<
+    typeof import('../../../src/map-data/util/contextToDbJson').hasRelevantContextContent
+>;
 const upsertRelevantContext = require('../../../src/map-data/database/upsertRelevantContext')
     .default as jest.MockedFunction<
     typeof import('../../../src/map-data/database/upsertRelevantContext').default
@@ -94,9 +103,13 @@ const getRelevantContextJobById = require('../../../src/map-data/database/getRel
     .default as jest.MockedFunction<
     typeof import('../../../src/map-data/database/getRelevantContextJobById').default
 >;
-const setRelevantContextJobError = require('../../../src/map-data/database/setRelevantContextJobError')
+const getPageName = require('../../../src/map-data/database/getPageName')
     .default as jest.MockedFunction<
-    typeof import('../../../src/map-data/database/setRelevantContextJobError').default
+    typeof import('../../../src/map-data/database/getPageName').default
+>;
+const setRelevantContextJobErrors = require('../../../src/map-data/database/setRelevantContextJobErrors')
+    .default as jest.MockedFunction<
+    typeof import('../../../src/map-data/database/setRelevantContextJobErrors').default
 >;
 const deleteRelevantContextJob = require('../../../src/map-data/database/deleteRelevantContextJob')
     .default as jest.MockedFunction<
@@ -129,9 +142,13 @@ describe('processRelevanceJob', () => {
         pageStats: {},
     };
 
+    const originalEnv = process.env;
+
     beforeEach(() => {
         jest.clearAllMocks();
+        process.env = { ...originalEnv, MAP_DATA_RELEVANCE_MODEL_MAX_ATTEMPTS: '3' };
         getRelevantContextJobById.mockResolvedValue({ id: 'job-1' } as any);
+        getPageName.mockResolvedValue('Test Page');
         loadRelevanceInput.mockResolvedValue(baseInput);
         getLegendItemIdsCompletedForJob.mockResolvedValue(new Set());
         loadModelConfigFromEnv.mockReturnValue({
@@ -147,16 +164,23 @@ describe('processRelevanceJob', () => {
             durationMs: 10,
             estimatedCostUsd: 0.001,
         } as any);
-        validateLegendContext.mockReturnValue({} as any);
+        validateLegendContext.mockReturnValue({
+            measurements: [{ label: 'approachLength', value: 1, unitName: 'miles', confidence: 1 }],
+        } as any);
+        hasRelevantContextContent.mockReturnValue(true);
         contextToDbJson.mockReturnValue({
-            measurements: null,
+            measurements: [{ label: 'approachLength' }],
             betaSectionExcerpts: null,
             images: null,
         });
         upsertRelevantContext.mockResolvedValue(undefined);
         softDeleteRelevantContextNotInLegend.mockResolvedValue(undefined);
-        setRelevantContextJobError.mockResolvedValue(undefined);
+        setRelevantContextJobErrors.mockResolvedValue(undefined);
         deleteRelevantContextJob.mockResolvedValue(undefined);
+    });
+
+    afterEach(() => {
+        process.env = originalEnv;
     });
 
     it('returns complete and deletes job when all items finish', async () => {
@@ -261,8 +285,23 @@ describe('processRelevanceJob', () => {
         expect(mockLogger.logError).toHaveBeenCalled();
     });
 
-    it('persists errorMessage and keeps the job when the LLM fails', async () => {
-        runLegendContextModel.mockRejectedValue(new Error('gateway timeout'));
+    it('retries model calls, continues on failure, and persists errors without deleting the job', async () => {
+        formatPageRelevanceUserPrompt.mockImplementation((_input, item) => item.id);
+        const attemptsByLegendId = new Map<string, number>();
+        runLegendContextModel.mockImplementation(async (_config, _system, userPrompt) => {
+            const legendId = String(userPrompt);
+            const attempt = (attemptsByLegendId.get(legendId) ?? 0) + 1;
+            attemptsByLegendId.set(legendId, attempt);
+            if (legendId === 'a') {
+                throw new Error('gateway timeout');
+            }
+            return {
+                response: {},
+                usage: { inputTokens: 1, outputTokens: 1, totalTokens: 2 },
+                durationMs: 10,
+                estimatedCostUsd: 0.001,
+            } as any;
+        });
 
         const result = await processRelevanceJob(
             mockConn,
@@ -272,14 +311,74 @@ describe('processRelevanceJob', () => {
             900_000,
         );
 
-        expect(result).toEqual({
-            status: 'failed',
-            errorMessage: 'gateway timeout',
-            processedCount: 0,
-            skippedCount: 0,
-        });
-        expect(setRelevantContextJobError).toHaveBeenCalledWith(mockConn, 'job-1', 'gateway timeout');
+        expect(result.status).toBe('failed');
+        if (result.status !== 'failed') return;
+        expect(result.processedCount).toBe(2);
+        expect(result.skippedCount).toBe(0);
+        expect(result.errors).toEqual([
+            {
+                pageName: 'Test Page',
+                legendItemId: 'a',
+                legendItemName: 'A',
+                message: 'gateway timeout',
+            },
+        ]);
+        expect(getPageName).toHaveBeenCalledWith(mockConn, 'page-1', PageDataSource.Ropewiki);
+        expect(attemptsByLegendId.get('a')).toBe(3);
+        expect(attemptsByLegendId.get('b')).toBe(1);
+        expect(attemptsByLegendId.get('c')).toBe(1);
+        expect(setRelevantContextJobErrors).toHaveBeenCalledWith(mockConn, 'job-1', result.errors);
         expect(deleteRelevantContextJob).not.toHaveBeenCalled();
+        expect(upsertRelevantContext).toHaveBeenCalledTimes(2);
+    });
+
+    it('retries a transient model failure and succeeds within max attempts', async () => {
+        loadRelevanceInput.mockResolvedValue({
+            ...baseInput,
+            legendItems: [{ id: 'a', featureType: 'point', name: 'A' }],
+        });
+        let attempts = 0;
+        runLegendContextModel.mockImplementation(async () => {
+            attempts += 1;
+            if (attempts < 3) {
+                throw new Error('transient');
+            }
+            return {
+                response: {},
+                usage: { inputTokens: 1, outputTokens: 1, totalTokens: 2 },
+                durationMs: 10,
+                estimatedCostUsd: 0.001,
+            } as any;
+        });
+
+        const result = await processRelevanceJob(
+            mockConn,
+            job,
+            mockLogger as any,
+            () => 900_000,
+            900_000,
+        );
+
+        expect(result).toEqual({ status: 'complete', processedCount: 1, skippedCount: 0 });
+        expect(attempts).toBe(3);
+        expect(setRelevantContextJobErrors).not.toHaveBeenCalled();
+        expect(deleteRelevantContextJob).toHaveBeenCalledWith(mockConn, 'job-1');
+    });
+
+    it('does not upsert when the response has no relevant context content', async () => {
+        hasRelevantContextContent.mockReturnValue(false);
+
+        const result = await processRelevanceJob(
+            mockConn,
+            job,
+            mockLogger as any,
+            () => 900_000,
+            900_000,
+        );
+
+        expect(result).toEqual({ status: 'complete', processedCount: 3, skippedCount: 0 });
+        expect(upsertRelevantContext).not.toHaveBeenCalled();
+        expect(deleteRelevantContextJob).toHaveBeenCalledWith(mockConn, 'job-1');
     });
 
     it('soft-deletes all context and deletes the job when there are no legend items', async () => {
