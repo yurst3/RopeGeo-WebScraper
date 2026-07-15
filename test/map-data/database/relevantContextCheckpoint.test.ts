@@ -6,7 +6,7 @@ import upsertRelevantContext from '../../../src/map-data/database/upsertRelevant
 import getLegendItemIdsCompletedForJob from '../../../src/map-data/database/getLegendItemIdsCompletedForJob';
 import softDeleteRelevantContextNotInLegend from '../../../src/map-data/database/softDeleteRelevantContextNotInLegend';
 import getRelevantContextJobById from '../../../src/map-data/database/getRelevantContextJobById';
-import setRelevantContextJobErrors from '../../../src/map-data/database/setRelevantContextJobErrors';
+import replaceRelevantContextJobErrors from '../../../src/map-data/database/replaceRelevantContextJobErrors';
 import deleteRelevantContextJob from '../../../src/map-data/database/deleteRelevantContextJob';
 
 describe('relevant context jobId checkpointing (database)', () => {
@@ -136,30 +136,33 @@ describe('relevant context jobId checkpointing (database)', () => {
         expect(active).toHaveLength(0);
     });
 
-    it('reads, errors, and deletes relevance jobs', async () => {
+    it('reads, stores errors on MapDataRelevantContextError, and deletes relevance jobs', async () => {
         const loaded = await getRelevantContextJobById(conn, jobId);
         expect(loaded?.id).toBe(jobId);
 
-        await setRelevantContextJobErrors(conn, jobId, [
+        await replaceRelevantContextJobErrors(conn, jobId, [
             {
-                pageName: 'Test Page',
                 legendItemId: 'li-1',
-                legendItemName: 'Point A',
-                message: 'gateway timeout',
+                input: 'user prompt text',
+                errorMessage: 'gateway timeout',
             },
         ]);
-        const errored = await getRelevantContextJobById(conn, jobId);
-        expect(errored?.errors).toEqual([
-            {
-                pageName: 'Test Page',
-                legendItemId: 'li-1',
-                legendItemName: 'Point A',
-                message: 'gateway timeout',
-            },
-        ]);
+        const errorRows = await db
+            .select('MapDataRelevantContextError', { jobId })
+            .run(conn);
+        expect(errorRows).toHaveLength(1);
+        expect(errorRows[0]).toMatchObject({
+            jobId,
+            legendItemId: 'li-1',
+            input: 'user prompt text',
+            errorMessage: 'gateway timeout',
+        });
 
         await deleteRelevantContextJob(conn, jobId);
         expect(await getRelevantContextJobById(conn, jobId)).toBeUndefined();
+        expect(
+            await db.select('MapDataRelevantContextError', { jobId }).run(conn),
+        ).toHaveLength(0);
 
         // Restore job for afterEach cleanup / later tests in this file use afterEach wipe
         const restored = await db

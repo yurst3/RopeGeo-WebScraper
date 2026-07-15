@@ -40,11 +40,7 @@ jest.mock('../../../src/map-data/database/getRelevantContextJobById', () => ({
     __esModule: true,
     default: jest.fn(),
 }));
-jest.mock('../../../src/map-data/database/getPageName', () => ({
-    __esModule: true,
-    default: jest.fn(),
-}));
-jest.mock('../../../src/map-data/database/setRelevantContextJobErrors', () => ({
+jest.mock('../../../src/map-data/database/replaceRelevantContextJobErrors', () => ({
     __esModule: true,
     default: jest.fn(),
 }));
@@ -103,14 +99,11 @@ const getRelevantContextJobById = require('../../../src/map-data/database/getRel
     .default as jest.MockedFunction<
     typeof import('../../../src/map-data/database/getRelevantContextJobById').default
 >;
-const getPageName = require('../../../src/map-data/database/getPageName')
-    .default as jest.MockedFunction<
-    typeof import('../../../src/map-data/database/getPageName').default
->;
-const setRelevantContextJobErrors = require('../../../src/map-data/database/setRelevantContextJobErrors')
-    .default as jest.MockedFunction<
-    typeof import('../../../src/map-data/database/setRelevantContextJobErrors').default
->;
+const replaceRelevantContextJobErrors =
+    require('../../../src/map-data/database/replaceRelevantContextJobErrors')
+        .default as jest.MockedFunction<
+        typeof import('../../../src/map-data/database/replaceRelevantContextJobErrors').default
+    >;
 const deleteRelevantContextJob = require('../../../src/map-data/database/deleteRelevantContextJob')
     .default as jest.MockedFunction<
     typeof import('../../../src/map-data/database/deleteRelevantContextJob').default
@@ -148,7 +141,6 @@ describe('processRelevanceJob', () => {
         jest.clearAllMocks();
         process.env = { ...originalEnv, MAP_DATA_RELEVANCE_MODEL_MAX_ATTEMPTS: '3' };
         getRelevantContextJobById.mockResolvedValue({ id: 'job-1' } as any);
-        getPageName.mockResolvedValue('Test Page');
         loadRelevanceInput.mockResolvedValue(baseInput);
         getLegendItemIdsCompletedForJob.mockResolvedValue(new Set());
         loadModelConfigFromEnv.mockReturnValue({
@@ -175,7 +167,7 @@ describe('processRelevanceJob', () => {
         });
         upsertRelevantContext.mockResolvedValue(undefined);
         softDeleteRelevantContextNotInLegend.mockResolvedValue(undefined);
-        setRelevantContextJobErrors.mockResolvedValue(undefined);
+        replaceRelevantContextJobErrors.mockResolvedValue(undefined);
         deleteRelevantContextJob.mockResolvedValue(undefined);
     });
 
@@ -317,17 +309,15 @@ describe('processRelevanceJob', () => {
         expect(result.skippedCount).toBe(0);
         expect(result.errors).toEqual([
             {
-                pageName: 'Test Page',
                 legendItemId: 'a',
-                legendItemName: 'A',
-                message: 'gateway timeout',
+                input: 'a',
+                errorMessage: 'gateway timeout',
             },
         ]);
-        expect(getPageName).toHaveBeenCalledWith(mockConn, 'page-1', PageDataSource.Ropewiki);
         expect(attemptsByLegendId.get('a')).toBe(3);
         expect(attemptsByLegendId.get('b')).toBe(1);
         expect(attemptsByLegendId.get('c')).toBe(1);
-        expect(setRelevantContextJobErrors).toHaveBeenCalledWith(mockConn, 'job-1', result.errors);
+        expect(replaceRelevantContextJobErrors).toHaveBeenCalledWith(mockConn, 'job-1', result.errors);
         expect(deleteRelevantContextJob).not.toHaveBeenCalled();
         expect(upsertRelevantContext).toHaveBeenCalledTimes(2);
     });
@@ -361,7 +351,7 @@ describe('processRelevanceJob', () => {
 
         expect(result).toEqual({ status: 'complete', processedCount: 1, skippedCount: 0 });
         expect(attempts).toBe(3);
-        expect(setRelevantContextJobErrors).not.toHaveBeenCalled();
+        expect(replaceRelevantContextJobErrors).not.toHaveBeenCalled();
         expect(deleteRelevantContextJob).toHaveBeenCalledWith(mockConn, 'job-1');
     });
 

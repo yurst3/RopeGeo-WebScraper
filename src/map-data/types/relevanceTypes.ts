@@ -103,12 +103,11 @@ export type LegendItemContextResult = {
     context: Context;
 };
 
-/** One per-legend-item failure stored on MapDataRelevantContextJob.errors. */
+/** One per-legend-item failure stored in MapDataRelevantContextError. */
 export type RelevanceJobError = {
-    pageName: string;
     legendItemId: string;
-    legendItemName: string;
-    message: string;
+    input: string;
+    errorMessage: string;
 };
 
 export type RelevanceJobResult =

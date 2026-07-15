@@ -1,4 +1,4 @@
-\restrict M6Ceq4M3D9RQV16vmG158LctZvIpxhyAoqMpTcmGTfkxY1nARrpb68GGgWbgg2b
+\restrict skcm9mhoRGcbzOzJMQgVKLC8tKkEFHABz02jPNX9TmeuqwVxlrMavPy9byl75yg
 
 -- Dumped from database version 18.1 (Debian 18.1-1.pgdg13+2)
 -- Dumped by pg_dump version 18.1 (Homebrew)
@@ -126,6 +126,20 @@ CREATE TABLE public."MapDataRelevantContext" (
 
 
 --
+-- Name: MapDataRelevantContextError; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public."MapDataRelevantContextError" (
+    "jobId" uuid NOT NULL,
+    "legendItemId" text NOT NULL,
+    input text NOT NULL,
+    "errorMessage" text NOT NULL,
+    "createdAt" timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    "updatedAt" timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL
+);
+
+
+--
 -- Name: MapDataRelevantContextJob; Type: TABLE; Schema: public; Owner: -
 --
 
@@ -138,8 +152,7 @@ CREATE TABLE public."MapDataRelevantContextJob" (
     "createdAt" timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
     "updatedAt" timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
     "deletedAt" timestamp without time zone,
-    "allowUpdates" boolean DEFAULT true NOT NULL,
-    errors jsonb
+    "allowUpdates" boolean DEFAULT true NOT NULL
 );
 
 
@@ -385,6 +398,14 @@ ALTER TABLE ONLY public."MapDataPolygonLegendItem"
 
 
 --
+-- Name: MapDataRelevantContextError MapDataRelevantContextError_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public."MapDataRelevantContextError"
+    ADD CONSTRAINT "MapDataRelevantContextError_pkey" PRIMARY KEY ("jobId", "legendItemId");
+
+
+--
 -- Name: MapDataRelevantContextJob MapDataRelevantContextJob_pageId_key; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -611,6 +632,13 @@ CREATE INDEX "idx_mapDataPolygonLegendItem_mapData" ON public."MapDataPolygonLeg
 
 
 --
+-- Name: idx_mapDataRelevantContextError_jobId; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "idx_mapDataRelevantContextError_jobId" ON public."MapDataRelevantContextError" USING btree ("jobId");
+
+
+--
 -- Name: idx_mapDataRelevantContextJob_mapDataId; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -659,6 +687,14 @@ ALTER TABLE ONLY public."MapDataMarkerLegendItem"
 
 ALTER TABLE ONLY public."MapDataPolygonLegendItem"
     ADD CONSTRAINT "fk_mapDataPolygonLegendItem_mapData" FOREIGN KEY ("mapData") REFERENCES public."MapData"(id) ON DELETE CASCADE;
+
+
+--
+-- Name: MapDataRelevantContextError fk_mapDataRelevantContextError_job; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public."MapDataRelevantContextError"
+    ADD CONSTRAINT "fk_mapDataRelevantContextError_job" FOREIGN KEY ("jobId") REFERENCES public."MapDataRelevantContextJob"(id) ON DELETE CASCADE;
 
 
 --
@@ -785,7 +821,7 @@ ALTER TABLE ONLY public."RopewikiRoute"
 -- PostgreSQL database dump complete
 --
 
-\unrestrict M6Ceq4M3D9RQV16vmG158LctZvIpxhyAoqMpTcmGTfkxY1nARrpb68GGgWbgg2b
+\unrestrict skcm9mhoRGcbzOzJMQgVKLC8tKkEFHABz02jPNX9TmeuqwVxlrMavPy9byl75yg
 
 
 --
@@ -837,4 +873,5 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20260711172200'),
     ('20260712151626'),
     ('20260712153354'),
-    ('20260715160000');
+    ('20260715160000'),
+    ('20260715190000');

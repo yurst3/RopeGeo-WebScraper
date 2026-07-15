@@ -6,8 +6,7 @@ import { loadRelevanceInput } from '../hook-functions/loadRelevanceInput';
 import softDeleteRelevantContextNotInLegend from '../database/softDeleteRelevantContextNotInLegend';
 import getLegendItemIdsCompletedForJob from '../database/getLegendItemIdsCompletedForJob';
 import getRelevantContextJobById from '../database/getRelevantContextJobById';
-import getPageName from '../database/getPageName';
-import setRelevantContextJobErrors from '../database/setRelevantContextJobErrors';
+import replaceRelevantContextJobErrors from '../database/replaceRelevantContextJobErrors';
 import deleteRelevantContextJob from '../database/deleteRelevantContextJob';
 import { getRelevanceModelMaxAttempts } from '../util/getRelevanceModelMaxAttempts';
 import { processLegendItem } from './processLegendItem';
@@ -29,8 +28,9 @@ const LEGEND_ITEM_BATCH_SIZE = 5;
  *    Empty contexts (no measurements, beta excerpts, or images) are not upserted.
  * 5. If Lambda time is too low to start another batch, persist any errors so far and return
  *    `partial` so the SQS handler can requeue (visibility 0).
- * 6. After all pending items: soft-delete stale context. If any item failed, write `errors`
- *    on the job (keep the row) and return `failed`. Otherwise delete the job and return `complete`.
+ * 6. After all pending items: soft-delete stale context. If any item failed, write rows to
+ *    MapDataRelevantContextError (keep the job) and return `failed`. Otherwise delete the job
+ *    and return `complete`.
  */
 const processRelevanceJob = async (
     conn: Queryable,
@@ -89,8 +89,6 @@ const processRelevanceJob = async (
     const modelConfig = loadModelConfigFromEnv();
     const systemPrompt = loadSystemPrompt();
     const maxAttempts = getRelevanceModelMaxAttempts();
-    const pageName =
-        (await getPageName(conn, job.pageId, job.pageSource)) ?? input.page.name;
 
     const perItemBudgetMs = Math.max(
         30_000,
@@ -111,7 +109,7 @@ const processRelevanceJob = async (
                 `Relevance job ${job.id}: partial — ${processedCount} processed this invoke, ${skippedCount} skipped, ${jobErrors.length} errors, ${remainingCount} remaining (${remainingMs}ms left, need ~${perItemBudgetMs}ms)`,
             );
             if (jobErrors.length > 0) {
-                await setRelevantContextJobErrors(conn, job.id, jobErrors);
+                await replaceRelevantContextJobErrors(conn, job.id, jobErrors);
             }
             return {
                 status: 'partial',
@@ -128,7 +126,6 @@ const processRelevanceJob = async (
                     conn,
                     mapDataId,
                     job.id,
-                    pageName,
                     input,
                     legendItem,
                     modelConfig,
@@ -147,7 +144,7 @@ const processRelevanceJob = async (
             } else {
                 jobErrors.push(outcome.error);
                 logger.logError(
-                    `Relevance job ${job.id}: recording error for "${outcome.error.legendItemName}" — ${outcome.error.message}`,
+                    `Relevance job ${job.id}: recording error for legend item ${outcome.error.legendItemId} — ${outcome.error.errorMessage}`,
                 );
             }
         }
@@ -163,7 +160,7 @@ const processRelevanceJob = async (
     const durationMs = Date.now() - startedAt;
 
     if (jobErrors.length > 0) {
-        await setRelevantContextJobErrors(conn, job.id, jobErrors);
+        await replaceRelevantContextJobErrors(conn, job.id, jobErrors);
         logger.logError(
             `Relevance job ${job.id}: finished with ${jobErrors.length} error(s) — ${processedCount} processed, ${skippedCount} skipped, ${durationMs} ms, ${totalUsage.totalTokens} tokens, $${totalCostUsd.toFixed(6)}`,
         );

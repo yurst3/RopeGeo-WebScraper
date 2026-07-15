@@ -100,7 +100,6 @@ describe('processLegendItem', () => {
             mockConn,
             'map-1',
             'job-1',
-            'Test Page',
             input,
             legendItem,
             modelConfig,
@@ -135,7 +134,6 @@ describe('processLegendItem', () => {
             mockConn,
             'map-1',
             'job-1',
-            'Test Page',
             input,
             legendItem,
             modelConfig,
@@ -149,14 +147,13 @@ describe('processLegendItem', () => {
         expect(contextToDbJson).not.toHaveBeenCalled();
     });
 
-    it('returns a RelevanceJobError when the model call fails', async () => {
+    it('returns a RelevanceJobError with userPrompt input when the model call fails', async () => {
         runLegendContextModelWithRetries.mockRejectedValue(new Error('gateway timeout'));
 
         const outcome = await processLegendItem(
             mockConn,
             'map-1',
             'job-1',
-            'Test Page',
             input,
             legendItem,
             modelConfig,
@@ -168,10 +165,9 @@ describe('processLegendItem', () => {
         expect(outcome).toEqual({
             ok: false,
             error: {
-                pageName: 'Test Page',
                 legendItemId: 'li-1',
-                legendItemName: 'Point A',
-                message: 'gateway timeout',
+                input: 'user-prompt',
+                errorMessage: 'gateway timeout',
             },
         });
         expect(upsertRelevantContext).not.toHaveBeenCalled();

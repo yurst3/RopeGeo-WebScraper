@@ -154,10 +154,9 @@ describe('handleRelevanceSQSMessages', () => {
             status: 'failed',
             errors: [
                 {
-                    pageName: 'Test Page',
                     legendItemId: 'a',
-                    legendItemName: 'A',
-                    message: 'gateway timeout',
+                    input: 'user prompt',
+                    errorMessage: 'gateway timeout',
                 },
             ],
             processedCount: 0,

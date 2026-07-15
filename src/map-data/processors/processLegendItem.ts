@@ -26,7 +26,6 @@ export async function processLegendItem(
     conn: Queryable,
     mapDataId: string,
     jobId: string,
-    pageName: string,
     input: PageRelevanceInput,
     legendItem: LegendItemInput,
     modelConfig: ModelConfig,
@@ -55,10 +54,9 @@ export async function processLegendItem(
         return {
             ok: false,
             error: {
-                pageName,
                 legendItemId: legendItem.id,
-                legendItemName: legendItem.name,
-                message: errorToMessage(error),
+                input: userPrompt,
+                errorMessage: errorToMessage(error),
             },
         };
     }

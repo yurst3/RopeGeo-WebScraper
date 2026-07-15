@@ -30,7 +30,6 @@ const createFreshRelevanceContextJob = async (
             pageId: params.pageId,
             pageSource,
             pageReady: true,
-            errors: null,
             updatedAt: now,
         })
         .run(conn);
