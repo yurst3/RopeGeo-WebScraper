@@ -11,6 +11,7 @@ export type PageForFolder = {
 export type ImageBundleRow = {
     imageId: string;
     processedImageId: string;
+    previewUrl: string | null;
     bannerUrl: string | null;
     fullUrl: string | null;
 };

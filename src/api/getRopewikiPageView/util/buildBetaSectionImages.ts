@@ -38,6 +38,7 @@ function toOnlineBetaSectionImage(
         row.caption,
         new Date(row.latestRevisionDate),
         downloadBytes,
+        row.previewUrl ?? null,
     );
 }
 
@@ -73,6 +74,7 @@ export function buildBetaSectionsView(
             sec.text,
             new Date(sec.latestRevisionDate),
             secImages,
+            sec.id,
         );
     });
 }

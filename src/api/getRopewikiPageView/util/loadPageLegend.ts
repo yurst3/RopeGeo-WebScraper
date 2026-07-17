@@ -43,6 +43,8 @@ export async function loadPageLegend(
                     sec.title,
                     sec.text,
                     new Date(sec.latestRevisionDate),
+                    [],
+                    sec.id,
                 ),
             ]),
         );

@@ -32,6 +32,7 @@ describe('getRopewikiImageBundleRows (database)', () => {
             .insert('ImageData', {
                 id: imageDataReadyId,
                 sourceUrl: 'https://ropewiki.com/images/bundle-ready.jpg',
+                previewUrl: 'https://cdn.example.com/preview.avif',
                 bannerUrl: 'https://cdn.example.com/banner.avif',
                 fullUrl: 'https://cdn.example.com/full.avif',
             })
@@ -116,6 +117,7 @@ describe('getRopewikiImageBundleRows (database)', () => {
             {
                 imageId: imageReadyId,
                 processedImageId: imageDataReadyId,
+                previewUrl: 'https://cdn.example.com/preview.avif',
                 bannerUrl: 'https://cdn.example.com/banner.avif',
                 fullUrl: 'https://cdn.example.com/full.avif',
             },

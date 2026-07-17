@@ -340,6 +340,7 @@ BetaSectionImage:
     - fetchType
     - order
     - id
+    - previewUrl
     - bannerUrl
     - fullUrl
     - linkUrl
@@ -357,6 +358,11 @@ BetaSectionImage:
       type: string
       format: uuid
       description: RopewikiImage row id (stable key for offline image maps)
+    previewUrl:
+      type: string
+      format: uri
+      nullable: true
+      description: Preview image URL when available from processed image data; otherwise null.
     bannerUrl:
       type: string
       format: uri
@@ -408,6 +414,7 @@ BetaSection:
   description: Online beta section (ropegeo-common OnlineBetaSection)
   required:
     - fetchType
+    - id
     - order
     - title
     - text
@@ -418,6 +425,11 @@ BetaSection:
       type: string
       enum:
         - online
+    id:
+      type: string
+      format: uuid
+      nullable: true
+      description: RopewikiBetaSection row id used as the relevant-context key; null only for legacy payloads
     order:
       type: integer
     title:

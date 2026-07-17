@@ -136,6 +136,7 @@ describe('getRopewikiRegionView handler', () => {
         });
         expect(body.result.overview).toEqual({
             fetchType: 'online',
+            id: null,
             order: 1,
             title: 'Overview',
             text: 'Canyoneering regions.',

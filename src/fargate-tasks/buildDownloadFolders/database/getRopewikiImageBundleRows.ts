@@ -1,7 +1,7 @@
 import * as db from 'zapatos/db';
 import type { ImageBundleRow } from '../processors/processSourceFolders';
 
-/** Processed Ropewiki page images with banner/full URLs for bundling into the download ZIP. */
+/** Processed Ropewiki page images with preview/banner/full URLs for bundling into the download ZIP. */
 export async function getRopewikiImageBundleRows(
     conn: db.Queryable,
     pageId: string,
@@ -10,6 +10,7 @@ export async function getRopewikiImageBundleRows(
         SELECT
             i.id AS "imageId",
             i."processedImage" AS "processedImageId",
+            d."previewUrl",
             d."bannerUrl",
             d."fullUrl"
         FROM "RopewikiImage" i

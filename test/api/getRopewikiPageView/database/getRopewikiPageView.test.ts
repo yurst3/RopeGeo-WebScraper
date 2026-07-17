@@ -240,6 +240,7 @@ describe('getRopewikiPageView (integration)', () => {
         );
         expect(result!.bannerImage!.bannerUrl).toBeNull(); // no ImageData in test DB
         expect(result!.bannerImage!.fullUrl).toBeNull();
+        expect(result!.bannerImage!.previewUrl).toBeNull();
         expect(result!.bannerImage!.linkUrl).toBe('https://ropewiki.com/File:banner.jpg');
         expect(result!.bannerImage!.order).toBe(0);
         expect(result!.bannerImage!.downloadBytes).toBeNull();
@@ -326,9 +327,15 @@ describe('getRopewikiPageView (integration)', () => {
         expect(result!.bannerImage!.downloadBytes!.preview).toBe(1024);
         expect(result!.bannerImage!.downloadBytes!.banner).toBe(2048);
         expect(result!.bannerImage!.downloadBytes!.full).toBe(4096);
+        expect(result!.bannerImage!.previewUrl).toBe('https://api.example.com/p.avif');
+        expect(result!.bannerImage!.bannerUrl).toBe('https://api.example.com/b.avif');
+        expect(result!.bannerImage!.fullUrl).toBe('https://api.example.com/f.avif');
+        expect(result!.betaSections[0]!.id).toBe(sectionId);
         expect(result!.betaSections[0]!.images[0]!.downloadBytes!.preview).toBe(0);
         expect(result!.betaSections[0]!.images[0]!.downloadBytes!.banner).toBe(2048);
         expect(result!.betaSections[0]!.images[0]!.downloadBytes!.full).toBe(4096);
+        expect(result!.betaSections[0]!.images[0]!.previewUrl).toBeNull();
+        expect(result!.betaSections[0]!.images[0]!.bannerUrl).toBe('https://api.example.com/b2.avif');
     });
 
     it('returns beta section images even when processed image is missing', async () => {
@@ -391,10 +398,13 @@ describe('getRopewikiPageView (integration)', () => {
         expect(result).not.toBeNull();
         expect(result!.betaSections).toHaveLength(1);
         expect(result!.betaSections[0]!.fetchType).toBe('online');
+        expect(result!.betaSections[0]!.id).toBe(sectionId);
         expect(result!.betaSections[0]!.images).toHaveLength(2);
         expect(result!.betaSections[0]!.images[0]!.fetchType).toBe('online');
+        expect(result!.betaSections[0]!.images[0]!.previewUrl).toBeNull();
         expect(result!.betaSections[0]!.images[0]!.bannerUrl).toBeNull();
         expect(result!.betaSections[0]!.images[0]!.fullUrl).toBeNull();
+        expect(result!.betaSections[0]!.images[1]!.previewUrl).toBeNull();
         expect(result!.betaSections[0]!.images[1]!.bannerUrl).toBe(
             'https://api.webscraper.ropegeo.com/images/processed/banner.avif',
         );
@@ -770,6 +780,10 @@ describe('getRopewikiPageView (integration)', () => {
 
         expect(result).not.toBeNull();
         const mm = result!.miniMap as OnlinePageMiniMap;
+        expect(result!.betaSections[0]!.id).toBe(betaSectionId);
+        expect(Object.keys(mm.legend!.r1.relevantContext!.betaSectionExcerpts)).toEqual([
+            betaSectionId,
+        ]);
         expect(mm.legend?.r1.relevantContext).not.toBeNull();
         const excerpts = mm.legend!.r1.relevantContext!.betaSectionExcerpts[betaSectionId];
         expect(excerpts).toHaveLength(1);
