@@ -13,6 +13,7 @@ export type PageViewImageRow = {
     caption: string | null;
     betaSection: string | null;
     latestRevisionDate: db.TimestampString;
+    authors: string[] | null;
     previewUrl: string | null;
     bannerUrl: string | null;
     fullUrl: string | null;
@@ -39,6 +40,7 @@ function toOnlineBetaSectionImage(
         new Date(row.latestRevisionDate),
         downloadBytes,
         row.previewUrl ?? null,
+        row.authors ?? null,
     );
 }
 

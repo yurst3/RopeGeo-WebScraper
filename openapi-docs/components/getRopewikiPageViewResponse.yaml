@@ -231,6 +231,12 @@ RopewikiPageView:
       format: uri
       nullable: true
       description: Public HTTPS URL to a pre-built offline page ZIP bundle, or null when no bundle is available (client falls back to legacy multi-request download)
+    authors:
+      type: array
+      nullable: true
+      description: Ropewiki page contributors from MediaWiki; null when not resolved
+      items:
+        type: string
 
 PageViewCoordinates:
   type: object
@@ -380,6 +386,12 @@ BetaSectionImage:
     caption:
       type: string
       nullable: true
+    authors:
+      type: array
+      nullable: true
+      description: File contributors from MediaWiki; null when not resolved
+      items:
+        type: string
     latestRevisionDate:
       type: string
       format: date-time

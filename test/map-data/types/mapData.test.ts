@@ -12,10 +12,13 @@ type MapDataJSONSelectable = {
     bounds: object | null;
     sourceFileUrl?: string;
     errorMessage?: string | null;
+    authors?: string[] | null;
     allowUpdates?: boolean;
     deletedAt: string | null; // Always null in database, but present in schema
     createdAt: string;
     updatedAt: string;
+    tileCount?: number | null;
+    tileTotalBytes?: string | number | null;
 };
 
 describe('MapData', () => {
@@ -85,6 +88,21 @@ describe('MapData', () => {
             expect(mapData.id).toBe(id);
         });
 
+        it('defaults authors to null', () => {
+            const mapData = new MapData();
+            expect(mapData.authors).toBeNull();
+        });
+
+    });
+
+    describe('setAuthors', () => {
+        it('sets authors on the instance', () => {
+            const mapData = new MapData();
+            mapData.setAuthors(['Alice', 'Bob']);
+            expect(mapData.authors).toEqual(['Alice', 'Bob']);
+            mapData.setAuthors(null);
+            expect(mapData.authors).toBeNull();
+        });
     });
 
     describe('toDbRow', () => {
@@ -105,6 +123,13 @@ describe('MapData', () => {
             expect(dbRow.tilesTemplate).toBe(tilesTemplate);
             expect(dbRow.deletedAt).toBeNull();
             expect(dbRow.updatedAt).toBeInstanceOf(Date);
+            expect(dbRow.authors).toBeNull();
+        });
+
+        it('includes authors in database row when set', () => {
+            const mapData = new MapData();
+            mapData.setAuthors(['Carol']);
+            expect(mapData.toDbRow().authors).toEqual(['Carol']);
         });
 
         it('converts MapData without id to database row', () => {
@@ -203,6 +228,23 @@ describe('MapData', () => {
             expect(mapData.kml).toBe(kml);
             expect(mapData.geoJson).toBe(geoJson);
             expect(mapData.tilesTemplate).toBe(tiles);
+            expect(mapData.authors).toBeNull();
+        });
+
+        it('creates MapData from database row with authors', () => {
+            const mapData = MapData.fromDbRow({
+                id: '11111111-1111-1111-1111-111111111111',
+                gpx: null,
+                kml: null,
+                geoJson: null,
+                tilesTemplate: null,
+                bounds: null,
+                authors: ['Dave'],
+                deletedAt: null,
+                createdAt: new Date().toISOString(),
+                updatedAt: new Date().toISOString(),
+            });
+            expect(mapData.authors).toEqual(['Dave']);
         });
 
         it('creates MapData from database row with null values', () => {

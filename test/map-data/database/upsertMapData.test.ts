@@ -59,6 +59,35 @@ describe('upsertMapData (integration)', () => {
         expect(dbRow!.tilesTemplate).toBe('https://example.com/file.mbtiles');
     });
 
+    it('persists authors on insert and update', async () => {
+        const mapDataId = 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa';
+        const mapData = new MapData(
+            undefined,
+            undefined,
+            undefined,
+            undefined,
+            mapDataId,
+            'https://example.com/source.kml',
+            undefined,
+            ['Alice'],
+        );
+
+        const { mapData: inserted, applied: appliedInsert } = await upsertMapData(conn, mapData);
+        expect(appliedInsert).toBe(true);
+        expect(inserted.authors).toEqual(['Alice']);
+
+        const dbRow = await db.selectOne('MapData', { id: mapDataId }).run(conn);
+        expect(dbRow!.authors).toEqual(['Alice']);
+
+        mapData.setAuthors(['Bob']);
+        const { mapData: updated, applied: appliedUpdate } = await upsertMapData(conn, mapData);
+        expect(appliedUpdate).toBe(true);
+        expect(updated.authors).toEqual(['Bob']);
+
+        const dbRowAfter = await db.selectOne('MapData', { id: mapDataId }).run(conn);
+        expect(dbRowAfter!.authors).toEqual(['Bob']);
+    });
+
     it('inserts a new MapData record when id is provided', async () => {
         const mapDataId = '11111111-1111-1111-1111-111111111111';
         const mapData = new MapData(

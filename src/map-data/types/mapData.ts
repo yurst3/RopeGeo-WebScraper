@@ -13,6 +13,7 @@ export class MapData {
     tileTotalBytes: number;
     sourceFileUrl: string;
     errorMessage: string | undefined;
+    authors: string[] | null;
 
     constructor(
         gpx?: string,
@@ -22,6 +23,7 @@ export class MapData {
         id?: string,
         sourceFileUrl?: string,
         errorMessage?: string,
+        authors: string[] | null = null,
     ) {
         this.gpx = gpx;
         this.kml = kml;
@@ -33,6 +35,7 @@ export class MapData {
         this.tileTotalBytes = 0;
         this.sourceFileUrl = sourceFileUrl ?? '';
         this.errorMessage = errorMessage;
+        this.authors = authors;
     }
 
     setTileCounts(tileCount: number, tileTotalBytes: number): void {
@@ -42,6 +45,10 @@ export class MapData {
 
     setBounds(bounds: Bounds | null ): void {
         this.bounds = bounds ?? undefined;
+    }
+
+    setAuthors(authors: string[] | null): void {
+        this.authors = authors;
     }
 
     toDbRow(): s.MapData.Insertable {
@@ -56,6 +63,7 @@ export class MapData {
             tileTotalBytes: this.tileTotalBytes,
             sourceFileUrl: this.sourceFileUrl,
             errorMessage: this.errorMessage ?? null,
+            authors: this.authors,
             updatedAt: now,
             deletedAt: null,
         };
@@ -76,6 +84,7 @@ export class MapData {
             row.id,
             row.sourceFileUrl,
             row.errorMessage ?? undefined,
+            row.authors ?? null,
         );
         mapData.bounds =
             row.bounds != null ? Bounds.fromResult(row.bounds) : undefined;

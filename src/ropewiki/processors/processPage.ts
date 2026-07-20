@@ -12,6 +12,7 @@ import setPageSiteLinksDeletedAt from "../database/setPageSiteLinksDeletedAt";
 import { ProgressLogger } from 'ropegeo-common/helpers';
 import sendImageProcessorSQSMessage from "../../image-data/sqs/sendImageProcessorSQSMessage";
 import upsertRelevanceContextJob from "../database/upsertRelevanceContextJob";
+import processPageAndImageAuthors from "./processPageAndImageAuthors";
 
 import RopewikiPage from "../types/page";
 
@@ -35,7 +36,7 @@ const processPage = async (
     const poolClient = client as PoolClient;
 
     // HTTP errors will propagate up the stack (not caught here). httpRequest has its own timeout.
-    const pageHTML: string = await getRopewikiPageHtml(page.externalPageId);
+    const pageHTML = await getRopewikiPageHtml(page.externalPageId);
 
     // Create a savepoint
     await poolClient.query(`SAVEPOINT ${savepointName}`);
@@ -59,6 +60,13 @@ const processPage = async (
         const betaTitleIds = await upsertBetaSections(poolClient, page.id, beta, page.latestRevisionDate);
         const upsertedImages = await upsertImages(poolClient, page.id, images, betaTitleIds, page.latestRevisionDate);
         await upsertSiteLinks(poolClient, page.id, page.betaSites);
+
+        await processPageAndImageAuthors(
+            poolClient,
+            { id: page.id, url: page.url, externalPageId: page.externalPageId, name: page.name },
+            upsertedImages,
+            logger,
+        );
 
         // Enqueue images that need processing (no processedImage, or source URL changed)
         if (upsertedImages.length > 0 && process.env.DEV_ENVIRONMENT !== 'local') {

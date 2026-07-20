@@ -68,9 +68,17 @@ jest.mock('../../src/map-data/database/upsertRelevanceContextJob', () => ({
     upsertRelevanceContextJob: jest.fn(),
 }));
 
+jest.mock('../../src/map-data/util/getMapDataAuthors', () => ({
+    __esModule: true,
+    default: jest.fn(),
+}));
+
 describe('main', () => {
     let mockSaveMapDataHookFn: jest.MockedFunction<SaveMapDataHookFn>;
     let mockLogger: any;
+    let mockGetMapDataAuthors: jest.MockedFunction<
+        typeof import('../../src/map-data/util/getMapDataAuthors').default
+    >;
     const pageDataSource = PageDataSource.Ropewiki;
     const pageId = 'd1d9139d-38db-433c-b7cd-a28f79331667';
     const routeId = '11111111-1111-1111-1111-111111111111';
@@ -101,6 +109,9 @@ describe('main', () => {
         const upsertRelevanceContextJobModule = require('../../src/map-data/database/upsertRelevanceContextJob');
         mockUpsertRelevanceContextJob = upsertRelevanceContextJobModule.upsertRelevanceContextJob;
 
+        const getMapDataAuthorsModule = require('../../src/map-data/util/getMapDataAuthors');
+        mockGetMapDataAuthors = getMapDataAuthorsModule.default;
+
         // Setup default mock implementations
         mockGetSourceFileUrl.mockResolvedValue(undefined);
         mockProcessMapData.mockResolvedValue(processResult(new MapData()));
@@ -108,6 +119,7 @@ describe('main', () => {
         mockReplaceMapDataLegendItems.mockResolvedValue(undefined);
         mockUpsertPageRoute.mockResolvedValue(undefined);
         mockUpsertRelevanceContextJob.mockResolvedValue(undefined);
+        mockGetMapDataAuthors.mockResolvedValue(null);
 
         mockSaveMapDataHookFn = jest.fn<SaveMapDataHookFn>().mockResolvedValue(
             new MapData(
@@ -205,6 +217,24 @@ describe('main', () => {
                 page: pageId,
                 mapData: 'new-map-data-id',
             }),
+        );
+    });
+
+    it('merges authors from getMapDataAuthors onto mapData before upsert', async () => {
+        const sourceFileUrl = 'https://ropewiki.com/images/a/b/file.kml';
+        const mapDataEvent = createMapDataEvent();
+        const processedMapData = new MapData();
+        mockGetSourceFileUrl.mockResolvedValue(sourceFileUrl);
+        mockProcessMapData.mockResolvedValue(processResult(processedMapData));
+        mockGetMapDataAuthors.mockResolvedValue(['Alice']);
+        mockUpsertMapData.mockResolvedValue(upsertResult(new MapData(undefined, undefined, undefined, undefined, 'map-id')));
+
+        await main(mapDataEvent, mockSaveMapDataHookFn, mockLogger, mockClient);
+
+        expect(mockGetMapDataAuthors).toHaveBeenCalledWith(pageDataSource, sourceFileUrl);
+        expect(mockUpsertMapData).toHaveBeenCalledWith(
+            mockClient,
+            expect.objectContaining({ authors: ['Alice'] }),
         );
     });
 

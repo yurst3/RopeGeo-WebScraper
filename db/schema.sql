@@ -1,4 +1,4 @@
-\restrict ChlhJFiQ6Rvhh1QeH2QGI3dj7zxUlr098WTpGIXI9uHJPy1biJlhEs3LFEsA4mF
+\restrict pfMwcfm6zhrbS37QG7aSEeUHhtTMTgJ0r2OKEMmthmPCMiIgqAGk1jmfqhxtKFE
 
 -- Dumped from database version 18.1 (Debian 18.1-1.pgdg13+2)
 -- Dumped by pg_dump version 18.1 (Homebrew)
@@ -72,7 +72,8 @@ CREATE TABLE public."MapData" (
     "allowUpdates" boolean DEFAULT true NOT NULL,
     bounds jsonb,
     "tileCount" integer DEFAULT 0 NOT NULL,
-    "tileTotalBytes" bigint DEFAULT 0 NOT NULL
+    "tileTotalBytes" bigint DEFAULT 0 NOT NULL,
+    authors text[]
 );
 
 
@@ -224,6 +225,7 @@ CREATE TABLE public."RopewikiImage" (
     "order" integer,
     "allowUpdates" boolean DEFAULT true NOT NULL,
     "processedImage" uuid,
+    authors text[],
     CONSTRAINT "chk_ropewikiImage_order_null_only_when_deleted" CHECK ((("order" IS NOT NULL) OR ("deletedAt" IS NOT NULL)))
 );
 
@@ -275,7 +277,8 @@ CREATE TABLE public."RopewikiPage" (
     "exitLength" numeric,
     "allowUpdates" boolean DEFAULT true NOT NULL,
     "downloadFolder" text,
-    "downloadFolderBuiltAt" timestamp without time zone
+    "downloadFolderBuiltAt" timestamp without time zone,
+    authors text[]
 );
 
 
@@ -821,7 +824,7 @@ ALTER TABLE ONLY public."RopewikiRoute"
 -- PostgreSQL database dump complete
 --
 
-\unrestrict ChlhJFiQ6Rvhh1QeH2QGI3dj7zxUlr098WTpGIXI9uHJPy1biJlhEs3LFEsA4mF
+\unrestrict pfMwcfm6zhrbS37QG7aSEeUHhtTMTgJ0r2OKEMmthmPCMiIgqAGk1jmfqhxtKFE
 
 
 --
@@ -874,4 +877,5 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20260712151626'),
     ('20260712153354'),
     ('20260715160000'),
-    ('20260715190000');
+    ('20260715190000'),
+    ('20260720153000');

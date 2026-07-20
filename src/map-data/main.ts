@@ -2,11 +2,11 @@ import { PoolClient } from 'pg';
 import getSourceFileUrl from './util/getSourceFileUrl';
 import { processMapData } from './processors/processMapData';
 import upsertMapData from './database/upsertMapData';
-import replaceMapDataLegendItems from './database/replaceMapDataLegendItems';
 import upsertPageRoute from './util/upsertPageRoute';
-import { upsertRelevanceContextJob } from './database/upsertRelevanceContextJob';
 import { PageRoute } from '../types/pageRoute';
 import type { SaveMapDataHookFn } from './hook-functions/saveMapData';
+import getMapDataAuthors from './util/getMapDataAuthors';
+import applyUpsertedMapData from './util/applyUpsertedMapData';
 import { MapDataEvent } from './types/mapDataEvent';
 import { ProgressLogger } from 'ropegeo-common/helpers';
 
@@ -37,28 +37,23 @@ export const main = async (
         return;
     }
 
-    const { mapData, legend } = await processMapData(
-        sourceFileUrl,
-        saveMapDataHookFn,
-        pageRoute.mapData,
-        logger,
-        abortSignal,
-        mapDataEvent.downloadSource,
-        mapDataEvent.cleanOutlierPoints,
-    );
+    const [{ mapData, legend }, authors] = await Promise.all([
+        processMapData(
+            sourceFileUrl,
+            saveMapDataHookFn,
+            pageRoute.mapData,
+            logger,
+            abortSignal,
+            mapDataEvent.downloadSource,
+            mapDataEvent.cleanOutlierPoints,
+        ),
+        getMapDataAuthors(mapDataEvent.source, sourceFileUrl),
+    ]);
+    mapData.setAuthors(authors);
 
     const { mapData: upsertedMapData, applied } = await upsertMapData(client, mapData);
 
-    if (applied && upsertedMapData.id != null) {
-        await replaceMapDataLegendItems(client, upsertedMapData.id, legend);
-        if (mapDataEvent.processRelevantContext) {
-            await upsertRelevanceContextJob(client, {
-                mapDataId: upsertedMapData.id,
-                pageId: mapDataEvent.pageId,
-                pageSource: mapDataEvent.source,
-            });
-        }
-    }
+    await applyUpsertedMapData(client, applied, upsertedMapData.id, legend, mapDataEvent);
 
     pageRoute.mapData = upsertedMapData.id;
     await upsertPageRoute(client, mapDataEvent.source, pageRoute);

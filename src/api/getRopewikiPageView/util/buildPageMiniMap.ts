@@ -28,6 +28,7 @@ export type RouteMapRow = {
     tileCount: number;
     tileTotalBytes: string | number;
     bounds: { north: number; south: number; east: number; west: number } | null;
+    mapAuthors: string[] | null;
 };
 
 type BetaSectionRow = Pick<
@@ -55,6 +56,7 @@ async function buildPageVectorMiniMap(
         Number(routeRow.tileTotalBytes ?? 0),
         mapDataId,
         pageLegend,
+        routeRow.mapAuthors ?? null,
     );
 }
 

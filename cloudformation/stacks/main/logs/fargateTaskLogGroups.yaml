@@ -14,3 +14,9 @@ Resources:
       LogGroupName:
         'Fn::Sub': '/ecs/${devEnvironment}-build-download-folders'
       RetentionInDays: 30
+  BackfillAttributionLogGroup:
+    Type: 'AWS::Logs::LogGroup'
+    Properties:
+      LogGroupName:
+        'Fn::Sub': '/ecs/${devEnvironment}-backfill-attribution'
+      RetentionInDays: 30

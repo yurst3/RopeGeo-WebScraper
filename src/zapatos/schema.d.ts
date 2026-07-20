@@ -449,6 +449,12 @@ declare module 'zapatos/schema' {
       */
       allowUpdates: boolean;
       /**
+      * **MapData.authors**
+      * - `_text` in database
+      * - Nullable, no default
+      */
+      authors: string[] | null;
+      /**
       * **MapData.bounds**
       * - `jsonb` in database
       * - Nullable, no default
@@ -534,6 +540,12 @@ declare module 'zapatos/schema' {
       * - `NOT NULL`, default: `true`
       */
       allowUpdates: boolean;
+      /**
+      * **MapData.authors**
+      * - `_text` in database
+      * - Nullable, no default
+      */
+      authors: string[] | null;
       /**
       * **MapData.bounds**
       * - `jsonb` in database
@@ -621,6 +633,12 @@ declare module 'zapatos/schema' {
       */
       allowUpdates?: boolean | db.Parameter<boolean> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, boolean | db.Parameter<boolean> | db.SQLFragment | db.ParentColumn>;
       /**
+      * **MapData.authors**
+      * - `_text` in database
+      * - Nullable, no default
+      */
+      authors?: string[] | db.Parameter<string[]> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, string[] | db.Parameter<string[]> | db.SQLFragment | db.ParentColumn>;
+      /**
       * **MapData.bounds**
       * - `jsonb` in database
       * - Nullable, no default
@@ -707,6 +725,12 @@ declare module 'zapatos/schema' {
       */
       allowUpdates?: boolean | db.Parameter<boolean> | db.DefaultType | db.SQLFragment;
       /**
+      * **MapData.authors**
+      * - `_text` in database
+      * - Nullable, no default
+      */
+      authors?: string[] | db.Parameter<string[]> | null | db.DefaultType | db.SQLFragment;
+      /**
       * **MapData.bounds**
       * - `jsonb` in database
       * - Nullable, no default
@@ -792,6 +816,12 @@ declare module 'zapatos/schema' {
       * - `NOT NULL`, default: `true`
       */
       allowUpdates?: boolean | db.Parameter<boolean> | db.DefaultType | db.SQLFragment | db.SQLFragment<any, boolean | db.Parameter<boolean> | db.DefaultType | db.SQLFragment>;
+      /**
+      * **MapData.authors**
+      * - `_text` in database
+      * - Nullable, no default
+      */
+      authors?: string[] | db.Parameter<string[]> | null | db.DefaultType | db.SQLFragment | db.SQLFragment<any, string[] | db.Parameter<string[]> | null | db.DefaultType | db.SQLFragment>;
       /**
       * **MapData.bounds**
       * - `jsonb` in database
@@ -3026,6 +3056,12 @@ declare module 'zapatos/schema' {
       */
       allowUpdates: boolean;
       /**
+      * **RopewikiImage.authors**
+      * - `_text` in database
+      * - Nullable, no default
+      */
+      authors: string[] | null;
+      /**
       * **RopewikiImage.betaSection**
       * - `uuid` in database
       * - Nullable, no default
@@ -3105,6 +3141,12 @@ declare module 'zapatos/schema' {
       * - `NOT NULL`, default: `true`
       */
       allowUpdates: boolean;
+      /**
+      * **RopewikiImage.authors**
+      * - `_text` in database
+      * - Nullable, no default
+      */
+      authors: string[] | null;
       /**
       * **RopewikiImage.betaSection**
       * - `uuid` in database
@@ -3186,6 +3228,12 @@ declare module 'zapatos/schema' {
       */
       allowUpdates?: boolean | db.Parameter<boolean> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, boolean | db.Parameter<boolean> | db.SQLFragment | db.ParentColumn>;
       /**
+      * **RopewikiImage.authors**
+      * - `_text` in database
+      * - Nullable, no default
+      */
+      authors?: string[] | db.Parameter<string[]> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, string[] | db.Parameter<string[]> | db.SQLFragment | db.ParentColumn>;
+      /**
       * **RopewikiImage.betaSection**
       * - `uuid` in database
       * - Nullable, no default
@@ -3266,6 +3314,12 @@ declare module 'zapatos/schema' {
       */
       allowUpdates?: boolean | db.Parameter<boolean> | db.DefaultType | db.SQLFragment;
       /**
+      * **RopewikiImage.authors**
+      * - `_text` in database
+      * - Nullable, no default
+      */
+      authors?: string[] | db.Parameter<string[]> | null | db.DefaultType | db.SQLFragment;
+      /**
       * **RopewikiImage.betaSection**
       * - `uuid` in database
       * - Nullable, no default
@@ -3345,6 +3399,12 @@ declare module 'zapatos/schema' {
       * - `NOT NULL`, default: `true`
       */
       allowUpdates?: boolean | db.Parameter<boolean> | db.DefaultType | db.SQLFragment | db.SQLFragment<any, boolean | db.Parameter<boolean> | db.DefaultType | db.SQLFragment>;
+      /**
+      * **RopewikiImage.authors**
+      * - `_text` in database
+      * - Nullable, no default
+      */
+      authors?: string[] | db.Parameter<string[]> | null | db.DefaultType | db.SQLFragment | db.SQLFragment<any, string[] | db.Parameter<string[]> | null | db.DefaultType | db.SQLFragment>;
       /**
       * **RopewikiImage.betaSection**
       * - `uuid` in database
@@ -3450,6 +3510,12 @@ declare module 'zapatos/schema' {
       * - Nullable, no default
       */
       approachLength: db.NumericString | null;
+      /**
+      * **RopewikiPage.authors**
+      * - `_text` in database
+      * - Nullable, no default
+      */
+      authors: string[] | null;
       /**
       * **RopewikiPage.coordinates**
       * - `jsonb` in database
@@ -3711,6 +3777,12 @@ declare module 'zapatos/schema' {
       */
       approachLength: number | null;
       /**
+      * **RopewikiPage.authors**
+      * - `_text` in database
+      * - Nullable, no default
+      */
+      authors: string[] | null;
+      /**
       * **RopewikiPage.coordinates**
       * - `jsonb` in database
       * - Nullable, no default
@@ -3970,6 +4042,12 @@ declare module 'zapatos/schema' {
       * - Nullable, no default
       */
       approachLength?: (number | db.NumericString) | db.Parameter<(number | db.NumericString)> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, (number | db.NumericString) | db.Parameter<(number | db.NumericString)> | db.SQLFragment | db.ParentColumn>;
+      /**
+      * **RopewikiPage.authors**
+      * - `_text` in database
+      * - Nullable, no default
+      */
+      authors?: string[] | db.Parameter<string[]> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, string[] | db.Parameter<string[]> | db.SQLFragment | db.ParentColumn>;
       /**
       * **RopewikiPage.coordinates**
       * - `jsonb` in database
@@ -4231,6 +4309,12 @@ declare module 'zapatos/schema' {
       */
       approachLength?: (number | db.NumericString) | db.Parameter<(number | db.NumericString)> | null | db.DefaultType | db.SQLFragment;
       /**
+      * **RopewikiPage.authors**
+      * - `_text` in database
+      * - Nullable, no default
+      */
+      authors?: string[] | db.Parameter<string[]> | null | db.DefaultType | db.SQLFragment;
+      /**
       * **RopewikiPage.coordinates**
       * - `jsonb` in database
       * - Nullable, no default
@@ -4490,6 +4574,12 @@ declare module 'zapatos/schema' {
       * - Nullable, no default
       */
       approachLength?: (number | db.NumericString) | db.Parameter<(number | db.NumericString)> | null | db.DefaultType | db.SQLFragment | db.SQLFragment<any, (number | db.NumericString) | db.Parameter<(number | db.NumericString)> | null | db.DefaultType | db.SQLFragment>;
+      /**
+      * **RopewikiPage.authors**
+      * - `_text` in database
+      * - Nullable, no default
+      */
+      authors?: string[] | db.Parameter<string[]> | null | db.DefaultType | db.SQLFragment | db.SQLFragment<any, string[] | db.Parameter<string[]> | null | db.DefaultType | db.SQLFragment>;
       /**
       * **RopewikiPage.coordinates**
       * - `jsonb` in database

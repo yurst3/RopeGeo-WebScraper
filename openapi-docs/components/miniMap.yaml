@@ -118,6 +118,12 @@ PageMiniMap:
       format: uuid
       nullable: true
       description: MapData record id for this page's vector tile set
+    authors:
+      type: array
+      nullable: true
+      description: Map-file contributors from MediaWiki; null when not resolved
+      items:
+        type: string
     legend:
       type: object
       nullable: true

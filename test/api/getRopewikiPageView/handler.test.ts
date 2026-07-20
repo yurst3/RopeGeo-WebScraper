@@ -214,6 +214,7 @@ describe('getRopewikiPageView handler', () => {
             mapDataId,
             tileCount: 42,
             tileTotalBytes: 8192,
+            authors: null,
         });
     });
 

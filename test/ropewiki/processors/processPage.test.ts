@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach, afterEach, jest } from '@jest/globals
 import { Pool } from 'pg';
 import { nodeProcessPagesChunk as processPagesChunk } from '../../../src/ropewiki/hook-functions/processPagesChunk';
 import getRopewikiPageHtml from '../../../src/ropewiki/http/getRopewikiPageHtml';
+import getContributors from '../../../src/ropewiki/http/getContributors';
 import parseRopewikiPage from '../../../src/ropewiki/parsers/parseRopewikiPage';
 import upsertBetaSections from '../../../src/ropewiki/database/upsertBetaSections';
 import upsertImages from '../../../src/ropewiki/database/upsertImages';
@@ -9,6 +10,8 @@ import upsertSiteLinks from '../../../src/ropewiki/database/upsertSiteLinks';
 import setBetaSectionsDeletedAt from '../../../src/ropewiki/database/setBetaSectionsDeletedAt';
 import setImagesDeletedAt from '../../../src/ropewiki/database/setImagesDeletedAt';
 import setPageSiteLinksDeletedAt from '../../../src/ropewiki/database/setPageSiteLinksDeletedAt';
+import updateRopewikiPageAuthors from '../../../src/ropewiki/database/updateRopewikiPageAuthors';
+import updateRopewikiImageAuthors from '../../../src/ropewiki/database/updateRopewikiImageAuthors';
 import upsertRelevanceContextJob from '../../../src/ropewiki/database/upsertRelevanceContextJob';
 import { ProgressLogger } from 'ropegeo-common/helpers';
 import * as db from 'zapatos/db';
@@ -16,6 +19,7 @@ import RopewikiPage from '../../../src/ropewiki/types/page';
 
 // Mock the dependencies
 jest.mock('../../../src/ropewiki/http/getRopewikiPageHtml');
+jest.mock('../../../src/ropewiki/http/getContributors');
 jest.mock('../../../src/ropewiki/parsers/parseRopewikiPage');
 jest.mock('../../../src/ropewiki/database/upsertBetaSections');
 jest.mock('../../../src/ropewiki/database/upsertImages');
@@ -23,12 +27,16 @@ jest.mock('../../../src/ropewiki/database/upsertSiteLinks');
 jest.mock('../../../src/ropewiki/database/setBetaSectionsDeletedAt');
 jest.mock('../../../src/ropewiki/database/setImagesDeletedAt');
 jest.mock('../../../src/ropewiki/database/setPageSiteLinksDeletedAt');
+jest.mock('../../../src/ropewiki/database/updateRopewikiPageAuthors');
+jest.mock('../../../src/ropewiki/database/updateRopewikiImageAuthors');
 jest.mock('../../../src/ropewiki/database/upsertRelevanceContextJob', () => ({
     __esModule: true,
     default: jest.fn(),
 }));
 
-const mockGetRopewikiPageHtml = getRopewikiPageHtml as jest.MockedFunction<typeof getRopewikiPageHtml>;
+const mockGetRopewikiPageHtml =
+    getRopewikiPageHtml as jest.MockedFunction<typeof getRopewikiPageHtml>;
+const mockGetContributors = getContributors as jest.MockedFunction<typeof getContributors>;
 const mockParseRopewikiPage = parseRopewikiPage as jest.MockedFunction<typeof parseRopewikiPage>;
 const mockUpsertBetaSections = upsertBetaSections as jest.MockedFunction<typeof upsertBetaSections>;
 const mockUpsertImages = upsertImages as jest.MockedFunction<typeof upsertImages>;
@@ -36,6 +44,10 @@ const mockUpsertSiteLinks = upsertSiteLinks as jest.MockedFunction<typeof upsert
 const mockSetBetaSectionsDeletedAt = setBetaSectionsDeletedAt as jest.MockedFunction<typeof setBetaSectionsDeletedAt>;
 const mockSetImagesDeletedAt = setImagesDeletedAt as jest.MockedFunction<typeof setImagesDeletedAt>;
 const mockSetPageSiteLinksDeletedAt = setPageSiteLinksDeletedAt as jest.MockedFunction<typeof setPageSiteLinksDeletedAt>;
+const mockUpdateRopewikiPageAuthors =
+    updateRopewikiPageAuthors as jest.MockedFunction<typeof updateRopewikiPageAuthors>;
+const mockUpdateRopewikiImageAuthors =
+    updateRopewikiImageAuthors as jest.MockedFunction<typeof updateRopewikiImageAuthors>;
 const mockUpsertRelevanceContextJob = upsertRelevanceContextJob as jest.MockedFunction<typeof upsertRelevanceContextJob>;
 
 describe('processPage', () => {
@@ -112,6 +124,9 @@ describe('processPage', () => {
 
         mockUpsertSiteLinks.mockResolvedValue(undefined);
         mockUpsertRelevanceContextJob.mockResolvedValue(undefined);
+        mockGetContributors.mockResolvedValue({});
+        mockUpdateRopewikiPageAuthors.mockResolvedValue(undefined);
+        mockUpdateRopewikiImageAuthors.mockResolvedValue(undefined);
     });
 
     afterEach(() => {
@@ -144,7 +159,7 @@ describe('processPage', () => {
             .mockResolvedValueOnce({ 'Introduction': 'beta-id-1' })
             .mockResolvedValueOnce({ 'Approach': 'beta-id-2' });
         mockUpsertImages
-            .mockResolvedValueOnce(['image-id-1'])
+            .mockResolvedValueOnce([])
             .mockResolvedValueOnce([]);
 
         await processPagesChunk(mockClient as unknown as db.Queryable, pages, mockLogger as unknown as ProgressLogger);
@@ -199,7 +214,7 @@ describe('processPage', () => {
             images: [{ fileUrl: 'image1.jpg', linkUrl: 'link1', betaSectionTitle: undefined, caption: undefined, order: 1 }],
         });
         mockUpsertBetaSections.mockResolvedValue({ 'Introduction': 'beta-id-1' });
-        mockUpsertImages.mockResolvedValue(['image-id-1']);
+        mockUpsertImages.mockResolvedValue([]);
 
         await processPagesChunk(mockClient as unknown as db.Queryable, pages, mockLogger as unknown as ProgressLogger);
 
@@ -386,7 +401,7 @@ describe('processPage', () => {
             images: [{ fileUrl: 'image1.jpg', linkUrl: 'link1', betaSectionTitle: undefined, caption: undefined, order: 1 }],
         });
         mockUpsertBetaSections.mockResolvedValue({ 'Introduction': 'beta-id-1' });
-        mockUpsertImages.mockResolvedValue(['image-id-1']);
+        mockUpsertImages.mockResolvedValue([]);
         mockSetBetaSectionsDeletedAt.mockResolvedValue();
         const deleteError = new Error('Delete images error');
         mockSetImagesDeletedAt.mockRejectedValue(deleteError);
