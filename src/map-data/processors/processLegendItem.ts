@@ -44,7 +44,7 @@ export async function processLegendItem(
             jobId,
             legendItem,
         );
-        const validated = validateLegendContext(result.response, input);
+        const validated = validateLegendContext(result.response, input, legendItem);
         if (hasRelevantContextContent(validated)) {
             const dbJson = contextToDbJson(validated);
             await upsertRelevantContext(conn, mapDataId, legendItem.id, jobId, dbJson);

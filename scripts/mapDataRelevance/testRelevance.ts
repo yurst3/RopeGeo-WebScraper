@@ -40,11 +40,11 @@ Environment:
   DB_HOST, DB_PORT, DB_NAME, DB_USER, DB_PASSWORD Local database connection
 
 Example:
-  AI_GATEWAY_API_KEY=... \\
-  MAP_DATA_RELEVANCE_GATEWAY_MODEL=deepseek/deepseek-v4-flash \\
-  MAP_DATA_RELEVANCE_INPUT_PRICE_PER_MILLION=0.14 \\
-  MAP_DATA_RELEVANCE_OUTPUT_PRICE_PER_MILLION=0.28 \\
-  DB_HOST=127.0.0.1 DB_PORT=8081 DB_NAME=local DB_USER=localUser DB_PASSWORD=localPass \\
+  AI_GATEWAY_API_KEY=... \
+  MAP_DATA_RELEVANCE_GATEWAY_MODEL=deepseek/deepseek-v4-flash \
+  MAP_DATA_RELEVANCE_INPUT_PRICE_PER_MILLION=0.14 \
+  MAP_DATA_RELEVANCE_OUTPUT_PRICE_PER_MILLION=0.28 \
+  DB_HOST=127.0.0.1 DB_PORT=8081 DB_NAME=local DB_USER=localUser DB_PASSWORD=localPass \
     npx ts-node --files scripts/mapDataRelevance/testRelevance.ts "The Subway"
 
 Or: npm run test:map-data-relevance -- "The Subway"`);
@@ -107,7 +107,7 @@ async function runLegendItemBatch(
                 console.error('userPrompt that caused the error:\n' + userPrompt);
                 throw error;
             }
-            const validatedContext = validateLegendContext(result.response, input);
+            const validatedContext = validateLegendContext(result.response, input, legendItem);
             return {
                 legendItem,
                 context: validatedContext,

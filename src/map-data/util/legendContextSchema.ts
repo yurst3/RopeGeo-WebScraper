@@ -1,28 +1,40 @@
 import { z } from 'zod';
-import { MEASUREMENT_UNIT_NAMES, PAGE_STAT_KEYS } from '../types/relevanceTypes';
+import { MEASUREMENT_KEYS, RELEVANCE_STRENGTHS } from 'ropegeo-common/models';
 
-const pageStatKeySchema = z.enum(PAGE_STAT_KEYS);
-const measurementUnitNameSchema = z.enum(MEASUREMENT_UNIT_NAMES);
+const measurementKeySchema = z.enum(MEASUREMENT_KEYS);
+const relevanceStrengthSchema = z.enum(RELEVANCE_STRENGTHS);
 
 const measurementSchema = z.object({
-    label: pageStatKeySchema,
-    value: z.number(),
-    unitName: measurementUnitNameSchema.describe(
-        'Measurement unit name. Plain numeric elevation stats (approachElevGain, descentElevGain, exitElevGain) are stored in feet. Plain numeric segment length stats (approachLength, descentLength, exitLength) are stored in miles.',
+    key: measurementKeySchema.describe(
+        'Page-stat key from the request measurements object (e.g. approachElevGain, shuttleTime)',
     ),
-    confidence: z.number().min(0).max(1),
+    relevanceStrength: relevanceStrengthSchema,
 });
 
 const betaSectionExcerptSchema = z.object({
-    id: z.string(),
-    text: z.string().nullable(),
-    confidence: z.number().min(0).max(1),
+    id: z.string().describe('id of the text block from the request text[] array'),
+    text: z
+        .string()
+        .nullable()
+        .describe(
+            'Verbatim body excerpt surrounding the relevantPhrase, or null when relevance is title-only',
+        ),
+    relevanceStrength: relevanceStrengthSchema,
+    relevantPhrase: z
+        .string()
+        .min(1)
+        .optional()
+        .describe('Verbatim substring of the text title and/or body that connects to the map feature'),
 });
 
 const legendContextImageSchema = z.object({
     id: z.string(),
-    betaSectionId: z.string().nullable(),
-    confidence: z.number().min(0).max(1),
+    relevanceStrength: relevanceStrengthSchema,
+    relevantPhrase: z
+        .string()
+        .min(1)
+        .optional()
+        .describe('Verbatim substring of the image caption'),
 });
 
 export const legendContextSchema = z.object({

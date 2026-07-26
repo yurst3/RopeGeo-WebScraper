@@ -42,8 +42,18 @@ describe('loadRopewikiPageRelevanceInput', () => {
             } as any,
             betaSections: [{ id: 'b1', title: 'Descent', text: 'text', order: 0 }],
             images: [
-                { id: 'img-1', betaSection: 'b1', caption: 'Captioned', order: 0 },
-                { id: 'img-2', betaSection: null, caption: null, order: 1 },
+                {
+                    id: 'img-1',
+                    betaSection: 'b1',
+                    caption: 'Captioned',
+                    order: 0,
+                },
+                {
+                    id: 'img-2',
+                    betaSection: null,
+                    caption: null,
+                    order: 1,
+                },
             ],
         });
         getMapDataIdForRopewikiPage.mockResolvedValue('map-1');

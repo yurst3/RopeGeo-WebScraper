@@ -211,44 +211,49 @@ RelevantContext:
         items:
           $ref: '#/BetaSectionExcerpt'
     images:
-      type: object
+      type: array
       nullable: true
-      description: Relevant captioned images keyed by beta section id (empty string for page-level images)
-      additionalProperties:
-        type: array
-        items:
-          $ref: '#/ImageContext'
+      description: Relevant captioned images (owning section resolved via toImageLookup on the client)
+      items:
+        $ref: '#/ImageContext'
 
 MeasurementContext:
   type: object
-  description: A labeled measurement with confidence (ropegeo-common MeasurementContext)
+  description: A page-stat key with relevance strength (ropegeo-common MeasurementContext); value resolved via toMeasurementsLookup
   required:
-    - label
-    - measurement
-    - confidence
+    - key
+    - relevanceStrength
   properties:
-    label:
+    key:
       type: string
-      description: Page stat key (e.g. exitElevGain, shuttleTime)
-    measurement:
-      type: object
-      description: Length or time measurement wire shape
-    confidence:
-      type: number
-      minimum: 0
-      maximum: 1
-      description: Model confidence from 0 to 1
+      description: Page-stat key (e.g. exitElevGain, shuttleTime)
+      enum:
+        - approachLength
+        - descentLength
+        - exitLength
+        - approachElevGain
+        - descentElevGain
+        - exitElevGain
+        - minApproachTime
+        - maxApproachTime
+        - minDescentTime
+        - maxDescentTime
+        - minExitTime
+        - maxExitTime
+        - shuttleTime
+    relevanceStrength:
+      $ref: '#/RelevanceStrength'
 
 BetaSectionExcerpt:
   type: object
   description: Verbatim beta excerpt with optional offsets (ropegeo-common BetaSectionExcerpt)
   required:
-    - confidence
+    - relevanceStrength
   properties:
     text:
       type: string
       nullable: true
-      description: Verbatim excerpt text from the beta section
+      description: Verbatim excerpt text from the beta section (null for title-only relevance)
     start:
       type: integer
       nullable: true
@@ -259,28 +264,36 @@ BetaSectionExcerpt:
       nullable: true
       minimum: 0
       description: Character offset in beta section text where excerpt ends (exclusive)
-    confidence:
-      type: number
-      minimum: 0
-      maximum: 1
-      description: Model confidence from 0 to 1
+    relevanceStrength:
+      $ref: '#/RelevanceStrength'
+    relevantPhrase:
+      type: string
+      description: Verbatim substring of the text title and/or body that connects to the map feature. Omitted when unavailable or not verified.
 
 ImageContext:
   type: object
   description: Relevant captioned image reference (ropegeo-common ImageContext)
   required:
     - id
-    - confidence
+    - relevanceStrength
   properties:
     id:
       type: string
       format: uuid
       description: RopewikiImage id
-    confidence:
-      type: number
-      minimum: 0
-      maximum: 1
-      description: Model confidence from 0 to 1
+    relevanceStrength:
+      $ref: '#/RelevanceStrength'
+    relevantPhrase:
+      type: string
+      description: Verbatim substring of the image caption. Omitted when unavailable or not verified.
+
+RelevanceStrength:
+  type: string
+  description: How strongly the context entry is tied to the map feature
+  enum:
+    - Maybe Relevant
+    - Somewhat Relevant
+    - Definitely Relevant
 
 OnlineRegionMiniMap:
   type: object

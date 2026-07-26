@@ -1,5 +1,5 @@
 import type { Context } from '../util/legendContextSchema';
-import { DAYS, FEET, HOURS, MILES, MINUTES } from 'ropegeo-common/models';
+import { MEASUREMENT_KEYS, type MeasurementKey } from 'ropegeo-common/models';
 
 export type ModelConfig = {
     gatewayModel: string;
@@ -38,37 +38,9 @@ export function imageHasCaption(caption: string | null): caption is string {
     return caption != null && caption.trim().length > 0;
 }
 
-/** Length and time page stat keys included in relevance payloads. */
-export const PAGE_STAT_KEYS = [
-    'approachLength',
-    'descentLength',
-    'exitLength',
-    'approachElevGain',
-    'descentElevGain',
-    'exitElevGain',
-    'minApproachTime',
-    'maxApproachTime',
-    'minDescentTime',
-    'maxDescentTime',
-    'minExitTime',
-    'maxExitTime',
-    'shuttleTime',
-] as const;
-
-export type PageStatKey = (typeof PAGE_STAT_KEYS)[number];
-
-/** Standard LengthMeasurement and TimeMeasurement unit names from ropegeo-common. */
-export const MEASUREMENT_UNIT_NAMES = [
-    FEET.name,
-    MILES.name,
-    'meters',
-    'kilometers',
-    MINUTES.name,
-    HOURS.name,
-    DAYS.name,
-] as const;
-
-export type MeasurementUnitName = (typeof MEASUREMENT_UNIT_NAMES)[number];
+/** Length and time page-stat keys included in relevance payloads (alias of MEASUREMENT_KEYS). */
+export const PAGE_STAT_KEYS = MEASUREMENT_KEYS;
+export type PageStatKey = MeasurementKey;
 
 export type PageStatsInput = Partial<Record<PageStatKey, unknown>>;
 

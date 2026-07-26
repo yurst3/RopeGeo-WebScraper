@@ -3,49 +3,104 @@ import { contextToDbJson, hasRelevantContextContent } from '../../../src/map-dat
 import type { Context } from '../../../src/map-data/util/legendContextSchema';
 
 describe('contextToDbJson', () => {
-    it('groups beta section excerpts and images by id with empty string for null betaSectionId', () => {
+    it('emits flat images and groups text excerpts by id', () => {
         const context: Context = {
             measurements: [
-                { label: 'exitElevGain', value: 490, unitName: 'feet', confidence: 0.95 },
-                { label: 'shuttleTime', value: 20, unitName: 'minutes', confidence: 0.7 },
+                {
+                    key: 'exitElevGain',
+                    relevanceStrength: 'Definitely Relevant',
+                },
+                {
+                    key: 'shuttleTime',
+                    relevanceStrength: 'Somewhat Relevant',
+                },
             ],
             betaSectionExcerpts: [
-                { id: 'beta-exit', text: 'Exit hike', confidence: 0.9 },
-                { id: 'beta-exit', text: null, confidence: 0.5 },
+                {
+                    id: 'beta-exit',
+                    text: 'Exit hike',
+                    relevanceStrength: 'Somewhat Relevant',
+                    relevantPhrase: 'Exit',
+                },
+                {
+                    id: 'beta-exit',
+                    text: null,
+                    relevanceStrength: 'Maybe Relevant',
+                    relevantPhrase: 'Exit',
+                },
             ],
             images: [
-                { id: 'img-1', betaSectionId: null, confidence: 0.85 },
-                { id: 'img-2', betaSectionId: 'beta-descent', confidence: 0.99 },
+                {
+                    id: 'img-1',
+                    relevanceStrength: 'Somewhat Relevant',
+                    relevantPhrase: 'banner',
+                },
+                {
+                    id: 'img-2',
+                    relevanceStrength: 'Definitely Relevant',
+                    relevantPhrase: 'rappel',
+                },
             ],
         };
 
         const dbJson = contextToDbJson(context);
 
-        expect(dbJson.measurements).toHaveLength(2);
-        expect(dbJson.measurements![0]).toMatchObject({
-            label: 'exitElevGain',
-            confidence: 0.95,
-        });
-        expect(dbJson.measurements![0]!.measurement).toMatchObject({
-            measurementType: 'length',
-            value: 490,
-        });
-        expect(dbJson.measurements![1]!.measurement).toMatchObject({
-            measurementType: 'time',
-            value: 20,
-        });
+        expect(dbJson.measurements).toEqual([
+            { key: 'exitElevGain', relevanceStrength: 'Definitely Relevant' },
+            { key: 'shuttleTime', relevanceStrength: 'Somewhat Relevant' },
+        ]);
 
         expect(dbJson.betaSectionExcerpts).toEqual({
             'beta-exit': [
-                { text: 'Exit hike', confidence: 0.9 },
-                { confidence: 0.5 },
+                {
+                    text: 'Exit hike',
+                    relevanceStrength: 'Somewhat Relevant',
+                    relevantPhrase: 'Exit',
+                },
+                {
+                    relevanceStrength: 'Maybe Relevant',
+                    relevantPhrase: 'Exit',
+                },
             ],
         });
 
-        expect(dbJson.images).toEqual({
-            '': [{ id: 'img-1', confidence: 0.85 }],
-            'beta-descent': [{ id: 'img-2', confidence: 0.99 }],
+        expect(dbJson.images).toEqual([
+            {
+                id: 'img-1',
+                relevanceStrength: 'Somewhat Relevant',
+                relevantPhrase: 'banner',
+            },
+            {
+                id: 'img-2',
+                relevanceStrength: 'Definitely Relevant',
+                relevantPhrase: 'rappel',
+            },
+        ]);
+    });
+
+    it('omits relevantPhrase from DB JSON when cleared', () => {
+        const dbJson = contextToDbJson({
+            measurements: null,
+            betaSectionExcerpts: [
+                {
+                    id: 'beta-1',
+                    text: 'Keep left.',
+                    relevanceStrength: 'Somewhat Relevant',
+                },
+            ],
+            images: [
+                {
+                    id: 'img-1',
+                    relevanceStrength: 'Maybe Relevant',
+                },
+            ],
         });
+        expect(dbJson.betaSectionExcerpts).toEqual({
+            'beta-1': [{ text: 'Keep left.', relevanceStrength: 'Somewhat Relevant' }],
+        });
+        expect(dbJson.images).toEqual([
+            { id: 'img-1', relevanceStrength: 'Maybe Relevant' },
+        ]);
     });
 
     it('returns null collections when model abstains entirely', () => {
@@ -78,7 +133,13 @@ describe('hasRelevantContextContent', () => {
             hasRelevantContextContent({
                 measurements: null,
                 betaSectionExcerpts: null,
-                images: [{ id: 'img-1', betaSectionId: null, confidence: 0.5 }],
+                images: [
+                    {
+                        id: 'img-1',
+                        relevanceStrength: 'Maybe Relevant',
+                        relevantPhrase: 'x',
+                    },
+                ],
             }),
         ).toBe(true);
     });

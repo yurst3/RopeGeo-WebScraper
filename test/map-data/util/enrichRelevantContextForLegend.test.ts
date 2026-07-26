@@ -18,9 +18,17 @@ describe('enrichRelevantContextForLegend', () => {
         const context = new RelevantContext(
             [],
             {
-                b1: [new BetaSectionExcerpt('R1', undefined, undefined, 0.9)],
+                b1: [
+                    new BetaSectionExcerpt(
+                        'R1',
+                        undefined,
+                        undefined,
+                        'Definitely Relevant',
+                        'R1',
+                    ),
+                ],
             },
-            {},
+            [],
         );
 
         const enriched = enrichRelevantContextExcerpts(
@@ -31,6 +39,7 @@ describe('enrichRelevantContextForLegend', () => {
         expect(enriched.betaSectionExcerpts.b1![0]!.text).toBe('R1');
         expect(enriched.betaSectionExcerpts.b1![0]!.start).toBe(7);
         expect(enriched.betaSectionExcerpts.b1![0]!.end).toBe(9);
+        expect(enriched.betaSectionExcerpts.b1![0]!.relevantPhrase).toBe('R1');
     });
 
     it('attaches enriched context onto matching legend items', () => {
@@ -39,7 +48,7 @@ describe('enrichRelevantContextForLegend', () => {
             m1: new PointLegendItem('m1', 'TH', { lat: 40, lon: -111 }),
             s1: new LineLegendItem('s1', 'Trail', bounds),
         };
-        const context = new RelevantContext([], {}, {});
+        const context = new RelevantContext([], {}, []);
         const out = attachRelevantContextToLegendRecord(
             legend,
             new Map([['m1', context]]),

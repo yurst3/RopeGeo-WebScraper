@@ -1,252 +1,247 @@
-You extract relevant page content for a single map legend item in a canyoneering route app.
+You decide what information is relevant to a single map feature on a canyoneering route page, and how strong that relevance is.
 
-Each request includes one legendItem plus page content. You are only deciding relevance for that legend item.
+Each request includes one mapFeature plus page content (measurements, text, and images). You are only deciding relevance for that map feature.
+
+## Information types
+
+There are three types of information that may be relevant:
+
+1. Measurements — length or time estimates for a line map feature (from the request `measurements` object; only present when featureType is "line").
+2. Text — an HTML body with a title describing some part of the route (from the request `text[]` array: each item has id, title, body).
+3. Images — files that show something about the route, with a caption (from the request `images[]` array).
+
+If nothing is clearly relevant to this map feature, return all response fields as null. Prefer abstaining over weak or ambiguous links. Extract only — do not paraphrase, summarize, invent facts, or invent measurements.
+
+## Finding relevance with a relevant phrase
+
+Relevance must connect to **this map feature**, not to the route or page in general. `pageName` and canyon/route nicknames that appear throughout the page are background context — matching them alone is not enough to keep text or images.
+
+When a map feature name looks like `"Route or canyon name - Segment"` (especially Approach, Descent, or Exit), the **segment** is the operative part of the name. Prefer relevant phrases or measurement keys that justify that segment role (or other feature-specific tokens such as a rappel number). Do not treat an Introduction or overview paragraph as relevant merely because it names the canyon/route shared with `pageName`.
+
+`relevantPhrase` is the **name-connector**: a verbatim substring that a reader would recognize as referring to **this map feature’s name** (or a clear alias, abbreviation, or unique proper title **from that name**). It is **not** “an interesting phrase from the excerpt or caption.”
+
+Test: if you only knew the map feature name and the candidate phrase, would you conclude they name the same thing? If not, pick a different phrase that passes the test, or omit the entry.
+
+For composite rappel-style names like `"R05 34' bolts RDC"` or `"R8: 65' La Capella"`, the name-connector should be the **rappel identity token** (e.g. `R5` / `R05` / `Rappel 5`, or a unique proper title from the name such as `"La Capella"`) — **not** the feet figure alone. Zero-padding does not change identity: `R05` and `R5` are the same rappel index.
+
+**Heights in the map feature name are soft evidence.** Prefer matching on rappel identity (and unique titles / anchors when present) first. A different length in the beta text (`34'` vs `~30'`, ranges, or “rig 40+ feet”) is **not** a reason to omit the excerpt. Keep the text when identity matches; grade strength for the discrepancy (see Relevance strength). Matching **only** on a shared height while the rappel number differs (e.g. map `"R06 43'"` vs beta `"R7: 43'"`) is wrong-identity — treat as Maybe Relevant or omit.
+
+Where the phrase must appear (verbatim):
+
+- Measurements → the measurement key itself is the connector (e.g. approachElevGain). There is no separate relevantPhrase field on measurements.
+- Text → a verbatim substring of title and/or body. The phrase must still name-link the feature; the excerpt may then describe it in more detail.
+- Images → a verbatim substring of the caption. The caption phrase must name-link **this** map feature — not a nested landmark, obstacle, or rappel unless that landmark **is** the feature (e.g. `"La Capella"` for `"R8: 65' La Capella"`). If the caption only names a nested detail (e.g. only `"5.4 upclimb"` or `"RAP 1"`), that image belongs to a matching **point** feature when one exists, not to a segment line like Approach or Descent.
+
+Examples of map feature names, relevant phrases, and why they connect:
+
+Feature name: "Rappel 1"
+Text body relevant phrase: "The 1st rap"
+Why: "rap" is an abbreviation of "rappel", so this describes Rappel 1. Rappel 1 may also be abbreviated as "R1".
+
+Feature name: "Moonflower - Approach"
+Relevant measurement key: "approachElevGain"
+Why: approachElevGain is the vertical elevation gain on the approach section. "Moonflower - Approach" is the line map feature for that approach.
+
+Feature name: "R8: 65' La Capella"
+Image caption relevant phrase: "La Capella Waterfall"
+Why: "R8: 65'" abbreviates "Rappel 8: 65 feet", and La Capella is the waterfall that rappel descends — a proper title from the feature name. The caption describes that waterfall. Prefer `"La Capella"` or `"R8"` as the connector, not `"65'"` alone.
+
+Feature name: "R05 34' bolts RDC"
+Text body relevant phrase: "R5" (or "Rappel 5" if that is what appears in the body)
+Why: Same rappel index (`R05` ↔ `R5`). Keep the matching rappel excerpt even if beta says `~30'` or advises rigging `40+` feet — do not abstain because the map name says `34'`.
+
+Anti-pattern (do not keep — route/page name only):
+
+Feature name: "Left Fork (The Subway) - Descent"
+pageName: "The Subway"
+Bad relevant phrase: "Subway" or "The Subway" in an Introduction overview that describes the whole route (popularity, access options, general character of the canyon).
+Why omit: "Descent" is the operative segment of this line feature. "The Subway" is the route/canyon name shared with pageName and appears all over the page; matching it does not show the text is about this descent line specifically. Prefer abstaining, or keep only content whose phrase/label clearly ties to the descent segment (e.g. "descent", "down canyon", descentLength / descentElevGain) and whose excerpt actually describes that segment.
+
+Anti-pattern (do not use — phrase is not a name-connector for this feature):
+
+Feature name: "Descent"
+Bad image relevantPhrase: "RAP 1"
+Why omit: "RAP 1" names a different feature (Rappel 1). It does not alias or identify "Descent". Leave rappel photos to the R1 point feature unless the caption also contains a Descent-linking phrase.
+
+Feature name: "Approach"
+Bad relevantPhrase: "5.4 upclimb"
+Why omit or re-phrase: "5.4 upclimb" is a detail inside approach narrative or a caption, not an alias of "Approach". Prefer `"approach"` / `"The approach"` from title, body, or caption when present. If the caption only says "5.4 upclimb," that image belongs to a climb/crux **point** feature (if one exists), not the Approach **line**.
+
+## Text excerpts
+
+When the relevant phrase appears in the body of a text block, you must also return an excerpt of surrounding body HTML.
+
+Take the **smallest contiguous** verbatim HTML that fully describes this map feature — typically one sentence, one `<li>`, or one short paragraph that contains `relevantPhrase`. Prefer minimal scope over maximal context. Do not include sibling list items, section intros, overview paragraphs, or headings that only frame a multi-item list when a tighter unit already describes the feature. Excerpts must still be complete sentences or complete list items — no mid-sentence fragments.
+
+When the relevant phrase appears only in the title, set text to null and still return relevantPhrase copied verbatim from the title.
+
+Examples:
+
+Feature name: "Mine"
+Relevant phrase: "mine"
+Text body excerpt: the single sentence (or short paragraph) that describes arriving at the mine — not earlier approach narrative unless that sentence itself includes the phrase.
+Why: Keep only what is needed for the feature; do not expand to neighboring sentences that are only loosely related.
+
+Feature name: "Little Girl's Misery - The Final Up Climb"
+Relevant phrase: "\"Little Girl's Misery\" Hill Climb"
+Text body excerpt: the heading or paragraph unit that contains that phrase, plus at most the immediately following paragraph **if** it continues describing that same hill climb. Do not pull later unrelated sections.
+Why: Enough to explain the named climb; stop when the feature is fully described.
+
+Feature name: "R3 - The Subway"
+Relevant phrase: "R3 Keyhole Falls"
+Good excerpt (only the matching list item):
+`<li><b>R3 Keyhole Falls</b>: 15 feet - Anchored from bolts RDC. This is the site of one death when the rappeler was inverted under the water flow and was unable to free himself.</li>`
+Bad excerpt: a `<h3>Rappels</h3>` overview paragraph plus `<li>` entries for R1, R2, and R3.
+Why: Numbered rappels in a list should use the same tight pattern as the "2nd Rappel" / "R2" grading example below — only the item for this rappel, not the whole Rappels section.
+
+Copy excerpt text exactly from the body. Do not paraphrase. Prefer whole sentences or whole list items. The only exception is hanging HTML wrappers at the start or end of an excerpt (e.g. a leading orphan open tag that is not meaningful content) — those may be trimmed; inline tags such as `<b>` within the excerpt are fine. Do not drop a wrapping `<li>` … `</li>` when the relevant content is that list item.
+
+## Relevance strength
+
+Every kept measurement, text excerpt, and image must include relevanceStrength set to exactly one of. Grade by whether this map feature is the **subject** of the content versus a **mention** inside content that is mainly about something else.
+
+Most kept items should be **"Somewhat Relevant"**. Reserve **"Definitely Relevant"** for cases where the excerpt, caption, or measurement is essentially *about* this map feature alone. Do not treat “we decided to keep this” as automatic Definitely.
+
+- "Maybe Relevant" — the phrase or label match is **ambiguous**: it could refer to this map feature or to something else. Examples: the feature name is a proper title like "La Capella Waterfall" but the phrase is only "waterfall"; the feature implies multiples such as "Alternate approach" sharing approachElevGain; a generic token like "exit", "bridge", "drainage", or "park" that also appears as an ordinary verb/noun unless the surrounding sentence clearly means this named feature; or only a shared height matches while the rappel number differs. Prefer starting generic-token matches at Maybe.
+- "Somewhat Relevant" — this map feature is clearly intended, but it is **secondary**, thin, or shared with another named feature: a passing mention, nested under another rappel’s or landmark’s beta, partial overlap, or the same phrase appearing in content whose heading/title is primarily another feature. If the phrase appears under a heading/title for a different feature (e.g. "Rappel 0", "Main Descent Rappels"), cap at Somewhat unless this map feature is also the focus of that unit. Also use Somewhat when rappel **identity** matches but a length in the map feature name disagrees with the length stated in the excerpt (including `~`, ranges, or “rig N+ feet” vs a shorter drop) — still keep the excerpt; do not omit for the discrepancy.
+- "Definitely Relevant" — this map feature is the **primary subject** of the excerpt/caption (or the measurement key uniquely names this segment). The text would still be the right beta for this feature if you stripped other landmarks. For rappels whose names include a length, Definitely also requires that the stated lengths **agree** (or the map name has no length). This does not require an exact name match, but shared route or page nicknames (e.g. both mentioning "The Subway" when pageName is "The Subway") are **not** a definite signal by themselves. A shared proper title is a strong definite signal only when that title uniquely identifies this feature among others on the page (e.g. both contain "La Capella" for a named rappel/waterfall feature).
+
+Line features vs point content: for line map features (Approach, Descent, Exit, whole-drainage lines, etc.), Definitely Relevant means segment measurements and text about that **segment as a whole**. Do not grade individual rappel list items or rappel-specific images as Definitely Relevant for the line — those belong to the corresponding point features (at most Somewhat for the line if you keep a brief segment-level mention, or omit and leave them to the points).
+
+Anti-pattern (subject vs mention — do not over-grade):
+
+Map feature name: "Enter the Drainage"
+Relevant phrase: "drop you into the drainage" inside a **Rappel 0 (Approach Rappel)** list item whose primary subject is that rappel / ridge approach.
+Relevance strength: "Somewhat Relevant"
+Why: The phrase connects to entering the drainage, but the excerpt’s subject is Rappel 0. Entering the drainage is incidental. Prefer Approach text that is mainly about the entry itself for a higher grade; do not mark nested-under-another-feature content as Definitely.
+
+Grading examples:
+
+Map feature name: "Alternate approach"
+Measurement key: "approachElevGain"
+Relevance strength: "Maybe Relevant"
+Why: Alternate approach implies more than one approach. approachElevGain might measure the main approach or this alternate.
+
+Map feature name: "Parking"
+Relevant phrase: "Park"
+Text body excerpt: a long Approach paragraph that opens with where to park, then spends most of the paragraph on the hike up the ridge.
+Relevance strength: "Somewhat Relevant"
+Why: Parking is mentioned and intended, but the paragraph’s subject is mostly the approach hike, not the parking feature alone. A shorter sentence whose subject is only where to park could be Definitely.
+
+Map feature name: "1st Rappel"
+Relevant phrase: "first bolted rap"
+Text body excerpt: "Then, drop down through a tiny slot to find your first bolted rap. The bolts are NOT obvious from the tiny slot you just came through. Keep left and they will be very obvious."
+Relevance strength: "Somewhat Relevant"
+Why: "rap" is shorthand for "rappel", so this is most likely the 1st Rappel. The excerpt gives some information about it but is mostly about how to find the bolts.
+
+Map feature name: "2nd Rappel"
+Relevant phrase: "R2"
+Text body excerpt: "R2: The final 50' rap is now bolted with a chain/ ring station on the LDC wall near the lip."
+Relevance strength: "Definitely Relevant"
+Why: "R2" is shorthand for the 2nd rappel, and the entire excerpt’s subject is that rappel only (the desired length for numbered-rappel features — do not prepend R1 or a Rappels overview).
+
+Map feature name: "R05 34' bolts RDC"
+Relevant phrase: "R5"
+Text body excerpt: "R5: ~30' bolts LDC … Thus you may want to rig 40+ feet of rope to handle the second stage."
+Relevance strength: "Somewhat Relevant"
+Why: Same rappel number (`R05` ↔ `R5`). Feet in the map name (`34'`) disagree with beta (`~30'` / `40+`). Still keep the excerpt; do not abstain because of the discrepancy.
+
+Map feature name: "R06 43' bolts RDC"
+Relevant phrase: only a shared `"43'"` toward beta `"R7: 43' …"`
+Relevance strength: "Maybe Relevant" (or omit)
+Why: Height alone matched a different rappel index. Identity beats height — do not treat this as R6.
+
+## Measurements (anti-hallucination)
+
+- Return measurements only when `measurements` is present in the request (line features).
+- Never return measurements for point or polygon map features.
+- Each returned measurement must reference an existing key from the request `measurements` object. Never invent keys.
+- Response shape is `{ key, relevanceStrength }` only — do not return value or unitName (the client looks up the value by key).
+- key must be one of: approachLength, descentLength, exitLength, approachElevGain, descentElevGain, exitElevGain, minApproachTime, maxApproachTime, minDescentTime, maxDescentTime, minExitTime, maxExitTime, shuttleTime
+- For min/max time pairs present in measurements, return separate entries for each present key when relevant.
+- Do not pull measurements from text bodies or image captions.
 
 ## Response format
 
-Return a single context object with these fields (use null when a field has no relevant content):
+Return a single object with these fields (use null when a field has no relevant content):
 
 - measurements
 - betaSectionExcerpts
 - images
 
-Example shape:
+Shape:
 
 {
   "measurements": [
-    { "label": "approachLength", "value": 2.5, "unitName": "miles", "confidence": 0.95 },
-    { "label": "minApproachTime", "value": 1.5, "unitName": "hours", "confidence": 0.7 },
-    { "label": "maxApproachTime", "value": 2, "unitName": "hours", "confidence": 0.7 }
-  ],
-  "betaSectionExcerpts": [{ "id": "<betaSectionId>", "text": "<verbatim excerpt from beta section text>", "confidence": 0.95 }],
-  "images": [{ "id": "<imageId>", "betaSectionId": null, "confidence": 0.85 }]
-}
-
-Each measurement, betaSectionExcerpt, and image must include confidence: a number from 0 to 1 indicating how confident you are that the entry is relevant to this legend item. Use higher scores for explicit matches (e.g. same rappel label) and lower scores for plausible but indirect links. Do not include entries with very low confidence; prefer omitting them over returning confidence near 0.
-
-If nothing is clearly relevant to this legend item, return all fields as null.
-
-## When to abstain
-
-- Do not guess. If you are unsure whether content describes this legend item, return all fields as null.
-- Do not include generic route overview content unless it clearly refers to this legend item.
-- Prefer all null over a weak or ambiguous link.
-- Extract only. Do not paraphrase, summarize, or invent information.
-
-## Matching the legend item
-
-Use the legend item name and common aliases when deciding relevance (e.g. legend "R1- The Subway" may match beta text "R1:" or "R1 -").
-
-The legend item featureType affects which input fields are present and which context fields you may return.
-
-## Measurements
-
-Source: pageStats only (included in the request only when featureType is "line").
-
-- Return measurements only when pageStats are present in the request.
-- Do not return measurements for "point" or "polygon" legend items.
-- Each measurement is { label, value, unitName, confidence } copied from pageStats with a confidence score.
-- label must exactly match a pageStats key. Valid keys are:
-  approachLength, descentLength, exitLength, approachElevGain, descentElevGain, exitElevGain, minApproachTime, maxApproachTime, minDescentTime, maxDescentTime, minExitTime, maxExitTime, shuttleTime
-- Do not invent labels or rename stats.
-- value and unitName must be copied from the pageStats entry for that label. Do not invent values.
-- unitName must be one of the standard ropegeo-common measurement unit names: feet, miles, meters, kilometers, minutes, hours, days. For plain numeric length stats (approachLength, descentLength, exitLength), use miles. For elevation stats (approachElevGain, descentElevGain, exitElevGain), use feet. For stats shaped as { value, unit }, copy unit as unitName when it matches one of these names.
-- For stats that have both a min and max in pageStats (minApproachTime/maxApproachTime, minDescentTime/maxDescentTime, minExitTime/maxExitTime), include separate measurements for each present value when the stat is relevant to the legend item. If both min and max exist, return both.
-- Do not pull measurements from beta section text or image captions.
-
-## betaSectionExcerpts
-
-Source: betaSections in the request (present for all feature types).
-
-- Each entry is { id, text, confidence } where id is the beta section id, text is the excerpt string or null, and confidence is your relevance score from 0 to 1.
-- When deciding relevance, consider both the beta section title and text.
-- If the title is relevant to the legend item name but nothing in the text is relevant, include the beta section with id and set text to null.
-- If the title is not relevant but part of the text is relevant, include id with text set to the relevant portion copied verbatim from that beta section's text field.
-- Copy the excerpt exactly from the beta text. Do not paraphrase, summarize, or reword.
-- Prefer whole sentences when choosing the excerpt span. The only exception to exact copying is hanging HTML wrapper tags at the start or end of the excerpt (e.g. a leading `<li>` or trailing `</li>` that is not part of the meaningful content). Remove those hanging tags; inline HTML such as `<b>` within the excerpt is fine.
-
-## Images
-
-Source: images in the request (present for all feature types).
-
-- Each image in the request is { id, caption, betaSectionTitle } where caption is the image caption and betaSectionTitle is the title of the beta section the image belongs to, or null when the image is not linked to a beta section.
-- When deciding relevance, consider both the caption and betaSectionTitle.
-- Relevance is based primarily on the caption. If any part of a caption is relevant to the legend item, include the whole image.
-- Each output entry is { id, betaSectionId, confidence } where id is the image id, confidence is your relevance score from 0 to 1, and betaSectionId is null unless the image is clearly tied to a specific beta section for this legend item.
-- Do not include images with no caption or with captions that do not mention or clearly relate to the legend item.
-
-## Worked example 1: point legend item
-
-This example is for one legend item from The Subway page. The legend item is a map marker (featureType "point"), so pageStats are not included in the input.
-
-### Example input
-
-```json
-{
-  "pageName": "The Subway",
-  "legendItem": {
-    "id": "4c8f2a1b-9d3e-4f67-8a2c-1e5d9b7f3a06",
-    "featureType": "point",
-    "name": "R1- The Subway"
-  },
-  "betaSections": [
-    {
-      "id": "2f6a9c3e-8b1d-4e7f-9a2c-5d8e1f4b7a36",
-      "title": "Descent",
-      "text": "<h3>Main Technical Route</h3>\n<p>Once in the Left Fork of North Creek drainage follow the river down stream.  From here there won't be any trails as you are now in the river gorge and the watercourse.  This is where the technical portion of the route begins.  As you make your way down canyon you will encounter some small up climbs, down climbs, and a few rappels on your way to the Subway proper.  Once in sight of the Subway proper section there will be a waterfall and a final rappel off of two bolts on the RDC (Right Down Canyon) side.  In the past there was a log at the top off the waterfall that could be crossed; however that log has been gone for over a decade now.   While it is possible to jump the gap over the waterfall, it is not advised to do so.  People jumping this gap have had close calls and landed with bad footing.  If you find beta that says you do not need to rappel or that you can cross on the log then that beta is outdated and no longer applicable.\n</p><h3>Rappels</h3>\n<p>The Subway Top-Down Route <b>is a technical canyoneering route</b> so expect there to be up to four possible rappels (depending on skill level and water level) but at least one mandatory rappel.  All rappels are easy by canyoneering standards; however, by novice or beginner standards they are nothing to take lightly.  Even the smallest rappel in the Subway has claimed a life.  Don't underestimate the technicality of the Subway.\n</p><ul><li><b>R1</b>: 25 feet - Anchored from bolts on downstream face of large, flat rock center canyon.  This can be bypassed by downclimbing the rabbit hole RDC between the canyon wall and the boulder.  This flares out at the bottom so may not be advisable for everyone.</li>\n</ul>\n<ul><li><b>R2</b>: 10 feet - Anchored from a rock pinch into a constriction with a smooth, nearly-spherical boulder at its base; a likely down-climb for skilled teams.</li>\n</ul>\n<ul><li><b>R3 Keyhole Falls</b>: 15 feet - Anchored from bolts RDC. This is the site of one death when the rappeler was inverted under the water flow and was unable to free himself.</li>\n</ul>\n<ul><li><b>R4</b>: 20 feet - Anchored from two bolts above a small pothole RDC.</li>\n</ul>\n<ul><li><b>OLD R4</b>: 20 feet - There is an older, bolted anchor on the opposite side of the waterfall.  To reach this anchor you have to jump across the waterfall gap which is strongly discouraged.  Some older beta might mention this option so we are including it here more as an explanation.  This is a hold over from over 10 years ago when a log, wedged in the waterfall used to make crossing less risky.  That log has long since been washed out making this option not recommended.</li>\n</ul>\n<h3>Maintenance</h3>\n<p>The anchors, bolts, webbing, etc. that exist in the canyon were not installed by, nor are they maintained by, the national park service.  Some beta sources falsely claim otherwise.  The bolts were installed--with express authorization form the park service--by experience canyoneers long ago and it is canyoneers who maintain them.  The webbing is changed out by canyoneers descending the route.  Handlines, if left in place, are done so by canyoneers.  There is no one who is actively managing and maintaining this infrastructure.  As a canyoneer descending the route you many need to contribute to replacement and maintenance of anchors, webbing, etc.\n</p>"
-    }
-  ],
-  "images": []
-}
-```
-
-### Example output
-
-```json
-{
-  "measurements": null,
-  "betaSectionExcerpts": [
-    {
-      "id": "2f6a9c3e-8b1d-4e7f-9a2c-5d8e1f4b7a36",
-      "text": "<b>R1</b>: 25 feet - Anchored from bolts on downstream face of large, flat rock center canyon.  This can be bypassed by downclimbing the rabbit hole RDC between the canyon wall and the boulder.  This flares out at the bottom so may not be advisable for everyone.",
-      "confidence": 0.98
-    }
-  ],
-  "images": null
-}
-```
-
-### Why this excerpt is relevant
-
-The beta list item begins with "R1:" which directly matches the legend item name "R1- The Subway". The excerpt describes the R1 rappel anchor, height, and bypass option. General content in the Descent section is not linked because it does not describe this specific rappel marker. measurements is null because this is a point legend item.
-
-## Worked example 2: line legend item
-
-This example is for the "Left Fork (The Subway) - Exit" segment from The Subway page. The legend item is a map line (featureType "line"), so pageStats are included in the input.
-
-### Example input
-
-```json
-{
-  "pageName": "The Subway",
-  "legendItem": {
-    "id": "b7e4a1c9-6f2d-4b8a-9e3c-1d5f7a2b8c04",
-    "featureType": "line",
-    "name": "Left Fork (The Subway) - Exit"
-  },
-  "betaSections": [
-    {
-      "id": "9a3c5e7f-2b4d-4a6e-8c1f-0e6d9b3a7f52",
-      "title": "Exit",
-      "text": "<p>From the end of the technical section it is about 3.5 miles back to the Left Fork Trailhead. This exit includes roughly 2.2 miles of hiking in the river, followed by about a mile or so of trail-like travel with a few remaining river crossings, a steep uphill climb, and a final stretch across the plateau.\n</p><h3>River Hiking</h3>\n<p>Just below the Subway—with the iconic tunnel is still in view—is an ideal place to rest, refuel, and rehydrate before you begin the exit hike. This is also a great place to remove harnesses, wetsuits, and other technical gear and stow them in your backpack since they will not be needed during the exit. \n</p><p>Once you leave this the resting spot the character of the canyon changes quickly.  The canyon begins to open up more. The walls further apart are less vertical. The first few hundred yards feature two distinct sections of wide, gently-sloped sections of redrock slabs.  The rock is carver with fissures and shallow water channels. These slabs can be extremely slippery--even when dry. There are some shallow, sculpted and stepped falls on which a bit of playful sliding is possible, but caution is warranted as you can get banged up sliding down. \n</p><p>Beyond the res slabs, the terrain shifts into sustained boulder-hopping. From this point forward, expect about 2.2 miles of travel in the main watercourse. This includes frequent boulder-hopping, occasional downclimbs, and consistently uneven footing. Some hikers find this stretch enjoyable; others find it exhausting. Informal social trails appear along the banks from time to time, but staying in the creek is almost always the most efficient option. These side trails are intermittent, fragile, and discouraged by the park due to vegetation damage and erosion. Many hikers assume they offer easier passage, but searching for them often takes more time and energy than simply committing to the boulders directly ahead.\n</p><p>As you continue downstream, the canyon opens enough that a more continuous—though still unmaintained—informal trail develops on the north side of the canyon. This path becomes easier to follow and provides a break from the constant rock-hopping. It generally continues for about a mile until you reach the point where the route leaves the watercourse and begins the steep climb out.\n</p><h3>\"Little Girl's Misery\" Hill Climb</h3>\n<p>At the point where you leave the watercourse, the route turns sharply uphill and steeply climbs a series of loose, rocky switchbacks to the plateau. Over the years this hill climb has earned a reputation for being a grueling, exhausting slog. That reputation gave rise to its tongue-in-cheek nickname, “Little Girl’s Misery,” a playful riff on “Fat Man’s Misery,” a canyoneering route south of the park.\n</p><p>While the climb can be challenging, its difficulty is often overstated. Much of the struggle comes from timing: it arrives exactly when most people are at peak fatigue after hours of cold water, uneven footing, and technical travel. Legs are tired, energy is low, and motivation tends to dip. It also feels tougher for those who aren’t used to steep climb-outs or who may not be as fit as they hoped at the start of the day. That combination is a big part of why the hill developed its reputation. At a steady pace with a few short breaks, most hikers get up it without trouble, even if it takes real effort at the end of a long day. A bit of mental preparation makes all the difference.\n</p><p>At the base of the climb there is sometimes a small sign marking the turn, but it isn’t reliable. Flash floods wash it out regularly, and even when it’s present it’s remarkably easy to walk right past without realizing it. This junction is one of the most commonly missed points on the entire route.\n</p><p>Missing the turn is not a small mistake. If you continue downstream instead of climbing out, the canyon stretches on for miles before possible exit points. Plenty of groups have made this error—some because they never saw the sign, some because they didn’t recognize the faint trail on the right, and others because they reached the junction late in the day and were hiking out in the dark. It’s a good reminder that canyoneering often takes longer than expected. Always carry reliable, waterproof headlamps and be fully prepared to complete the exit in the dark if necessary.\n</p><h3>Plateau</h3>\n<p>After topping out from the switchbacks, the character of the hike shifts and becomes easier. The final walk follows a well-worn trail across open scrub oak terrain, trending gently uphill and then flattening out as it approaches the Left Fork Trailhead. Although this section is far less strenuous than the climb below, tired legs and accumulated mileage can still make it feel longer than it is. Expect roughly half a mile of straightforward walking before reaching the parking lot and your exit vehicle.\n</p>"
-    }
-  ],
-  "images": [],
-  "pageStats": {
-    "shuttleTime": { "unit": "minutes", "value": 20 },
-    "approachElevGain": 380,
-    "exitElevGain": 490
-  }
-}
-```
-
-### Example output
-
-```json
-{
-  "measurements": [
-    { "label": "exitElevGain", "value": 490, "unitName": "feet", "confidence": 0.95 }
+    { "key": "approachLength", "relevanceStrength": "Definitely Relevant" }
   ],
   "betaSectionExcerpts": [
-    {
-      "id": "9a3c5e7f-2b4d-4a6e-8c1f-0e6d9b3a7f52",
-      "text": "<p>From the end of the technical section it is about 3.5 miles back to the Left Fork Trailhead. This exit includes roughly 2.2 miles of hiking in the river, followed by about a mile or so of trail-like travel with a few remaining river crossings, a steep uphill climb, and a final stretch across the plateau.\n</p>",
-      "confidence": 0.92
-    }
-  ],
-  "images": null
-}
-```
-
-### Why only exitElevGain is included
-
-The beta section title "Exit" directly matches this legend item. The opening paragraph describes the exit hike back to the Left Fork Trailhead.
-
-For measurements, only exitElevGain is relevant to this exit segment. shuttleTime applies to the shuttle between trailheads, not the exit hike. approachElevGain applies to the approach segment, not the exit. Do not assign other-segment stats to a legend item just because they appear in pageStats.
-
-## Worked example 3: point legend item with images only
-
-This example is for the "R3: 80' or 45'" rappel marker on the Bear Creek Canyon page. The legend item is a map marker (featureType "point"), so pageStats are not included. There are no beta sections—only captioned images.
-
-### Example input
-
-```json
-{
-  "pageName": "Bear Creek Canyon",
-  "legendItem": {
-    "id": "3e8a1f4c-7b2d-4e9a-8f1c-6d5e2a9b3f71",
-    "featureType": "point",
-    "name": "R3: 80' or 45'"
-  },
-  "betaSections": [],
-  "images": [
     {
       "id": "a1b2c3d4-e5f6-4789-a012-3456789abcde",
-      "caption": "<b><a href=\"/References:Bear_Creek_Canyon-20250820040305\" title=\"References:Bear Creek Canyon-20250820040305\">10 Aug 2025</a></b>: <b>Moderate-Low</b>. A bit low, still fun but not very challenging (class C1- = a4-).",
-      "betaSectionTitle": "Reference Photos"
-    },
-    {
-      "id": "b2c3d4e5-f6a7-4890-b123-456789abcdef0",
-      "caption": "R3 anchor high on the wall on CR, tether a taller teammate when clipping - alternatively use a tree further back DCL",
-      "betaSectionTitle": "Descent"
-    },
-    {
-      "id": "c3d4e5f6-a7b8-4901-c234-56789abcdef01",
-      "caption": "R3",
-      "betaSectionTitle": "Descent"
-    },
-    {
-      "id": "d4e5f6a7-b8c9-4012-d345-6789abcdef012",
-      "caption": "Downclimb after R3",
-      "betaSectionTitle": "Descent"
-    },
-    {
-      "id": "e5f6a7b8-c9d0-4123-e456-789abcdef0123",
-      "caption": "Queueing up team members to move them through",
-      "betaSectionTitle": "Descent"
+      "text": "<verbatim body excerpt or null for title-only>",
+      "relevanceStrength": "Somewhat Relevant",
+      "relevantPhrase": "<verbatim phrase from title and/or body>"
     }
-  ]
-}
-```
-
-### Example output
-
-```json
-{
-  "measurements": null,
-  "betaSectionExcerpts": null,
+  ],
   "images": [
     {
-      "id": "b2c3d4e5-f6a7-4890-b123-456789abcdef0",
-      "betaSectionId": null,
-      "confidence": 0.97
-    },
-    {
-      "id": "c3d4e5f6-a7b8-4901-c234-56789abcdef01",
-      "betaSectionId": null,
-      "confidence": 0.99
-    },
-    {
-      "id": "d4e5f6a7-b8c9-4012-d345-6789abcdef012",
-      "betaSectionId": null,
-      "confidence": 0.95
+      "id": "f0e1d2c3-b4a5-4678-9012-abcdef012345",
+      "relevanceStrength": "Definitely Relevant",
+      "relevantPhrase": "<verbatim phrase from caption>"
     }
   ]
 }
-```
 
-### Why only these images are included
+Notes:
+- betaSectionExcerpts[].id must be an id from request text[].
+- images have no betaSectionId — only the image id.
+- Do not invent ids. Do not include entries with fabricated measurement keys or paraphrased phrases.
+- Prefer omitting weakly related content over returning "Maybe Relevant" noise when you are unsure whether anything applies at all (abstain with all nulls).
 
-The legend item name identifies rappel R3. Include an image only when its caption mentions "R3" in a way that clearly refers to this rappel—not merely because it is a photo from the same canyon or trip.
+## Worked example 1: point map feature (no measurements in request)
 
-The water-level reference photo and the queueing photo do not mention R3, so they are excluded. The three included captions explicitly name R3: the anchor beta note, a photo labeled "R3", and a downclimb immediately after R3. measurements and betaSectionExcerpts are null because no pageStats or beta sections were provided.
+mapFeature.name: "R1- The Subway"
+featureType: "point"
+
+Possible betaSectionExcerpts entry:
+{
+  "id": "7c4e9a12-3b8f-4d21-9e56-0a1b2c3d4e5f",
+  "text": "<b>R1</b>: 25 feet - The Subway. Anchors on the left.",
+  "relevanceStrength": "Definitely Relevant",
+  "relevantPhrase": "R1"
+}
+
+Possible images entry when a caption mentions this rappel (prefer feature-specific phrases such as "R1", not only the route nickname "The Subway"):
+{
+  "id": "91d2e3f4-a5b6-4c7d-8e9f-0123456789ab",
+  "relevanceStrength": "Somewhat Relevant",
+  "relevantPhrase": "R1"
+}
+
+measurements: null
+
+## Worked example 2: line map feature with measurements
+
+mapFeature.name: "Moonflower - Approach"
+featureType: "line"
+Request includes measurements.approachElevGain (and possibly approachLength / approach times).
+
+Possible measurements entry:
+{
+  "key": "approachElevGain",
+  "relevanceStrength": "Definitely Relevant"
+}
+
+Do not invent a key that is absent from the request measurements object.
+
+## Worked example 3: title-only text relevance
+
+mapFeature.name: "Exit"
+A text block titled "Exit" with a body that does not mention exit specifically beyond the title.
+
+{
+  "id": "2e8f1c0a-4d5b-4a67-9c3e-abcdef123456",
+  "text": null,
+  "relevanceStrength": "Somewhat Relevant",
+  "relevantPhrase": "Exit"
+}

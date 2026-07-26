@@ -82,13 +82,18 @@ describe('processLegendItem', () => {
         formatPageRelevanceUserPrompt.mockReturnValue('user-prompt');
         runLegendContextModelWithRetries.mockResolvedValue(modelResult as any);
         validateLegendContext.mockReturnValue({
-            measurements: [{ label: 'approachLength', value: 1, unitName: 'miles', confidence: 1 }],
+            measurements: [
+                {
+                    key: 'approachLength',
+                    relevanceStrength: 'Definitely Relevant',
+                },
+            ],
             betaSectionExcerpts: null,
             images: null,
         } as any);
         hasRelevantContextContent.mockReturnValue(true);
         contextToDbJson.mockReturnValue({
-            measurements: [{ label: 'approachLength' }],
+            measurements: [{ key: 'approachLength' }],
             betaSectionExcerpts: null,
             images: null,
         });

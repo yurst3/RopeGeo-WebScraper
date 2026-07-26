@@ -21,7 +21,11 @@ export function enrichRelevantContextExcerpts(
                 excerpt.text != null &&
                 excerpt.text.length > 0
             ) {
-                return section.toExcerpt(excerpt.text, excerpt.confidence);
+                return section.toExcerpt(
+                    excerpt.text,
+                    excerpt.relevanceStrength,
+                    excerpt.relevantPhrase,
+                );
             }
             return excerpt;
         });

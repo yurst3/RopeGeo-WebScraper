@@ -770,7 +770,13 @@ describe('getRopewikiPageView (integration)', () => {
                 legendItemId: 'r1',
                 measurements: null,
                 betaSectionExcerpts: {
-                    [betaSectionId]: [{ text: '<b>R1</b>: 25 feet -', confidence: 0.98 }],
+                    [betaSectionId]: [
+                        {
+                            text: '<b>R1</b>: 25 feet -',
+                            relevanceStrength: 'Definitely Relevant',
+                            relevantPhrase: 'R1',
+                        },
+                    ],
                 },
                 images: null,
             })
@@ -790,7 +796,8 @@ describe('getRopewikiPageView (integration)', () => {
         expect(excerpts![0]!.text).toBe('<b>R1</b>: 25 feet -');
         expect(excerpts![0]!.start).toBe(7);
         expect(excerpts![0]!.end).toBe(7 + '<b>R1</b>: 25 feet -'.length);
-        expect(excerpts![0]!.confidence).toBe(0.98);
+        expect(excerpts![0]!.relevanceStrength).toBe('Definitely Relevant');
+        expect(excerpts![0]!.relevantPhrase).toBe('R1');
     });
 
     it('returns CenteredRegionMiniMap when page has route but MapData has null tilesTemplate', async () => {

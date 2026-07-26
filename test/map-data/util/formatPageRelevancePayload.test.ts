@@ -34,17 +34,28 @@ describe('formatPageRelevancePayload', () => {
         },
     };
 
-    it('includes pageStats only for line legend items and filters uncaptioned images', () => {
+    it('includes measurements only for line map features and filters uncaptioned images', () => {
         const linePayload = formatPageRelevancePayload(input, {
             id: 'l1',
             featureType: 'line',
             name: 'Trail',
         });
-        expect(linePayload.pageStats).toEqual({
+        expect(linePayload.mapFeature).toEqual({
+            id: 'l1',
+            featureType: 'line',
+            name: 'Trail',
+        });
+        expect(linePayload.text).toEqual([
+            { id: 'b1', title: 'Descent', body: 'R1 is 20ft' },
+        ]);
+        expect(linePayload.measurements).toEqual({
             approachLength: { value: 1, unitName: 'miles' },
         });
         expect(linePayload.images).toEqual([
-            { id: 'img-1', caption: 'Rappel photo', betaSectionTitle: 'Descent' },
+            {
+                id: 'img-1',
+                caption: 'Rappel photo',
+            },
         ]);
 
         const pointPayload = formatPageRelevancePayload(input, {
@@ -52,16 +63,17 @@ describe('formatPageRelevancePayload', () => {
             featureType: 'point',
             name: 'Trailhead',
         });
-        expect(pointPayload.pageStats).toBeUndefined();
+        expect(pointPayload.measurements).toBeUndefined();
     });
 
-    it('builds a user prompt containing the legend name and JSON payload', () => {
+    it('builds a user prompt containing the map feature name and JSON payload', () => {
         const prompt = formatPageRelevanceUserPrompt(input, {
             id: 'l1',
             featureType: 'line',
             name: 'Trail',
         });
-        expect(prompt).toContain('legend item "Trail"');
+        expect(prompt).toContain('map feature "Trail"');
         expect(prompt).toContain('"pageName": "Page"');
+        expect(prompt).toContain('"mapFeature"');
     });
 });
