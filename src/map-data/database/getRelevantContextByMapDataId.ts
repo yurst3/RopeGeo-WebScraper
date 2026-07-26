@@ -8,7 +8,7 @@ function rowToRelevantContext(row: s.MapDataRelevantContext.JSONSelectable): Rel
     return RelevantContext.fromResult({
         measurements: row.measurements ?? [],
         betaSectionExcerpts: row.betaSectionExcerpts ?? {},
-        images: row.images ?? {},
+        images: row.images ?? [],
     });
 }
 

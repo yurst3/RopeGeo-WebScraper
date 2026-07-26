@@ -53,7 +53,7 @@ describe('loadRelevanceConfig', () => {
         const { loadSystemPrompt } = require('../../../src/map-data/util/loadRelevanceConfig') as typeof import('../../../src/map-data/util/loadRelevanceConfig');
         const prompt = loadSystemPrompt();
         expect(prompt.length).toBeGreaterThan(100);
-        expect(prompt).toContain('legend item');
+        expect(prompt).toContain('map feature');
     });
 
     it('estimates cost from token usage', () => {
