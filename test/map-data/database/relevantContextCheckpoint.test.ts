@@ -78,6 +78,54 @@ describe('relevant context jobId checkpointing (database)', () => {
         expect(otherJob.size).toBe(0);
     });
 
+    it('upserts jsonb array columns (measurements and images) without node-pg array coercion', async () => {
+        await upsertRelevantContext(conn, mapDataId, 'legend-arrays', jobId, {
+            measurements: [
+                { key: 'minDescentTime', relevanceStrength: 'Definitely Relevant' },
+            ],
+            betaSectionExcerpts: {
+                'section-1': [
+                    {
+                        text: 'R8: 65′',
+                        relevanceStrength: 'Definitely Relevant',
+                        relevantPhrase: 'R8',
+                    },
+                ],
+            },
+            images: [
+                {
+                    id: 'aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee',
+                    relevanceStrength: 'Somewhat Relevant',
+                    relevantPhrase: 'La Capella',
+                },
+            ],
+        });
+
+        const rows = await db
+            .select('MapDataRelevantContext', { mapDataId, legendItemId: 'legend-arrays' })
+            .run(conn);
+        expect(rows).toHaveLength(1);
+        expect(rows[0]!.measurements).toEqual([
+            { key: 'minDescentTime', relevanceStrength: 'Definitely Relevant' },
+        ]);
+        expect(rows[0]!.images).toEqual([
+            {
+                id: 'aaaaaaaa-bbbb-4ccc-8ddd-eeeeeeeeeeee',
+                relevanceStrength: 'Somewhat Relevant',
+                relevantPhrase: 'La Capella',
+            },
+        ]);
+        expect(rows[0]!.betaSectionExcerpts).toEqual({
+            'section-1': [
+                {
+                    text: 'R8: 65′',
+                    relevanceStrength: 'Definitely Relevant',
+                    relevantPhrase: 'R8',
+                },
+            ],
+        });
+    });
+
     it('soft-deletes rows with a different jobId on finalize', async () => {
         const otherJob = await db
             .insert('MapDataRelevantContextJob', {

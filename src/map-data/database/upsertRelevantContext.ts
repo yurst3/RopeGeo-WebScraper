@@ -4,6 +4,14 @@ import type { RelevantContextDbJson } from '../util/contextToDbJson';
 
 export type RelevantContextRow = s.MapDataRelevantContext.JSONSelectable;
 
+/** node-pg treats top-level JS arrays as Postgres arrays; force jsonb serialization. */
+function jsonbArrayParam(
+    value: RelevantContextDbJson['measurements'] | RelevantContextDbJson['images'],
+): db.Parameter<db.JSONValue> | null {
+    if (value == null) return null;
+    return db.param(value as db.JSONValue, true);
+}
+
 const upsertRelevantContext = async (
     conn: db.Queryable,
     mapDataId: string,
@@ -12,11 +20,6 @@ const upsertRelevantContext = async (
     context: RelevantContextDbJson,
 ): Promise<void> => {
     const now = new Date();
-    // node-pg treats top-level JS arrays as Postgres arrays; cast measurements for jsonb.
-    const measurements =
-        context.measurements == null
-            ? null
-            : db.param(context.measurements as db.JSONValue, true);
     await db
         .upsert(
             'MapDataRelevantContext',
@@ -24,9 +27,9 @@ const upsertRelevantContext = async (
                 mapDataId,
                 legendItemId,
                 jobId,
-                measurements,
+                measurements: jsonbArrayParam(context.measurements),
                 betaSectionExcerpts: context.betaSectionExcerpts as db.JSONValue | null,
-                images: context.images as db.JSONValue | null,
+                images: jsonbArrayParam(context.images),
                 updatedAt: now,
                 deletedAt: null,
             },
