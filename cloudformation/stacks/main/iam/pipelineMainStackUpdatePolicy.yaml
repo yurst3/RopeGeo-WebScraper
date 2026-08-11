@@ -1,0 +1,38 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: IAM policy for pipeline to update the main stack (e.g. CloudFrontDistributionArn parameter)
+
+Resources:
+  PipelineMainStackUpdatePolicy:
+    Type: 'AWS::IAM::ManagedPolicy'
+    Condition: HasPipelineExecutionRoleName
+    Properties:
+      ManagedPolicyName:
+        'Fn::Sub': '${AWS::StackName}-pipeline-main-stack-update'
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Action:
+              - 'cloudformation:UpdateStack'
+              - 'cloudformation:DescribeStacks'
+              - 'cloudformation:DescribeStackEvents'
+              - 'cloudformation:GetTemplate'
+            Resource:
+              - 'Fn::Sub': 'arn:aws:cloudformation:${AWS::Region}:${AWS::AccountId}:stack/${AWS::StackName}'
+              - 'Fn::Sub': 'arn:aws:cloudformation:${AWS::Region}:${AWS::AccountId}:stack/${AWS::StackName}/*'
+          # update-stack --role-arn uses the SAM CloudFormation execution role
+          - Effect: Allow
+            Action: 'iam:PassRole'
+            Resource:
+              'Fn::Sub': 'arn:aws:iam::${AWS::AccountId}:role/aws-sam-cli-managed-*-CloudFormationExecutionRo*'
+            Condition:
+              StringEquals:
+                'iam:PassedToService': cloudformation.amazonaws.com
+      Roles:
+        - Ref: PipelineExecutionRoleName
+Outputs:
+  PipelineMainStackUpdatePolicyArn:
+    Condition: HasPipelineExecutionRoleName
+    Description: 'ARN of the managed policy that allows the pipeline execution role to UpdateStack on this main stack (used by deploy-prod-api CloudFront ARN sync). If PipelineExecutionRoleName is not set, attach manually when needed.'
+    Value:
+      Ref: PipelineMainStackUpdatePolicy

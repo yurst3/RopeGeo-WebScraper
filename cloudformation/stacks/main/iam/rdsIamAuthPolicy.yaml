@@ -15,3 +15,8 @@ Resources:
             Action: 'rds-db:connect'
             Resource:
               'Fn::Sub': 'arn:aws:rds-db:${AWS::Region}:${AWS::AccountId}:dbuser:${RdsDbiResourceId}/${DatabaseUsername}'
+      Roles:
+        'Fn::If':
+          - HasPipelineExecutionRoleName
+          - - Ref: PipelineExecutionRoleName
+          - Ref: 'AWS::NoValue'

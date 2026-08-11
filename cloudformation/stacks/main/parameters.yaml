@@ -24,7 +24,7 @@ Parameters:
     NoEcho: true
   PipelineExecutionRoleName:
     Type: String
-    Description: IAM role name (not ARN) of the pipeline execution role; used to attach the ECR push policy so build-push-fargate-tasks can push images. Leave blank to skip attachment (attach FargateTasksECRPushPolicyArn manually if needed).
+    Description: IAM role name (not ARN) of the pipeline execution role; used to attach ECR push, main-stack UpdateStack, CloudFront invalidation, and (when RdsDbiResourceId is set) RDS IAM auth policies. Leave blank to skip attachment (attach policy ARNs from outputs manually if needed).
     Default: ''
   DocsBucketPipelineRoleArn:
     Type: String
