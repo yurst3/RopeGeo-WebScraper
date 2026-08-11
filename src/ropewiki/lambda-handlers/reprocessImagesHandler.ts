@@ -1,10 +1,13 @@
 import type { Pool, PoolClient } from 'pg';
+import { PageDataSource } from 'ropegeo-common/models';
 import getDatabaseConnection from '../../helpers/getDatabaseConnection';
 import getRopewikiImagesToProcess from '../database/getRopewikiImagesToProcess';
 import sendImageProcessorSQSMessage, {
     serializeImageDataEventForQueue,
 } from '../../image-data/sqs/sendImageProcessorSQSMessage';
 import { ReprocessImagesEvent } from '../types/reprocessImagesEvent';
+import createFreshPageZipperJob from '../../page-zipper/database/createFreshPageZipperJob';
+import type { ReadinessRecord } from '../../page-zipper/database/upsertPageZipperJob';
 
 /**
  * Lambda handler that enqueues RopewikiImages that need AVIF processing by sending an ImageDataEvent
@@ -40,12 +43,44 @@ export const reprocessImagesHandler = async (
             reprocessImagesEvent.downloadSource,
         );
 
-        console.log(`Enqueueing ${images.length} RopewikiImages for image processing...`);
+        console.log(
+            `Enqueueing ${images.length} RopewikiImages for image processing` +
+                `${reprocessImagesEvent.remakeDownloadFolders ? ' (remakeDownloadFolders)' : ''}...`,
+        );
+
+        if (reprocessImagesEvent.remakeDownloadFolders) {
+            const imageIdsByPage = new Map<string, string[]>();
+            for (const img of images) {
+                if (img.pageId == null || img.pageId === '' || img.id == null || img.id === '') {
+                    continue;
+                }
+                const ids = imageIdsByPage.get(img.pageId) ?? [];
+                ids.push(img.id);
+                imageIdsByPage.set(img.pageId, ids);
+            }
+
+            for (const [pageId, imageIds] of imageIdsByPage) {
+                const imageDataReady: ReadinessRecord = {};
+                for (const imageId of imageIds) {
+                    imageDataReady[imageId] = false;
+                }
+                await createFreshPageZipperJob(client, {
+                    pageId,
+                    pageSource: PageDataSource.Ropewiki,
+                    pageReady: true,
+                    pageHasMapData: false,
+                    mapDataLegendItemsReady: {},
+                    imageDataReady,
+                });
+            }
+        }
 
         for (const img of images) {
             const imageDataEvent = img.toImageDataEvent(
                 reprocessImagesEvent.downloadSource,
                 reprocessImagesEvent.versions,
+                img.pageId,
+                reprocessImagesEvent.remakeDownloadFolders,
             );
             console.log(
                 'RopewikiImageReprocessor: enqueue ImageDataEvent',
@@ -59,6 +94,7 @@ export const reprocessImagesHandler = async (
             body: JSON.stringify({
                 message: 'Reprocess Ropewiki images completed successfully',
                 enqueuedCount: images.length,
+                remakeDownloadFolders: reprocessImagesEvent.remakeDownloadFolders,
             }),
         };
     } catch (error) {

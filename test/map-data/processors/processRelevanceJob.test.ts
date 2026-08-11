@@ -48,6 +48,9 @@ jest.mock('../../../src/map-data/database/deleteRelevantContextJob', () => ({
     __esModule: true,
     default: jest.fn(),
 }));
+jest.mock('../../../src/map-data/util/flipPageZipperLegendItemReady', () => ({
+    flipPageZipperLegendItemReady: jest.fn(),
+}));
 
 const loadRelevanceInput = require('../../../src/map-data/hook-functions/loadRelevanceInput')
     .loadRelevanceInput as jest.MockedFunction<
@@ -108,6 +111,11 @@ const deleteRelevantContextJob = require('../../../src/map-data/database/deleteR
     .default as jest.MockedFunction<
     typeof import('../../../src/map-data/database/deleteRelevantContextJob').default
 >;
+const flipPageZipperLegendItemReady =
+    require('../../../src/map-data/util/flipPageZipperLegendItemReady')
+        .flipPageZipperLegendItemReady as jest.MockedFunction<
+        typeof import('../../../src/map-data/util/flipPageZipperLegendItemReady').flipPageZipperLegendItemReady
+    >;
 
 describe('processRelevanceJob', () => {
     const job = new RelevanceJobEvent(
@@ -174,6 +182,7 @@ describe('processRelevanceJob', () => {
         softDeleteRelevantContextNotInLegend.mockResolvedValue(undefined);
         replaceRelevantContextJobErrors.mockResolvedValue(undefined);
         deleteRelevantContextJob.mockResolvedValue(undefined);
+        flipPageZipperLegendItemReady.mockResolvedValue(undefined);
     });
 
     afterEach(() => {
@@ -205,6 +214,8 @@ describe('processRelevanceJob', () => {
             ['a', 'b', 'c'],
         );
         expect(deleteRelevantContextJob).toHaveBeenCalledWith(mockConn, 'job-1');
+        expect(flipPageZipperLegendItemReady).toHaveBeenCalledTimes(3);
+        expect(flipPageZipperLegendItemReady).toHaveBeenCalledWith(mockConn, 'page-1', 'a');
     });
 
     it('skips legend items already checkpointed for this job', async () => {

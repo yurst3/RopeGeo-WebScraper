@@ -6,26 +6,34 @@ export class ImageDataEvent {
     pageDataSource: PageDataSource;
     pageImageId: string;
     sourceUrl: string;
+    pageId: string;
     downloadSource: boolean;
     existingProcessedImageId?: string;
     /** When set, only these variants are encoded and uploaded; when omitted, all versions run. */
     versions?: ImageVersion[];
+    makeDownloadFolder: boolean;
 
     constructor(
         pageDataSource: PageDataSource,
         pageImageId: string,
         sourceUrl: string,
+        pageId: string,
         downloadSource: boolean = true,
         existingProcessedImageId?: string,
         versions?: ImageVersion[],
+        makeDownloadFolder: boolean = true,
     ) {
         ImageDataEvent.validateExistingProcessedImageForDownloadSource(
             downloadSource,
             existingProcessedImageId,
         );
+        if (typeof pageId !== 'string' || pageId.trim() === '') {
+            throw new Error('Invalid ImageDataEvent: pageId must be a non-empty string');
+        }
         this.pageDataSource = pageDataSource;
         this.pageImageId = pageImageId;
         this.sourceUrl = sourceUrl;
+        this.pageId = pageId;
         this.downloadSource = downloadSource;
         if (existingProcessedImageId !== undefined) {
             this.existingProcessedImageId = existingProcessedImageId;
@@ -34,6 +42,7 @@ export class ImageDataEvent {
             ImageDataEvent.validateVersions(versions);
             this.versions = [...versions];
         }
+        this.makeDownloadFolder = makeDownloadFolder;
     }
 
     private static validateVersions(versions: ImageVersion[]): void {
@@ -93,15 +102,17 @@ export class ImageDataEvent {
                 sourceUrl?: string;
                 /** @deprecated Prefer sourceUrl; accepted for older queue messages */
                 source?: string;
+                pageId?: string;
                 downloadSource?: boolean;
                 existingProcessedImageId?: string;
                 versions?: unknown;
+                makeDownloadFolder?: boolean | null;
             };
 
             const sourceUrl = parsed.sourceUrl ?? parsed.source;
-            if (!parsed.pageDataSource || !parsed.pageImageId || !sourceUrl) {
+            if (!parsed.pageDataSource || !parsed.pageImageId || !sourceUrl || !parsed.pageId) {
                 throw new Error(
-                    'Invalid ImageDataEvent: missing required fields (pageDataSource, pageImageId, sourceUrl)',
+                    'Invalid ImageDataEvent: missing required fields (pageDataSource, pageImageId, sourceUrl, pageId)',
                 );
             }
 
@@ -112,6 +123,15 @@ export class ImageDataEvent {
             if (!Object.values(PageDataSource).includes(parsed.pageDataSource)) {
                 throw new Error(
                     `Invalid ImageDataEvent: pageDataSource must be one of ${Object.values(PageDataSource).join(', ')}, got: ${parsed.pageDataSource}`,
+                );
+            }
+
+            if (
+                parsed.makeDownloadFolder != null &&
+                typeof parsed.makeDownloadFolder !== 'boolean'
+            ) {
+                throw new Error(
+                    'Invalid ImageDataEvent: makeDownloadFolder must be a boolean when provided',
                 );
             }
 
@@ -129,9 +149,11 @@ export class ImageDataEvent {
                 parsed.pageDataSource,
                 parsed.pageImageId,
                 sourceUrl,
+                parsed.pageId,
                 parsed.downloadSource,
                 parsed.existingProcessedImageId,
                 versions,
+                parsed.makeDownloadFolder ?? true,
             );
         } catch (error) {
             if (error instanceof SyntaxError) {

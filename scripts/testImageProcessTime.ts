@@ -40,7 +40,13 @@ async function testImageProcessTime() {
     let imageData;
     try {
         const imageDataId = randomUUID();
-        const event = new ImageDataEvent(PageDataSource.Ropewiki, randomUUID(), url, true);
+        const event = new ImageDataEvent(
+            PageDataSource.Ropewiki,
+            randomUUID(),
+            url,
+            randomUUID(),
+            true,
+        );
         imageData = await processImageData(event, nodeSaveImageData, logger, imageDataId, localTimingDbClient);
     } catch (error) {
         console.error('Error processing image:', error);

@@ -44,6 +44,7 @@ describe('processImageData', () => {
         PageDataSource.Ropewiki,
         '11111111-1111-1111-1111-111111111111',
         'https://example.com/image.jpg',
+        'page-aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaa',
         true,
     );
     const previewBuffer = Buffer.from([1]);
@@ -146,6 +147,7 @@ describe('processImageData', () => {
             PageDataSource.Ropewiki,
             '11111111-1111-1111-1111-111111111111',
             'https://example.com/image.jpg',
+            'page-aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaa',
             false,
             'cccccccc-cccc-cccc-cccc-cccccccccccc',
         );
@@ -176,6 +178,7 @@ describe('processImageData', () => {
             PageDataSource.Ropewiki,
             '11111111-1111-1111-1111-111111111111',
             'https://example.com/image.jpg',
+            'page-aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaa',
             false,
             'cccccccc-cccc-cccc-cccc-cccccccccccc',
         );

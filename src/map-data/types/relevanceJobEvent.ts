@@ -6,12 +6,20 @@ export class RelevanceJobEvent {
     readonly mapDataId: string;
     readonly pageId: string;
     readonly pageSource: PageDataSource;
+    readonly makeDownloadFolder: boolean;
 
-    constructor(id: string, mapDataId: string, pageId: string, pageSource: PageDataSource) {
+    constructor(
+        id: string,
+        mapDataId: string,
+        pageId: string,
+        pageSource: PageDataSource,
+        makeDownloadFolder: boolean = true,
+    ) {
         this.id = id;
         this.mapDataId = mapDataId;
         this.pageId = pageId;
         this.pageSource = pageSource;
+        this.makeDownloadFolder = makeDownloadFolder;
     }
 
     static fromSQSEventRecord(record: SqsRecord): RelevanceJobEvent {
@@ -25,6 +33,7 @@ export class RelevanceJobEvent {
                 mapDataId?: string;
                 pageId?: string;
                 pageSource?: PageDataSource;
+                makeDownloadFolder?: boolean | null;
             };
 
             if (!parsed.id || !parsed.mapDataId || !parsed.pageId || !parsed.pageSource) {
@@ -39,11 +48,21 @@ export class RelevanceJobEvent {
                 );
             }
 
+            if (
+                parsed.makeDownloadFolder != null &&
+                typeof parsed.makeDownloadFolder !== 'boolean'
+            ) {
+                throw new Error(
+                    'Invalid RelevanceJobEvent: makeDownloadFolder must be a boolean when provided',
+                );
+            }
+
             return new RelevanceJobEvent(
                 parsed.id,
                 parsed.mapDataId,
                 parsed.pageId,
                 parsed.pageSource,
+                parsed.makeDownloadFolder ?? true,
             );
         } catch (error) {
             if (error instanceof SyntaxError) {

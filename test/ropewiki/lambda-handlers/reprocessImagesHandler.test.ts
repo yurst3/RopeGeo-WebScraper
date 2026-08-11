@@ -4,9 +4,15 @@ import { reprocessImagesHandler } from '../../../src/ropewiki/lambda-handlers/re
 import { ImageDataEvent } from '../../../src/image-data/types/lambdaEvent';
 import { RopewikiImage } from '../../../src/ropewiki/types/image';
 
-function makeRopewikiImage(partial: { id: string; fileUrl: string; processedImage: string | null }) {
+function makeRopewikiImage(partial: {
+    id: string;
+    fileUrl: string;
+    processedImage: string | null;
+    pageId?: string;
+}) {
     const img = new RopewikiImage(undefined, 'https://ropewiki.com/link', partial.fileUrl, undefined, 1);
     img.id = partial.id;
+    img.pageId = partial.pageId ?? 'page-1';
     img.processedImage = partial.processedImage;
     return img;
 }
@@ -14,6 +20,9 @@ function makeRopewikiImage(partial: { id: string; fileUrl: string; processedImag
 let mockGetDatabaseConnection: jest.MockedFunction<typeof import('../../../src/helpers/getDatabaseConnection').default>;
 let mockGetRopewikiImagesToProcess: jest.MockedFunction<typeof import('../../../src/ropewiki/database/getRopewikiImagesToProcess').default>;
 let mockSendImageProcessorSQSMessage: jest.MockedFunction<typeof import('../../../src/image-data/sqs/sendImageProcessorSQSMessage').default>;
+let mockCreateFreshPageZipperJob: jest.MockedFunction<
+    typeof import('../../../src/page-zipper/database/createFreshPageZipperJob').default
+>;
 
 let mockClient: { release: ReturnType<typeof jest.fn> };
 let mockPool: { connect: ReturnType<typeof jest.fn>; end: ReturnType<typeof jest.fn> };
@@ -39,6 +48,11 @@ jest.mock('../../../src/image-data/sqs/sendImageProcessorSQSMessage', () => {
     };
 });
 
+jest.mock('../../../src/page-zipper/database/createFreshPageZipperJob', () => ({
+    __esModule: true,
+    default: jest.fn(),
+}));
+
 let consoleLogSpy: ReturnType<typeof jest.spyOn>;
 let consoleErrorSpy: ReturnType<typeof jest.spyOn>;
 
@@ -58,10 +72,13 @@ describe('reprocessImagesHandler', () => {
         mockGetDatabaseConnection = require('../../../src/helpers/getDatabaseConnection').default;
         mockGetRopewikiImagesToProcess = require('../../../src/ropewiki/database/getRopewikiImagesToProcess').default;
         mockSendImageProcessorSQSMessage = require('../../../src/image-data/sqs/sendImageProcessorSQSMessage').default;
+        mockCreateFreshPageZipperJob =
+            require('../../../src/page-zipper/database/createFreshPageZipperJob').default;
 
         mockGetDatabaseConnection.mockResolvedValue(mockPool as never);
         mockGetRopewikiImagesToProcess.mockResolvedValue([]);
         mockSendImageProcessorSQSMessage.mockResolvedValue(undefined);
+        mockCreateFreshPageZipperJob.mockResolvedValue({ id: 'zipper-1' } as never);
     });
 
     it('gets connection, fetches images to process, sends SQS message for each, and returns 200', async () => {
@@ -75,21 +92,51 @@ describe('reprocessImagesHandler', () => {
         expect(mockGetDatabaseConnection).toHaveBeenCalledTimes(1);
         expect(mockPool.connect).toHaveBeenCalledTimes(1);
         expect(mockGetRopewikiImagesToProcess).toHaveBeenCalledWith(mockClient, true, true);
-        expect(consoleLogSpy).toHaveBeenCalledWith('Enqueueing 2 RopewikiImages for image processing...');
+        expect(consoleLogSpy).toHaveBeenCalledWith(
+            'Enqueueing 2 RopewikiImages for image processing (remakeDownloadFolders)...',
+        );
+        expect(mockCreateFreshPageZipperJob).toHaveBeenCalledTimes(1);
+        expect(mockCreateFreshPageZipperJob).toHaveBeenCalledWith(mockClient, {
+            pageId: 'page-1',
+            pageSource: PageDataSource.Ropewiki,
+            pageReady: true,
+            pageHasMapData: false,
+            mapDataLegendItemsReady: {},
+            imageDataReady: { 'img-1': false, 'img-2': false },
+        });
         expect(mockSendImageProcessorSQSMessage).toHaveBeenCalledTimes(2);
         expect(mockSendImageProcessorSQSMessage).toHaveBeenNthCalledWith(
             1,
-            new ImageDataEvent(PageDataSource.Ropewiki, 'img-1', 'https://ropewiki.com/images/1.jpg', true),
+            new ImageDataEvent(
+                PageDataSource.Ropewiki,
+                'img-1',
+                'https://ropewiki.com/images/1.jpg',
+                'page-1',
+                true,
+                undefined,
+                undefined,
+                true,
+            ),
         );
         expect(mockSendImageProcessorSQSMessage).toHaveBeenNthCalledWith(
             2,
-            new ImageDataEvent(PageDataSource.Ropewiki, 'img-2', 'https://ropewiki.com/images/2.jpg', true),
+            new ImageDataEvent(
+                PageDataSource.Ropewiki,
+                'img-2',
+                'https://ropewiki.com/images/2.jpg',
+                'page-1',
+                true,
+                undefined,
+                undefined,
+                true,
+            ),
         );
         expect(result).toEqual({
             statusCode: 200,
             body: JSON.stringify({
                 message: 'Reprocess Ropewiki images completed successfully',
                 enqueuedCount: 2,
+                remakeDownloadFolders: true,
             }),
         });
     });
@@ -100,7 +147,10 @@ describe('reprocessImagesHandler', () => {
         const result = await reprocessImagesHandler();
 
         expect(mockGetRopewikiImagesToProcess).toHaveBeenCalledWith(mockClient, true, true);
-        expect(consoleLogSpy).toHaveBeenCalledWith('Enqueueing 0 RopewikiImages for image processing...');
+        expect(consoleLogSpy).toHaveBeenCalledWith(
+            'Enqueueing 0 RopewikiImages for image processing (remakeDownloadFolders)...',
+        );
+        expect(mockCreateFreshPageZipperJob).not.toHaveBeenCalled();
         expect(mockSendImageProcessorSQSMessage).not.toHaveBeenCalled();
         expect(result.statusCode).toBe(200);
         expect(JSON.parse(result.body).enqueuedCount).toBe(0);
@@ -166,9 +216,11 @@ describe('reprocessImagesHandler', () => {
                 PageDataSource.Ropewiki,
                 'img-1',
                 'https://ropewiki.com/images/1.jpg',
+                'page-1',
                 true,
                 undefined,
                 [ImageVersion.linkPreview],
+                true,
             ),
         );
     });
@@ -190,8 +242,11 @@ describe('reprocessImagesHandler', () => {
                 PageDataSource.Ropewiki,
                 'img-1',
                 'https://ropewiki.com/images/1.jpg',
+                'page-1',
                 false,
                 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
+                undefined,
+                true,
             ),
         );
     });

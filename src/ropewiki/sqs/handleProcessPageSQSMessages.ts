@@ -43,8 +43,17 @@ const handleProcessPageSQSMessages = async (
 
         const record: SqsRecord = records[i]!;
         let page: RopewikiPage | undefined;
+        let makeDownloadFolder = true;
 
         try {
+            if (!record.body) {
+                throw new Error('SQS record missing body');
+            }
+            const parsed = JSON.parse(record.body) as { makeDownloadFolder?: boolean | null };
+            if (parsed.makeDownloadFolder != null && typeof parsed.makeDownloadFolder !== 'boolean') {
+                throw new Error('makeDownloadFolder must be a boolean when provided');
+            }
+            makeDownloadFolder = parsed.makeDownloadFolder ?? true;
             page = RopewikiPage.fromSQSEventRecord(record);
         } catch (error) {
             const errorMessage = error instanceof Error ? error.message : String(error);
@@ -56,7 +65,7 @@ const handleProcessPageSQSMessages = async (
         try {
             const savepointName = `sp_page_${i}`;
             await timeoutAfter(processPageTimeoutMs, () =>
-                processPage(client, page, logger, savepointName),
+                processPage(client, page, logger, savepointName, makeDownloadFolder),
             );
             await deleteProcessPageSQSMessage(record.receiptHandle);
         } catch (error) {

@@ -8,6 +8,7 @@ import getLegendItemIdsCompletedForJob from '../database/getLegendItemIdsComplet
 import getRelevantContextJobById from '../database/getRelevantContextJobById';
 import replaceRelevantContextJobErrors from '../database/replaceRelevantContextJobErrors';
 import deleteRelevantContextJob from '../database/deleteRelevantContextJob';
+import { flipPageZipperLegendItemReady } from '../util/flipPageZipperLegendItemReady';
 import { getRelevanceModelMaxAttempts } from '../util/getRelevanceModelMaxAttempts';
 import { processLegendItem } from './processLegendItem';
 import type { RelevanceJobEvent } from '../types/relevanceJobEvent';
@@ -71,6 +72,12 @@ const processRelevanceJob = async (
     const completedIds = await getLegendItemIdsCompletedForJob(conn, mapDataId, job.id);
     const pendingItems = input.legendItems.filter((item) => !completedIds.has(item.id));
     const skippedCount = input.legendItems.length - pendingItems.length;
+
+    if (job.makeDownloadFolder) {
+        for (const legendItemId of completedIds) {
+            await flipPageZipperLegendItemReady(conn, job.pageId, legendItemId);
+        }
+    }
 
     if (pendingItems.length === 0) {
         logger.logProgress(
@@ -136,11 +143,16 @@ const processRelevanceJob = async (
             ),
         );
 
-        for (const outcome of batchOutcomes) {
+        for (let j = 0; j < batchOutcomes.length; j++) {
+            const outcome = batchOutcomes[j]!;
+            const legendItem = batch[j]!;
             if (outcome.ok) {
                 processedCount += 1;
                 totalUsage = addUsage(totalUsage, outcome.result.usage);
                 totalCostUsd += outcome.result.estimatedCostUsd;
+                if (job.makeDownloadFolder) {
+                    await flipPageZipperLegendItemReady(conn, job.pageId, legendItem.id);
+                }
             } else {
                 jobErrors.push(outcome.error);
                 logger.logError(

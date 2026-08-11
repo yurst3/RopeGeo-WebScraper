@@ -2,7 +2,7 @@ import { describe, it, expect, beforeAll, afterAll, afterEach } from '@jest/glob
 import { Pool } from 'pg';
 import * as db from 'zapatos/db';
 import { invalidateDownloadFolderForPages } from '../../../src/ropewiki/database/invalidateDownloadFolderForPage';
-import { updateRopewikiFolderForPage } from '../../../src/fargate-tasks/buildDownloadFolders/database/updateRopewikiFolderForPage';
+import { updateRopewikiFolderForPage } from '../../../src/page-zipper/database/updateRopewikiFolderForPage';
 
 describe('invalidateDownloadFolderForPages (integration)', () => {
     const pool = new Pool({

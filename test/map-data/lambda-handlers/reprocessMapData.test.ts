@@ -1,4 +1,5 @@
 import { describe, it, expect, beforeEach, jest } from '@jest/globals';
+import { PageDataSource } from 'ropegeo-common/models';
 import { RopewikiRoute } from '../../../src/types/pageRoute';
 import { reprocessMapData } from '../../../src/map-data/lambda-handlers/reprocessMapData';
 
@@ -27,12 +28,21 @@ jest.mock('../../../src/ropewiki/sqs/sendMapDataSQSMessage', () => ({
     default: jest.fn(),
 }));
 
+jest.mock('../../../src/page-zipper/database/createFreshPageZipperJob', () => ({
+    __esModule: true,
+    default: jest.fn(),
+}));
+
 let consoleLogSpy: ReturnType<typeof jest.spyOn>;
 let consoleErrorSpy: ReturnType<typeof jest.spyOn>;
 
 const SAMPLE_ID = '0827ba8b-27b3-40dc-8385-06f823dbf535';
 
 describe('reprocessMapData', () => {
+    let mockCreateFreshPageZipperJob: jest.MockedFunction<
+        typeof import('../../../src/page-zipper/database/createFreshPageZipperJob').default
+    >;
+
     beforeEach(() => {
         jest.clearAllMocks();
 
@@ -49,10 +59,13 @@ describe('reprocessMapData', () => {
         mockListRopewikiMapDataReprocessTargets = require('../../../src/map-data/database/listRopewikiMapDataReprocessTargets')
             .listRopewikiMapDataReprocessTargets;
         mockSendMapDataSQSMessage = require('../../../src/ropewiki/sqs/sendMapDataSQSMessage').default;
+        mockCreateFreshPageZipperJob =
+            require('../../../src/page-zipper/database/createFreshPageZipperJob').default;
 
         mockGetDatabaseConnection.mockResolvedValue(mockPool as never);
         mockListRopewikiMapDataReprocessTargets.mockResolvedValue([]);
         mockSendMapDataSQSMessage.mockResolvedValue(undefined);
+        mockCreateFreshPageZipperJob.mockResolvedValue({ id: 'zipper-1' } as never);
     });
 
     it('lists targets with onlyStored true when downloadSource defaults false, sends one SQS per row', async () => {
@@ -68,6 +81,16 @@ describe('reprocessMapData', () => {
             true,
             undefined,
         );
+        expect(mockCreateFreshPageZipperJob).toHaveBeenCalledTimes(2);
+        expect(mockCreateFreshPageZipperJob).toHaveBeenNthCalledWith(1, mockClient, {
+            pageId: 'p1',
+            pageSource: PageDataSource.Ropewiki,
+            pageReady: true,
+            imageDataReady: {},
+            pageHasMapData: true,
+            mapDataLegendItemsReady: null,
+            mapDataId: 'm1',
+        });
         expect(mockSendMapDataSQSMessage).toHaveBeenCalledTimes(2);
         const first = mockSendMapDataSQSMessage.mock.calls[0]![0] as RopewikiRoute;
         const second = mockSendMapDataSQSMessage.mock.calls[1]![0] as RopewikiRoute;
@@ -84,6 +107,7 @@ describe('reprocessMapData', () => {
         expect(body.downloadSource).toBe(false);
         expect(body.cleanOutlierPoints).toBe(false);
         expect(body.processRelevantContext).toBe(true);
+        expect(body.remakeDownloadFolders).toBe(true);
     });
 
     it('passes onlyStored false when downloadSource true', async () => {
@@ -131,6 +155,30 @@ describe('reprocessMapData', () => {
         expect(body.processRelevantContext).toBe(false);
         expect(body.includeMapDataIds).toEqual([SAMPLE_ID]);
         expect(body.enqueuedCount).toBe(1);
+        expect(body.remakeDownloadFolders).toBe(true);
+    });
+
+    it('skips PageZipperJob remake when remakeDownloadFolders is false', async () => {
+        mockListRopewikiMapDataReprocessTargets.mockResolvedValue([
+            { routeId: 'r1', pageId: 'p1', mapDataId: 'm1' },
+        ]);
+
+        await reprocessMapData({ body: JSON.stringify({ remakeDownloadFolders: false }) });
+
+        expect(mockCreateFreshPageZipperJob).not.toHaveBeenCalled();
+        expect(mockSendMapDataSQSMessage).toHaveBeenCalledTimes(1);
+    });
+
+    it('creates one fresh PageZipperJob per page when multiple routes share a page', async () => {
+        mockListRopewikiMapDataReprocessTargets.mockResolvedValue([
+            { routeId: 'r1', pageId: 'p1', mapDataId: 'm1' },
+            { routeId: 'r2', pageId: 'p1', mapDataId: 'm1' },
+        ]);
+
+        await reprocessMapData();
+
+        expect(mockCreateFreshPageZipperJob).toHaveBeenCalledTimes(1);
+        expect(mockSendMapDataSQSMessage).toHaveBeenCalledTimes(2);
     });
 
     it('returns 400 on invalid event body', async () => {

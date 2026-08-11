@@ -1,4 +1,4 @@
-\restrict iEbuzQRFIWHi0grcg72FIphW9aUPlbaBQLAhe2SPDKytSQp9g9xReNDgofPgbRM
+\restrict ExefJrYh8fedMjgw7gbjkWwfzzwso4RkXRZmLvHTe7Wk3RQAGE0ffPvlhEYtKee
 
 -- Dumped from database version 18.1 (Debian 18.1-1.pgdg13+2)
 -- Dumped by pg_dump version 18.1 (Homebrew)
@@ -168,6 +168,24 @@ CREATE TABLE public."MapDataSegmentLegendItem" (
     bounds jsonb NOT NULL,
     "strokeColor" text,
     "strokeWidth" text,
+    "createdAt" timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    "updatedAt" timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL
+);
+
+
+--
+-- Name: PageZipperJob; Type: TABLE; Schema: public; Owner: -
+--
+
+CREATE TABLE public."PageZipperJob" (
+    id uuid DEFAULT gen_random_uuid() NOT NULL,
+    "pageId" uuid NOT NULL,
+    "pageSource" text NOT NULL,
+    "pageReady" boolean DEFAULT false NOT NULL,
+    "mapDataId" uuid,
+    "pageHasMapData" boolean DEFAULT true NOT NULL,
+    "mapDataLegendItemsReady" jsonb,
+    "imageDataReady" jsonb,
     "createdAt" timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
     "updatedAt" timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL
 );
@@ -449,6 +467,22 @@ ALTER TABLE ONLY public."MapData"
 
 
 --
+-- Name: PageZipperJob PageZipperJob_pageId_key; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public."PageZipperJob"
+    ADD CONSTRAINT "PageZipperJob_pageId_key" UNIQUE ("pageId");
+
+
+--
+-- Name: PageZipperJob PageZipperJob_pkey; Type: CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public."PageZipperJob"
+    ADD CONSTRAINT "PageZipperJob_pkey" PRIMARY KEY (id);
+
+
+--
 -- Name: RopewikiAkaName RopewikiAkaName_pkey; Type: CONSTRAINT; Schema: public; Owner: -
 --
 
@@ -670,6 +704,13 @@ CREATE INDEX "idx_mapDataSegmentLegendItem_mapData" ON public."MapDataSegmentLeg
 
 
 --
+-- Name: idx_pageZipperJob_mapDataId; Type: INDEX; Schema: public; Owner: -
+--
+
+CREATE INDEX "idx_pageZipperJob_mapDataId" ON public."PageZipperJob" USING btree ("mapDataId");
+
+
+--
 -- Name: uk_ropewikiImage_ropewikiPage_betaSection_order; Type: INDEX; Schema: public; Owner: -
 --
 
@@ -730,6 +771,14 @@ ALTER TABLE ONLY public."MapDataRelevantContext"
 
 ALTER TABLE ONLY public."MapDataSegmentLegendItem"
     ADD CONSTRAINT "fk_mapDataSegmentLegendItem_mapData" FOREIGN KEY ("mapData") REFERENCES public."MapData"(id) ON DELETE CASCADE;
+
+
+--
+-- Name: PageZipperJob fk_pageZipperJob_mapData; Type: FK CONSTRAINT; Schema: public; Owner: -
+--
+
+ALTER TABLE ONLY public."PageZipperJob"
+    ADD CONSTRAINT "fk_pageZipperJob_mapData" FOREIGN KEY ("mapDataId") REFERENCES public."MapData"(id) ON DELETE SET NULL;
 
 
 --
@@ -824,7 +873,7 @@ ALTER TABLE ONLY public."RopewikiRoute"
 -- PostgreSQL database dump complete
 --
 
-\unrestrict iEbuzQRFIWHi0grcg72FIphW9aUPlbaBQLAhe2SPDKytSQp9g9xReNDgofPgbRM
+\unrestrict ExefJrYh8fedMjgw7gbjkWwfzzwso4RkXRZmLvHTe7Wk3RQAGE0ffPvlhEYtKee
 
 
 --
@@ -878,4 +927,5 @@ INSERT INTO public.schema_migrations (version) VALUES
     ('20260712153354'),
     ('20260715160000'),
     ('20260715190000'),
-    ('20260720153000');
+    ('20260720153000'),
+    ('20260807120000');

@@ -7,10 +7,14 @@ import RopewikiPage from '../types/page';
  * When not local, validates that the page has an id and ROPEWIKI_PAGE_PROCESSING_QUEUE_URL is set, then sends the message with body (JSON page).
  *
  * @param page - The RopewikiPage to send
+ * @param makeDownloadFolder - When true (default), page processor seeds PageZipperJob readiness
  * @throws Error if not local and page.id is undefined
  * @throws Error if not local and ROPEWIKI_PAGE_PROCESSING_QUEUE_URL is not set
  */
-const sendProcessPageSQSMessage = async (page: RopewikiPage): Promise<void> => {
+const sendProcessPageSQSMessage = async (
+    page: RopewikiPage,
+    makeDownloadFolder: boolean = true,
+): Promise<void> => {
     const devEnvironment = process.env.DEV_ENVIRONMENT;
 
     if (devEnvironment === 'local') {
@@ -27,7 +31,11 @@ const sendProcessPageSQSMessage = async (page: RopewikiPage): Promise<void> => {
         throw new Error('ROPEWIKI_PAGE_PROCESSING_QUEUE_URL environment variable is not set');
     }
 
-    await sendSQSMessage(JSON.stringify(page), queueUrl);
+    const body = JSON.stringify({
+        ...JSON.parse(JSON.stringify(page)),
+        makeDownloadFolder,
+    });
+    await sendSQSMessage(body, queueUrl);
 };
 
 export default sendProcessPageSQSMessage;

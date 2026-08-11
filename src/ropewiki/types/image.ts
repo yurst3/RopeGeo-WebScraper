@@ -18,6 +18,8 @@ export interface ImageInsertRow {
 export class RopewikiImage {
     /** Set when built from DB (e.g. fromDbRow); required for toImageDataEvent(). */
     id?: string;
+    /** Set when built from DB (e.g. fromDbRow); RopewikiPage FK for page-zipper grouping. */
+    pageId?: string;
     /** Set when built from DB (e.g. upsertImages RETURNING). FK to ImageData when present. */
     processedImage?: string | null;
     betaSectionTitle: string | undefined;
@@ -53,25 +55,37 @@ export class RopewikiImage {
             row.order ?? 0,
         );
         img.id = row.id;
+        img.pageId = row.ropewikiPage;
         img.processedImage = row.processedImage ?? null;
         return img;
     }
 
     /**
      * Returns an ImageDataEvent for this image (e.g. to enqueue for AVIF processing).
-     * @throws Error if this image has no id (e.g. not loaded from DB)
+     * @throws Error if this image has no id or pageId (e.g. not loaded from DB)
      */
-    toImageDataEvent(downloadSource: boolean = true, versions?: ImageVersion[]): ImageDataEvent {
+    toImageDataEvent(
+        downloadSource: boolean = true,
+        versions?: ImageVersion[],
+        pageId?: string,
+        makeDownloadFolder: boolean = true,
+    ): ImageDataEvent {
         if (this.id === undefined || this.id === null || this.id === '') {
             throw new Error('RopewikiImage must have an id to create ImageDataEvent');
+        }
+        const resolvedPageId = pageId ?? this.pageId;
+        if (resolvedPageId === undefined || resolvedPageId === null || resolvedPageId === '') {
+            throw new Error('RopewikiImage must have a pageId to create ImageDataEvent');
         }
         return new ImageDataEvent(
             PageDataSource.Ropewiki,
             this.id,
             this.fileUrl,
+            resolvedPageId,
             downloadSource,
             this.processedImage ?? undefined,
             versions,
+            makeDownloadFolder,
         );
     }
 

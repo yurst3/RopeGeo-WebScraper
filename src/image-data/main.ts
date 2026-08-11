@@ -3,6 +3,7 @@ import { PoolClient } from 'pg';
 import { processImageData } from './processors/processImageData';
 import upsertImageData from './database/upsertImageData';
 import updateProcessedImageForSource from './util/updateProcessedImageForSource';
+import { flipPageZipperImageDataReady } from './util/flipPageZipperImageDataReady';
 import type { SaveImageDataHookFn } from './hook-functions/saveImageData';
 import { ImageDataEvent } from './types/lambdaEvent';
 import { ProgressLogger } from 'ropegeo-common/helpers';
@@ -13,7 +14,7 @@ import { ProgressLogger } from 'ropegeo-common/helpers';
  * On conversion failure, processImageData returns ImageData with errorMessage; we still
  * upsert and set processedImage so we don't retry indefinitely.
  *
- * @param imageDataEvent - The event (pageDataSource, pageImageId, sourceUrl, …)
+ * @param imageDataEvent - The event (pageDataSource, pageImageId, sourceUrl, pageId, …)
  * @param saveImageDataHookFn - Hook to persist AVIF buffers and return ImageData
  * @param logger - Progress logger
  * @param client - Database client
@@ -57,4 +58,13 @@ export const main = async (
         imageDataEvent.pageImageId,
         persistedId,
     );
+
+    if (imageDataEvent.makeDownloadFolder !== false) {
+        await flipPageZipperImageDataReady(
+            client,
+            imageDataEvent.pageId,
+            imageDataEvent.pageDataSource,
+            imageDataEvent.pageImageId,
+        );
+    }
 };

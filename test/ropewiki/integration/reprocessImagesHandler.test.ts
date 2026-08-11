@@ -17,6 +17,11 @@ jest.mock('../../../src/image-data/sqs/sendImageProcessorSQSMessage', () => {
     };
 });
 
+jest.mock('../../../src/page-zipper/database/createFreshPageZipperJob', () => ({
+    __esModule: true,
+    default: jest.fn(async () => ({ id: 'zipper-job' })),
+}));
+
 const mockSendImageProcessorSQSMessage = jest.mocked(sendImageProcessorSQSMessage);
 
 /**

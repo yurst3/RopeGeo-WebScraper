@@ -19,6 +19,7 @@ describe('sendRelevanceSQSMessage', () => {
         mapDataId: 'map-1',
         pageId: 'page-1',
         pageSource: PageDataSource.Ropewiki,
+        makeDownloadFolder: true,
     };
 
     beforeEach(() => {

@@ -5,6 +5,11 @@ export type ReprocessImagesEventOptions = {
     downloadSource?: boolean;
     onlyUnprocessed?: boolean;
     versions?: ImageVersion[];
+    /**
+     * When true (default), create a fresh PageZipperJob per page and pass
+     * makeDownloadFolder on ImageDataEvents (once supported).
+     */
+    remakeDownloadFolders?: boolean;
 };
 
 /**
@@ -16,10 +21,12 @@ export class ReprocessImagesEvent {
     downloadSource: boolean;
     onlyUnprocessed: boolean;
     versions?: ImageVersion[];
+    remakeDownloadFolders: boolean;
 
     constructor(options?: ReprocessImagesEventOptions) {
         this.downloadSource = options?.downloadSource ?? true;
         this.onlyUnprocessed = options?.onlyUnprocessed ?? true;
+        this.remakeDownloadFolders = options?.remakeDownloadFolders ?? true;
         if (!this.downloadSource && this.onlyUnprocessed) {
             throw new Error(
                 'Invalid ReprocessImagesEvent: onlyUnprocessed cannot be true when downloadSource is false',
@@ -43,6 +50,7 @@ export class ReprocessImagesEvent {
         let downloadSource: boolean | undefined;
         let onlyUnprocessed: boolean | undefined;
         let versions: ImageVersion[] | undefined;
+        let remakeDownloadFolders: boolean | undefined;
         if ('downloadSource' in o) {
             if (typeof o.downloadSource !== 'boolean') {
                 throw new Error(
@@ -67,6 +75,14 @@ export class ReprocessImagesEvent {
             }
             versions = o.versions;
         }
+        if ('remakeDownloadFolders' in o && o.remakeDownloadFolders !== undefined) {
+            if (typeof o.remakeDownloadFolders !== 'boolean') {
+                throw new Error(
+                    'Invalid ReprocessImagesEvent: remakeDownloadFolders must be a boolean when provided',
+                );
+            }
+            remakeDownloadFolders = o.remakeDownloadFolders;
+        }
         const opts: ReprocessImagesEventOptions = {};
         if (downloadSource !== undefined) {
             opts.downloadSource = downloadSource;
@@ -76,6 +92,9 @@ export class ReprocessImagesEvent {
         }
         if (versions !== undefined) {
             opts.versions = versions;
+        }
+        if (remakeDownloadFolders !== undefined) {
+            opts.remakeDownloadFolders = remakeDownloadFolders;
         }
         return new ReprocessImagesEvent(opts);
     }
@@ -116,7 +135,8 @@ export class ReprocessImagesEvent {
         return (
             ('downloadSource' in o && o.downloadSource !== undefined) ||
             ('onlyUnprocessed' in o && o.onlyUnprocessed !== undefined) ||
-            ('versions' in o && o.versions !== undefined)
+            ('versions' in o && o.versions !== undefined) ||
+            ('remakeDownloadFolders' in o && o.remakeDownloadFolders !== undefined)
         );
     }
 }

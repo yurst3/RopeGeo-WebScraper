@@ -69,6 +69,18 @@ describe('tryEnqueueRelevanceJob', () => {
             mapDataId: 'map-1',
             pageId: 'page-1',
             pageSource: PageDataSource.Ropewiki,
+            makeDownloadFolder: true,
+        });
+    });
+
+    it('forwards makeDownloadFolder false into the SQS message', async () => {
+        await tryEnqueueRelevanceJob(job(), false);
+        expect(sendRelevanceSQSMessage).toHaveBeenCalledWith({
+            id: 'job-1',
+            mapDataId: 'map-1',
+            pageId: 'page-1',
+            pageSource: PageDataSource.Ropewiki,
+            makeDownloadFolder: false,
         });
     });
 });

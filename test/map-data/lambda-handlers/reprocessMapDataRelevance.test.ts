@@ -1,4 +1,5 @@
 import { describe, it, expect, beforeEach, jest } from '@jest/globals';
+import { PageDataSource } from 'ropegeo-common/models';
 import { reprocessMapDataRelevance } from '../../../src/map-data/lambda-handlers/reprocessMapDataRelevance';
 
 jest.mock('../../../src/helpers/getDatabaseConnection', () => ({
@@ -17,6 +18,14 @@ jest.mock('../../../src/map-data/database/deleteAllRelevantContextJobs', () => (
     default: jest.fn(),
 }));
 jest.mock('../../../src/map-data/sqs/purgeRelevanceQueues', () => ({
+    __esModule: true,
+    default: jest.fn(),
+}));
+jest.mock('../../../src/map-data/database/getMapDataLegendItems', () => ({
+    __esModule: true,
+    default: jest.fn(),
+}));
+jest.mock('../../../src/page-zipper/database/createFreshPageZipperJob', () => ({
     __esModule: true,
     default: jest.fn(),
 }));
@@ -42,6 +51,15 @@ const mockPurgeRelevanceQueues = require('../../../src/map-data/sqs/purgeRelevan
     .default as jest.MockedFunction<
     typeof import('../../../src/map-data/sqs/purgeRelevanceQueues').default
 >;
+const mockGetMapDataLegendItems = require('../../../src/map-data/database/getMapDataLegendItems')
+    .default as jest.MockedFunction<
+    typeof import('../../../src/map-data/database/getMapDataLegendItems').default
+>;
+const mockCreateFreshPageZipperJob =
+    require('../../../src/page-zipper/database/createFreshPageZipperJob')
+        .default as jest.MockedFunction<
+        typeof import('../../../src/page-zipper/database/createFreshPageZipperJob').default
+    >;
 
 const SAMPLE_ID = '0827ba8b-27b3-40dc-8385-06f823dbf535';
 
@@ -64,6 +82,12 @@ describe('reprocessMapDataRelevance', () => {
         mockCreateFreshRelevanceContextJob.mockResolvedValue({ id: 'job-1' } as never);
         mockDeleteAllRelevantContextJobs.mockResolvedValue(0);
         mockPurgeRelevanceQueues.mockResolvedValue(undefined);
+        mockGetMapDataLegendItems.mockResolvedValue({
+            markerRows: [],
+            segmentRows: [],
+            polygonRows: [],
+        } as never);
+        mockCreateFreshPageZipperJob.mockResolvedValue({ id: 'zipper-1' } as never);
     });
 
     it('creates a fresh job for each target and returns enqueuedCount', async () => {
@@ -71,6 +95,17 @@ describe('reprocessMapDataRelevance', () => {
             { pageId: 'p1', mapDataId: 'm1' },
             { pageId: 'p2', mapDataId: 'm2' },
         ]);
+        mockGetMapDataLegendItems
+            .mockResolvedValueOnce({
+                markerRows: [{ id: 'leg-1' }],
+                segmentRows: [],
+                polygonRows: [{ id: 'leg-2' }],
+            } as never)
+            .mockResolvedValueOnce({
+                markerRows: [],
+                segmentRows: [{ id: 'leg-3' }],
+                polygonRows: [],
+            } as never);
 
         const result = await reprocessMapDataRelevance();
 
@@ -86,11 +121,22 @@ describe('reprocessMapDataRelevance', () => {
             mapDataId: 'm2',
             pageId: 'p2',
         });
+        expect(mockCreateFreshPageZipperJob).toHaveBeenCalledTimes(2);
+        expect(mockCreateFreshPageZipperJob).toHaveBeenNthCalledWith(1, mockClient, {
+            pageId: 'p1',
+            pageSource: PageDataSource.Ropewiki,
+            mapDataId: 'm1',
+            pageReady: true,
+            pageHasMapData: true,
+            mapDataLegendItemsReady: { 'leg-1': false, 'leg-2': false },
+            imageDataReady: {},
+        });
         expect(result.statusCode).toBe(200);
         expect(JSON.parse(result.body)).toEqual({
             message: 'MapData relevance reprocessor completed successfully',
             enqueuedCount: 2,
             clearMessagesAndJobs: false,
+            remakeDownloadFolders: true,
         });
         expect(mockClient.release).toHaveBeenCalled();
     });
@@ -111,6 +157,7 @@ describe('reprocessMapDataRelevance', () => {
             message: 'MapData relevance reprocessor completed successfully',
             enqueuedCount: 1,
             clearMessagesAndJobs: true,
+            remakeDownloadFolders: true,
             deletedJobCount: 4,
         });
     });
@@ -130,8 +177,22 @@ describe('reprocessMapDataRelevance', () => {
             message: 'MapData relevance reprocessor completed successfully',
             enqueuedCount: 1,
             clearMessagesAndJobs: false,
+            remakeDownloadFolders: true,
             includeMapDataIds: [SAMPLE_ID],
         });
+    });
+
+    it('skips PageZipperJob remake when remakeDownloadFolders is false', async () => {
+        mockListRelevanceReprocessTargets.mockResolvedValue([
+            { pageId: 'p1', mapDataId: 'm1' },
+        ]);
+
+        const result = await reprocessMapDataRelevance({ remakeDownloadFolders: false });
+
+        expect(mockCreateFreshRelevanceContextJob).toHaveBeenCalledTimes(1);
+        expect(mockGetMapDataLegendItems).not.toHaveBeenCalled();
+        expect(mockCreateFreshPageZipperJob).not.toHaveBeenCalled();
+        expect(JSON.parse(result.body).remakeDownloadFolders).toBe(false);
     });
 
     it('returns 400 for invalid event payloads', async () => {

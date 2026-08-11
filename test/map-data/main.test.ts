@@ -68,6 +68,10 @@ jest.mock('../../src/map-data/database/upsertRelevanceContextJob', () => ({
     upsertRelevanceContextJob: jest.fn(),
 }));
 
+jest.mock('../../src/map-data/util/upsertPageZipperMapDataLegendItemsReady', () => ({
+    upsertPageZipperMapDataLegendItemsReady: jest.fn(),
+}));
+
 jest.mock('../../src/map-data/util/getMapDataAuthors', () => ({
     __esModule: true,
     default: jest.fn(),
@@ -108,6 +112,9 @@ describe('main', () => {
 
         const upsertRelevanceContextJobModule = require('../../src/map-data/database/upsertRelevanceContextJob');
         mockUpsertRelevanceContextJob = upsertRelevanceContextJobModule.upsertRelevanceContextJob;
+
+        const upsertPageZipperMapDataLegendItemsReadyModule = require('../../src/map-data/util/upsertPageZipperMapDataLegendItemsReady');
+        upsertPageZipperMapDataLegendItemsReadyModule.upsertPageZipperMapDataLegendItemsReady.mockResolvedValue(undefined);
 
         const getMapDataAuthorsModule = require('../../src/map-data/util/getMapDataAuthors');
         mockGetMapDataAuthors = getMapDataAuthorsModule.default;
@@ -352,6 +359,7 @@ describe('main', () => {
             mapDataId: 'map-id',
             pageId,
             pageSource: pageDataSource,
+            makeDownloadFolder: true,
         });
     });
 

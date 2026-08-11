@@ -7,7 +7,7 @@ import { ProgressLogger } from 'ropegeo-common/helpers';
 
 const queries: Record<PageDataSource, string> = {
     [PageDataSource.Ropewiki]: `
-        SELECT id, "fileUrl"
+        SELECT id, "fileUrl", "ropewikiPage" AS "pageId"
         FROM "RopewikiImage"
         WHERE "deletedAt" IS NULL
         ORDER BY RANDOM()
@@ -18,7 +18,7 @@ const queries: Record<PageDataSource, string> = {
 /** When filtering by extension, use a parameterized query. $1 = ILIKE pattern (e.g. '%.jpg'). */
 const queriesByExtension: Record<PageDataSource, string> = {
     [PageDataSource.Ropewiki]: `
-        SELECT id, "fileUrl"
+        SELECT id, "fileUrl", "ropewikiPage" AS "pageId"
         FROM "RopewikiImage"
         WHERE "deletedAt" IS NULL
           AND "fileUrl" ILIKE $1
@@ -27,7 +27,7 @@ const queriesByExtension: Record<PageDataSource, string> = {
     `,
 };
 
-type ImageRow = { id: string; fileUrl: string };
+type ImageRow = { id: string; fileUrl: string; pageId: string };
 
 /** Normalize and validate file extension: lowercase, no leading dot, alphanumeric only. */
 function parseFileExtension(arg: string | undefined): string | null {
@@ -84,9 +84,9 @@ async function processImageDataScript() {
         }
 
         const row = result.rows[0]!;
-        const event = new ImageDataEvent(pageDataSource, row.id, row.fileUrl);
+        const event = new ImageDataEvent(pageDataSource, row.id, row.fileUrl, row.pageId);
 
-        console.log(`Selected image (${pageDataSource}) id=${row.id}, fileUrl=${row.fileUrl}`);
+        console.log(`Selected image (${pageDataSource}) id=${row.id}, pageId=${row.pageId}, fileUrl=${row.fileUrl}`);
 
         const logger = new ProgressLogger('Processing image data', 1);
         logger.setChunk(0, 1);

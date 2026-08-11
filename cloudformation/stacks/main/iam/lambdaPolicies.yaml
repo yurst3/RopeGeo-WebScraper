@@ -130,6 +130,32 @@ Resources:
               - 'sqs:PurgeQueue'
             Resource:
               'Fn::GetAtt': MapDataRelevanceProcessingDLQ.Arn
+  SQSPageZipperQueuePolicy:
+    Type: 'AWS::IAM::ManagedPolicy'
+    Properties:
+      ManagedPolicyName:
+        'Fn::Sub': '${AWS::StackName}-sqs-page-zipper-queue-readwrite'
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Action:
+              - 'sqs:SendMessage'
+              - 'sqs:ReceiveMessage'
+              - 'sqs:ChangeMessageVisibility'
+              - 'sqs:DeleteMessage'
+              - 'sqs:GetQueueAttributes'
+              - 'sqs:PurgeQueue'
+            Resource:
+              'Fn::GetAtt': PageZipperQueue.Arn
+          - Effect: Allow
+            Action:
+              - 'sqs:ReceiveMessage'
+              - 'sqs:ChangeMessageVisibility'
+              - 'sqs:GetQueueAttributes'
+              - 'sqs:PurgeQueue'
+            Resource:
+              'Fn::GetAtt': PageZipperDLQ.Arn
   S3ImageDataBucketPolicy:
     Type: 'AWS::IAM::ManagedPolicy'
     Properties:
@@ -188,6 +214,7 @@ Resources:
               - 'Fn::GetAtt': MapDataProcessingDLQ.Arn
               - 'Fn::GetAtt': RopewikiPageProcessingDLQ.Arn
               - 'Fn::GetAtt': MapDataRelevanceProcessingDLQ.Arn
+              - 'Fn::GetAtt': PageZipperDLQ.Arn
           - Effect: Allow
             Action: 'sqs:SendMessage'
             Resource:
@@ -195,6 +222,7 @@ Resources:
               - 'Fn::GetAtt': MapDataProcessingQueue.Arn
               - 'Fn::GetAtt': RopewikiPageProcessingQueue.Arn
               - 'Fn::GetAtt': MapDataRelevanceProcessingQueue.Arn
+              - 'Fn::GetAtt': PageZipperQueue.Arn
   CloudFrontInvalidationPolicy:
     Type: 'AWS::IAM::ManagedPolicy'
     Condition: HasCloudFrontDistribution

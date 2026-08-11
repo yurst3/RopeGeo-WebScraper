@@ -24,7 +24,6 @@ Resources:
               - 'ecr:CompleteLayerUpload'
             Resource:
               - 'Fn::Sub': 'arn:aws:ecr:${AWS::Region}:${AWS::AccountId}:repository/${GenerateTrailTilesRepository}'
-              - 'Fn::Sub': 'arn:aws:ecr:${AWS::Region}:${AWS::AccountId}:repository/${BuildDownloadFoldersRepository}'
               - 'Fn::Sub': 'arn:aws:ecr:${AWS::Region}:${AWS::AccountId}:repository/${BackfillAttributionRepository}'
       Roles:
         'Fn::If':

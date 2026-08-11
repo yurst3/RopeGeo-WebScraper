@@ -3,10 +3,11 @@ import { ImageVersion } from 'ropegeo-common/models';
 import { ReprocessImagesEvent } from '../../../src/ropewiki/types/reprocessImagesEvent';
 
 describe('ReprocessImagesEvent', () => {
-    it('defaults downloadSource and onlyUnprocessed to true', () => {
+    it('defaults downloadSource, onlyUnprocessed, and remakeDownloadFolders to true', () => {
         const e = new ReprocessImagesEvent();
         expect(e.downloadSource).toBe(true);
         expect(e.onlyUnprocessed).toBe(true);
+        expect(e.remakeDownloadFolders).toBe(true);
     });
 
     it('fromParsedBody applies overrides', () => {

@@ -24,10 +24,19 @@ jest.mock('../../../src/ropewiki/sqs/sendProcessPageSQSMessage', () => ({
     default: jest.fn(),
 }));
 
+jest.mock('../../../src/page-zipper/database/createFreshPageZipperJob', () => ({
+    __esModule: true,
+    default: jest.fn(),
+}));
+
 let consoleLogSpy: ReturnType<typeof jest.spyOn>;
 let consoleErrorSpy: ReturnType<typeof jest.spyOn>;
 
 describe('reprocessPagesHandler', () => {
+    let mockCreateFreshPageZipperJob: jest.MockedFunction<
+        typeof import('../../../src/page-zipper/database/createFreshPageZipperJob').default
+    >;
+
     beforeEach(() => {
         jest.clearAllMocks();
 
@@ -43,10 +52,13 @@ describe('reprocessPagesHandler', () => {
         mockGetDatabaseConnection = require('../../../src/helpers/getDatabaseConnection').default;
         mockGetAllPages = require('../../../src/ropewiki/database/getAllPages').default;
         mockSendProcessPageSQSMessage = require('../../../src/ropewiki/sqs/sendProcessPageSQSMessage').default;
+        mockCreateFreshPageZipperJob =
+            require('../../../src/page-zipper/database/createFreshPageZipperJob').default;
 
         mockGetDatabaseConnection.mockResolvedValue(mockPool as never);
         mockGetAllPages.mockResolvedValue([]);
         mockSendProcessPageSQSMessage.mockResolvedValue(undefined);
+        mockCreateFreshPageZipperJob.mockResolvedValue({ id: 'zipper-1' } as never);
     });
 
     it('gets connection, fetches all pages, sends SQS message for each, and returns 200', async () => {
@@ -61,15 +73,19 @@ describe('reprocessPagesHandler', () => {
         expect(mockGetDatabaseConnection).toHaveBeenCalledTimes(1);
         expect(mockPool.connect).toHaveBeenCalledTimes(1);
         expect(mockGetAllPages).toHaveBeenCalledWith(mockClient);
-        expect(consoleLogSpy).toHaveBeenCalledWith('Enqueueing 2 RopewikiPages for page processing...');
+        expect(consoleLogSpy).toHaveBeenCalledWith(
+            'Enqueueing 2 RopewikiPages for page processing (remakeDownloadFolders)...',
+        );
+        expect(mockCreateFreshPageZipperJob).toHaveBeenCalledTimes(2);
         expect(mockSendProcessPageSQSMessage).toHaveBeenCalledTimes(2);
-        expect(mockSendProcessPageSQSMessage).toHaveBeenNthCalledWith(1, mockPages[0]);
-        expect(mockSendProcessPageSQSMessage).toHaveBeenNthCalledWith(2, mockPages[1]);
+        expect(mockSendProcessPageSQSMessage).toHaveBeenNthCalledWith(1, mockPages[0], true);
+        expect(mockSendProcessPageSQSMessage).toHaveBeenNthCalledWith(2, mockPages[1], true);
         expect(result).toEqual({
             statusCode: 200,
             body: JSON.stringify({
                 message: 'Reprocess Ropewiki pages completed successfully',
                 enqueuedCount: 2,
+                remakeDownloadFolders: true,
             }),
         });
     });
@@ -79,7 +95,9 @@ describe('reprocessPagesHandler', () => {
 
         const result = await reprocessPagesHandler();
 
-        expect(consoleLogSpy).toHaveBeenCalledWith('Enqueueing 0 RopewikiPages for page processing...');
+        expect(consoleLogSpy).toHaveBeenCalledWith(
+            'Enqueueing 0 RopewikiPages for page processing (remakeDownloadFolders)...',
+        );
         expect(mockSendProcessPageSQSMessage).not.toHaveBeenCalled();
         expect(result.statusCode).toBe(200);
         expect(JSON.parse(result.body).enqueuedCount).toBe(0);

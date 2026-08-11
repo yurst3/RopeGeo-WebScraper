@@ -4,6 +4,7 @@ import findRelevanceJobInDlq from './findRelevanceJobInDlq';
 
 const tryEnqueueRelevanceJob = async (
     job: s.MapDataRelevantContextJob.JSONSelectable,
+    makeDownloadFolder: boolean = true,
 ): Promise<void> => {
     if (job.mapDataId == null || !job.pageReady) {
         return;
@@ -22,6 +23,7 @@ const tryEnqueueRelevanceJob = async (
         mapDataId: job.mapDataId,
         pageId: job.pageId,
         pageSource: job.pageSource,
+        makeDownloadFolder,
     });
 };
 

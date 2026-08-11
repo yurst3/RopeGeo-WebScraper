@@ -1,0 +1,81 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Lambda that builds page download ZIP bundles from PageZipperQueue
+
+Parameters:
+  PageZipPublicBaseUrl:
+    Type: String
+    Description: 'Public base URL for page ZIP downloads (e.g. https://api.webscraper.ropegeo.com/page-zips). Stored in RopewikiPage.downloadFolder.'
+    Default: 'https://api.webscraper.ropegeo.com/page-zips'
+
+Resources:
+  PageZipper:
+    Type: 'AWS::Serverless::Function'
+    Properties:
+      Description: Builds a single page download ZIP per PageZipperQueue message (zip, upload, update downloadFolder)
+      Runtime: nodejs22.x
+      Architectures:
+        - arm64
+      CodeUri: ../../
+      Handler: src/page-zipper/lambda-handlers/processPageZipperHandler.mainHandler
+      Events:
+        SQSEvent:
+          Type: SQS
+          Properties:
+            Queue:
+              'Fn::GetAtt': PageZipperQueue.Arn
+            BatchSize: 1
+            ScalingConfig:
+              MaximumConcurrency: 10
+      MemorySize: 3008
+      Timeout: 900
+      EphemeralStorage:
+        Size: 2048
+      VpcConfig:
+        SecurityGroupIds:
+          - Ref: LambdaSecurityGroup
+        SubnetIds:
+          - Ref: PrivateSubnet1
+      Role:
+        'Fn::GetAtt': PageZipperRole.Arn
+      Environment:
+        Variables:
+          DEV_ENVIRONMENT:
+            Ref: devEnvironment
+          PROXY_URL:
+            Ref: ProxyUrl
+          DB_HOST:
+            'Fn::If':
+              - UseDatabaseProxyInProd
+              - 'Fn::GetAtt': RDSProxy.Endpoint
+              - 'Fn::GetAtt': Database.Endpoint.Address
+          DB_PORT:
+            'Fn::GetAtt': Database.Endpoint.Port
+          USE_DATABASE_PROXY:
+            Ref: UseDatabaseProxy
+          DB_NAME:
+            'Fn::Sub': '${devEnvironment}db'
+          DB_USER:
+            Ref: DatabaseUsername
+          DB_PASSWORD:
+            Ref: DatabasePassword
+          PAGE_ZIPPER_QUEUE_URL:
+            Ref: PageZipperQueue
+          PAGE_ZIPPER_DLQ_URL:
+            Ref: PageZipperDLQ
+          PAGE_ZIPPER_PROCESSOR_TIMEOUT_SECONDS: '900'
+          PAGE_ZIP_BUCKET_NAME:
+            Ref: PageZipBucket
+          PAGE_ZIP_PUBLIC_BASE_URL:
+            Ref: PageZipPublicBaseUrl
+          MAP_DATA_BUCKET_NAME:
+            Ref: MapDataBucket
+          IMAGE_BUCKET_NAME:
+            Ref: ImageDataBucket
+    Metadata:
+      BuildMethod: esbuild
+      BuildProperties:
+        Minify: true
+        Target: esnext
+        Sourcemap: true
+        EntryPoints:
+          - src/page-zipper/lambda-handlers/processPageZipperHandler.ts

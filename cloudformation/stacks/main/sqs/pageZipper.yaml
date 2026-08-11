@@ -1,0 +1,44 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: FIFO SQS queues for page zipper processing
+
+Resources:
+  PageZipperDLQ:
+    Type: 'AWS::SQS::Queue'
+    Properties:
+      QueueName:
+        'Fn::Sub': '${devEnvironment}-page-zipper-dlq.fifo'
+      FifoQueue: true
+      ContentBasedDeduplication: false
+      MessageRetentionPeriod: 1209600
+  PageZipperDLQPolicy:
+    Type: 'AWS::SQS::QueuePolicy'
+    Properties:
+      Queues:
+        - Ref: PageZipperDLQ
+      PolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: sqs.amazonaws.com
+            Action: 'sqs:SendMessage'
+            Resource:
+              'Fn::GetAtt': PageZipperDLQ.Arn
+            Condition:
+              ArnEquals:
+                'aws:SourceArn':
+                  'Fn::GetAtt': PageZipperQueue.Arn
+  PageZipperQueue:
+    Type: 'AWS::SQS::Queue'
+    Properties:
+      QueueName:
+        'Fn::Sub': '${devEnvironment}-page-zipper-queue.fifo'
+      FifoQueue: true
+      ContentBasedDeduplication: false
+      VisibilityTimeout: 960
+      MessageRetentionPeriod: 345600
+      ReceiveMessageWaitTimeSeconds: 5
+      RedrivePolicy:
+        deadLetterTargetArn:
+          'Fn::GetAtt': PageZipperDLQ.Arn
+        maxReceiveCount: 5

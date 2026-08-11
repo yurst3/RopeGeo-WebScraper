@@ -41,6 +41,7 @@ describe('getSource', () => {
             PageDataSource.Ropewiki,
             '11111111-1111-1111-1111-111111111111',
             'https://example.com/source.jpg',
+            'page-aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaa',
             true,
         );
         mockDownloadSourceImage.mockResolvedValue('/tmp/image-data-xyz/downloaded.jpg');
@@ -64,6 +65,7 @@ describe('getSource', () => {
             PageDataSource.Ropewiki,
             '11111111-1111-1111-1111-111111111111',
             'https://example.com/source.jpg',
+            'page-aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaa',
             false,
             existingId,
         );
@@ -87,6 +89,7 @@ describe('getSource', () => {
             PageDataSource.Ropewiki,
             '11111111-1111-1111-1111-111111111111',
             'https://example.com/source.jpg',
+            'page-aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaa',
             false,
             existingId,
         );
@@ -105,6 +108,7 @@ describe('getSource', () => {
             PageDataSource.Ropewiki,
             '11111111-1111-1111-1111-111111111111',
             'https://example.com/source.jpg',
+            'page-aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaa',
             false,
             existingId,
         );

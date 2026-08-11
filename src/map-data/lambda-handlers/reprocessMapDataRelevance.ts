@@ -1,10 +1,14 @@
 import type { Pool, PoolClient } from 'pg';
+import { PageDataSource } from 'ropegeo-common/models';
 import getDatabaseConnection from '../../helpers/getDatabaseConnection';
 import { listRelevanceReprocessTargets } from '../database/listRelevanceReprocessTargets';
 import createFreshRelevanceContextJob from '../database/createFreshRelevanceContextJob';
 import deleteAllRelevantContextJobs from '../database/deleteAllRelevantContextJobs';
+import getMapDataLegendItems from '../database/getMapDataLegendItems';
 import purgeRelevanceQueues from '../sqs/purgeRelevanceQueues';
 import { MapDataRelevanceReprocessorEvent } from '../types/mapDataRelevanceReprocessorEvent';
+import createFreshPageZipperJob from '../../page-zipper/database/createFreshPageZipperJob';
+import type { ReadinessRecord } from '../../page-zipper/database/upsertPageZipperJob';
 
 /**
  * Lambda handler that recreates MapDataRelevantContextJobs for Ropewiki pages whose
@@ -61,7 +65,7 @@ export const reprocessMapDataRelevance = async (
                 reprocessorEvent.includeMapDataIds != null
                     ? ` (includeMapDataIds=${reprocessorEvent.includeMapDataIds.length})`
                     : ''
-            }...`,
+            }${reprocessorEvent.remakeDownloadFolders ? ' (remakeDownloadFolders)' : ''}...`,
         );
 
         for (const target of targets) {
@@ -69,6 +73,30 @@ export const reprocessMapDataRelevance = async (
                 mapDataId: target.mapDataId,
                 pageId: target.pageId,
             });
+
+            if (reprocessorEvent.remakeDownloadFolders) {
+                const legendRows = await getMapDataLegendItems(client, target.mapDataId);
+                const mapDataLegendItemsReady: ReadinessRecord = {};
+                for (const row of legendRows.markerRows) {
+                    mapDataLegendItemsReady[row.id] = false;
+                }
+                for (const row of legendRows.segmentRows) {
+                    mapDataLegendItemsReady[row.id] = false;
+                }
+                for (const row of legendRows.polygonRows) {
+                    mapDataLegendItemsReady[row.id] = false;
+                }
+
+                await createFreshPageZipperJob(client, {
+                    pageId: target.pageId,
+                    pageSource: PageDataSource.Ropewiki,
+                    mapDataId: target.mapDataId,
+                    pageReady: true,
+                    pageHasMapData: true,
+                    mapDataLegendItemsReady,
+                    imageDataReady: {},
+                });
+            }
         }
 
         return {
@@ -77,6 +105,7 @@ export const reprocessMapDataRelevance = async (
                 message: 'MapData relevance reprocessor completed successfully',
                 enqueuedCount: targets.length,
                 clearMessagesAndJobs: reprocessorEvent.clearMessagesAndJobs,
+                remakeDownloadFolders: reprocessorEvent.remakeDownloadFolders,
                 ...(reprocessorEvent.clearMessagesAndJobs ? { deletedJobCount } : {}),
                 ...(reprocessorEvent.includeMapDataIds != null
                     ? { includeMapDataIds: reprocessorEvent.includeMapDataIds }

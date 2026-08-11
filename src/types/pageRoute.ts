@@ -71,6 +71,7 @@ export class RopewikiRoute extends PageRoute {
         downloadSource: boolean = true,
         cleanOutlierPoints: boolean = false,
         processRelevantContext: boolean = true,
+        makeDownloadFolder: boolean = true,
     ): MapDataEvent {
         return new MapDataEvent(
             PageDataSource.Ropewiki,
@@ -80,6 +81,7 @@ export class RopewikiRoute extends PageRoute {
             downloadSource,
             cleanOutlierPoints,
             processRelevantContext,
+            makeDownloadFolder,
         );
     }
 }

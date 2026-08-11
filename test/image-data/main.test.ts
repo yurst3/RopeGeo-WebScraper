@@ -24,16 +24,26 @@ jest.mock('../../src/image-data/util/updateProcessedImageForSource', () => ({
     default: jest.fn(),
 }));
 
+jest.mock('../../src/image-data/util/flipPageZipperImageDataReady', () => ({
+    flipPageZipperImageDataReady: jest.fn(),
+}));
+
 const mockClient = {} as any;
+const pageId = 'page-aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaa';
 
 describe('image-data main', () => {
     const event = new ImageDataEvent(
         PageDataSource.Ropewiki,
         '11111111-1111-1111-1111-111111111111',
         'https://example.com/image.jpg',
+        pageId,
+        true,
     );
     const mockSaveImageDataHookFn = jest.fn<SaveImageDataHookFn>();
     let logger: ProgressLogger;
+    let mockFlipPageZipperImageDataReady: jest.MockedFunction<
+        typeof import('../../src/image-data/util/flipPageZipperImageDataReady').flipPageZipperImageDataReady
+    >;
 
     beforeEach(() => {
         jest.clearAllMocks();
@@ -43,6 +53,9 @@ describe('image-data main', () => {
         mockUpsertImageData = upsertImageDataModule.default;
         const updateProcessedImageForSourceModule = require('../../src/image-data/util/updateProcessedImageForSource');
         mockUpdateProcessedImageForSource = updateProcessedImageForSourceModule.default;
+        mockFlipPageZipperImageDataReady =
+            require('../../src/image-data/util/flipPageZipperImageDataReady').flipPageZipperImageDataReady;
+        mockFlipPageZipperImageDataReady.mockResolvedValue(undefined);
 
         logger = new ProgressLogger('Test', 1);
         logger.setChunk(0, 1);
@@ -91,6 +104,29 @@ describe('image-data main', () => {
             event.pageImageId,
             '22222222-2222-2222-2222-222222222222',
         );
+        expect(mockFlipPageZipperImageDataReady).toHaveBeenCalledWith(
+            mockClient,
+            event.pageId,
+            event.pageDataSource,
+            event.pageImageId,
+        );
+    });
+
+    it('skips flipPageZipperImageDataReady when makeDownloadFolder is false', async () => {
+        const noFolderEvent = new ImageDataEvent(
+            PageDataSource.Ropewiki,
+            '11111111-1111-1111-1111-111111111111',
+            'https://example.com/image.jpg',
+            pageId,
+            true,
+            undefined,
+            undefined,
+            false,
+        );
+
+        await main(noFolderEvent, mockSaveImageDataHookFn, logger, mockClient);
+
+        expect(mockFlipPageZipperImageDataReady).not.toHaveBeenCalled();
     });
 
     it('calls upsertImageData and updateProcessedImageForSource when abortSignal provided but not aborted', async () => {
@@ -164,6 +200,7 @@ describe('image-data main', () => {
             PageDataSource.Ropewiki,
             '11111111-1111-1111-1111-111111111111',
             'https://example.com/image.jpg',
+            pageId,
             false,
             'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
         );

@@ -5,23 +5,26 @@ const SAMPLE_ID = '0827ba8b-27b3-40dc-8385-06f823dbf535';
 const SAMPLE_ID_2 = '8e7bb61c-13aa-4679-abba-ed144aa592cb';
 
 describe('MapDataReprocessorEvent', () => {
-    it('defaults downloadSource and cleanOutlierPoints to false; processRelevantContext to true', () => {
+    it('defaults downloadSource and cleanOutlierPoints to false; processRelevantContext and remakeDownloadFolders to true', () => {
         const created = new MapDataReprocessorEvent();
         expect(created.downloadSource).toBe(false);
         expect(created.cleanOutlierPoints).toBe(false);
         expect(created.processRelevantContext).toBe(true);
+        expect(created.remakeDownloadFolders).toBe(true);
         expect(created.includeMapDataIds).toBeUndefined();
 
         const fromBody = MapDataReprocessorEvent.fromParsedBody({});
         expect(fromBody.downloadSource).toBe(false);
         expect(fromBody.cleanOutlierPoints).toBe(false);
         expect(fromBody.processRelevantContext).toBe(true);
+        expect(fromBody.remakeDownloadFolders).toBe(true);
         expect(fromBody.includeMapDataIds).toBeUndefined();
 
         const fromEvent = MapDataReprocessorEvent.fromLambdaEvent(undefined);
         expect(fromEvent.downloadSource).toBe(false);
         expect(fromEvent.cleanOutlierPoints).toBe(false);
         expect(fromEvent.processRelevantContext).toBe(true);
+        expect(fromEvent.remakeDownloadFolders).toBe(true);
     });
 
     it('fromParsedBody sets downloadSource from object', () => {

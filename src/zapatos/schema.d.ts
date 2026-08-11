@@ -2223,6 +2223,330 @@ declare module 'zapatos/schema' {
     export type SQL = SQLExpression | SQLExpression[];
   }
 
+
+  /**
+   * **PageZipperJob**
+   * - Table in database
+   */
+  export namespace PageZipperJob {
+    export type Table = 'PageZipperJob';
+    export interface Selectable {
+      /**
+       * **PageZipperJob.createdAt**
+       * - `timestamp` in database
+       * - `NOT NULL`, default: `CURRENT_TIMESTAMP`
+       */
+      createdAt: Date;
+      /**
+       * **PageZipperJob.id**
+       * - `uuid` in database
+       * - `NOT NULL`, default: `gen_random_uuid()`
+       */
+      id: string;
+      /**
+       * **PageZipperJob.imageDataReady**
+       * - `jsonb` in database
+       * - Nullable, no default
+       */
+      imageDataReady: db.JSONValue | null;
+      /**
+       * **PageZipperJob.mapDataId**
+       * - `uuid` in database
+       * - Nullable, no default
+       */
+      mapDataId: string | null;
+      /**
+       * **PageZipperJob.mapDataLegendItemsReady**
+       * - `jsonb` in database
+       * - Nullable, no default
+       */
+      mapDataLegendItemsReady: db.JSONValue | null;
+      /**
+       * **PageZipperJob.pageHasMapData**
+       * - `bool` in database
+       * - `NOT NULL`, default: `true`
+       */
+      pageHasMapData: boolean;
+      /**
+       * **PageZipperJob.pageId**
+       * - `uuid` in database
+       * - `NOT NULL`, no default
+       */
+      pageId: string;
+      /**
+       * **PageZipperJob.pageReady**
+       * - `bool` in database
+       * - `NOT NULL`, default: `false`
+       */
+      pageReady: boolean;
+      /**
+       * **PageZipperJob.pageSource**
+       * - `text` in database
+       * - `NOT NULL`, no default
+       */
+      pageSource: string;
+      /**
+       * **PageZipperJob.updatedAt**
+       * - `timestamp` in database
+       * - `NOT NULL`, default: `CURRENT_TIMESTAMP`
+       */
+      updatedAt: Date;
+    }
+    export interface JSONSelectable {
+      /**
+       * **PageZipperJob.createdAt**
+       * - `timestamp` in database
+       * - `NOT NULL`, default: `CURRENT_TIMESTAMP`
+       */
+      createdAt: db.TimestampString;
+      /**
+       * **PageZipperJob.id**
+       * - `uuid` in database
+       * - `NOT NULL`, default: `gen_random_uuid()`
+       */
+      id: string;
+      /**
+       * **PageZipperJob.imageDataReady**
+       * - `jsonb` in database
+       * - Nullable, no default
+       */
+      imageDataReady: db.JSONValue | null;
+      /**
+       * **PageZipperJob.mapDataId**
+       * - `uuid` in database
+       * - Nullable, no default
+       */
+      mapDataId: string | null;
+      /**
+       * **PageZipperJob.mapDataLegendItemsReady**
+       * - `jsonb` in database
+       * - Nullable, no default
+       */
+      mapDataLegendItemsReady: db.JSONValue | null;
+      /**
+       * **PageZipperJob.pageHasMapData**
+       * - `bool` in database
+       * - `NOT NULL`, default: `true`
+       */
+      pageHasMapData: boolean;
+      /**
+       * **PageZipperJob.pageId**
+       * - `uuid` in database
+       * - `NOT NULL`, no default
+       */
+      pageId: string;
+      /**
+       * **PageZipperJob.pageReady**
+       * - `bool` in database
+       * - `NOT NULL`, default: `false`
+       */
+      pageReady: boolean;
+      /**
+       * **PageZipperJob.pageSource**
+       * - `text` in database
+       * - `NOT NULL`, no default
+       */
+      pageSource: string;
+      /**
+       * **PageZipperJob.updatedAt**
+       * - `timestamp` in database
+       * - `NOT NULL`, default: `CURRENT_TIMESTAMP`
+       */
+      updatedAt: db.TimestampString;
+    }
+    export interface Whereable {
+      /**
+       * **PageZipperJob.createdAt**
+       * - `timestamp` in database
+       * - `NOT NULL`, default: `CURRENT_TIMESTAMP`
+       */
+      createdAt?: (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.SQLFragment | db.ParentColumn>;
+      /**
+       * **PageZipperJob.id**
+       * - `uuid` in database
+       * - `NOT NULL`, default: `gen_random_uuid()`
+       */
+      id?: string | db.Parameter<string> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, string | db.Parameter<string> | db.SQLFragment | db.ParentColumn>;
+      /**
+       * **PageZipperJob.imageDataReady**
+       * - `jsonb` in database
+       * - Nullable, no default
+       */
+      imageDataReady?: db.JSONValue | db.Parameter<db.JSONValue> | null | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, db.JSONValue | db.Parameter<db.JSONValue> | null | db.SQLFragment | db.ParentColumn>;
+      /**
+       * **PageZipperJob.mapDataId**
+       * - `uuid` in database
+       * - Nullable, no default
+       */
+      mapDataId?: string | db.Parameter<string> | null | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, string | db.Parameter<string> | null | db.SQLFragment | db.ParentColumn>;
+      /**
+       * **PageZipperJob.mapDataLegendItemsReady**
+       * - `jsonb` in database
+       * - Nullable, no default
+       */
+      mapDataLegendItemsReady?: db.JSONValue | db.Parameter<db.JSONValue> | null | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, db.JSONValue | db.Parameter<db.JSONValue> | null | db.SQLFragment | db.ParentColumn>;
+      /**
+       * **PageZipperJob.pageHasMapData**
+       * - `bool` in database
+       * - `NOT NULL`, default: `true`
+       */
+      pageHasMapData?: boolean | db.Parameter<boolean> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, boolean | db.Parameter<boolean> | db.SQLFragment | db.ParentColumn>;
+      /**
+       * **PageZipperJob.pageId**
+       * - `uuid` in database
+       * - `NOT NULL`, no default
+       */
+      pageId?: string | db.Parameter<string> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, string | db.Parameter<string> | db.SQLFragment | db.ParentColumn>;
+      /**
+       * **PageZipperJob.pageReady**
+       * - `bool` in database
+       * - `NOT NULL`, default: `false`
+       */
+      pageReady?: boolean | db.Parameter<boolean> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, boolean | db.Parameter<boolean> | db.SQLFragment | db.ParentColumn>;
+      /**
+       * **PageZipperJob.pageSource**
+       * - `text` in database
+       * - `NOT NULL`, no default
+       */
+      pageSource?: string | db.Parameter<string> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, string | db.Parameter<string> | db.SQLFragment | db.ParentColumn>;
+      /**
+       * **PageZipperJob.updatedAt**
+       * - `timestamp` in database
+       * - `NOT NULL`, default: `CURRENT_TIMESTAMP`
+       */
+      updatedAt?: (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.SQLFragment | db.ParentColumn | db.SQLFragment<any, (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.SQLFragment | db.ParentColumn>;
+    }
+    export interface Insertable {
+      /**
+       * **PageZipperJob.createdAt**
+       * - `timestamp` in database
+       * - `NOT NULL`, default: `CURRENT_TIMESTAMP`
+       */
+      createdAt?: (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.DefaultType | db.SQLFragment;
+      /**
+       * **PageZipperJob.id**
+       * - `uuid` in database
+       * - `NOT NULL`, default: `gen_random_uuid()`
+       */
+      id?: string | db.Parameter<string> | db.DefaultType | db.SQLFragment;
+      /**
+       * **PageZipperJob.imageDataReady**
+       * - `jsonb` in database
+       * - Nullable, no default
+       */
+      imageDataReady?: db.JSONValue | db.Parameter<db.JSONValue> | null | db.DefaultType | db.SQLFragment;
+      /**
+       * **PageZipperJob.mapDataId**
+       * - `uuid` in database
+       * - Nullable, no default
+       */
+      mapDataId?: string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment;
+      /**
+       * **PageZipperJob.mapDataLegendItemsReady**
+       * - `jsonb` in database
+       * - Nullable, no default
+       */
+      mapDataLegendItemsReady?: db.JSONValue | db.Parameter<db.JSONValue> | null | db.DefaultType | db.SQLFragment;
+      /**
+       * **PageZipperJob.pageHasMapData**
+       * - `bool` in database
+       * - `NOT NULL`, default: `true`
+       */
+      pageHasMapData?: boolean | db.Parameter<boolean> | db.DefaultType | db.SQLFragment;
+      /**
+       * **PageZipperJob.pageId**
+       * - `uuid` in database
+       * - `NOT NULL`, no default
+       */
+      pageId: string | db.Parameter<string> | db.SQLFragment;
+      /**
+       * **PageZipperJob.pageReady**
+       * - `bool` in database
+       * - `NOT NULL`, default: `false`
+       */
+      pageReady?: boolean | db.Parameter<boolean> | db.DefaultType | db.SQLFragment;
+      /**
+       * **PageZipperJob.pageSource**
+       * - `text` in database
+       * - `NOT NULL`, no default
+       */
+      pageSource: string | db.Parameter<string> | db.SQLFragment;
+      /**
+       * **PageZipperJob.updatedAt**
+       * - `timestamp` in database
+       * - `NOT NULL`, default: `CURRENT_TIMESTAMP`
+       */
+      updatedAt?: (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.DefaultType | db.SQLFragment;
+    }
+    export interface Updatable {
+      /**
+       * **PageZipperJob.createdAt**
+       * - `timestamp` in database
+       * - `NOT NULL`, default: `CURRENT_TIMESTAMP`
+       */
+      createdAt?: (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.DefaultType | db.SQLFragment | db.SQLFragment<any, (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.DefaultType | db.SQLFragment>;
+      /**
+       * **PageZipperJob.id**
+       * - `uuid` in database
+       * - `NOT NULL`, default: `gen_random_uuid()`
+       */
+      id?: string | db.Parameter<string> | db.DefaultType | db.SQLFragment | db.SQLFragment<any, string | db.Parameter<string> | db.DefaultType | db.SQLFragment>;
+      /**
+       * **PageZipperJob.imageDataReady**
+       * - `jsonb` in database
+       * - Nullable, no default
+       */
+      imageDataReady?: db.JSONValue | db.Parameter<db.JSONValue> | null | db.DefaultType | db.SQLFragment | db.SQLFragment<any, db.JSONValue | db.Parameter<db.JSONValue> | null | db.DefaultType | db.SQLFragment>;
+      /**
+       * **PageZipperJob.mapDataId**
+       * - `uuid` in database
+       * - Nullable, no default
+       */
+      mapDataId?: string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment | db.SQLFragment<any, string | db.Parameter<string> | null | db.DefaultType | db.SQLFragment>;
+      /**
+       * **PageZipperJob.mapDataLegendItemsReady**
+       * - `jsonb` in database
+       * - Nullable, no default
+       */
+      mapDataLegendItemsReady?: db.JSONValue | db.Parameter<db.JSONValue> | null | db.DefaultType | db.SQLFragment | db.SQLFragment<any, db.JSONValue | db.Parameter<db.JSONValue> | null | db.DefaultType | db.SQLFragment>;
+      /**
+       * **PageZipperJob.pageHasMapData**
+       * - `bool` in database
+       * - `NOT NULL`, default: `true`
+       */
+      pageHasMapData?: boolean | db.Parameter<boolean> | db.DefaultType | db.SQLFragment | db.SQLFragment<any, boolean | db.Parameter<boolean> | db.DefaultType | db.SQLFragment>;
+      /**
+       * **PageZipperJob.pageId**
+       * - `uuid` in database
+       * - `NOT NULL`, no default
+       */
+      pageId?: string | db.Parameter<string> | db.SQLFragment | db.SQLFragment<any, string | db.Parameter<string> | db.SQLFragment>;
+      /**
+       * **PageZipperJob.pageReady**
+       * - `bool` in database
+       * - `NOT NULL`, default: `false`
+       */
+      pageReady?: boolean | db.Parameter<boolean> | db.DefaultType | db.SQLFragment | db.SQLFragment<any, boolean | db.Parameter<boolean> | db.DefaultType | db.SQLFragment>;
+      /**
+       * **PageZipperJob.pageSource**
+       * - `text` in database
+       * - `NOT NULL`, no default
+       */
+      pageSource?: string | db.Parameter<string> | db.SQLFragment | db.SQLFragment<any, string | db.Parameter<string> | db.SQLFragment>;
+      /**
+       * **PageZipperJob.updatedAt**
+       * - `timestamp` in database
+       * - `NOT NULL`, default: `CURRENT_TIMESTAMP`
+       */
+      updatedAt?: (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.DefaultType | db.SQLFragment | db.SQLFragment<any, (db.TimestampString | Date) | db.Parameter<(db.TimestampString | Date)> | db.DefaultType | db.SQLFragment>;
+    }
+    export type UniqueIndex = 'PageZipperJob_pageId_key' | 'PageZipperJob_pkey';
+    export type Column = keyof Selectable;
+    export type OnlyCols<T extends readonly Column[]> = Pick<Selectable, T[number]>;
+    export type SQLExpression = Table | db.ColumnNames<Updatable | (keyof Updatable)[]> | db.ColumnValues<Updatable> | Whereable | Column | db.ParentColumn | db.GenericSQLExpression;
+    export type SQL = SQLExpression | SQLExpression[];
+  }
+
   /**
    * **MapDataSegmentLegendItem**
    * - Table in database
@@ -6349,20 +6673,20 @@ declare module 'zapatos/schema' {
   /* --- aggregate types --- */
 
   export namespace public {  
-    export type Table = ImageData.Table | MapData.Table | MapDataMarkerLegendItem.Table | MapDataPolygonLegendItem.Table | MapDataRelevantContext.Table | MapDataRelevantContextError.Table | MapDataRelevantContextJob.Table | MapDataSegmentLegendItem.Table | RopewikiAkaName.Table | RopewikiBetaSection.Table | RopewikiImage.Table | RopewikiPage.Table | RopewikiPageSiteLink.Table | RopewikiRegion.Table | RopewikiRoute.Table | RopewikiSiteLink.Table | Route.Table | schema_migrations.Table;
-    export type Selectable = ImageData.Selectable | MapData.Selectable | MapDataMarkerLegendItem.Selectable | MapDataPolygonLegendItem.Selectable | MapDataRelevantContext.Selectable | MapDataRelevantContextError.Selectable | MapDataRelevantContextJob.Selectable | MapDataSegmentLegendItem.Selectable | RopewikiAkaName.Selectable | RopewikiBetaSection.Selectable | RopewikiImage.Selectable | RopewikiPage.Selectable | RopewikiPageSiteLink.Selectable | RopewikiRegion.Selectable | RopewikiRoute.Selectable | RopewikiSiteLink.Selectable | Route.Selectable | schema_migrations.Selectable;
-    export type JSONSelectable = ImageData.JSONSelectable | MapData.JSONSelectable | MapDataMarkerLegendItem.JSONSelectable | MapDataPolygonLegendItem.JSONSelectable | MapDataRelevantContext.JSONSelectable | MapDataRelevantContextError.JSONSelectable | MapDataRelevantContextJob.JSONSelectable | MapDataSegmentLegendItem.JSONSelectable | RopewikiAkaName.JSONSelectable | RopewikiBetaSection.JSONSelectable | RopewikiImage.JSONSelectable | RopewikiPage.JSONSelectable | RopewikiPageSiteLink.JSONSelectable | RopewikiRegion.JSONSelectable | RopewikiRoute.JSONSelectable | RopewikiSiteLink.JSONSelectable | Route.JSONSelectable | schema_migrations.JSONSelectable;
-    export type Whereable = ImageData.Whereable | MapData.Whereable | MapDataMarkerLegendItem.Whereable | MapDataPolygonLegendItem.Whereable | MapDataRelevantContext.Whereable | MapDataRelevantContextError.Whereable | MapDataRelevantContextJob.Whereable | MapDataSegmentLegendItem.Whereable | RopewikiAkaName.Whereable | RopewikiBetaSection.Whereable | RopewikiImage.Whereable | RopewikiPage.Whereable | RopewikiPageSiteLink.Whereable | RopewikiRegion.Whereable | RopewikiRoute.Whereable | RopewikiSiteLink.Whereable | Route.Whereable | schema_migrations.Whereable;
-    export type Insertable = ImageData.Insertable | MapData.Insertable | MapDataMarkerLegendItem.Insertable | MapDataPolygonLegendItem.Insertable | MapDataRelevantContext.Insertable | MapDataRelevantContextError.Insertable | MapDataRelevantContextJob.Insertable | MapDataSegmentLegendItem.Insertable | RopewikiAkaName.Insertable | RopewikiBetaSection.Insertable | RopewikiImage.Insertable | RopewikiPage.Insertable | RopewikiPageSiteLink.Insertable | RopewikiRegion.Insertable | RopewikiRoute.Insertable | RopewikiSiteLink.Insertable | Route.Insertable | schema_migrations.Insertable;
-    export type Updatable = ImageData.Updatable | MapData.Updatable | MapDataMarkerLegendItem.Updatable | MapDataPolygonLegendItem.Updatable | MapDataRelevantContext.Updatable | MapDataRelevantContextError.Updatable | MapDataRelevantContextJob.Updatable | MapDataSegmentLegendItem.Updatable | RopewikiAkaName.Updatable | RopewikiBetaSection.Updatable | RopewikiImage.Updatable | RopewikiPage.Updatable | RopewikiPageSiteLink.Updatable | RopewikiRegion.Updatable | RopewikiRoute.Updatable | RopewikiSiteLink.Updatable | Route.Updatable | schema_migrations.Updatable;
-    export type UniqueIndex = ImageData.UniqueIndex | MapData.UniqueIndex | MapDataMarkerLegendItem.UniqueIndex | MapDataPolygonLegendItem.UniqueIndex | MapDataRelevantContext.UniqueIndex | MapDataRelevantContextError.UniqueIndex | MapDataRelevantContextJob.UniqueIndex | MapDataSegmentLegendItem.UniqueIndex | RopewikiAkaName.UniqueIndex | RopewikiBetaSection.UniqueIndex | RopewikiImage.UniqueIndex | RopewikiPage.UniqueIndex | RopewikiPageSiteLink.UniqueIndex | RopewikiRegion.UniqueIndex | RopewikiRoute.UniqueIndex | RopewikiSiteLink.UniqueIndex | Route.UniqueIndex | schema_migrations.UniqueIndex;
-    export type Column = ImageData.Column | MapData.Column | MapDataMarkerLegendItem.Column | MapDataPolygonLegendItem.Column | MapDataRelevantContext.Column | MapDataRelevantContextError.Column | MapDataRelevantContextJob.Column | MapDataSegmentLegendItem.Column | RopewikiAkaName.Column | RopewikiBetaSection.Column | RopewikiImage.Column | RopewikiPage.Column | RopewikiPageSiteLink.Column | RopewikiRegion.Column | RopewikiRoute.Column | RopewikiSiteLink.Column | Route.Column | schema_migrations.Column;
+    export type Table = ImageData.Table | MapData.Table | MapDataMarkerLegendItem.Table | MapDataPolygonLegendItem.Table | MapDataRelevantContext.Table | MapDataRelevantContextError.Table | MapDataRelevantContextJob.Table | PageZipperJob.Table | MapDataSegmentLegendItem.Table | RopewikiAkaName.Table | RopewikiBetaSection.Table | RopewikiImage.Table | RopewikiPage.Table | RopewikiPageSiteLink.Table | RopewikiRegion.Table | RopewikiRoute.Table | RopewikiSiteLink.Table | Route.Table | schema_migrations.Table;
+    export type Selectable = ImageData.Selectable | MapData.Selectable | MapDataMarkerLegendItem.Selectable | MapDataPolygonLegendItem.Selectable | MapDataRelevantContext.Selectable | MapDataRelevantContextError.Selectable | MapDataRelevantContextJob.Selectable | PageZipperJob.Selectable | MapDataSegmentLegendItem.Selectable | RopewikiAkaName.Selectable | RopewikiBetaSection.Selectable | RopewikiImage.Selectable | RopewikiPage.Selectable | RopewikiPageSiteLink.Selectable | RopewikiRegion.Selectable | RopewikiRoute.Selectable | RopewikiSiteLink.Selectable | Route.Selectable | schema_migrations.Selectable;
+    export type JSONSelectable = ImageData.JSONSelectable | MapData.JSONSelectable | MapDataMarkerLegendItem.JSONSelectable | MapDataPolygonLegendItem.JSONSelectable | MapDataRelevantContext.JSONSelectable | MapDataRelevantContextError.JSONSelectable | MapDataRelevantContextJob.JSONSelectable | PageZipperJob.JSONSelectable | MapDataSegmentLegendItem.JSONSelectable | RopewikiAkaName.JSONSelectable | RopewikiBetaSection.JSONSelectable | RopewikiImage.JSONSelectable | RopewikiPage.JSONSelectable | RopewikiPageSiteLink.JSONSelectable | RopewikiRegion.JSONSelectable | RopewikiRoute.JSONSelectable | RopewikiSiteLink.JSONSelectable | Route.JSONSelectable | schema_migrations.JSONSelectable;
+    export type Whereable = ImageData.Whereable | MapData.Whereable | MapDataMarkerLegendItem.Whereable | MapDataPolygonLegendItem.Whereable | MapDataRelevantContext.Whereable | MapDataRelevantContextError.Whereable | MapDataRelevantContextJob.Whereable | PageZipperJob.Whereable | MapDataSegmentLegendItem.Whereable | RopewikiAkaName.Whereable | RopewikiBetaSection.Whereable | RopewikiImage.Whereable | RopewikiPage.Whereable | RopewikiPageSiteLink.Whereable | RopewikiRegion.Whereable | RopewikiRoute.Whereable | RopewikiSiteLink.Whereable | Route.Whereable | schema_migrations.Whereable;
+    export type Insertable = ImageData.Insertable | MapData.Insertable | MapDataMarkerLegendItem.Insertable | MapDataPolygonLegendItem.Insertable | MapDataRelevantContext.Insertable | MapDataRelevantContextError.Insertable | MapDataRelevantContextJob.Insertable | PageZipperJob.Insertable | MapDataSegmentLegendItem.Insertable | RopewikiAkaName.Insertable | RopewikiBetaSection.Insertable | RopewikiImage.Insertable | RopewikiPage.Insertable | RopewikiPageSiteLink.Insertable | RopewikiRegion.Insertable | RopewikiRoute.Insertable | RopewikiSiteLink.Insertable | Route.Insertable | schema_migrations.Insertable;
+    export type Updatable = ImageData.Updatable | MapData.Updatable | MapDataMarkerLegendItem.Updatable | MapDataPolygonLegendItem.Updatable | MapDataRelevantContext.Updatable | MapDataRelevantContextError.Updatable | MapDataRelevantContextJob.Updatable | PageZipperJob.Updatable | MapDataSegmentLegendItem.Updatable | RopewikiAkaName.Updatable | RopewikiBetaSection.Updatable | RopewikiImage.Updatable | RopewikiPage.Updatable | RopewikiPageSiteLink.Updatable | RopewikiRegion.Updatable | RopewikiRoute.Updatable | RopewikiSiteLink.Updatable | Route.Updatable | schema_migrations.Updatable;
+    export type UniqueIndex = ImageData.UniqueIndex | MapData.UniqueIndex | MapDataMarkerLegendItem.UniqueIndex | MapDataPolygonLegendItem.UniqueIndex | MapDataRelevantContext.UniqueIndex | MapDataRelevantContextError.UniqueIndex | MapDataRelevantContextJob.UniqueIndex | PageZipperJob.UniqueIndex | MapDataSegmentLegendItem.UniqueIndex | RopewikiAkaName.UniqueIndex | RopewikiBetaSection.UniqueIndex | RopewikiImage.UniqueIndex | RopewikiPage.UniqueIndex | RopewikiPageSiteLink.UniqueIndex | RopewikiRegion.UniqueIndex | RopewikiRoute.UniqueIndex | RopewikiSiteLink.UniqueIndex | Route.UniqueIndex | schema_migrations.UniqueIndex;
+    export type Column = ImageData.Column | MapData.Column | MapDataMarkerLegendItem.Column | MapDataPolygonLegendItem.Column | MapDataRelevantContext.Column | MapDataRelevantContextError.Column | MapDataRelevantContextJob.Column | PageZipperJob.Column | MapDataSegmentLegendItem.Column | RopewikiAkaName.Column | RopewikiBetaSection.Column | RopewikiImage.Column | RopewikiPage.Column | RopewikiPageSiteLink.Column | RopewikiRegion.Column | RopewikiRoute.Column | RopewikiSiteLink.Column | Route.Column | schema_migrations.Column;
   
-    export type AllBaseTables = [ImageData.Table, MapData.Table, MapDataMarkerLegendItem.Table, MapDataPolygonLegendItem.Table, MapDataRelevantContext.Table, MapDataRelevantContextError.Table, MapDataRelevantContextJob.Table, MapDataSegmentLegendItem.Table, RopewikiAkaName.Table, RopewikiBetaSection.Table, RopewikiImage.Table, RopewikiPage.Table, RopewikiPageSiteLink.Table, RopewikiRegion.Table, RopewikiRoute.Table, RopewikiSiteLink.Table, Route.Table, schema_migrations.Table];
+    export type AllBaseTables = [ImageData.Table, MapData.Table, MapDataMarkerLegendItem.Table, MapDataPolygonLegendItem.Table, MapDataRelevantContext.Table, MapDataRelevantContextError.Table, MapDataRelevantContextJob.Table, PageZipperJob.Table, MapDataSegmentLegendItem.Table, RopewikiAkaName.Table, RopewikiBetaSection.Table, RopewikiImage.Table, RopewikiPage.Table, RopewikiPageSiteLink.Table, RopewikiRegion.Table, RopewikiRoute.Table, RopewikiSiteLink.Table, Route.Table, schema_migrations.Table];
     export type AllForeignTables = [];
     export type AllViews = [];
     export type AllMaterializedViews = [];
-    export type AllTablesAndViews = [ImageData.Table, MapData.Table, MapDataMarkerLegendItem.Table, MapDataPolygonLegendItem.Table, MapDataRelevantContext.Table, MapDataRelevantContextError.Table, MapDataRelevantContextJob.Table, MapDataSegmentLegendItem.Table, RopewikiAkaName.Table, RopewikiBetaSection.Table, RopewikiImage.Table, RopewikiPage.Table, RopewikiPageSiteLink.Table, RopewikiRegion.Table, RopewikiRoute.Table, RopewikiSiteLink.Table, Route.Table, schema_migrations.Table];
+    export type AllTablesAndViews = [ImageData.Table, MapData.Table, MapDataMarkerLegendItem.Table, MapDataPolygonLegendItem.Table, MapDataRelevantContext.Table, MapDataRelevantContextError.Table, MapDataRelevantContextJob.Table, PageZipperJob.Table, MapDataSegmentLegendItem.Table, RopewikiAkaName.Table, RopewikiBetaSection.Table, RopewikiImage.Table, RopewikiPage.Table, RopewikiPageSiteLink.Table, RopewikiRegion.Table, RopewikiRoute.Table, RopewikiSiteLink.Table, Route.Table, schema_migrations.Table];
   }
 
 
@@ -6397,6 +6721,7 @@ declare module 'zapatos/schema' {
     "MapDataRelevantContext": MapDataRelevantContext.Selectable;
     "MapDataRelevantContextError": MapDataRelevantContextError.Selectable;
     "MapDataRelevantContextJob": MapDataRelevantContextJob.Selectable;
+    "PageZipperJob": PageZipperJob.Selectable;
     "MapDataSegmentLegendItem": MapDataSegmentLegendItem.Selectable;
     "RopewikiAkaName": RopewikiAkaName.Selectable;
     "RopewikiBetaSection": RopewikiBetaSection.Selectable;
@@ -6418,6 +6743,7 @@ declare module 'zapatos/schema' {
     "MapDataRelevantContext": MapDataRelevantContext.JSONSelectable;
     "MapDataRelevantContextError": MapDataRelevantContextError.JSONSelectable;
     "MapDataRelevantContextJob": MapDataRelevantContextJob.JSONSelectable;
+    "PageZipperJob": PageZipperJob.JSONSelectable;
     "MapDataSegmentLegendItem": MapDataSegmentLegendItem.JSONSelectable;
     "RopewikiAkaName": RopewikiAkaName.JSONSelectable;
     "RopewikiBetaSection": RopewikiBetaSection.JSONSelectable;
@@ -6439,6 +6765,7 @@ declare module 'zapatos/schema' {
     "MapDataRelevantContext": MapDataRelevantContext.Whereable;
     "MapDataRelevantContextError": MapDataRelevantContextError.Whereable;
     "MapDataRelevantContextJob": MapDataRelevantContextJob.Whereable;
+    "PageZipperJob": PageZipperJob.Whereable;
     "MapDataSegmentLegendItem": MapDataSegmentLegendItem.Whereable;
     "RopewikiAkaName": RopewikiAkaName.Whereable;
     "RopewikiBetaSection": RopewikiBetaSection.Whereable;
@@ -6460,6 +6787,7 @@ declare module 'zapatos/schema' {
     "MapDataRelevantContext": MapDataRelevantContext.Insertable;
     "MapDataRelevantContextError": MapDataRelevantContextError.Insertable;
     "MapDataRelevantContextJob": MapDataRelevantContextJob.Insertable;
+    "PageZipperJob": PageZipperJob.Insertable;
     "MapDataSegmentLegendItem": MapDataSegmentLegendItem.Insertable;
     "RopewikiAkaName": RopewikiAkaName.Insertable;
     "RopewikiBetaSection": RopewikiBetaSection.Insertable;
@@ -6481,6 +6809,7 @@ declare module 'zapatos/schema' {
     "MapDataRelevantContext": MapDataRelevantContext.Updatable;
     "MapDataRelevantContextError": MapDataRelevantContextError.Updatable;
     "MapDataRelevantContextJob": MapDataRelevantContextJob.Updatable;
+    "PageZipperJob": PageZipperJob.Updatable;
     "MapDataSegmentLegendItem": MapDataSegmentLegendItem.Updatable;
     "RopewikiAkaName": RopewikiAkaName.Updatable;
     "RopewikiBetaSection": RopewikiBetaSection.Updatable;
@@ -6502,6 +6831,7 @@ declare module 'zapatos/schema' {
     "MapDataRelevantContext": MapDataRelevantContext.UniqueIndex;
     "MapDataRelevantContextError": MapDataRelevantContextError.UniqueIndex;
     "MapDataRelevantContextJob": MapDataRelevantContextJob.UniqueIndex;
+    "PageZipperJob": PageZipperJob.UniqueIndex;
     "MapDataSegmentLegendItem": MapDataSegmentLegendItem.UniqueIndex;
     "RopewikiAkaName": RopewikiAkaName.UniqueIndex;
     "RopewikiBetaSection": RopewikiBetaSection.UniqueIndex;
@@ -6523,6 +6853,7 @@ declare module 'zapatos/schema' {
     "MapDataRelevantContext": MapDataRelevantContext.Column;
     "MapDataRelevantContextError": MapDataRelevantContextError.Column;
     "MapDataRelevantContextJob": MapDataRelevantContextJob.Column;
+    "PageZipperJob": PageZipperJob.Column;
     "MapDataSegmentLegendItem": MapDataSegmentLegendItem.Column;
     "RopewikiAkaName": RopewikiAkaName.Column;
     "RopewikiBetaSection": RopewikiBetaSection.Column;
@@ -6544,6 +6875,7 @@ declare module 'zapatos/schema' {
     "MapDataRelevantContext": MapDataRelevantContext.SQL;
     "MapDataRelevantContextError": MapDataRelevantContextError.SQL;
     "MapDataRelevantContextJob": MapDataRelevantContextJob.SQL;
+    "PageZipperJob": PageZipperJob.SQL;
     "MapDataSegmentLegendItem": MapDataSegmentLegendItem.SQL;
     "RopewikiAkaName": RopewikiAkaName.SQL;
     "RopewikiBetaSection": RopewikiBetaSection.SQL;

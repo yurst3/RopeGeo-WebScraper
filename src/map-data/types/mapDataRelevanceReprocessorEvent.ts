@@ -9,6 +9,11 @@ export type MapDataRelevanceReprocessorEventOptions = {
      * When omitted, all matching MapData-linked Ropewiki pages are processed.
      */
     includeMapDataIds?: string[];
+    /**
+     * When true (default), create a fresh PageZipperJob per target so download folders
+     * remake after relevance reprocessing (new job id avoids FIFO dedup).
+     */
+    remakeDownloadFolders?: boolean;
 };
 
 /**
@@ -17,10 +22,12 @@ export type MapDataRelevanceReprocessorEventOptions = {
 export class MapDataRelevanceReprocessorEvent {
     clearMessagesAndJobs: boolean;
     includeMapDataIds: string[] | undefined;
+    remakeDownloadFolders: boolean;
 
     constructor(options?: MapDataRelevanceReprocessorEventOptions) {
         this.clearMessagesAndJobs = options?.clearMessagesAndJobs ?? false;
         this.includeMapDataIds = options?.includeMapDataIds;
+        this.remakeDownloadFolders = options?.remakeDownloadFolders ?? true;
     }
 
     static fromParsedBody(parsed: unknown): MapDataRelevanceReprocessorEvent {
@@ -41,6 +48,15 @@ export class MapDataRelevanceReprocessorEvent {
 
         if ('includeMapDataIds' in o && o.includeMapDataIds !== undefined) {
             opts.includeMapDataIds = parseIncludeMapDataIds(o.includeMapDataIds);
+        }
+
+        if ('remakeDownloadFolders' in o && o.remakeDownloadFolders !== undefined) {
+            if (typeof o.remakeDownloadFolders !== 'boolean') {
+                throw new Error(
+                    'Invalid MapDataRelevanceReprocessorEvent: remakeDownloadFolders must be a boolean when provided',
+                );
+            }
+            opts.remakeDownloadFolders = o.remakeDownloadFolders;
         }
 
         return new MapDataRelevanceReprocessorEvent(opts);
@@ -72,7 +88,8 @@ export class MapDataRelevanceReprocessorEvent {
 
         if (
             ('clearMessagesAndJobs' in e && e.clearMessagesAndJobs !== undefined) ||
-            ('includeMapDataIds' in e && e.includeMapDataIds !== undefined)
+            ('includeMapDataIds' in e && e.includeMapDataIds !== undefined) ||
+            ('remakeDownloadFolders' in e && e.remakeDownloadFolders !== undefined)
         ) {
             return MapDataRelevanceReprocessorEvent.fromParsedBody(e);
         }

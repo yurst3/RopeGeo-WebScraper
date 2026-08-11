@@ -11,6 +11,7 @@ import type { RopewikiRoute } from '../../types/pageRoute';
  * @param downloadSource - If true (default), processor will download source from URL; if false, use existing stored source
  * @param cleanOutlierPoints - If true (default), processor strips GPS track-sample outlier points before enrich/upload
  * @param processRelevantContext - If true (default), processor upserts/enqueues MapDataRelevantContextJob after map upsert
+ * @param makeDownloadFolder - If true (default), processor upserts PageZipperJob readiness after map upsert
  *
  * @throws Error if not local and ropewikiRoute.page is missing
  * @throws Error if not local and ropewikiRoute.route is missing
@@ -21,6 +22,7 @@ const sendMapDataSQSMessage = async (
     downloadSource: boolean = true,
     cleanOutlierPoints: boolean = true,
     processRelevantContext: boolean = true,
+    makeDownloadFolder: boolean = true,
 ): Promise<void> => {
     const devEnvironment = process.env.DEV_ENVIRONMENT;
 
@@ -48,6 +50,7 @@ const sendMapDataSQSMessage = async (
         downloadSource,
         cleanOutlierPoints,
         processRelevantContext,
+        makeDownloadFolder,
     );
     await sendSQSMessage(JSON.stringify(mapDataEvent), queueUrl);
 };

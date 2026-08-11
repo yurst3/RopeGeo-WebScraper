@@ -107,7 +107,7 @@ describe('handleProcessPageSQSMessages', () => {
         expect(mockClient.query).toHaveBeenCalledWith('COMMIT');
         expect(RopewikiPage.fromSQSEventRecord).toHaveBeenCalledTimes(1);
         expect(mockProcessPage).toHaveBeenCalledTimes(1);
-        expect(mockProcessPage).toHaveBeenCalledWith(mockClient, expect.any(Object), mockLogger, 'sp_page_0');
+        expect(mockProcessPage).toHaveBeenCalledWith(mockClient, expect.any(Object), mockLogger, 'sp_page_0', true);
         expect(mockDeleteProcessPageSQSMessage).toHaveBeenCalledTimes(1);
         expect(mockDeleteProcessPageSQSMessage).toHaveBeenCalledWith('receipt-1');
         expect(result).toEqual({
@@ -145,7 +145,7 @@ describe('handleProcessPageSQSMessages', () => {
 
     it('handles parsing errors and deletes the message', async () => {
         const records = [
-            createSqsRecord('invalid json', 'receipt-1'),
+            createSqsRecord(createPageData('123', 'Bad Page'), 'receipt-1'),
             createSqsRecord(createPageData('456', 'Valid Page'), 'receipt-2'),
         ];
         RopewikiPage.fromSQSEventRecord
@@ -178,6 +178,23 @@ describe('handleProcessPageSQSMessages', () => {
             errors: 1,
             remaining: 0,
         });
+    });
+
+    it('parses makeDownloadFolder false from the SQS body', async () => {
+        const body = JSON.stringify({
+            ...JSON.parse(createPageData('123', 'Test Page')),
+            makeDownloadFolder: false,
+        });
+        const record = createSqsRecord(body, 'receipt-1');
+        mockLogger.getResults.mockReturnValue({
+            successes: 1,
+            errors: 0,
+            remaining: 0,
+        });
+
+        await handleProcessPageSQSMessages([record], mockClient, LAMBDA_TIMEOUT_MS, () => LAMBDA_TIMEOUT_MS);
+
+        expect(mockProcessPage).toHaveBeenCalledWith(mockClient, expect.any(Object), mockLogger, 'sp_page_0', false);
     });
 
     it('handles HTTP errors and continues to next message', async () => {

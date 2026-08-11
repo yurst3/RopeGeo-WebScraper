@@ -33,6 +33,13 @@ jest.mock('../../../src/ropewiki/database/upsertRelevanceContextJob', () => ({
     __esModule: true,
     default: jest.fn(),
 }));
+jest.mock('../../../src/ropewiki/util/upsertPageZipperPageReady', () => ({
+    upsertPageZipperPageReady: jest.fn(),
+}));
+jest.mock('../../../src/ropewiki/database/hasActiveRopewikiRoutesForPage', () => ({
+    __esModule: true,
+    default: jest.fn(),
+}));
 
 const mockGetRopewikiPageHtml =
     getRopewikiPageHtml as jest.MockedFunction<typeof getRopewikiPageHtml>;
@@ -49,6 +56,12 @@ const mockUpdateRopewikiPageAuthors =
 const mockUpdateRopewikiImageAuthors =
     updateRopewikiImageAuthors as jest.MockedFunction<typeof updateRopewikiImageAuthors>;
 const mockUpsertRelevanceContextJob = upsertRelevanceContextJob as jest.MockedFunction<typeof upsertRelevanceContextJob>;
+const { upsertPageZipperPageReady } = require('../../../src/ropewiki/util/upsertPageZipperPageReady') as {
+    upsertPageZipperPageReady: jest.MockedFunction<(...args: unknown[]) => Promise<unknown>>;
+};
+const mockUpsertPageZipperPageReady = upsertPageZipperPageReady;
+const mockHasActiveRopewikiRoutesForPage = require('../../../src/ropewiki/database/hasActiveRopewikiRoutesForPage')
+    .default as jest.MockedFunction<(...args: unknown[]) => Promise<boolean>>;
 
 describe('processPage', () => {
     let mockClient: {
@@ -113,7 +126,7 @@ describe('processPage', () => {
         process.env.DEV_ENVIRONMENT = 'local'; // skip ImageProcessor enqueue in processPage
         // Create mock client (already in a transaction from processPagesForRegion)
         mockClient = {
-            query: jest.fn<typeof mockClient.query>().mockResolvedValue({}),
+            query: jest.fn<typeof mockClient.query>().mockResolvedValue({ rows: [] }),
         };
 
         // Create mock logger
@@ -124,6 +137,8 @@ describe('processPage', () => {
 
         mockUpsertSiteLinks.mockResolvedValue(undefined);
         mockUpsertRelevanceContextJob.mockResolvedValue(undefined);
+        mockUpsertPageZipperPageReady.mockResolvedValue(undefined);
+        mockHasActiveRopewikiRoutesForPage.mockResolvedValue(false);
         mockGetContributors.mockResolvedValue({});
         mockUpdateRopewikiPageAuthors.mockResolvedValue(undefined);
         mockUpdateRopewikiImageAuthors.mockResolvedValue(undefined);
@@ -168,12 +183,11 @@ describe('processPage', () => {
         expect(mockLogger.logProgress).toHaveBeenNthCalledWith(1, '728 Bear Creek Canyon');
         expect(mockLogger.logProgress).toHaveBeenNthCalledWith(2, '5597 Regions');
 
-        // Should use savepoints instead of BEGIN/COMMIT
-        expect(mockClient.query).toHaveBeenCalledTimes(4); // SAVEPOINT + RELEASE for each of 2 pages
-        expect(mockClient.query).toHaveBeenNthCalledWith(1, 'SAVEPOINT sp_page_0');
-        expect(mockClient.query).toHaveBeenNthCalledWith(2, 'RELEASE SAVEPOINT sp_page_0');
-        expect(mockClient.query).toHaveBeenNthCalledWith(3, 'SAVEPOINT sp_page_1');
-        expect(mockClient.query).toHaveBeenNthCalledWith(4, 'RELEASE SAVEPOINT sp_page_1');
+        // Should use savepoints instead of BEGIN/COMMIT (plus RopewikiRoute readiness lookup after release)
+        expect(mockClient.query).toHaveBeenCalledWith('SAVEPOINT sp_page_0');
+        expect(mockClient.query).toHaveBeenCalledWith('RELEASE SAVEPOINT sp_page_0');
+        expect(mockClient.query).toHaveBeenCalledWith('SAVEPOINT sp_page_1');
+        expect(mockClient.query).toHaveBeenCalledWith('RELEASE SAVEPOINT sp_page_1');
 
         expect(mockGetRopewikiPageHtml).toHaveBeenCalledTimes(2);
         expect(mockGetRopewikiPageHtml).toHaveBeenNthCalledWith(1, '728');
@@ -192,12 +206,15 @@ describe('processPage', () => {
             1,
             mockClient as unknown as db.Queryable,
             'page-uuid-1',
+            true,
         );
         expect(mockUpsertRelevanceContextJob).toHaveBeenNthCalledWith(
             2,
             mockClient as unknown as db.Queryable,
             'page-uuid-2',
+            true,
         );
+        expect(mockUpsertPageZipperPageReady).toHaveBeenCalledTimes(2);
     });
 
 

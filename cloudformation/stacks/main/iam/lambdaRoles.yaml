@@ -162,6 +162,7 @@ Resources:
         - Ref: S3MapDataBucketPolicy
         - Ref: SQSMapDataProcessingQueuePolicy
         - Ref: SQSMapDataRelevanceQueuePolicy
+        - Ref: SQSPageZipperQueuePolicy
   MapDataRelevanceProcessorRole:
     Type: 'AWS::IAM::Role'
     Properties:
@@ -179,6 +180,7 @@ Resources:
             - Ref: RdsIamAuthPolicy
             - Ref: 'AWS::NoValue'
         - Ref: SQSMapDataRelevanceQueuePolicy
+        - Ref: SQSPageZipperQueuePolicy
   RopewikiScraperRole:
     Type: 'AWS::IAM::Role'
     Properties:
@@ -216,6 +218,7 @@ Resources:
         - Ref: SQSRopewikiPageProcessingQueuePolicy
         - Ref: SQSImageProcessorQueuePolicy
         - Ref: SQSMapDataRelevanceQueuePolicy
+        - Ref: SQSPageZipperQueuePolicy
   ImageProcessorRole:
     Type: 'AWS::IAM::Role'
     Properties:
@@ -234,6 +237,7 @@ Resources:
             - Ref: 'AWS::NoValue'
         - Ref: S3ImageDataBucketPolicy
         - Ref: SQSImageProcessorQueuePolicy
+        - Ref: SQSPageZipperQueuePolicy
   SqsDlqRedriveRole:
     Type: 'AWS::IAM::Role'
     Properties:
@@ -264,6 +268,7 @@ Resources:
             - Ref: RdsIamAuthPolicy
             - Ref: 'AWS::NoValue'
         - Ref: SQSMapDataProcessingQueuePolicy
+        - Ref: SQSPageZipperQueuePolicy
   MapDataReprocessorRole:
     Type: 'AWS::IAM::Role'
     Properties:
@@ -281,6 +286,7 @@ Resources:
             - Ref: RdsIamAuthPolicy
             - Ref: 'AWS::NoValue'
         - Ref: SQSMapDataProcessingQueuePolicy
+        - Ref: SQSPageZipperQueuePolicy
   MapDataRelevanceReprocessorRole:
     Type: 'AWS::IAM::Role'
     Properties:
@@ -298,6 +304,7 @@ Resources:
             - Ref: RdsIamAuthPolicy
             - Ref: 'AWS::NoValue'
         - Ref: SQSMapDataRelevanceQueuePolicy
+        - Ref: SQSPageZipperQueuePolicy
   MapDataTileCountUpdatorRole:
     Type: 'AWS::IAM::Role'
     Properties:
@@ -332,6 +339,7 @@ Resources:
             - Ref: RdsIamAuthPolicy
             - Ref: 'AWS::NoValue'
         - Ref: SQSImageProcessorQueuePolicy
+        - Ref: SQSPageZipperQueuePolicy
   RopewikiPageReprocessorRole:
     Type: 'AWS::IAM::Role'
     Properties:
@@ -349,3 +357,41 @@ Resources:
             - Ref: RdsIamAuthPolicy
             - Ref: 'AWS::NoValue'
         - Ref: SQSRopewikiPageProcessingQueuePolicy
+        - Ref: SQSPageZipperQueuePolicy
+  PageZipperRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: 'sts:AssumeRole'
+      ManagedPolicyArns:
+        - Ref: LambdaExecutionPolicy
+        - 'Fn::If':
+            - HasRdsDbiResourceId
+            - Ref: RdsIamAuthPolicy
+            - Ref: 'AWS::NoValue'
+        - Ref: S3PageZipBucketPolicy
+        - Ref: S3MapDataBucketPolicy
+        - Ref: S3ImageDataBucketPolicy
+        - Ref: SQSPageZipperQueuePolicy
+  PageZipReprocessorRole:
+    Type: 'AWS::IAM::Role'
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: 'sts:AssumeRole'
+      ManagedPolicyArns:
+        - Ref: LambdaExecutionPolicy
+        - 'Fn::If':
+            - HasRdsDbiResourceId
+            - Ref: RdsIamAuthPolicy
+            - Ref: 'AWS::NoValue'
+        - Ref: SQSPageZipperQueuePolicy

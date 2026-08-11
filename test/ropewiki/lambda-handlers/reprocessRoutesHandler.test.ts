@@ -58,7 +58,9 @@ describe('reprocessRoutesHandler', () => {
         expect(mockGetDatabaseConnection).toHaveBeenCalledTimes(1);
         expect(mockPool.connect).toHaveBeenCalledTimes(1);
         expect(mockGetAllPages).toHaveBeenCalledWith(mockClient);
-        expect(consoleLogSpy).toHaveBeenCalledWith('Reprocessing routes for all 1 pages...');
+        expect(consoleLogSpy).toHaveBeenCalledWith(
+            'Reprocessing routes for all 1 pages (remakeDownloadFolders)...',
+        );
         expect(mockProcessRoutes).toHaveBeenCalledTimes(1);
         expect(mockProcessRoutes).toHaveBeenCalledWith(
             mockClient,
@@ -69,6 +71,7 @@ describe('reprocessRoutesHandler', () => {
             statusCode: 200,
             body: JSON.stringify({
                 message: 'Ropewiki route reprocessor completed successfully',
+                remakeDownloadFolders: true,
             }),
         });
     });
@@ -78,7 +81,9 @@ describe('reprocessRoutesHandler', () => {
 
         const result = await reprocessRoutesHandler();
 
-        expect(consoleLogSpy).toHaveBeenCalledWith('Reprocessing routes for all 0 pages...');
+        expect(consoleLogSpy).toHaveBeenCalledWith(
+            'Reprocessing routes for all 0 pages (remakeDownloadFolders)...',
+        );
         expect(mockProcessRoutes).toHaveBeenCalledWith(mockClient, [], expect.any(Function));
         expect(result.statusCode).toBe(200);
     });

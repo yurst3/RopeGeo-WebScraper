@@ -18,12 +18,14 @@ describe('RopewikiRoute.toMapDataEvent', () => {
         expect(event.downloadSource).toBe(true);
         expect(event.cleanOutlierPoints).toBe(false);
         expect(event.processRelevantContext).toBe(true);
+        expect(event.makeDownloadFolder).toBe(true);
     });
 
-    it('passes through downloadSource, cleanOutlierPoints, and processRelevantContext', () => {
-        const event = route.toMapDataEvent(false, true, false);
+    it('passes through downloadSource, cleanOutlierPoints, processRelevantContext, and makeDownloadFolder', () => {
+        const event = route.toMapDataEvent(false, true, false, false);
         expect(event.downloadSource).toBe(false);
         expect(event.cleanOutlierPoints).toBe(true);
         expect(event.processRelevantContext).toBe(false);
+        expect(event.makeDownloadFolder).toBe(false);
     });
 });

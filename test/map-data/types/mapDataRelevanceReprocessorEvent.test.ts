@@ -5,17 +5,20 @@ const SAMPLE_ID = '0827ba8b-27b3-40dc-8385-06f823dbf535';
 const SAMPLE_ID_2 = '8e7bb61c-13aa-4679-abba-ed144aa592cb';
 
 describe('MapDataRelevanceReprocessorEvent', () => {
-    it('defaults clearMessagesAndJobs to false and includeMapDataIds to undefined', () => {
+    it('defaults clearMessagesAndJobs to false, remakeDownloadFolders to true, and includeMapDataIds to undefined', () => {
         const created = new MapDataRelevanceReprocessorEvent();
         expect(created.clearMessagesAndJobs).toBe(false);
+        expect(created.remakeDownloadFolders).toBe(true);
         expect(created.includeMapDataIds).toBeUndefined();
 
         const fromBody = MapDataRelevanceReprocessorEvent.fromParsedBody({});
         expect(fromBody.clearMessagesAndJobs).toBe(false);
+        expect(fromBody.remakeDownloadFolders).toBe(true);
         expect(fromBody.includeMapDataIds).toBeUndefined();
 
         const fromEvent = MapDataRelevanceReprocessorEvent.fromLambdaEvent(undefined);
         expect(fromEvent.clearMessagesAndJobs).toBe(false);
+        expect(fromEvent.remakeDownloadFolders).toBe(true);
         expect(fromEvent.includeMapDataIds).toBeUndefined();
     });
 

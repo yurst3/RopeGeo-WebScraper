@@ -18,6 +18,7 @@ describe('MapDataEvent', () => {
             expect(event.downloadSource).toBe(true);
             expect(event.cleanOutlierPoints).toBe(false);
             expect(event.processRelevantContext).toBe(true);
+            expect(event.makeDownloadFolder).toBe(true);
         });
 
         it('creates MapDataEvent with downloadSource false when mapDataId is provided', () => {

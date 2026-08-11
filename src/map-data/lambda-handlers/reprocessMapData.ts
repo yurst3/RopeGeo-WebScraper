@@ -1,9 +1,11 @@
 import type { Pool, PoolClient } from 'pg';
+import { PageDataSource } from 'ropegeo-common/models';
 import getDatabaseConnection from '../../helpers/getDatabaseConnection';
 import { listRopewikiMapDataReprocessTargets } from '../database/listRopewikiMapDataReprocessTargets';
 import { MapDataReprocessorEvent } from '../types/mapDataReprocessorEvent';
 import sendMapDataSQSMessage from '../../ropewiki/sqs/sendMapDataSQSMessage';
 import { RopewikiRoute } from '../../types/pageRoute';
+import createFreshPageZipperJob from '../../page-zipper/database/createFreshPageZipperJob';
 
 /**
  * Lambda handler that enqueues map-data processing jobs for Ropewiki routes linked to MapData.
@@ -40,16 +42,35 @@ export const reprocessMapData = async (
         );
 
         console.log(
-            `MapDataReprocessor: enqueueing ${targets.length} map-data job(s) (downloadSource=${reprocessorEvent.downloadSource}, cleanOutlierPoints=${reprocessorEvent.cleanOutlierPoints}, processRelevantContext=${reprocessorEvent.processRelevantContext}${reprocessorEvent.includeMapDataIds != null ? `, includeMapDataIds=${reprocessorEvent.includeMapDataIds.length}` : ''})...`,
+            `MapDataReprocessor: enqueueing ${targets.length} map-data job(s) (downloadSource=${reprocessorEvent.downloadSource}, cleanOutlierPoints=${reprocessorEvent.cleanOutlierPoints}, processRelevantContext=${reprocessorEvent.processRelevantContext}, remakeDownloadFolders=${reprocessorEvent.remakeDownloadFolders}${reprocessorEvent.includeMapDataIds != null ? `, includeMapDataIds=${reprocessorEvent.includeMapDataIds.length}` : ''})...`,
         );
 
+        const pagesWithFreshZipperJob = new Set<string>();
+
         for (const row of targets) {
+            if (
+                reprocessorEvent.remakeDownloadFolders &&
+                !pagesWithFreshZipperJob.has(row.pageId)
+            ) {
+                pagesWithFreshZipperJob.add(row.pageId);
+                await createFreshPageZipperJob(client, {
+                    pageId: row.pageId,
+                    pageSource: PageDataSource.Ropewiki,
+                    pageReady: true,
+                    imageDataReady: {},
+                    pageHasMapData: true,
+                    mapDataLegendItemsReady: null,
+                    mapDataId: row.mapDataId,
+                });
+            }
+
             const ropewikiRoute = new RopewikiRoute(row.routeId, row.pageId, row.mapDataId);
             await sendMapDataSQSMessage(
                 ropewikiRoute,
                 reprocessorEvent.downloadSource,
                 reprocessorEvent.cleanOutlierPoints,
                 reprocessorEvent.processRelevantContext,
+                reprocessorEvent.remakeDownloadFolders,
             );
         }
 
@@ -61,6 +82,7 @@ export const reprocessMapData = async (
                 downloadSource: reprocessorEvent.downloadSource,
                 cleanOutlierPoints: reprocessorEvent.cleanOutlierPoints,
                 processRelevantContext: reprocessorEvent.processRelevantContext,
+                remakeDownloadFolders: reprocessorEvent.remakeDownloadFolders,
                 ...(reprocessorEvent.includeMapDataIds != null
                     ? { includeMapDataIds: reprocessorEvent.includeMapDataIds }
                     : {}),

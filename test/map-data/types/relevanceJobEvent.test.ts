@@ -20,8 +20,46 @@ describe('RelevanceJobEvent', () => {
             }),
         );
         expect(event).toEqual(
-            new RelevanceJobEvent('job-1', 'map-1', 'page-1', PageDataSource.Ropewiki),
+            new RelevanceJobEvent('job-1', 'map-1', 'page-1', PageDataSource.Ropewiki, true),
         );
+    });
+
+    it('defaults makeDownloadFolder to true when omitted or null', () => {
+        expect(
+            RelevanceJobEvent.fromSQSEventRecord(
+                record({
+                    id: 'job-1',
+                    mapDataId: 'map-1',
+                    pageId: 'page-1',
+                    pageSource: PageDataSource.Ropewiki,
+                }),
+            ).makeDownloadFolder,
+        ).toBe(true);
+        expect(
+            RelevanceJobEvent.fromSQSEventRecord(
+                record({
+                    id: 'job-1',
+                    mapDataId: 'map-1',
+                    pageId: 'page-1',
+                    pageSource: PageDataSource.Ropewiki,
+                    makeDownloadFolder: null,
+                }),
+            ).makeDownloadFolder,
+        ).toBe(true);
+    });
+
+    it('parses makeDownloadFolder false', () => {
+        expect(
+            RelevanceJobEvent.fromSQSEventRecord(
+                record({
+                    id: 'job-1',
+                    mapDataId: 'map-1',
+                    pageId: 'page-1',
+                    pageSource: PageDataSource.Ropewiki,
+                    makeDownloadFolder: false,
+                }),
+            ).makeDownloadFolder,
+        ).toBe(false);
     });
 
     it('throws when required fields are missing', () => {

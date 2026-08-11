@@ -1,0 +1,55 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Lambda that creates fresh PageZipperJobs and enqueues PageZipperQueue
+
+Resources:
+  PageZipReprocessor:
+    Type: 'AWS::Serverless::Function'
+    Properties:
+      Description: Creates fresh PageZipperJobs for pages needing download folders and enqueues PageZipperQueue. Supports clearMessagesAndJobs and includePageIds event options.
+      Runtime: nodejs22.x
+      Architectures:
+        - arm64
+      CodeUri: ../../
+      Handler: src/page-zipper/lambda-handlers/reprocessPageZipperHandler.reprocessPageZipper
+      MemorySize: 1024
+      Timeout: 900
+      VpcConfig:
+        SecurityGroupIds:
+          - Ref: LambdaSecurityGroup
+        SubnetIds:
+          - Ref: PrivateSubnet1
+      Role:
+        'Fn::GetAtt': PageZipReprocessorRole.Arn
+      Environment:
+        Variables:
+          DEV_ENVIRONMENT:
+            Ref: devEnvironment
+          PROXY_URL:
+            Ref: ProxyUrl
+          DB_HOST:
+            'Fn::If':
+              - UseDatabaseProxyInProd
+              - 'Fn::GetAtt': RDSProxy.Endpoint
+              - 'Fn::GetAtt': Database.Endpoint.Address
+          DB_PORT:
+            'Fn::GetAtt': Database.Endpoint.Port
+          USE_DATABASE_PROXY:
+            Ref: UseDatabaseProxy
+          DB_NAME:
+            'Fn::Sub': '${devEnvironment}db'
+          DB_USER:
+            Ref: DatabaseUsername
+          DB_PASSWORD:
+            Ref: DatabasePassword
+          PAGE_ZIPPER_QUEUE_URL:
+            Ref: PageZipperQueue
+          PAGE_ZIPPER_DLQ_URL:
+            Ref: PageZipperDLQ
+    Metadata:
+      BuildMethod: esbuild
+      BuildProperties:
+        Minify: true
+        Target: esnext
+        Sourcemap: true
+        EntryPoints:
+          - src/page-zipper/lambda-handlers/reprocessPageZipperHandler.ts

@@ -5,6 +5,7 @@ export type RelevanceJobMessage = {
     mapDataId: string;
     pageId: string;
     pageSource: string;
+    makeDownloadFolder: boolean;
 };
 
 const sendRelevanceSQSMessage = async (message: RelevanceJobMessage): Promise<void> => {

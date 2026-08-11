@@ -14,6 +14,11 @@ export class MapDataEvent {
      * a MapDataRelevantContextJob. When false, that step is skipped.
      */
     processRelevantContext: boolean;
+    /**
+     * When true (default), after a successful MapData upsert the processor upserts PageZipperJob
+     * readiness and propagates the flag through relevance enqueue.
+     */
+    makeDownloadFolder: boolean;
 
     constructor(
         source: PageDataSource,
@@ -23,6 +28,7 @@ export class MapDataEvent {
         downloadSource: boolean = true,
         cleanOutlierPoints: boolean = false,
         processRelevantContext: boolean = true,
+        makeDownloadFolder: boolean = true,
     ) {
         this.source = source;
         this.routeId = routeId;
@@ -31,6 +37,7 @@ export class MapDataEvent {
         this.downloadSource = downloadSource;
         this.cleanOutlierPoints = cleanOutlierPoints;
         this.processRelevantContext = processRelevantContext;
+        this.makeDownloadFolder = makeDownloadFolder;
     }
 
     /**
@@ -50,6 +57,7 @@ export class MapDataEvent {
                 downloadSource?: boolean;
                 cleanOutlierPoints?: boolean;
                 processRelevantContext?: boolean;
+                makeDownloadFolder?: boolean | null;
             };
 
             if (!parsed.source || !parsed.routeId || !parsed.pageId) {
@@ -80,6 +88,15 @@ export class MapDataEvent {
                 );
             }
 
+            if (
+                parsed.makeDownloadFolder != null &&
+                typeof parsed.makeDownloadFolder !== 'boolean'
+            ) {
+                throw new Error(
+                    'Invalid MapDataEvent: makeDownloadFolder must be a boolean when provided',
+                );
+            }
+
             // Validate that source is a valid PageDataSource enum value
             if (!Object.values(PageDataSource).includes(parsed.source)) {
                 throw new Error(`Invalid MapDataEvent: source must be one of ${Object.values(PageDataSource).join(', ')}, got: ${parsed.source}`);
@@ -93,6 +110,7 @@ export class MapDataEvent {
                 parsed.downloadSource,
                 parsed.cleanOutlierPoints ?? false,
                 parsed.processRelevantContext ?? true,
+                parsed.makeDownloadFolder ?? true,
             );
         } catch (error) {
             if (error instanceof SyntaxError) {

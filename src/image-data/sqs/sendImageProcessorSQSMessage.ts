@@ -12,6 +12,8 @@ export function serializeImageDataEventForQueue(event: ImageDataEvent): string {
         downloadSource: event.downloadSource,
         existingProcessedImageId: event.existingProcessedImageId,
         ...(event.versions != null && { versions: event.versions }),
+        pageId: event.pageId,
+        makeDownloadFolder: event.makeDownloadFolder,
     });
 }
 

@@ -1,5 +1,6 @@
 import { PoolClient } from 'pg';
 import { Queryable } from "zapatos/db";
+import { PageDataSource } from 'ropegeo-common/models';
 import getRopewikiPageHtml from "../http/getRopewikiPageHtml";
 import parseRopewikiPage from "../parsers/parseRopewikiPage";
 import upsertBetaSections from "../database/upsertBetaSections";
@@ -9,12 +10,16 @@ import upsertSiteLinks from "../database/upsertSiteLinks";
 import setBetaSectionsDeletedAt from "../database/setBetaSectionsDeletedAt";
 import setImagesDeletedAt from "../database/setImagesDeletedAt";
 import setPageSiteLinksDeletedAt from "../database/setPageSiteLinksDeletedAt";
+import hasActiveRopewikiRoutesForPage from "../database/hasActiveRopewikiRoutesForPage";
 import { ProgressLogger } from 'ropegeo-common/helpers';
 import sendImageProcessorSQSMessage from "../../image-data/sqs/sendImageProcessorSQSMessage";
 import upsertRelevanceContextJob from "../database/upsertRelevanceContextJob";
+import { upsertPageZipperPageReady } from "../util/upsertPageZipperPageReady";
+import buildImageDataReady from "../util/buildImageDataReady";
 import processPageAndImageAuthors from "./processPageAndImageAuthors";
 
 import RopewikiPage from "../types/page";
+import type { RopewikiImage } from "../types/image";
 
 /**
  * Processes a single Ropewiki page.
@@ -25,12 +30,14 @@ import RopewikiPage from "../types/page";
  * @param page - Page data to process
  * @param logger - Progress logger for tracking progress
  * @param savepointName - Savepoint name. Creates savepoint and handles rollback/release
+ * @param makeDownloadFolder - When true (default), seeds PageZipperJob readiness after savepoint
  */
 const processPage = async (
     client: Queryable,
     page: RopewikiPage,
     logger: ProgressLogger,
     savepointName: string,
+    makeDownloadFolder: boolean = true,
 ): Promise<void> => {
     // client should be a PoolClient that's already in a transaction
     const poolClient = client as PoolClient;
@@ -69,17 +76,43 @@ const processPage = async (
         );
 
         // Enqueue images that need processing (no processedImage, or source URL changed)
-        if (upsertedImages.length > 0 && process.env.DEV_ENVIRONMENT !== 'local') {
-            const toProcess = await filterImagesToProcess(poolClient, upsertedImages);
-            for (const img of toProcess) {
-                await sendImageProcessorSQSMessage(img.toImageDataEvent());
-            }
+        let toProcess: RopewikiImage[] = [];
+        if (upsertedImages.length > 0) {
+            toProcess = await filterImagesToProcess(poolClient, upsertedImages);
         }
 
         // Release the savepoint on success
         await poolClient.query(`RELEASE SAVEPOINT ${savepointName}`);
 
-        await upsertRelevanceContextJob(poolClient, page.id);
+        // Seed PageZipperJob before enqueueing images so flips cannot race an unseeded job.
+        if (makeDownloadFolder) {
+            const imageDataReady = buildImageDataReady(upsertedImages, toProcess);
+
+            const pageHasMapData = (await hasActiveRopewikiRoutesForPage(
+                poolClient,
+                page.id,
+            ))
+                ? undefined
+                : false;
+
+            await upsertPageZipperPageReady(
+                poolClient,
+                page.id,
+                PageDataSource.Ropewiki,
+                imageDataReady,
+                pageHasMapData,
+            );
+        }
+
+        if (toProcess.length > 0 && process.env.DEV_ENVIRONMENT !== 'local') {
+            for (const img of toProcess) {
+                await sendImageProcessorSQSMessage(
+                    img.toImageDataEvent(true, undefined, page.id, makeDownloadFolder),
+                );
+            }
+        }
+
+        await upsertRelevanceContextJob(poolClient, page.id, makeDownloadFolder);
 
         logger.logProgress(`${page.externalPageId} ${page.name}`);
     } catch (error) {

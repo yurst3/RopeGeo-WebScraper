@@ -7,6 +7,7 @@ export type MapSideRelevanceJobParams = {
     mapDataId: string;
     pageId: string;
     pageSource: PageDataSource;
+    makeDownloadFolder?: boolean;
 };
 
 export type RelevanceContextJobRow = s.MapDataRelevantContextJob.JSONSelectable;
@@ -38,13 +39,14 @@ const upsertRelevanceContextJobFromMap = async (
         throw new Error('upsertRelevanceContextJobFromMap: row missing after upsert');
     }
 
-    await tryEnqueueRelevanceJob(row);
+    await tryEnqueueRelevanceJob(row, params.makeDownloadFolder ?? true);
     return row;
 };
 
 const upsertRelevanceContextJobFromPage = async (
     conn: db.Queryable,
     pageId: string,
+    makeDownloadFolder: boolean = true,
 ): Promise<RelevanceContextJobRow> => {
     const now = new Date();
     await db
@@ -68,7 +70,7 @@ const upsertRelevanceContextJobFromPage = async (
         throw new Error('upsertRelevanceContextJobFromPage: row missing after upsert');
     }
 
-    await tryEnqueueRelevanceJob(row);
+    await tryEnqueueRelevanceJob(row, makeDownloadFolder);
     return row;
 };
 

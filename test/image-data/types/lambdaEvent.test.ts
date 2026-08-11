@@ -3,25 +3,36 @@ import { ImageDataEvent } from '../../../src/image-data/types/lambdaEvent';
 import { ImageVersion, PageDataSource } from 'ropegeo-common/models';
 import type { SqsRecord } from '@aws-lambda-powertools/parser/types';
 
+const pageId = 'page-aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaa';
+
 describe('ImageDataEvent', () => {
     describe('constructor', () => {
         it('creates ImageDataEvent with all properties', () => {
             const id = '11111111-1111-1111-1111-111111111111';
             const sourceUrl = 'https://ropewiki.com/images/thumb/1/2/Example.jpg/400px-Example.jpg';
 
-            const event = new ImageDataEvent(PageDataSource.Ropewiki, id, sourceUrl);
+            const event = new ImageDataEvent(PageDataSource.Ropewiki, id, sourceUrl, pageId);
 
             expect(event.pageDataSource).toBe(PageDataSource.Ropewiki);
             expect(event.pageImageId).toBe(id);
             expect(event.sourceUrl).toBe(sourceUrl);
+            expect(event.pageId).toBe(pageId);
             expect(event.downloadSource).toBe(true);
+        });
+
+        it('throws when pageId is empty', () => {
+            const id = '11111111-1111-1111-1111-111111111111';
+            const sourceUrl = 'https://ropewiki.com/images/thumb/1/2/Example.jpg/400px-Example.jpg';
+            expect(() => {
+                new ImageDataEvent(PageDataSource.Ropewiki, id, sourceUrl, '  ');
+            }).toThrow('Invalid ImageDataEvent: pageId must be a non-empty string');
         });
 
         it('throws when downloadSource is false without existingProcessedImageId', () => {
             const id = '11111111-1111-1111-1111-111111111111';
             const sourceUrl = 'https://ropewiki.com/images/thumb/1/2/Example.jpg/400px-Example.jpg';
             expect(() => {
-                new ImageDataEvent(PageDataSource.Ropewiki, id, sourceUrl, false);
+                new ImageDataEvent(PageDataSource.Ropewiki, id, sourceUrl, pageId, false);
             }).toThrow(
                 'Invalid ImageDataEvent: existingProcessedImageId is required when downloadSource is false',
             );
@@ -34,6 +45,7 @@ describe('ImageDataEvent', () => {
                 PageDataSource.Ropewiki,
                 id,
                 sourceUrl,
+                pageId,
                 false,
                 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
             );
@@ -43,7 +55,7 @@ describe('ImageDataEvent', () => {
         it('sets versions when provided and non-empty', () => {
             const id = '11111111-1111-1111-1111-111111111111';
             const sourceUrl = 'https://ropewiki.com/x.jpg';
-            const event = new ImageDataEvent(PageDataSource.Ropewiki, id, sourceUrl, true, undefined, [
+            const event = new ImageDataEvent(PageDataSource.Ropewiki, id, sourceUrl, pageId, true, undefined, [
                 ImageVersion.linkPreview,
             ]);
             expect(event.versions).toEqual([ImageVersion.linkPreview]);
@@ -53,7 +65,7 @@ describe('ImageDataEvent', () => {
             const id = '11111111-1111-1111-1111-111111111111';
             const sourceUrl = 'https://ropewiki.com/x.jpg';
             expect(() => {
-                new ImageDataEvent(PageDataSource.Ropewiki, id, sourceUrl, true, undefined, []);
+                new ImageDataEvent(PageDataSource.Ropewiki, id, sourceUrl, pageId, true, undefined, []);
             }).toThrow('Invalid ImageDataEvent: versions, when provided, must be non-empty');
         });
 
@@ -61,7 +73,7 @@ describe('ImageDataEvent', () => {
             const id = '11111111-1111-1111-1111-111111111111';
             const sourceUrl = 'https://ropewiki.com/x.jpg';
             expect(() => {
-                new ImageDataEvent(PageDataSource.Ropewiki, id, sourceUrl, true, undefined, [
+                new ImageDataEvent(PageDataSource.Ropewiki, id, sourceUrl, pageId, true, undefined, [
                     'bogus' as ImageVersion,
                 ]);
             }).toThrow(/unknown version/);
@@ -75,7 +87,7 @@ describe('ImageDataEvent', () => {
             const sourceUrl = 'https://ropewiki.com/images/thumb/1/2/Example.jpg/400px-Example.jpg';
 
             const record: SqsRecord = {
-                body: JSON.stringify({ pageDataSource, pageImageId: id, sourceUrl, downloadSource: true }),
+                body: JSON.stringify({ pageDataSource, pageImageId: id, sourceUrl, pageId, downloadSource: true }),
             } as SqsRecord;
 
             const event = ImageDataEvent.fromSQSEventRecord(record);
@@ -84,6 +96,7 @@ describe('ImageDataEvent', () => {
             expect(event.pageDataSource).toBe(pageDataSource);
             expect(event.pageImageId).toBe(id);
             expect(event.sourceUrl).toBe(sourceUrl);
+            expect(event.pageId).toBe(pageId);
             expect(event.downloadSource).toBe(true);
         });
 
@@ -93,7 +106,7 @@ describe('ImageDataEvent', () => {
             const legacyUrl = 'https://ropewiki.com/images/legacy.jpg';
 
             const record: SqsRecord = {
-                body: JSON.stringify({ pageDataSource, pageImageId: id, source: legacyUrl, downloadSource: true }),
+                body: JSON.stringify({ pageDataSource, pageImageId: id, source: legacyUrl, pageId, downloadSource: true }),
             } as SqsRecord;
 
             const event = ImageDataEvent.fromSQSEventRecord(record);
@@ -145,12 +158,12 @@ describe('ImageDataEvent', () => {
             const sourceUrl = 'https://ropewiki.com/images/thumb/1/2/Example.jpg/400px-Example.jpg';
 
             const record: SqsRecord = {
-                body: JSON.stringify({ pageImageId: id, sourceUrl, downloadSource: true }),
+                body: JSON.stringify({ pageImageId: id, sourceUrl, pageId, downloadSource: true }),
             } as SqsRecord;
 
             expect(() => {
                 ImageDataEvent.fromSQSEventRecord(record);
-            }).toThrow('Invalid ImageDataEvent: missing required fields (pageDataSource, pageImageId, sourceUrl)');
+            }).toThrow('Invalid ImageDataEvent: missing required fields (pageDataSource, pageImageId, sourceUrl, pageId)');
         });
 
         it('throws error when pageImageId field is missing', () => {
@@ -158,12 +171,12 @@ describe('ImageDataEvent', () => {
             const sourceUrl = 'https://ropewiki.com/images/thumb/1/2/Example.jpg/400px-Example.jpg';
 
             const record: SqsRecord = {
-                body: JSON.stringify({ pageDataSource, sourceUrl, downloadSource: true }),
+                body: JSON.stringify({ pageDataSource, sourceUrl, pageId, downloadSource: true }),
             } as SqsRecord;
 
             expect(() => {
                 ImageDataEvent.fromSQSEventRecord(record);
-            }).toThrow('Invalid ImageDataEvent: missing required fields (pageDataSource, pageImageId, sourceUrl)');
+            }).toThrow('Invalid ImageDataEvent: missing required fields (pageDataSource, pageImageId, sourceUrl, pageId)');
         });
 
         it('throws error when sourceUrl and legacy source are both missing', () => {
@@ -171,12 +184,26 @@ describe('ImageDataEvent', () => {
             const id = '11111111-1111-1111-1111-111111111111';
 
             const record: SqsRecord = {
-                body: JSON.stringify({ pageDataSource, pageImageId: id, downloadSource: true }),
+                body: JSON.stringify({ pageDataSource, pageImageId: id, pageId, downloadSource: true }),
             } as SqsRecord;
 
             expect(() => {
                 ImageDataEvent.fromSQSEventRecord(record);
-            }).toThrow('Invalid ImageDataEvent: missing required fields (pageDataSource, pageImageId, sourceUrl)');
+            }).toThrow('Invalid ImageDataEvent: missing required fields (pageDataSource, pageImageId, sourceUrl, pageId)');
+        });
+
+        it('throws error when pageId field is missing', () => {
+            const pageDataSource = PageDataSource.Ropewiki;
+            const id = '11111111-1111-1111-1111-111111111111';
+            const sourceUrl = 'https://ropewiki.com/images/thumb/1/2/Example.jpg/400px-Example.jpg';
+
+            const record: SqsRecord = {
+                body: JSON.stringify({ pageDataSource, pageImageId: id, sourceUrl, downloadSource: true }),
+            } as SqsRecord;
+
+            expect(() => {
+                ImageDataEvent.fromSQSEventRecord(record);
+            }).toThrow('Invalid ImageDataEvent: missing required fields (pageDataSource, pageImageId, sourceUrl, pageId)');
         });
 
         it('throws error when pageDataSource is not a valid PageDataSource enum value', () => {
@@ -184,7 +211,7 @@ describe('ImageDataEvent', () => {
             const sourceUrl = 'https://ropewiki.com/images/thumb/1/2/Example.jpg/400px-Example.jpg';
 
             const record: SqsRecord = {
-                body: JSON.stringify({ pageDataSource: 'invalid', pageImageId: id, sourceUrl, downloadSource: true }),
+                body: JSON.stringify({ pageDataSource: 'invalid', pageImageId: id, sourceUrl, pageId, downloadSource: true }),
             } as SqsRecord;
 
             expect(() => {
@@ -197,7 +224,7 @@ describe('ImageDataEvent', () => {
             const sourceUrl = 'https://ropewiki.com/images/thumb/1/2/Example.jpg/400px-Example.jpg';
 
             const record: SqsRecord = {
-                body: JSON.stringify({ pageDataSource: 'ropewiki', pageImageId: id, sourceUrl, downloadSource: true }),
+                body: JSON.stringify({ pageDataSource: 'ropewiki', pageImageId: id, sourceUrl, pageId, downloadSource: true }),
             } as SqsRecord;
 
             const event = ImageDataEvent.fromSQSEventRecord(record);
@@ -219,6 +246,7 @@ describe('ImageDataEvent', () => {
                     pageDataSource,
                     pageImageId: id,
                     sourceUrl,
+                    pageId,
                     downloadSource: false,
                     existingProcessedImageId: 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
                     extraField: 'ignored',
@@ -240,7 +268,7 @@ describe('ImageDataEvent', () => {
             const id = '11111111-1111-1111-1111-111111111111';
             const sourceUrl = 'https://ropewiki.com/images/thumb/1/2/Example.jpg/400px-Example.jpg';
             const record: SqsRecord = {
-                body: JSON.stringify({ pageDataSource, pageImageId: id, sourceUrl }),
+                body: JSON.stringify({ pageDataSource, pageImageId: id, sourceUrl, pageId }),
             } as SqsRecord;
 
             expect(() => {
@@ -253,7 +281,7 @@ describe('ImageDataEvent', () => {
             const id = '11111111-1111-1111-1111-111111111111';
             const sourceUrl = 'https://ropewiki.com/images/thumb/1/2/Example.jpg/400px-Example.jpg';
             const record: SqsRecord = {
-                body: JSON.stringify({ pageDataSource, pageImageId: id, sourceUrl, downloadSource: 'true' }),
+                body: JSON.stringify({ pageDataSource, pageImageId: id, sourceUrl, pageId, downloadSource: 'true' }),
             } as SqsRecord;
 
             expect(() => {
@@ -270,6 +298,7 @@ describe('ImageDataEvent', () => {
                     pageDataSource,
                     pageImageId: id,
                     sourceUrl,
+                    pageId,
                     downloadSource: false,
                     existingProcessedImageId: 'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
                 }),
@@ -288,6 +317,7 @@ describe('ImageDataEvent', () => {
                     pageDataSource,
                     pageImageId: id,
                     sourceUrl,
+                    pageId,
                     downloadSource: false,
                     existingProcessedImageId: 123,
                 }),
@@ -309,6 +339,7 @@ describe('ImageDataEvent', () => {
                     pageDataSource,
                     pageImageId: id,
                     sourceUrl,
+                    pageId,
                     downloadSource: false,
                 }),
             } as SqsRecord;
@@ -329,6 +360,7 @@ describe('ImageDataEvent', () => {
                     pageDataSource,
                     pageImageId: id,
                     sourceUrl,
+                    pageId,
                     downloadSource: true,
                     versions: [ImageVersion.banner, ImageVersion.linkPreview],
                 }),
@@ -347,6 +379,7 @@ describe('ImageDataEvent', () => {
                     pageDataSource,
                     pageImageId: id,
                     sourceUrl,
+                    pageId,
                     downloadSource: true,
                     versions: ['nope'],
                 }),

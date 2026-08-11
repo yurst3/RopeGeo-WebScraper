@@ -27,7 +27,7 @@ describe('sendImageProcessorSQSMessage', () => {
 
     it('skips sending and logs when DEV_ENVIRONMENT is local', async () => {
         process.env.DEV_ENVIRONMENT = 'local';
-        const event = new ImageDataEvent(PageDataSource.Ropewiki, 'image-id', 'https://source.jpg');
+        const event = new ImageDataEvent(PageDataSource.Ropewiki, 'image-id', 'https://source.jpg', 'page-aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaa');
         await sendImageProcessorSQSMessage(event);
         expect(consoleLogSpy).toHaveBeenCalledWith(
             expect.stringContaining('Skipping SQS message sending'),
@@ -38,7 +38,7 @@ describe('sendImageProcessorSQSMessage', () => {
     it('throws when not local and IMAGE_PROCESSOR_QUEUE_URL is not set', async () => {
         delete process.env.DEV_ENVIRONMENT;
         delete process.env.IMAGE_PROCESSOR_QUEUE_URL;
-        const event = new ImageDataEvent(PageDataSource.Ropewiki, 'id', 'https://s');
+        const event = new ImageDataEvent(PageDataSource.Ropewiki, 'id', 'https://s', 'page-aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaa');
         await expect(sendImageProcessorSQSMessage(event)).rejects.toThrow(
             'IMAGE_PROCESSOR_QUEUE_URL environment variable is not set',
         );
@@ -48,7 +48,7 @@ describe('sendImageProcessorSQSMessage', () => {
     it('sends message with serialized event body when not local', async () => {
         delete process.env.DEV_ENVIRONMENT;
         process.env.IMAGE_PROCESSOR_QUEUE_URL = 'https://sqs.us-east-1.amazonaws.com/123/queue';
-        const event = new ImageDataEvent(PageDataSource.Ropewiki, 'img-123', 'https://example.com/file.jpg');
+        const event = new ImageDataEvent(PageDataSource.Ropewiki, 'img-123', 'https://example.com/file.jpg', 'page-aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaa');
         await sendImageProcessorSQSMessage(event);
         expect(mockSendSQSMessage).toHaveBeenCalledTimes(1);
         const [body, queueUrl] = mockSendSQSMessage.mock.calls[0];
@@ -57,6 +57,7 @@ describe('sendImageProcessorSQSMessage', () => {
         expect(parsed.pageDataSource).toBe(PageDataSource.Ropewiki);
         expect(parsed.pageImageId).toBe('img-123');
         expect(parsed.sourceUrl).toBe('https://example.com/file.jpg');
+        expect(parsed.pageId).toBe('page-aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaa');
         expect(parsed.downloadSource).toBe(true);
         expect(parsed.existingProcessedImageId).toBeUndefined();
     });
@@ -68,6 +69,7 @@ describe('sendImageProcessorSQSMessage', () => {
             PageDataSource.Ropewiki,
             'img-123',
             'https://example.com/file.jpg',
+            'page-aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaa',
             false,
             'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
         );
@@ -83,6 +85,7 @@ describe('sendImageProcessorSQSMessage', () => {
             PageDataSource.Ropewiki,
             'img-123',
             'https://example.com/file.jpg',
+            'page-aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaa',
             false,
             'aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaaaaaa',
         );
@@ -100,6 +103,7 @@ describe('sendImageProcessorSQSMessage', () => {
             PageDataSource.Ropewiki,
             'img-123',
             'https://example.com/file.jpg',
+            'page-aaaaaaaa-aaaa-aaaa-aaaa-aaaaaaaa',
             true,
             undefined,
             [ImageVersion.linkPreview],

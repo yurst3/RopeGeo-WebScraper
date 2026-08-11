@@ -1,0 +1,76 @@
+---
+description: PageZipper Lambda — offline page ZIP bundles coordinated by PageZipperJob + SQS.
+alwaysApply: false
+globs: src/page-zipper/**/*,test/page-zipper/**/*
+---
+
+# PageZipper
+
+Use this rule when changing **`src/page-zipper/`**. For test layout and scripts, see **tests.mdc**.
+
+## What it does
+
+SQS-triggered Lambda (BatchSize 1, concurrency 10) that builds **offline page download ZIP bundles** for one page per `PageZipperQueue` message. For each job it:
+
+1. Confirms the `PageZipperJob` row still exists.
+2. Defensively checks readiness (assets present in S3/DB).
+3. Assembles a ZIP: online page JSON + bundled files (images, map tiles, region routes, …).
+4. Uploads `{pageId}.zip` to the page-zip bucket (or `.savedDownloadFolders/` locally).
+5. Writes the public URL to the page row’s **`downloadFolder`** column (and `downloadFolderBuiltAt`).
+6. Hard-deletes the `PageZipperJob` row.
+
+Entry: **`processPageZipperHandler`** → **`main`** → **`processFolderForPage`** via **`ropewikiFolderSourceLoop`**.
+
+Manual backfill: **`PageZipReprocessor`** (`reprocessPageZipperHandler`) creates fresh ready jobs and enqueues.
+
+## Coordination (`PageZipperJob`)
+
+Producers seed/flip readiness and enqueue only when all checks pass (`tryEnqueuePageZipperJob`):
+
+| Writer | Role |
+| --- | --- |
+| RopewikiPageProcessor | `pageReady` + seed `imageDataReady` |
+| ImageDataProcessor | flip `imageDataReady[imageId]` |
+| MapDataProcessor | `mapDataId` + seed `mapDataLegendItemsReady` |
+| MapDataRelevanceProcessor | flip `mapDataLegendItemsReady[legendItemId]` |
+
+`NULL` jsonb = unseeded; `{}` = seeded with nothing pending (ready). Gate with `makeDownloadFolder` / `remakeDownloadFolders` on processor and reprocessor events.
+
+## Who uses the folders
+
+| Consumer | How |
+| --- | --- |
+| **Mobile app** | When a page has `downloadFolder`, `ropegeo-common` **`FetchDownloadFolderTask`** downloads the ZIP, extracts to the page root, and converts wire JSON to offline paths via **`OnlinePageView.toOfflineFromExtractedBundle`**. |
+| **Page API / previews** | Online page views expose **`downloadFolder`** so clients know a bundle is available. |
+| **Ropewiki scraper** | **`invalidateDownloadFolderForPages`** clears `downloadFolder` when page content changes until PageZipper writes a new URL. |
+
+Keep ZIP layout compatible with **`DownloadPlatformHarness.paths`** and helpers in **`ropegeo-common`** (e.g. `page-response.json`, image/tile relative paths).
+
+## Layout (keep processors generic)
+
+```
+processors/     Orchestration — processFolderForPage, persistFolderZip, FolderSourceLoop types
+readiness/      Source-specific readiness (e.g. isRopewikiPageReadyForFolder)
+database/       Job upserts + source/table-specific folder queries
+zip/ s3/ util/  Shared I/O helpers
+sqs/            FIFO send/handle/DLQ
+lambda-handlers/ PageZipper + PageZipReprocessor
+```
+
+**Processors must stay generic.** Source-specific behavior belongs in **`FolderSourceLoop`** hooks or **`readiness/`** / **`database/`** modules.
+
+## Database naming
+
+Name functions after the **tables they touch**:
+
+- ✅ `getRopewikiPageIdsNeedingFolder`, `updateRopewikiFolderForPage`, `upsertPageZipperJobFromPage`
+- ❌ Generic “folder” names as DB function implementations
+
+## Testing
+
+Mirror source under **`test/page-zipper/`**:
+
+- **Unit**: mock DB/S3/API in `processors/`, `zip/`, `s3/`, `util/`, `readiness/`.
+- **Database**: one **`database/*.test.ts`** per query module (`TEST_*` env; included in **`test:database`**).
+
+DB columns stay **`downloadFolder`** / **`downloadFolderBuiltAt`**. Processor/file symbols use **`Folder`** where they denote the generic bundle concept.

@@ -23,7 +23,6 @@
     "test:map-data-relevance": "DB_HOST=127.0.0.1 DB_PORT=8081 DB_NAME=local DB_USER=localUser DB_PASSWORD=localPass node -r ./scripts/registerTxtRequire.js ./node_modules/ts-node/register/transpile-only --files scripts/mapDataRelevance/testRelevance.ts",
     "typecheck": "tsc --noEmit -p tsconfig.typecheck.json",
     "run:generateTrailTiles": "npx ts-node --project tsconfig.json --files src/fargate-tasks/generateTrailTiles/main.ts",
-    "run:buildDownloadFolders": "npx ts-node --project tsconfig.json --files src/fargate-tasks/buildDownloadFolders/main.ts",
     "run:backfillAttribution": "npx ts-node --project tsconfig.json --files src/fargate-tasks/backfillAttribution/main.ts",
     "lint:dev": "npx eslint --fix ./src",
     "merge:main-template": "npx ts-node --files scripts/mergeTemplate.ts cloudformation/stacks/main cloudformation/stacks/mergedMainTemplate.yaml WebScraper --fix-transform",
@@ -38,8 +37,8 @@
     "local-db:stop": "docker stop local-db",
     "test-db:start": "docker run --publish 127.0.0.1:8080:5432/tcp --name test-db -e POSTGRES_PASSWORD=testPass -e POSTGRES_USER=testUser -e POSTGRES_DB=test -d postgres; sleep 1; npm run migrate-test:up",
     "test-db:delete": "docker stop test-db; docker rm test-db",
-    "test:unit": "NODE_OPTIONS=\"$NODE_OPTIONS --experimental-vm-modules\" jest -i --testPathIgnorePatterns=/test/ropewiki/database/* --testPathIgnorePatterns=/test/ropewiki/integration/* --testPathIgnorePatterns=/test/map-data/database/* --testPathIgnorePatterns=/test/image-data/database/* --testPathIgnorePatterns='/test/api/.*/database/' --testPathIgnorePatterns='/test/api/.*/integration/' --testPathIgnorePatterns='/test/fargate-tasks/.*/database/'",
-    "test:database": "npm run test-db:start && (TEST_USER=testUser TEST_PASS=testPass TEST_HOST=127.0.0.1 TEST_PORT=8080 TEST_DB=test jest -i --testPathPatterns=/test/ropewiki/database/* --testPathPatterns=/test/ropewiki/integration/* --testPathPatterns=/test/map-data/database/* --testPathPatterns=/test/image-data/database/* --testPathPatterns='/test/api/.*/database/' --testPathPatterns='/test/api/.*/integration/' --testPathPatterns='/test/fargate-tasks/.*/database/'); R=$?; npm run test-db:delete || true; exit $R",
+    "test:unit": "NODE_OPTIONS=\"$NODE_OPTIONS --experimental-vm-modules\" jest -i --testPathIgnorePatterns=/test/ropewiki/database/* --testPathIgnorePatterns=/test/ropewiki/integration/* --testPathIgnorePatterns=/test/map-data/database/* --testPathIgnorePatterns=/test/image-data/database/* --testPathIgnorePatterns='/test/api/.*/database/' --testPathIgnorePatterns='/test/api/.*/integration/' --testPathIgnorePatterns=/test/page-zipper/database/* --testPathIgnorePatterns='/test/fargate-tasks/.*/database/'",
+    "test:database": "npm run test-db:start && (TEST_USER=testUser TEST_PASS=testPass TEST_HOST=127.0.0.1 TEST_PORT=8080 TEST_DB=test jest -i --testPathPatterns=/test/ropewiki/database/* --testPathPatterns=/test/ropewiki/integration/* --testPathPatterns=/test/map-data/database/* --testPathPatterns=/test/image-data/database/* --testPathPatterns='/test/api/.*/database/' --testPathPatterns='/test/api/.*/integration/' --testPathPatterns=/test/page-zipper/database/* --testPathPatterns='/test/fargate-tasks/.*/database/'); R=$?; npm run test-db:delete || true; exit $R",
     "test:local": "npm run test:unit && npm run test:database",
     "test:deploy": "NODE_OPTIONS=\"$NODE_OPTIONS --experimental-vm-modules\" jest -i",
     "get-prod-db-auth-token": "bash scripts/get-prod-db-auth-token.sh"
