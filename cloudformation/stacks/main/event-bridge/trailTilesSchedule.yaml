@@ -7,8 +7,8 @@ Resources:
     Properties:
       Name:
         'Fn::Sub': '${devEnvironment}-generate-trail-tiles-daily'
-      Description: Run generate trail tiles task once per day at noon UTC
-      ScheduleExpression: cron(0 12 * * ? *)
+      Description: Run generate trail tiles task once per day at 7pm UTC
+      ScheduleExpression: cron(0 19 * * ? *)
       State: ENABLED
       Targets:
         - Id: GenerateTrailTilesEcsTask

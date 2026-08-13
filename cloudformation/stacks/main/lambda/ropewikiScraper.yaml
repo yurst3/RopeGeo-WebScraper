@@ -15,7 +15,7 @@ Resources:
         CloudWatchEvent:
           Type: Schedule
           Properties:
-            Schedule: cron(0 0 * * ? *)
+            Schedule: cron(0 7 * * ? *)
             Input: '{"processPages": true, "processRoutes": true}'
       MemorySize: 1024
       Timeout: 900

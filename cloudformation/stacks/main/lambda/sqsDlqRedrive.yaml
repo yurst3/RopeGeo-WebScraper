@@ -5,7 +5,7 @@ Resources:
   SqsDlqRedrive:
     Type: 'AWS::Serverless::Function'
     Properties:
-      Description: Starts StartMessageMoveTask for all configured DLQs every 24h at noon UTC so messages redrive to source queues.
+      Description: Starts StartMessageMoveTask for all configured DLQs every 24h at 7pm UTC so messages redrive to source queues.
       Runtime: nodejs22.x
       Architectures:
         - arm64
@@ -15,9 +15,9 @@ Resources:
         Schedule:
           Type: Schedule
           Properties:
-            Schedule: cron(0 12 * * ? *)
+            Schedule: cron(0 19 * * ? *)
             Enabled: true
-            Description: Start DLQ redrive for all DLQs daily at noon UTC
+            Description: Start DLQ redrive for all DLQs daily at 7pm UTC
       MemorySize: 256
       Timeout: 60
       Role:

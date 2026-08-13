@@ -3,7 +3,7 @@ import { getDlqArns } from './util/getDlqArns';
 import { startMoveTaskForDlq } from './sqs/startMoveTaskForDlq';
 
 /**
- * Lambda handler invoked on a schedule (e.g. daily at noon). Starts StartMessageMoveTask for each
+ * Lambda handler invoked on a schedule (e.g. daily at 7pm UTC). Starts StartMessageMoveTask for each
  * configured DLQ so messages are redriven to their source queues. Skips DLQs that already have
  * an active move task.
  */
