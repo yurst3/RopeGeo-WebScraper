@@ -79,7 +79,10 @@ GeoJsonFeatureProperties:
       description: Unique identifier for the route
     name:
       type: string
-      description: Display name of the route
+      description: |
+        Display name of the route. When more than one Ropewiki page is linked to the
+        same route, the name is the canonical route name with ` (+n)` appended, where
+        `n` is one less than the number of linked pages (e.g. two pages → `Bear Creek Canyon (+1)`).
     type:
       type: string
       description: Route type

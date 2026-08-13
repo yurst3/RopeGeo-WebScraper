@@ -24,24 +24,31 @@ const processRoutes = async (
     // Some pages might not have routes for them
     let routesAndPages: Array<[Route | null, RopewikiPage]> = await getRoutesForPages(conn, pagesWithCoords);
 
-    // Find routes which were created by other scrapers that match the ropewiki pages
+    // Reuse existing routes that already sit on the same coordinates
     routesAndPages = await correlateExistingRoutes(conn, routesAndPages);
 
-    // Update all existing routes to have the same info as the ropewiki page
-    await Promise.all(
-        routesAndPages.filter(([route,]) => route !== null)
-            .map(([,page]) => updateRouteForPage(conn, page))
-    );
+    const existingCount = routesAndPages.filter(([route]) => route !== null).length;
+    const missingCount = routesAndPages.filter(([route]) => route === null).length;
+    console.log(`Found ${existingCount} existing routes (including coordinate matches), creating routes for ${missingCount} pages...`);
 
-    console.log(`Updated ${routesAndPages.filter(([route,]) => route !== null).length} existing routes, creating ${routesAndPages.filter(([route,]) => !route).length} new routes...`);
-
-    // Insert routes for pages that don't have routes
+    // Insert routes for pages that don't have routes (one route per unique coordinates)
     const allRoutesAndPages: Array<[Route, RopewikiPage]> = await insertMissingRoutes(conn, routesAndPages);
 
     console.log(`Upserting ${allRoutesAndPages.length} RopewikiRoutes...`);
 
-    // Upsert the ropewiki routes before processing the map data so we don't have any race conditions down the road
+    // Link pages to routes before naming so popularity can consider every linked page
     const ropewikiRoutes: RopewikiRoute[] = await upsertRopewikiRoutes(conn, allRoutesAndPages);
+
+    // Update each distinct route once from the most popular linked page
+    const pagesByRouteId = new Map<string, RopewikiPage>();
+    for (const [route, page] of allRoutesAndPages) {
+        if (!pagesByRouteId.has(route.id)) {
+            pagesByRouteId.set(route.id, page);
+        }
+    }
+    await Promise.all(
+        Array.from(pagesByRouteId.values()).map((page) => updateRouteForPage(conn, page)),
+    );
 
     // We only want to process ropewiki routes with map data in their pages
     const ropewikiRoutesWithMapData = await filterRopewikiRoutesWithMapData(conn, ropewikiRoutes);

@@ -4,6 +4,7 @@ import * as db from 'zapatos/db';
 import {
     countRopewikiRegionRoutes,
     getRopewikiRegionRoutesPage,
+    getRopewikiRegionRouteStats,
     sumRopewikiRegionRouteBytes,
 } from '../../../../src/api/getRoutes/database/getRopewikiRegionRoutes';
 
@@ -192,5 +193,133 @@ describe('getRopewikiRegionRoutes (integration)', () => {
             await db.sql`DELETE FROM "RopewikiPage" WHERE id = ${db.param(pageInChildId)}::uuid`.run(conn);
             await db.sql`DELETE FROM "RopewikiRegion" WHERE id = ${db.param(childRegionId)}::uuid OR id = ${db.param(parentRegionId)}::uuid`.run(conn);
         }
+    });
+
+    it('returns one row with (+n) name when multiple pages in the region share a route', async () => {
+        const regionId = 'db00000b-000b-4000-8000-00000000000b';
+        const page1Id = 'dc00000c-000c-4000-8000-00000000000c';
+        const page2Id = 'dd00000d-000d-4000-8000-00000000000d';
+        const routeId = 'de00000e-000e-4000-8000-00000000000e';
+
+        await db
+            .insert('RopewikiRegion', {
+                id: regionId,
+                parentRegionName: null,
+                name: 'GetRoutesSharedRouteRegion',
+                latestRevisionDate: '2025-01-01T00:00:00' as db.TimestampString,
+                rawPageCount: 0,
+                level: 0,
+                bestMonths: [],
+                url: 'https://ropewiki.com/GetRoutesSharedRouteRegion',
+            })
+            .run(conn);
+        await db
+            .insert('RopewikiPage', [
+                {
+                    id: page1Id,
+                    externalPageId: 'shared-route-page-1',
+                    name: 'Shared Page 1',
+                    region: regionId,
+                    url: 'https://ropewiki.com/Shared_Page_1',
+                    latestRevisionDate: '2025-01-01T00:00:00' as db.TimestampString,
+                },
+                {
+                    id: page2Id,
+                    externalPageId: 'shared-route-page-2',
+                    name: 'Shared Page 2',
+                    region: regionId,
+                    url: 'https://ropewiki.com/Shared_Page_2',
+                    latestRevisionDate: '2025-01-01T00:00:00' as db.TimestampString,
+                },
+            ])
+            .run(conn);
+        await db
+            .insert('Route', {
+                id: routeId,
+                name: 'Shared Route',
+                type: 'Canyon',
+                coordinates: { lat: 40.5, lon: -111.5 },
+            })
+            .run(conn);
+        await db
+            .insert('RopewikiRoute', [
+                { route: routeId, ropewikiPage: page1Id },
+                { route: routeId, ropewikiPage: page2Id },
+            ])
+            .run(conn);
+
+        try {
+            const total = await countRopewikiRegionRoutes(conn, regionId);
+            const result = await getRopewikiRegionRoutesPage(conn, regionId, null, 100, 0);
+            expect(total).toBe(1);
+            expect(result).toHaveLength(1);
+            expect(result[0]!.id).toBe(routeId);
+            expect(result[0]!.name).toBe('Shared Route (+1)');
+        } finally {
+            await db.sql`DELETE FROM "RopewikiRoute" WHERE route = ${db.param(routeId)}::uuid`.run(conn);
+            await db.sql`DELETE FROM "Route" WHERE id = ${db.param(routeId)}::uuid`.run(conn);
+            await db.sql`DELETE FROM "RopewikiPage" WHERE id = ${db.param(page1Id)}::uuid OR id = ${db.param(page2Id)}::uuid`.run(conn);
+            await db.sql`DELETE FROM "RopewikiRegion" WHERE id = ${db.param(regionId)}::uuid`.run(conn);
+        }
+    });
+
+    it('getRopewikiRegionRouteStats returns count and bytes together', async () => {
+        const regionId = 'df00000f-000f-4000-8000-00000000000f';
+        const pageId = 'e0000010-0010-4000-8000-000000000010';
+        const routeId = 'e1000011-0011-4000-8000-000000000011';
+
+        await db
+            .insert('RopewikiRegion', {
+                id: regionId,
+                parentRegionName: null,
+                name: 'GetRoutesStatsRegion',
+                latestRevisionDate: '2025-01-01T00:00:00' as db.TimestampString,
+                rawPageCount: 0,
+                level: 0,
+                bestMonths: [],
+                url: 'https://ropewiki.com/GetRoutesStatsRegion',
+            })
+            .run(conn);
+        await db
+            .insert('RopewikiPage', {
+                id: pageId,
+                externalPageId: 'stats-page',
+                name: 'Stats Page',
+                region: regionId,
+                url: 'https://ropewiki.com/Stats_Page',
+                latestRevisionDate: '2025-01-01T00:00:00' as db.TimestampString,
+            })
+            .run(conn);
+        await db
+            .insert('Route', {
+                id: routeId,
+                name: 'Stats Route',
+                type: 'Canyon',
+                coordinates: { lat: 40.9, lon: -111.9 },
+            })
+            .run(conn);
+        await db.insert('RopewikiRoute', { route: routeId, ropewikiPage: pageId }).run(conn);
+
+        try {
+            const stats = await getRopewikiRegionRouteStats(conn, regionId);
+            expect(stats.routeCount).toBe(1);
+            expect(stats.totalBytes).toBeGreaterThan(0);
+        } finally {
+            await db.sql`DELETE FROM "RopewikiRoute" WHERE route = ${db.param(routeId)}::uuid`.run(conn);
+            await db.sql`DELETE FROM "Route" WHERE id = ${db.param(routeId)}::uuid`.run(conn);
+            await db.sql`DELETE FROM "RopewikiPage" WHERE id = ${db.param(pageId)}::uuid`.run(conn);
+            await db.sql`DELETE FROM "RopewikiRegion" WHERE id = ${db.param(regionId)}::uuid`.run(conn);
+        }
+    });
+
+    it('returns empty results for an unknown region', async () => {
+        const unknownRegionId = 'eeeeeeee-eeee-eeee-eeee-eeeeeeeeeeee';
+        expect(await countRopewikiRegionRoutes(conn, unknownRegionId)).toBe(0);
+        expect(await sumRopewikiRegionRouteBytes(conn, unknownRegionId)).toBe(0);
+        expect(await getRopewikiRegionRoutesPage(conn, unknownRegionId, null, 100, 0)).toEqual([]);
+        expect(await getRopewikiRegionRouteStats(conn, unknownRegionId)).toEqual({
+            routeCount: 0,
+            totalBytes: 0,
+        });
     });
 });

@@ -437,6 +437,118 @@ describe('insertMissingRoutes (integration)', () => {
         expect(countAfter - countBefore).toBe(5); // All 5 routes should be inserted
     });
 
+    it('creates a single shared route for multiple pages with the same coordinates', async () => {
+        const latestRevisionDate = new Date('2025-01-02T12:34:56Z');
+
+        const page1 = new RopewikiPage(
+            '728',
+            'Obscure Name',
+            testRegionId,
+            'https://ropewiki.com/Obscure_Name',
+            latestRevisionDate,
+            { lat: 40.123, lon: -111.456 },
+            2,
+            '5.10a',
+        );
+        page1.userVotes = 1; // popularity 2
+
+        const page2 = new RopewikiPage(
+            '5597',
+            'Popular Name',
+            testRegionId,
+            'https://ropewiki.com/Popular_Name',
+            latestRevisionDate,
+            { lat: 40.123, lon: -111.456 },
+            5,
+            '5.9',
+        );
+        page2.userVotes = 10; // popularity 50
+
+        const inserted1 = await db.insert('RopewikiPage', page1.toDbRow()).run(conn);
+        const inserted2 = await db.insert('RopewikiPage', page2.toDbRow()).run(conn);
+
+        const dbPages1 = await db.select('RopewikiPage', { id: inserted1.id }).run(conn);
+        const dbPages2 = await db.select('RopewikiPage', { id: inserted2.id }).run(conn);
+        const pages = [
+            RopewikiPage.fromDbRow(dbPages1[0]!),
+            RopewikiPage.fromDbRow(dbPages2[0]!),
+        ];
+
+        const result = await insertMissingRoutes(conn, [
+            [null, pages[0]!],
+            [null, pages[1]!],
+        ]);
+
+        expect(result).toHaveLength(2);
+        expect(result[0]![0].id).toBe(result[1]![0].id);
+        expect(result[0]![0].name).toBe('Popular Name');
+        expect(result[1]![0].name).toBe('Popular Name');
+
+        const routes = await db.select('Route', {}).run(conn);
+        expect(routes).toHaveLength(1);
+        expect(routes[0]!.name).toBe('Popular Name');
+    });
+
+    it('on equal popularity among new pages, uses the first page name', async () => {
+        const latestRevisionDate = new Date('2025-01-02T12:34:56Z');
+
+        const page1 = new RopewikiPage(
+            '1',
+            'First Page',
+            testRegionId,
+            'https://ropewiki.com/First_Page',
+            latestRevisionDate,
+            { lat: 35.0, lon: -120.0 },
+            2,
+            '5.8',
+        );
+        page1.userVotes = 5;
+
+        const page2 = new RopewikiPage(
+            '2',
+            'Second Page',
+            testRegionId,
+            'https://ropewiki.com/Second_Page',
+            latestRevisionDate,
+            { lat: 35.0, lon: -120.0 },
+            2,
+            '5.8',
+        );
+        page2.userVotes = 5;
+
+        const inserted1 = await db.insert('RopewikiPage', page1.toDbRow()).run(conn);
+        const inserted2 = await db.insert('RopewikiPage', page2.toDbRow()).run(conn);
+
+        const dbPages1 = await db.select('RopewikiPage', { id: inserted1.id }).run(conn);
+        const dbPages2 = await db.select('RopewikiPage', { id: inserted2.id }).run(conn);
+
+        const result = await insertMissingRoutes(conn, [
+            [null, RopewikiPage.fromDbRow(dbPages1[0]!)],
+            [null, RopewikiPage.fromDbRow(dbPages2[0]!)],
+        ]);
+
+        expect(result[0]![0].id).toBe(result[1]![0].id);
+        expect(result[0]![0].name).toBe('First Page');
+    });
+
+    it('throws when a page without coordinates needs a route', async () => {
+        const page = new RopewikiPage(
+            '728',
+            'No Coords',
+            testRegionId,
+            'https://ropewiki.com/No_Coords',
+            new Date('2025-01-02T12:34:56Z'),
+        );
+        const inserted = await db.insert('RopewikiPage', page.toDbRow()).run(conn);
+        const pageWithId = RopewikiPage.fromDbRow(
+            (await db.select('RopewikiPage', { id: inserted.id }).run(conn))[0]!,
+        );
+
+        await expect(insertMissingRoutes(conn, [[null, pageWithId]])).rejects.toThrow(
+            /must have coordinates to insert a route/,
+        );
+    });
+
     it('preserves order: existing routes first, then newly inserted routes', async () => {
         const latestRevisionDate = new Date('2025-01-02T12:34:56Z');
         

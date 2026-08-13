@@ -38,14 +38,13 @@ describe('processRoutes', () => {
         jest.clearAllMocks();
         mockConn = {};
         mockProcessRopewikiRoutesHookFn = jest.fn<ProcessRopewikiRoutesHookFn>().mockResolvedValue(undefined);
-        // Default mock: convert routesAndPages to RopewikiRoute[]
         mockUpsertRopewikiRoutes.mockImplementation(async (conn, routesAndPages) => {
             return routesAndPages.map(([route, page]) => new RopewikiRoute(route.id!, page.id!));
         });
-        // Default mock: return all routes (assume all have KML URLs)
         mockFilterRopewikiRoutesWithMapData.mockImplementation(async (conn, routes) => {
             return routes;
         });
+        mockUpdateRouteForPage.mockResolvedValue(undefined);
     });
 
     const createTestPage = (pageid: string, name: string, hasCoordinates: boolean = true): RopewikiPage => {
@@ -88,7 +87,7 @@ describe('processRoutes', () => {
             [], // aka
             [], // betaSites
             undefined, // userVotes
-            undefined, // id
+            pageid, // id
         );
     };
 
@@ -162,33 +161,34 @@ describe('processRoutes', () => {
         expect(mockCorrelateExistingRoutes).toHaveBeenCalledWith(mockConn, routesAndPages);
     });
 
-    it('updates existing routes with page information', async () => {
+    it('updates each distinct route once after upserting RopewikiRoutes', async () => {
         const page1 = createTestPage('page-1', 'Page 1');
         const page2 = createTestPage('page-2', 'Page 2');
         const pagesWithCoords = [page1, page2];
         const route1 = createTestRoute('route-1', 'Route 1');
-        const route2 = createTestRoute('route-2', 'Route 2');
         const routesAndPages: Array<[Route | null, RopewikiPage]> = [
             [route1, page1],
-            [route2, page2],
+            [route1, page2],
         ];
 
         mockFilterUpsertedPages.mockReturnValue(pagesWithCoords);
         mockGetRoutesForPages.mockResolvedValue(routesAndPages);
         mockCorrelateExistingRoutes.mockResolvedValue(routesAndPages);
-        mockInsertMissingRoutes.mockResolvedValue([[route1, page1], [route2, page2]]);
+        mockInsertMissingRoutes.mockResolvedValue([[route1, page1], [route1, page2]]);
         const ropewikiRoutes = [
             new RopewikiRoute(route1.id!, page1.id!),
-            new RopewikiRoute(route2.id!, page2.id!),
+            new RopewikiRoute(route1.id!, page2.id!),
         ];
         mockUpsertRopewikiRoutes.mockResolvedValue(ropewikiRoutes);
         mockFilterRopewikiRoutesWithMapData.mockResolvedValue(ropewikiRoutes);
 
         await processRoutes(mockConn, pagesWithCoords, mockProcessRopewikiRoutesHookFn);
 
-        expect(mockUpdateRouteForPage).toHaveBeenCalledTimes(2);
+        expect(mockUpsertRopewikiRoutes).toHaveBeenCalled();
+        expect(mockUpdateRouteForPage).toHaveBeenCalledTimes(1);
         expect(mockUpdateRouteForPage).toHaveBeenCalledWith(mockConn, page1);
-        expect(mockUpdateRouteForPage).toHaveBeenCalledWith(mockConn, page2);
+        expect(mockUpsertRopewikiRoutes.mock.invocationCallOrder[0])
+            .toBeLessThan(mockUpdateRouteForPage.mock.invocationCallOrder[0]!);
     });
 
     it('does not update routes when no routes exist', async () => {
@@ -199,11 +199,9 @@ describe('processRoutes', () => {
         mockFilterUpsertedPages.mockReturnValue(pagesWithCoords);
         mockGetRoutesForPages.mockResolvedValue(routesAndPages);
         mockCorrelateExistingRoutes.mockResolvedValue(routesAndPages);
-        const newRoute = createTestRoute('route-1', 'Route 1');
-        mockInsertMissingRoutes.mockResolvedValue([[newRoute, page1]]);
-        const ropewikiRoutes = [new RopewikiRoute(newRoute.id!, page1.id!)];
-        mockUpsertRopewikiRoutes.mockResolvedValue(ropewikiRoutes);
-        mockFilterRopewikiRoutesWithMapData.mockResolvedValue(ropewikiRoutes);
+        mockInsertMissingRoutes.mockResolvedValue([]);
+        mockUpsertRopewikiRoutes.mockResolvedValue([]);
+        mockFilterRopewikiRoutesWithMapData.mockResolvedValue([]);
 
         await processRoutes(mockConn, pagesWithCoords, mockProcessRopewikiRoutesHookFn);
 
@@ -334,15 +332,21 @@ describe('processRoutes', () => {
 
         await processRoutes(mockConn, pagesWithCoords, mockProcessRopewikiRoutesHookFn);
 
-        // Verify call order by checking call counts at each step
         expect(mockFilterUpsertedPages).toHaveBeenCalledTimes(1);
         expect(mockGetRoutesForPages).toHaveBeenCalledTimes(1);
         expect(mockCorrelateExistingRoutes).toHaveBeenCalledTimes(1);
-        expect(mockUpdateRouteForPage).toHaveBeenCalledTimes(1);
         expect(mockInsertMissingRoutes).toHaveBeenCalledTimes(1);
         expect(mockUpsertRopewikiRoutes).toHaveBeenCalledTimes(1);
+        expect(mockUpdateRouteForPage).toHaveBeenCalledTimes(1);
         expect(mockFilterRopewikiRoutesWithMapData).toHaveBeenCalledTimes(1);
         expect(mockProcessRopewikiRoutesHookFn).toHaveBeenCalledTimes(1);
+
+        expect(mockInsertMissingRoutes.mock.invocationCallOrder[0])
+            .toBeLessThan(mockUpsertRopewikiRoutes.mock.invocationCallOrder[0]!);
+        expect(mockUpsertRopewikiRoutes.mock.invocationCallOrder[0])
+            .toBeLessThan(mockUpdateRouteForPage.mock.invocationCallOrder[0]!);
+        expect(mockUpdateRouteForPage.mock.invocationCallOrder[0])
+            .toBeLessThan(mockFilterRopewikiRoutesWithMapData.mock.invocationCallOrder[0]!);
     });
 
     it('propagates errors from filterUpsertedPages', async () => {
@@ -375,6 +379,8 @@ describe('processRoutes', () => {
         mockFilterUpsertedPages.mockReturnValue(pagesWithCoords);
         mockGetRoutesForPages.mockResolvedValue(routesAndPages);
         mockCorrelateExistingRoutes.mockResolvedValue(routesAndPages);
+        mockInsertMissingRoutes.mockResolvedValue([[route1, page1]]);
+        mockUpsertRopewikiRoutes.mockResolvedValue([new RopewikiRoute(route1.id!, page1.id!)]);
         mockUpdateRouteForPage.mockRejectedValue(error);
 
         await expect(processRoutes(mockConn, pagesWithCoords, mockProcessRopewikiRoutesHookFn)).rejects.toThrow('Update route failed');
@@ -405,7 +411,6 @@ describe('processRoutes', () => {
         mockFilterUpsertedPages.mockReturnValue(pagesWithCoords);
         mockGetRoutesForPages.mockResolvedValue(routesAndPages);
         mockCorrelateExistingRoutes.mockResolvedValue(routesAndPages);
-        mockUpdateRouteForPage.mockResolvedValue(undefined);
         mockInsertMissingRoutes.mockResolvedValue(allRoutesAndPages);
         mockUpsertRopewikiRoutes.mockRejectedValue(error);
 

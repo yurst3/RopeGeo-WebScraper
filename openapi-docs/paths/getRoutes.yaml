@@ -4,6 +4,8 @@ get:
   description: |
     Returns one page of routes as GeoJSON Features (`resultType` **route**, `results`, `total`, `page`). Use **limit** and **page** for pagination (defaults match ropegeo-common `RoutesParams`: limit 500, page 1). Order is stable by route id.
 
+    **Shared coordinates:** multiple Ropewiki pages may link to one route. In that case each feature’s `properties.name` is the route’s stored name plus ` (+n)`, where `n` is the number of additional linked pages (linked page count minus one).
+
     **Region scope:** pass **region-id** (UUID) and **region-source** (single page data source, e.g. `ropewiki`) together. They identify which catalogue’s routes to load for that region subtree. Omit both for a global listing.
 
     **Global source filter:** when **region-id** is omitted, optional **sources** is a pipe-delimited allow-list of page data sources (e.g. `ropewiki`). Omit or empty **sources** = all sources. **region-id** / **region-source** must not be combined with **sources** (ropegeo-common validation).

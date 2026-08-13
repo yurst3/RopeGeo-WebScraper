@@ -5,9 +5,12 @@ import {
     type DifficultyParams,
 } from 'ropegeo-common/models';
 import * as db from 'zapatos/db';
-import type * as s from 'zapatos/schema';
-import { routeFromDbRow } from '../../../converters/route';
 import { sqlAcaDifficultyOnPage } from '../../shared/acaPageDifficultySql';
+import {
+    routeFromDbRowWithLinkedPages,
+    sqlLinkedPageCountForRouteR,
+    type RouteRowWithLinkedPageCount,
+} from './routeRowWithLinkedPages';
 
 export type RouteListFilters = {
     routeTypes: RouteType[] | null;
@@ -88,6 +91,7 @@ export async function countAllRoutes(
 
 /**
  * Fetches one page of non-deleted routes, ordered by `id`, with optional filters.
+ * When a route has multiple linked Ropewiki pages, the display name includes `(+n)`.
  */
 export async function getAllRoutesPage(
     conn: db.Queryable,
@@ -103,20 +107,30 @@ export async function getAllRoutesPage(
     const sources = filters?.sources ?? null;
 
     const hasSourceFilter = sources !== null && sources.length > 0;
+    const linkedPageCountSql = sqlLinkedPageCountForRouteR();
 
     if (
         (routeTypes === null || routeTypes.length === 0) &&
         diff === null &&
         !hasSourceFilter
     ) {
-        const rows = await db.sql<db.SQL, s.Route.JSONSelectable[]>`
-            SELECT r.id, r.name, r.type, r.coordinates, r."createdAt", r."updatedAt", r."deletedAt", r."allowUpdates"
+        const rows = await db.sql<db.SQL, RouteRowWithLinkedPageCount[]>`
+            SELECT
+                r.id,
+                r.name,
+                r.type,
+                r.coordinates,
+                r."createdAt",
+                r."updatedAt",
+                r."deletedAt",
+                r."allowUpdates",
+                ${linkedPageCountSql} AS "linkedPageCount"
             FROM "Route" r
             WHERE r."deletedAt" IS NULL
             ORDER BY r.id ASC
             LIMIT ${db.param(limit)} OFFSET ${db.param(offset)}
         `.run(conn);
-        return rows.map((row) => routeFromDbRow(row));
+        return rows.map(routeFromDbRowWithLinkedPages);
     }
 
     const diffSql = sqlAcaDifficultyOnPage(diff);
@@ -135,8 +149,17 @@ export async function getAllRoutesPage(
               )`;
     const sourceCond = sqlSourceAllowList(sources);
 
-    const rows = await db.sql<db.SQL, s.Route.JSONSelectable[]>`
-        SELECT r.id, r.name, r.type, r.coordinates, r."createdAt", r."updatedAt", r."deletedAt", r."allowUpdates"
+    const rows = await db.sql<db.SQL, RouteRowWithLinkedPageCount[]>`
+        SELECT
+            r.id,
+            r.name,
+            r.type,
+            r.coordinates,
+            r."createdAt",
+            r."updatedAt",
+            r."deletedAt",
+            r."allowUpdates",
+            ${linkedPageCountSql} AS "linkedPageCount"
         FROM "Route" r
         WHERE r."deletedAt" IS NULL
           AND ${routeTypeCond}
@@ -145,5 +168,5 @@ export async function getAllRoutesPage(
         ORDER BY r.id ASC
         LIMIT ${db.param(limit)} OFFSET ${db.param(offset)}
     `.run(conn);
-    return rows.map((row) => routeFromDbRow(row));
+    return rows.map(routeFromDbRowWithLinkedPages);
 }

@@ -18,13 +18,11 @@ describe('updateRouteForPage (integration)', () => {
     const regionNameIds: {[name: string]: string} = { 'Test Region': testRegionId };
 
     beforeAll(async () => {
-        // Clean tables
         await db.sql`DELETE FROM "RopewikiRoute"`.run(conn);
         await db.sql`DELETE FROM "Route"`.run(conn);
         await db.sql`DELETE FROM "RopewikiPage"`.run(conn);
         await db.sql`DELETE FROM "RopewikiRegion"`.run(conn);
 
-        // Insert a test region (required foreign key)
         await db
             .insert('RopewikiRegion', {
                 id: testRegionId,
@@ -40,7 +38,6 @@ describe('updateRouteForPage (integration)', () => {
     });
 
     afterEach(async () => {
-        // Clean between tests
         await db.sql`DELETE FROM "RopewikiRoute"`.run(conn);
         await db.sql`DELETE FROM "Route"`.run(conn);
         await db.sql`DELETE FROM "RopewikiPage"`.run(conn);
@@ -54,41 +51,46 @@ describe('updateRouteForPage (integration)', () => {
         await pool.end();
     });
 
-    it('updates route name, coordinates, and updatedAt for a page with a route', async () => {
-        const latestRevisionDate = new Date('2025-01-02T12:34:56Z');
-        
-        // Create page
-        const page = RopewikiPage.fromResponseBody({
-            printouts: {
-                pageid: ['728'],
-                name: ['Test Page'],
-                region: [{ fulltext: 'Test Region' }],
-                url: ['https://ropewiki.com/Test_Page'],
-                coordinates: [{ lat: 40.123, lon: -111.456 }],
-                latestRevisionDate: [{ timestamp: String(Math.floor(latestRevisionDate.getTime() / 1000)), raw: '2025-01-02T12:34:56Z' }],
-            },
-        }, regionNameIds);
+    const insertPage = async (opts: {
+        externalPageId: string;
+        name: string;
+        coordinates: { lat: number; lon: number };
+        quality?: number;
+        userVotes?: number;
+    }): Promise<string> => {
+        const page = new RopewikiPage(
+            opts.externalPageId,
+            opts.name,
+            testRegionId,
+            `https://ropewiki.com/${opts.name.replace(/\s+/g, '_')}`,
+            new Date('2025-01-02T12:34:56Z'),
+            opts.coordinates,
+            opts.quality,
+        );
+        page.userVotes = opts.userVotes;
+        const inserted = await db.insert('RopewikiPage', page.toDbRow()).run(conn);
+        return inserted.id;
+    };
 
-        // Insert page
-        const dbRow = page.toDbRow();
-        const inserted = await db.insert('RopewikiPage', dbRow).run(conn);
-        const pageId = inserted.id;
+    it('updates route name and coordinates from the linked page when it is the only page', async () => {
+        const pageId = await insertPage({
+            externalPageId: '728',
+            name: 'Updated Page Name',
+            coordinates: { lat: 40.789, lon: -111.123 },
+            quality: 3,
+            userVotes: 2,
+        });
 
-        // Create route
         const routeId = '11111111-1111-1111-1111-111111111111';
-        const initialRouteName = 'Initial Route Name';
-        const initialCoordinates = { lat: 37.7749, lon: -122.4194 };
-        
         await db
             .insert('Route', {
                 id: routeId,
-                name: initialRouteName,
-                type: 'trail',
-                coordinates: initialCoordinates,
+                name: 'Initial Route Name',
+                type: 'Canyon',
+                coordinates: { lat: 37.7749, lon: -122.4194 },
             })
             .run(conn);
 
-        // Create RopewikiRoute entry
         await db
             .insert('RopewikiRoute', {
                 route: routeId,
@@ -97,21 +99,12 @@ describe('updateRouteForPage (integration)', () => {
             })
             .run(conn);
 
-        // Fetch page from database to get RopewikiPage object with ID
         const dbPages = await db.select('RopewikiPage', { id: pageId }).run(conn);
         const pageWithId = RopewikiPage.fromDbRow(dbPages[0]!);
 
-        // Update the page name and coordinates
-        pageWithId.name = 'Updated Page Name';
-        pageWithId.coordinates = { lat: 40.789, lon: -111.123 };
-
-        // Wait a bit to ensure updatedAt changes
         await new Promise(resolve => setTimeout(resolve, 10));
-
-        // Update the route
         await updateRouteForPage(conn, pageWithId);
 
-        // Verify the route was updated
         const updatedRoute = await db.selectOne('Route', { id: routeId }).run(conn);
 
         expect(updatedRoute).toBeDefined();
@@ -120,10 +113,92 @@ describe('updateRouteForPage (integration)', () => {
         expect(new Date(updatedRoute!.updatedAt).getTime()).toBeGreaterThan(new Date('2025-01-02T12:34:56Z').getTime());
     });
 
+    it('names the route after the most popular linked page, not the updated page', async () => {
+        const popularPageId = await insertPage({
+            externalPageId: '100',
+            name: 'Popular Canyon',
+            coordinates: { lat: 40.0, lon: -111.0 },
+            quality: 5,
+            userVotes: 20,
+        });
+        const updatedPageId = await insertPage({
+            externalPageId: '200',
+            name: 'Obscure Variant',
+            coordinates: { lat: 40.0, lon: -111.0 },
+            quality: 2,
+            userVotes: 1,
+        });
+
+        const routeId = '22222222-2222-2222-2222-222222222222';
+        await db
+            .insert('Route', {
+                id: routeId,
+                name: 'Stale Name',
+                type: 'Canyon',
+                coordinates: { lat: 39.0, lon: -110.0 },
+            })
+            .run(conn);
+
+        await db
+            .insert('RopewikiRoute', [
+                { route: routeId, ropewikiPage: popularPageId, mapData: null },
+                { route: routeId, ropewikiPage: updatedPageId, mapData: null },
+            ])
+            .run(conn);
+
+        const dbPages = await db.select('RopewikiPage', { id: updatedPageId }).run(conn);
+        await updateRouteForPage(conn, RopewikiPage.fromDbRow(dbPages[0]!));
+
+        const updatedRoute = await db.selectOne('Route', { id: routeId }).run(conn);
+        expect(updatedRoute!.name).toBe('Popular Canyon');
+        expect(updatedRoute!.coordinates).toEqual({ lat: 40.0, lon: -111.0 });
+    });
+
+    it('on equal popularity, picks the linked page with the lower id', async () => {
+        const pageAId = await insertPage({
+            externalPageId: 'aaa',
+            name: 'Alpha',
+            coordinates: { lat: 41.0, lon: -112.0 },
+            quality: 3,
+            userVotes: 3,
+        });
+        const pageBId = await insertPage({
+            externalPageId: 'bbb',
+            name: 'Beta',
+            coordinates: { lat: 41.0, lon: -112.0 },
+            quality: 3,
+            userVotes: 3,
+        });
+
+        // Ensure deterministic tie-break by id order
+        const [firstId, secondId] = pageAId < pageBId ? [pageAId, pageBId] : [pageBId, pageAId];
+        const firstName = firstId === pageAId ? 'Alpha' : 'Beta';
+
+        const routeId = '33333333-3333-3333-3333-333333333333';
+        await db
+            .insert('Route', {
+                id: routeId,
+                name: 'Stale',
+                type: 'Canyon',
+                coordinates: { lat: 41.0, lon: -112.0 },
+            })
+            .run(conn);
+
+        await db
+            .insert('RopewikiRoute', [
+                { route: routeId, ropewikiPage: firstId, mapData: null },
+                { route: routeId, ropewikiPage: secondId, mapData: null },
+            ])
+            .run(conn);
+
+        const dbPages = await db.select('RopewikiPage', { id: secondId }).run(conn);
+        await updateRouteForPage(conn, RopewikiPage.fromDbRow(dbPages[0]!));
+
+        const updatedRoute = await db.selectOne('Route', { id: routeId }).run(conn);
+        expect(updatedRoute!.name).toBe(firstName);
+    });
+
     it('throws error when page has no id', async () => {
-        const latestRevisionDate = new Date('2025-01-02T12:34:56Z');
-        
-        // Create page without ID (from constructor)
         const page = RopewikiPage.fromResponseBody({
             printouts: {
                 pageid: ['728'],
@@ -131,132 +206,61 @@ describe('updateRouteForPage (integration)', () => {
                 region: [{ fulltext: 'Test Region' }],
                 url: ['https://ropewiki.com/Test_Page'],
                 coordinates: [{ lat: 40.123, lon: -111.456 }],
-                latestRevisionDate: [{ timestamp: String(Math.floor(latestRevisionDate.getTime() / 1000)), raw: '2025-01-02T12:34:56Z' }],
+                latestRevisionDate: [{ timestamp: String(Math.floor(Date.now() / 1000)), raw: '2025-01-02T12:34:56Z' }],
             },
         }, regionNameIds);
 
-        // Attempt to update route - should throw error
         await expect(updateRouteForPage(conn, page)).rejects.toThrow('Page must have an id to update route');
     });
 
-    it('throws error when page has no coordinates', async () => {
-        const latestRevisionDate = new Date('2025-01-02T12:34:56Z');
-        
-        // Create page
-        const page = RopewikiPage.fromResponseBody({
-            printouts: {
-                pageid: ['728'],
-                name: ['Test Page'],
-                region: [{ fulltext: 'Test Region' }],
-                url: ['https://ropewiki.com/Test_Page'],
-                latestRevisionDate: [{ timestamp: String(Math.floor(latestRevisionDate.getTime() / 1000)), raw: '2025-01-02T12:34:56Z' }],
-            },
-        }, regionNameIds);
-
-        // Insert page
-        const dbRow = page.toDbRow();
-        const inserted = await db.insert('RopewikiPage', dbRow).run(conn);
-        const pageId = inserted.id;
-
-        // Fetch page from database to get RopewikiPage object with ID
-        const dbPages = await db.select('RopewikiPage', { id: pageId }).run(conn);
-        const pageWithId = RopewikiPage.fromDbRow(dbPages[0]!);
-
-        // Remove coordinates
-        pageWithId.coordinates = undefined;
-
-        // Attempt to update route - should throw error
-        await expect(updateRouteForPage(conn, pageWithId)).rejects.toThrow('Page must have coordinates to update route');
-    });
-
     it('does not update route when page has no linked route', async () => {
-        const latestRevisionDate = new Date('2025-01-02T12:34:56Z');
-        
-        // Create page
-        const page = RopewikiPage.fromResponseBody({
-            printouts: {
-                pageid: ['728'],
-                name: ['Test Page'],
-                region: [{ fulltext: 'Test Region' }],
-                url: ['https://ropewiki.com/Test_Page'],
-                coordinates: [{ lat: 40.123, lon: -111.456 }],
-                latestRevisionDate: [{ timestamp: String(Math.floor(latestRevisionDate.getTime() / 1000)), raw: '2025-01-02T12:34:56Z' }],
-            },
-        }, regionNameIds);
+        const pageId = await insertPage({
+            externalPageId: '728',
+            name: 'Test Page',
+            coordinates: { lat: 40.123, lon: -111.456 },
+        });
 
-        // Insert page
-        const dbRow = page.toDbRow();
-        const inserted = await db.insert('RopewikiPage', dbRow).run(conn);
-        const pageId = inserted.id;
-
-        // Create route (not linked to page)
         const routeId = '11111111-1111-1111-1111-111111111111';
         const initialRouteName = 'Initial Route Name';
         const initialCoordinates = { lat: 37.7749, lon: -122.4194 };
-        
+
         await db
             .insert('Route', {
                 id: routeId,
                 name: initialRouteName,
-                type: 'trail',
+                type: 'Canyon',
                 coordinates: initialCoordinates,
             })
             .run(conn);
 
-        // Fetch page from database to get RopewikiPage object with ID
         const dbPages = await db.select('RopewikiPage', { id: pageId }).run(conn);
-        const pageWithId = RopewikiPage.fromDbRow(dbPages[0]!);
+        await updateRouteForPage(conn, RopewikiPage.fromDbRow(dbPages[0]!));
 
-        // Update the page name and coordinates
-        pageWithId.name = 'Updated Page Name';
-        pageWithId.coordinates = { lat: 40.789, lon: -111.123 };
-
-        // Update the route (should not affect anything since page has no linked route)
-        await updateRouteForPage(conn, pageWithId);
-
-        // Verify the route was not updated
         const route = await db.selectOne('Route', { id: routeId }).run(conn);
-
-        expect(route).toBeDefined();
         expect(route!.name).toBe(initialRouteName);
         expect(route!.coordinates).toEqual(initialCoordinates);
     });
 
     it('does not update route when RopewikiRoute is deleted', async () => {
-        const latestRevisionDate = new Date('2025-01-02T12:34:56Z');
-        
-        // Create page
-        const page = RopewikiPage.fromResponseBody({
-            printouts: {
-                pageid: ['728'],
-                name: ['Test Page'],
-                region: [{ fulltext: 'Test Region' }],
-                url: ['https://ropewiki.com/Test_Page'],
-                coordinates: [{ lat: 40.123, lon: -111.456 }],
-                latestRevisionDate: [{ timestamp: String(Math.floor(latestRevisionDate.getTime() / 1000)), raw: '2025-01-02T12:34:56Z' }],
-            },
-        }, regionNameIds);
+        const pageId = await insertPage({
+            externalPageId: '728',
+            name: 'Test Page',
+            coordinates: { lat: 40.123, lon: -111.456 },
+        });
 
-        // Insert page
-        const dbRow = page.toDbRow();
-        const inserted = await db.insert('RopewikiPage', dbRow).run(conn);
-        const pageId = inserted.id;
-
-        // Create route
         const routeId = '11111111-1111-1111-1111-111111111111';
         const initialRouteName = 'Initial Route Name';
         const initialCoordinates = { lat: 37.7749, lon: -122.4194 };
-        
+
         await db
             .insert('Route', {
                 id: routeId,
                 name: initialRouteName,
-                type: 'trail',
+                type: 'Canyon',
                 coordinates: initialCoordinates,
             })
             .run(conn);
 
-        // Create RopewikiRoute entry and mark it as deleted
         await db
             .insert('RopewikiRoute', {
                 route: routeId,
@@ -265,26 +269,17 @@ describe('updateRouteForPage (integration)', () => {
             })
             .run(conn);
 
-        const now = new Date();
         await db
-            .update('RopewikiRoute', { deletedAt: now }, { route: routeId, ropewikiPage: pageId })
+            .update('RopewikiRoute', { deletedAt: new Date() }, { route: routeId, ropewikiPage: pageId })
             .run(conn);
 
-        // Fetch page from database to get RopewikiPage object with ID
         const dbPages = await db.select('RopewikiPage', { id: pageId }).run(conn);
         const pageWithId = RopewikiPage.fromDbRow(dbPages[0]!);
-
-        // Update the page name and coordinates
         pageWithId.name = 'Updated Page Name';
-        pageWithId.coordinates = { lat: 40.789, lon: -111.123 };
 
-        // Update the route (should not affect anything since RopewikiRoute is deleted)
         await updateRouteForPage(conn, pageWithId);
 
-        // Verify the route was not updated
         const route = await db.selectOne('Route', { id: routeId }).run(conn);
-
-        expect(route).toBeDefined();
         expect(route!.name).toBe(initialRouteName);
         expect(route!.coordinates).toEqual(initialCoordinates);
     });

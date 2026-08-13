@@ -8,7 +8,7 @@ value:
         coordinates: [-111.456, 40.123]
       properties:
         id: fc1abf41-5d4c-44d9-ac73-b0849f8255bb
-        name: Bear Creek Canyon
+        name: Bear Creek Canyon (+1)
         type: Canyon
     - type: Feature
       geometry:

@@ -1,13 +1,16 @@
 import { Route } from 'ropegeo-common/models';
 import * as db from 'zapatos/db';
-import type * as s from 'zapatos/schema';
-import { routeFromDbRow } from '../../../converters/route';
 import getAllowedRegionIds from '../../../ropewiki/database/getAllowedRegionIds';
 import { sqlAcaDifficultyOnPage } from '../../shared/acaPageDifficultySql';
 import type { RouteListFilters } from './getAllRoutes';
+import {
+    routeFromDbRowWithLinkedPages,
+    sqlLinkedPageCountForRouteR,
+    type RouteRowWithLinkedPageCount,
+} from './routeRowWithLinkedPages';
 
 /**
- * Counts routes linked to Ropewiki pages in the region subtree matching optional filters.
+ * Counts distinct routes linked to Ropewiki pages in the region subtree matching optional filters.
  */
 export async function countRopewikiRegionRoutes(
     conn: db.Queryable,
@@ -31,7 +34,7 @@ export async function countRopewikiRegionRoutes(
             : db.sql`r.type = ANY(${db.param(routeTypes)}::text[])`;
 
     const rows = await db.sql<db.SQL, { c: string }[]>`
-        SELECT COUNT(*)::text AS c
+        SELECT COUNT(DISTINCT r.id)::text AS c
         FROM "Route" r
         INNER JOIN "RopewikiRoute" rr ON rr.route = r.id AND rr."deletedAt" IS NULL
         INNER JOIN "RopewikiPage" p ON p.id = rr."ropewikiPage" AND p."deletedAt" IS NULL
@@ -44,7 +47,7 @@ export async function countRopewikiRegionRoutes(
 }
 
 /**
- * Sums serialized route coordinate payload bytes for routes in the region subtree matching optional filters.
+ * Sums serialized route coordinate payload bytes for distinct routes in the region subtree.
  */
 export async function sumRopewikiRegionRouteBytes(
     conn: db.Queryable,
@@ -68,14 +71,17 @@ export async function sumRopewikiRegionRouteBytes(
             : db.sql`r.type = ANY(${db.param(routeTypes)}::text[])`;
 
     const rows = await db.sql<db.SQL, { total: string }[]>`
-        SELECT COALESCE(SUM(LENGTH(r.coordinates::text)), 0)::text AS total
-        FROM "Route" r
-        INNER JOIN "RopewikiRoute" rr ON rr.route = r.id AND rr."deletedAt" IS NULL
-        INNER JOIN "RopewikiPage" p ON p.id = rr."ropewikiPage" AND p."deletedAt" IS NULL
-        WHERE r."deletedAt" IS NULL
-          AND p.region = ANY(${db.param(allowedRegionIds)}::uuid[])
-          AND ${routeTypeCond}
-          ${diffSql}
+        SELECT COALESCE(SUM(LENGTH(coords::text)), 0)::text AS total
+        FROM (
+            SELECT DISTINCT r.id, r.coordinates AS coords
+            FROM "Route" r
+            INNER JOIN "RopewikiRoute" rr ON rr.route = r.id AND rr."deletedAt" IS NULL
+            INNER JOIN "RopewikiPage" p ON p.id = rr."ropewikiPage" AND p."deletedAt" IS NULL
+            WHERE r."deletedAt" IS NULL
+              AND p.region = ANY(${db.param(allowedRegionIds)}::uuid[])
+              AND ${routeTypeCond}
+              ${diffSql}
+        ) distinct_routes
     `.run(conn);
     return parseInt(rows[0]!.total, 10);
 }
@@ -93,7 +99,8 @@ export async function getRopewikiRegionRouteStats(
 }
 
 /**
- * Fetches one page of routes in the region subtree, ordered by route id.
+ * Fetches one page of distinct routes in the region subtree, ordered by route id.
+ * When a route has multiple linked Ropewiki pages, the display name includes `(+n)`.
  */
 export async function getRopewikiRegionRoutesPage(
     conn: db.Queryable,
@@ -117,9 +124,19 @@ export async function getRopewikiRegionRoutesPage(
         routeTypes === null || routeTypes.length === 0
             ? db.sql`TRUE`
             : db.sql`r.type = ANY(${db.param(routeTypes)}::text[])`;
+    const linkedPageCountSql = sqlLinkedPageCountForRouteR();
 
-    const rows = await db.sql<db.SQL, s.Route.JSONSelectable[]>`
-        SELECT r.id, r.name, r.type, r.coordinates, r."createdAt", r."updatedAt", r."deletedAt", r."allowUpdates"
+    const rows = await db.sql<db.SQL, RouteRowWithLinkedPageCount[]>`
+        SELECT DISTINCT ON (r.id)
+            r.id,
+            r.name,
+            r.type,
+            r.coordinates,
+            r."createdAt",
+            r."updatedAt",
+            r."deletedAt",
+            r."allowUpdates",
+            ${linkedPageCountSql} AS "linkedPageCount"
         FROM "Route" r
         INNER JOIN "RopewikiRoute" rr ON rr.route = r.id AND rr."deletedAt" IS NULL
         INNER JOIN "RopewikiPage" p ON p.id = rr."ropewikiPage" AND p."deletedAt" IS NULL
@@ -130,5 +147,5 @@ export async function getRopewikiRegionRoutesPage(
         ORDER BY r.id ASC
         LIMIT ${db.param(limit)} OFFSET ${db.param(offset)}
     `.run(conn);
-    return rows.map((row) => routeFromDbRow(row));
+    return rows.map(routeFromDbRowWithLinkedPages);
 }
